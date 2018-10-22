@@ -20,8 +20,9 @@
  */
 package gov.nist.hla.ucef_gateway.common;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all

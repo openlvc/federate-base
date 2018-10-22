@@ -20,17 +20,14 @@
  */
 package gov.nist.hla.ucef_gateway.common;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
-import hla.rti1516e.NullFederateAmbassador;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;;
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
  * federates in order to minimize the amount of code required in UCEF HLA federate implementations. 
  */
-public class BaseFederate extends NullFederateAmbassador
+public class BaseFederate
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
