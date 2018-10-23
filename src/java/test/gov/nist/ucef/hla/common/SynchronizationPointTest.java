@@ -53,77 +53,77 @@ public class SynchronizationPointTest extends TestCase
 	//----------------------------------------------------------
 	/**
 	 * This is trivial test which validates that the IDs of the various
-	 * {@link SynchronizationPoint}s have not been changed without due consideration.
+	 * {@link SyncPoint}s have not been changed without due consideration.
 	 * 
 	 * If a change is made to the IDs, and the change is correct, this test should be updated to
 	 * reflect the new state of affairs.
 	 */
 	public void testIDs()
 	{
-		assertEquals( "readyToPopulate", SynchronizationPoint.READY_TO_POPULATE.getID() );
-		assertEquals( "readyToRun", SynchronizationPoint.READY_TO_RUN.getID() );
-		assertEquals( "readyToResign", SynchronizationPoint.READY_TO_RESIGN.getID() );
+		assertEquals( "readyToPopulate", SyncPoint.READY_TO_POPULATE.getID() );
+		assertEquals( "readyToRun", SyncPoint.READY_TO_RUN.getID() );
+		assertEquals( "readyToResign", SyncPoint.READY_TO_RESIGN.getID() );
 	}
 
 	/**
 	 * This is trivial test which validates that the IDs of the various
-	 * {@link SynchronizationPoint}s have not been changed without due consideration.
+	 * {@link SyncPoint}s have not been changed without due consideration.
 	 * 
 	 * If a change is made to the IDs, and the change is correct, this test should be updated to
 	 * reflect the new state of affairs.
 	 */
 	public void testFromID()
 	{
-		for( SynchronizationPoint sp : SynchronizationPoint.values() )
+		for( SyncPoint sp : SyncPoint.values() )
 		{
-			assertEquals( sp, SynchronizationPoint.fromID( sp.getID() ) );
+			assertEquals( sp, SyncPoint.fromID( sp.getID() ) );
 		}
 
 		// confirm that null is returned when trying to create a SynchronizationPoint from an invalid ID
-		assertEquals( null, SynchronizationPoint.fromID( "invalidID" ) );
+		assertEquals( null, SyncPoint.fromID( "invalidID" ) );
 		
 		// confirm that null is returned when trying to create a SynchronizationPoint from a null ID
-		assertEquals( null, SynchronizationPoint.fromID( null ) );
+		assertEquals( null, SyncPoint.fromID( null ) );
 	}
 	
 	/**
-	 * This test which verifies that the chronological ordering of the {@link SynchronizationPoint}s
-	 * is reflected in the results of calls to the {@link SynchronizationPoint#isBefore(SynchronizationPoint)}
-	 * and {@link SynchronizationPoint#isAfter(SynchronizationPoint)} methods.
+	 * This test which verifies that the chronological ordering of the {@link SyncPoint}s
+	 * is reflected in the results of calls to the {@link SyncPoint#isBefore(SyncPoint)}
+	 * and {@link SyncPoint#isAfter(SyncPoint)} methods.
 	 */
 	public void testOrder()
 	{
 		// isBefore() and isAfter() will always return false if the 
 		// other SynchronizationPoint is null 
-		for( SynchronizationPoint sp : SynchronizationPoint.values() )
+		for( SyncPoint sp : SyncPoint.values() )
 		{
 			assertFalse( sp.isBefore( null ) );
 			assertFalse( sp.isAfter( null ) );
 		}
 		
 		// READY_TO_POPULATE
-		assertFalse( SynchronizationPoint.READY_TO_POPULATE.isBefore( SynchronizationPoint.READY_TO_POPULATE ));
-		assertTrue( SynchronizationPoint.READY_TO_POPULATE.isBefore( SynchronizationPoint.READY_TO_RUN ));
-		assertTrue( SynchronizationPoint.READY_TO_POPULATE.isBefore( SynchronizationPoint.READY_TO_RESIGN ));
-		assertFalse( SynchronizationPoint.READY_TO_POPULATE.isAfter( SynchronizationPoint.READY_TO_POPULATE ));
-		assertFalse( SynchronizationPoint.READY_TO_POPULATE.isAfter( SynchronizationPoint.READY_TO_RUN ));
-		assertFalse( SynchronizationPoint.READY_TO_POPULATE.isAfter( SynchronizationPoint.READY_TO_RESIGN ));
+		assertFalse( SyncPoint.READY_TO_POPULATE.isBefore( SyncPoint.READY_TO_POPULATE ));
+		assertTrue( SyncPoint.READY_TO_POPULATE.isBefore( SyncPoint.READY_TO_RUN ));
+		assertTrue( SyncPoint.READY_TO_POPULATE.isBefore( SyncPoint.READY_TO_RESIGN ));
+		assertFalse( SyncPoint.READY_TO_POPULATE.isAfter( SyncPoint.READY_TO_POPULATE ));
+		assertFalse( SyncPoint.READY_TO_POPULATE.isAfter( SyncPoint.READY_TO_RUN ));
+		assertFalse( SyncPoint.READY_TO_POPULATE.isAfter( SyncPoint.READY_TO_RESIGN ));
 		
 		// READY_TO_RUN
-		assertFalse( SynchronizationPoint.READY_TO_RUN.isBefore( SynchronizationPoint.READY_TO_POPULATE ));
-		assertFalse( SynchronizationPoint.READY_TO_RUN.isBefore( SynchronizationPoint.READY_TO_RUN ));
-		assertTrue( SynchronizationPoint.READY_TO_RUN.isBefore( SynchronizationPoint.READY_TO_RESIGN ));
-		assertTrue( SynchronizationPoint.READY_TO_RUN.isAfter( SynchronizationPoint.READY_TO_POPULATE ));
-		assertFalse( SynchronizationPoint.READY_TO_RUN.isAfter( SynchronizationPoint.READY_TO_RUN ));
-		assertFalse( SynchronizationPoint.READY_TO_RUN.isAfter( SynchronizationPoint.READY_TO_RESIGN ));
+		assertFalse( SyncPoint.READY_TO_RUN.isBefore( SyncPoint.READY_TO_POPULATE ));
+		assertFalse( SyncPoint.READY_TO_RUN.isBefore( SyncPoint.READY_TO_RUN ));
+		assertTrue( SyncPoint.READY_TO_RUN.isBefore( SyncPoint.READY_TO_RESIGN ));
+		assertTrue( SyncPoint.READY_TO_RUN.isAfter( SyncPoint.READY_TO_POPULATE ));
+		assertFalse( SyncPoint.READY_TO_RUN.isAfter( SyncPoint.READY_TO_RUN ));
+		assertFalse( SyncPoint.READY_TO_RUN.isAfter( SyncPoint.READY_TO_RESIGN ));
 		
 		// READY_TO_RESIGN
-		assertFalse( SynchronizationPoint.READY_TO_RESIGN.isBefore( SynchronizationPoint.READY_TO_POPULATE ));
-		assertFalse( SynchronizationPoint.READY_TO_RESIGN.isBefore( SynchronizationPoint.READY_TO_RUN ));
-		assertFalse( SynchronizationPoint.READY_TO_RESIGN.isBefore( SynchronizationPoint.READY_TO_RESIGN ));
-		assertTrue( SynchronizationPoint.READY_TO_RESIGN.isAfter( SynchronizationPoint.READY_TO_POPULATE ));
-		assertTrue( SynchronizationPoint.READY_TO_RESIGN.isAfter( SynchronizationPoint.READY_TO_RUN ));
-		assertFalse( SynchronizationPoint.READY_TO_RESIGN.isAfter( SynchronizationPoint.READY_TO_RESIGN ));
+		assertFalse( SyncPoint.READY_TO_RESIGN.isBefore( SyncPoint.READY_TO_POPULATE ));
+		assertFalse( SyncPoint.READY_TO_RESIGN.isBefore( SyncPoint.READY_TO_RUN ));
+		assertFalse( SyncPoint.READY_TO_RESIGN.isBefore( SyncPoint.READY_TO_RESIGN ));
+		assertTrue( SyncPoint.READY_TO_RESIGN.isAfter( SyncPoint.READY_TO_POPULATE ));
+		assertTrue( SyncPoint.READY_TO_RESIGN.isAfter( SyncPoint.READY_TO_RUN ));
+		assertFalse( SyncPoint.READY_TO_RESIGN.isAfter( SyncPoint.READY_TO_RESIGN ));
 	}	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

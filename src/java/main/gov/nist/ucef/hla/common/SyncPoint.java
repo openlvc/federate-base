@@ -29,7 +29,7 @@ import java.util.Collections;
  * least notionally acknowledge, and preferably adhere to in order to interact sensibly with the
  * federate manager.
  */
-public enum SynchronizationPoint
+public enum SyncPoint
 {
     //----------------------------------------------------------
     //                        VALUES
@@ -46,7 +46,7 @@ public enum SynchronizationPoint
 	// a map for finding a Synchronization point for a string key - this is to provide
 	// quick lookups and avoid iterating over all SynchronizationPoints (though admittedly
 	// there are only three of them)
-	private static final Map<String,SynchronizationPoint> keyToSynchronizationPointLookup =
+	private static final Map<String,SyncPoint> keyToSynchronizationPointLookup =
 	    Collections.unmodifiableMap( initializeMapping() );
 
 	//----------------------------------------------------------
@@ -61,7 +61,7 @@ public enum SynchronizationPoint
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private SynchronizationPoint( String id, String name )
+	private SyncPoint( String id, String name )
 	{
 		this.id = id;
 		this.name = name;
@@ -71,7 +71,7 @@ public enum SynchronizationPoint
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
-	 * Returns the human readable text describing this {@link SynchronizationPoint}
+	 * Returns the human readable text describing this {@link SyncPoint}
 	 */
 	@Override
 	public String toString()
@@ -96,7 +96,7 @@ public enum SynchronizationPoint
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
-	public boolean isBefore( SynchronizationPoint other )
+	public boolean isBefore( SyncPoint other )
 	{
 		// NOTE: relies on the enumerated values being defined in the expected 
 		//       chronological order
@@ -110,42 +110,59 @@ public enum SynchronizationPoint
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
-	public boolean isAfter( SynchronizationPoint other )
+	public boolean isAfter( SyncPoint other )
 	{
 		// NOTE: relies on the enumerated values being defined in the expected 
 		//       chronological order
 		return other != null && this.ordinal() > other.ordinal();
 	}
 
+	/**
+	 * Determine if this synchronization point is not the same as the provided synchronization point
+	 * 
+	 * NOTE: this is just a negatiion of the standard enumeration equals() method provided to improve 
+	 *       code readbility
+	 * 
+	 * @param other the other synchronization point
+	 * @return true if this synchronization point not the same as the provided synchronization point,
+	 *         false otherwise
+	 */
+	public boolean isNot( SyncPoint other )
+	{
+		// NOTE: relies on the enumerated values being defined in the expected 
+		//       chronological order
+		return !this.equals(other);
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
 	 * Converts a text identifier uniquely identifying a synchronization point to a
-	 * {@link SynchronizationPoint} instance.
+	 * {@link SyncPoint} instance.
 	 * 
 	 * NOTE: if the key is not a valid text identifier for a synchronization point, null will be
 	 * returned
 	 * 
 	 * @param id the text identifier uniquely identifying a synchronization point
-	 * @return the corresponding {@link SynchronizationPoint}, or null if the key is not a valid
-	 *         text identifier for a {@link SynchronizationPoint}.
+	 * @return the corresponding {@link SyncPoint}, or null if the key is not a valid
+	 *         text identifier for a {@link SyncPoint}.
 	 */
-	public static SynchronizationPoint fromID( String id )
+	public static SyncPoint fromID( String id )
 	{
 		return keyToSynchronizationPointLookup.get( id );
 	}
 
 	/**
-	 * Private initializer method for the key-to-{@link SynchronizationPoint} lookup map
+	 * Private initializer method for the key-to-{@link SyncPoint} lookup map
 	 * 
 	 * @return a lookup map which pairs text identifiers and the corresponding
 	 *         SyncronizationPoints
 	 */
-	private static Map<String,SynchronizationPoint> initializeMapping()
+	private static Map<String,SyncPoint> initializeMapping()
 	{
-		Map<String,SynchronizationPoint> lookupMap = new HashMap<String,SynchronizationPoint>();
-		for( SynchronizationPoint s : SynchronizationPoint.values() )
+		Map<String,SyncPoint> lookupMap = new HashMap<String,SyncPoint>();
+		for( SyncPoint s : SyncPoint.values() )
 		{
 			lookupMap.put( s.id, s );
 		}
