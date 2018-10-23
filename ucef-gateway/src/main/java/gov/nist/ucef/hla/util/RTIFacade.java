@@ -18,20 +18,23 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.hla.ucef_gateway;
+package gov.nist.ucef.hla.util;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import gov.nist.ucef.hla.common.FederateBase;
 
 /**
- * Placeholder Test Case for sanity checking of project structure - to be deleted
+ * The purpose of this class is to provide simplified access to comon RTI related functions in
+ * order to reduce the amount of code required in UCEF HLA federate related implementations. 
  */
-public class PlaceHolderTest extends TestCase
+public class RTIFacade
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+    private static final Logger logger = LogManager.getLogger(FederateBase.class);
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -40,6 +43,10 @@ public class PlaceHolderTest extends TestCase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	public RTIFacade()
+	{
+		logger.info("RTIFacade!");
+	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
@@ -52,29 +59,4 @@ public class PlaceHolderTest extends TestCase
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	/**
-	 * Create the test case
-	 *
-	 * @param testName name of the test case
-	 */
-	public PlaceHolderTest( String testName )
-	{
-		super( testName );
-	}
-
-	/**
-	 * @return the suite of tests being tested
-	 */
-	public static Test suite()
-	{
-		return new TestSuite( PlaceHolderTest.class );
-	}
-
-	/**
-	 * Do some very rigorous and in depth testing here...
-	 */
-	public void testApp()
-	{
-		assertTrue( true );
-	}
 }

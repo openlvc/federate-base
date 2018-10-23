@@ -18,7 +18,7 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.hla.ucef_gateway.common;
+package gov.nist.ucef.hla.common;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +53,7 @@ public enum SynchronizationPoint
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	// the string identifier for the synchronization point
-	private String key;
+	private String id;
 	// the "human readable" text name for the synchronization point, primarily used for
 	// and debugging purposes
 	private String name;
@@ -61,9 +61,9 @@ public enum SynchronizationPoint
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private SynchronizationPoint( String key, String name )
+	private SynchronizationPoint( String id, String name )
 	{
-		this.key = key;
+		this.id = id;
 		this.name = name;
 	}
 
@@ -84,9 +84,9 @@ public enum SynchronizationPoint
 	 * 
 	 * @return the text identifier uniquely identifying this synchronization point (internal use)
 	 */
-	public String getKey()
+	public String getID()
 	{
-		return this.key;
+		return this.id;
 	}
 
 	/**
@@ -127,13 +127,13 @@ public enum SynchronizationPoint
 	 * NOTE: if the key is not a valid text identifier for a synchronization point, null will be
 	 * returned
 	 * 
-	 * @param key the text identifier uniquely identifying a synchronization point
+	 * @param id the text identifier uniquely identifying a synchronization point
 	 * @return the corresponding {@link SynchronizationPoint}, or null if the key is not a valid
 	 *         text identifier for a {@link SynchronizationPoint}.
 	 */
-	public static SynchronizationPoint fromKey( String key )
+	public static SynchronizationPoint fromID( String id )
 	{
-		return keyToSynchronizationPointLookup.get( key );
+		return keyToSynchronizationPointLookup.get( id );
 	}
 
 	/**
@@ -147,7 +147,7 @@ public enum SynchronizationPoint
 		Map<String,SynchronizationPoint> lookupMap = new HashMap<String,SynchronizationPoint>();
 		for( SynchronizationPoint s : SynchronizationPoint.values() )
 		{
-			lookupMap.put( s.key, s );
+			lookupMap.put( s.id, s );
 		}
 		return lookupMap;
 	}

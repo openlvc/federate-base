@@ -18,21 +18,23 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.hla.ucef_gateway.common;
+package gov.nist.ucef.hla.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
- * federates in order to minimize the amount of code required in UCEF HLA federate implementations. 
+ * federate interactions in order to minimize the amount of code required in UCEF HLA federate
+ * implementations. 
  */
-public class BaseFederate
+public abstract class InteractionBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getLogger(BaseFederate.class);
+    private static final Logger logger = LogManager.getLogger(InteractionBase.class);
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -41,9 +43,9 @@ public class BaseFederate
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public BaseFederate()
+	public InteractionBase()
 	{
-		logger.info("BaseFederate!");
+		logger.info(this.getClass().getName());
 	}
 
 	//----------------------------------------------------------

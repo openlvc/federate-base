@@ -18,24 +18,23 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.hla.ucef_gateway.util;
+package gov.nist.ucef.hla.common;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
-import gov.nist.hla.ucef_gateway.common.BaseFederate;
-
 /**
- * The purpose of this class is to provide simplified access to comon RTI related functions in
- * order to reduce the amount of code required in UCEF HLA federate related implementations. 
+ * The purpose of this class is to provide (as much as is possible) methods which are common to all
+ * federate objects in order to minimize the amount of code required in UCEF HLA federate implementations.
+ * 
+ * This class is not meant to be used directly and so is abstract. 
  */
-public class RTIFacade
+public abstract class ObjectBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getLogger(BaseFederate.class);
+    private static final Logger logger = LogManager.getLogger(ObjectBase.class);
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -44,11 +43,11 @@ public class RTIFacade
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public RTIFacade()
+	public ObjectBase()
 	{
-		logger.info("RTIFacade!");
+		logger.info(this.getClass().getName());
 	}
-
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
