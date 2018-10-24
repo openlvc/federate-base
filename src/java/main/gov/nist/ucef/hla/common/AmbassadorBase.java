@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.FederateHandle;
 import hla.rti1516e.FederateHandleSet;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
@@ -203,13 +204,24 @@ public class AmbassadorBase extends NullFederateAmbassador
 	}
 
 	@Override
-	public void discoverObjectInstance( ObjectInstanceHandle theObject,
-	                                    ObjectClassHandle theObjectClass,
-	                                    String objectName )
+	public void discoverObjectInstance( ObjectInstanceHandle objectInstanceHandle,
+	                                    ObjectClassHandle objectClassHandle,
+	                                    String objectName)
 	    throws FederateInternalError
 	{
-		logger.error( "Discoverd Object: handle=" + theObject + ", classHandle=" +
-		     theObjectClass + ", name=" + objectName );
+		logger.error( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
+		     objectClassHandle + ", name=" + objectName);
+	}
+	
+	@Override
+	public void discoverObjectInstance( ObjectInstanceHandle objectInstanceHandle,
+	                                    ObjectClassHandle objectClassHandle,
+	                                    String objectName,
+	                                    FederateHandle federateHandle)
+    	throws FederateInternalError
+	{
+		logger.error( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
+			objectClassHandle + ", name=" + objectName + " federate="+federateHandle);
 	}
 
 	@Override
@@ -235,11 +247,11 @@ public class AmbassadorBase extends NullFederateAmbassador
 	}
 
 	@Override
-	public void reflectAttributeValues( ObjectInstanceHandle theObject,
-	                                    AttributeHandleValueMap theAttributes,
+	public void reflectAttributeValues( ObjectInstanceHandle objectInstanceHandle,
+	                                    AttributeHandleValueMap attributeHandleValueMap,
 	                                    byte[] tag,
 	                                    OrderType sentOrdering,
-	                                    TransportationTypeHandle theTransport,
+	                                    TransportationTypeHandle transportTypeHandle,
 	                                    LogicalTime time,
 	                                    OrderType receivedOrdering,
 	                                    SupplementalReflectInfo reflectInfo )
@@ -248,7 +260,12 @@ public class AmbassadorBase extends NullFederateAmbassador
 		StringBuilder builder = new StringBuilder( "Reflection for object:" );
 		
 		// print the handle
-		builder.append( "\n\thandle = " + theObject );
+		builder.append( "\n\thandle = " + objectInstanceHandle );
+		builder.append( ": " );
+		ObjectClassHandle objectClassHandle = federate.getClassHandleFromInstanceHandle( objectInstanceHandle );
+		String instanceIdentifier = federate.getClassIdentifierFromClassHandle( objectClassHandle );
+		builder.append( instanceIdentifier == null ? "UNKNOWN INSTANCE" : instanceIdentifier );
+		
 		// print the tag
 		builder.append( "\n\ttag = " + new String(tag) );
 		// print the time (if we have it) we'll get null if we are just receiving
@@ -259,20 +276,20 @@ public class AmbassadorBase extends NullFederateAmbassador
 		}
 		
 		// print the attribute information
-		builder.append( "\n\tattributeCount = " + theAttributes.size() );
-		for( AttributeHandle attributeHandle : theAttributes.keySet() )
+		builder.append( "\n\tattributeCount = " + attributeHandleValueMap.size() );
+		for( AttributeHandle attributeHandle : attributeHandleValueMap.keySet() )
 		{
 			// print the attribute handle
 			builder.append( "\n\t\tattributeHandle = " );
 
-			String attributeIdentifier = federate.getAttributeIdentifierFromHandle( attributeHandle );
+			String attributeIdentifier = federate.getAttributeIdentifierFromHandle( objectClassHandle, attributeHandle );
 			// if we're dealing with Flavor, decode into the appropriate enum value
 			builder.append( attributeHandle );
 			builder.append( ": " );
 			builder.append( attributeIdentifier == null ? "UNKNOWN ATTRIBUTE" : attributeIdentifier );
 			builder.append( "\n\t\tattributeValue = " );
 			// TODO decode appropriately, automatically!
-			builder.append( decodeString(theAttributes.get(attributeHandle)) );
+			builder.append( decodeString(attributeHandleValueMap.get(attributeHandle)) );
 		}
 		builder.append( "\n" );
 		

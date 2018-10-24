@@ -47,10 +47,19 @@ import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAunicodeString;
+import hla.rti1516e.exceptions.AttributeNotDefined;
+import hla.rti1516e.exceptions.FederateNotExecutionMember;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
+import hla.rti1516e.exceptions.InvalidAttributeHandle;
+import hla.rti1516e.exceptions.InvalidInteractionClassHandle;
+import hla.rti1516e.exceptions.InvalidObjectClassHandle;
+import hla.rti1516e.exceptions.NameNotFound;
+import hla.rti1516e.exceptions.NotConnected;
+import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516e.exceptions.RTIexception;
+import hla.rti1516e.exceptions.RTIinternalError;
 import hla.rti1516e.time.HLAfloat64Interval;
 import hla.rti1516e.time.HLAfloat64Time;
 import hla.rti1516e.time.HLAfloat64TimeFactory;
@@ -82,16 +91,6 @@ public class FederateBase
 	private Map<String,Set<String>> subscribedAttributes;
 	private Set<String> publishedInteractions;
 	private Set<String> subscribedInteractions;
-	
-	// caches of handle types - set once we join a federation
-	private Map<String, ObjectClassHandle> identifierToObjectClassHandle;
-	private Map<ObjectClassHandle, String> objectClassHandleToIdentifier;
-	private Map<String, AttributeHandle> identifierToAttributeHandle;
-	private Map<AttributeHandle, String> attributeHandleToIdentifier;
-	private Map<String,InteractionClassHandle> identifierToInteractionHandle;
-	private Map<InteractionClassHandle,String> interactionHandleToIdentifier;
-	private Map<String, ObjectInstanceHandle> identifierToObjectInstanceHandle;
-	private Map<ObjectInstanceHandle, String> objectInstanceHandleToIdentifier;
 	
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
@@ -128,15 +127,6 @@ public class FederateBase
 		this.subscribedAttributes = subscribedAttributes == null ? new HashMap<>() : subscribedAttributes;
 		this.publishedInteractions = publishedInteractions == null ? new HashSet<>() : publishedInteractions;
 		this.subscribedInteractions = subscribedInteractions == null ? new HashSet<>() : subscribedInteractions;
-		
-		this.identifierToObjectClassHandle = new HashMap<String, ObjectClassHandle>();
-		this.objectClassHandleToIdentifier = new HashMap<ObjectClassHandle, String>();
-		this.identifierToAttributeHandle = new HashMap<String, AttributeHandle>();
-		this.attributeHandleToIdentifier = new HashMap<AttributeHandle, String>();
-		this.identifierToInteractionHandle = new HashMap<String, InteractionClassHandle>();
-		this.interactionHandleToIdentifier = new HashMap<InteractionClassHandle, String>();
-		this.identifierToObjectInstanceHandle = new HashMap<String, ObjectInstanceHandle>();
-		this.objectInstanceHandleToIdentifier = new HashMap<ObjectInstanceHandle, String>();
 	}
 
 	//----------------------------------------------------------
@@ -314,10 +304,8 @@ public class FederateBase
 		/////////////////////////////////////
 		// TODO - hard coded strings
 		String sodaIdentifier = "HLAobjectRoot.Food.Drink.Soda";
-		ObjectInstanceHandle objectHandle = registerObject( sodaIdentifier );
-		this.identifierToObjectInstanceHandle.put( sodaIdentifier, objectHandle );
-		this.objectInstanceHandleToIdentifier.put( objectHandle, sodaIdentifier );
-		logger.error( "Registered Object, handle=" + objectHandle );
+		ObjectInstanceHandle objectInstanceHandle = registerObject( sodaIdentifier );
+		logger.error( "Registered Object '" + sodaIdentifier + "' handle=" + objectInstanceHandle);
 
 		/////////////////////////////////////
 		// 10. do the main simulation loop //
@@ -328,7 +316,7 @@ public class FederateBase
 		for( int i = 0; i < 10; i++ )
 		{
 			// 9.1 update the attribute values of the instance //
-			updateAttributeValues( objectHandle );
+			updateAttributeValues( objectInstanceHandle );
 
 			// 9.2 send an interaction
 			ParameterHandleValueMap parameters = rtiamb.getParameterHandleValueMapFactory().create( 0 );
@@ -365,8 +353,8 @@ public class FederateBase
 		//////////////////////////////////////
 		// 11. delete the object we created //
 		//////////////////////////////////////
-		deleteObject( objectHandle );
-		logger.error( "Deleted Object, handle=" + objectHandle );
+		deleteObject( objectInstanceHandle );
+		logger.error( "Deleted Object, handle=" + objectInstanceHandle );
 
 		////////////////////////////////////
 		// 12. resign from the federation //
@@ -394,44 +382,119 @@ public class FederateBase
 		}
 	}
 	
-	public String getClassIdentifierFromHandle( ObjectClassHandle handle )
+	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
 	{
-		return this.objectClassHandleToIdentifier.get( handle );
+		try
+		{
+			return this.rtiamb.getObjectClassName( handle );
+		}
+		catch( InvalidObjectClassHandle | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		{
+			return null;
+		}
 	}
 
-	public ObjectClassHandle getHandleFromClassIdentifier( String identifier )
+	public ObjectClassHandle getClassHandleFromClassIdentifier( String identifier )
 	{
-		return this.identifierToObjectClassHandle.get( identifier );
-	}
-
-	public String getAttributeIdentifierFromHandle( AttributeHandle handle )
-	{
-		return this.attributeHandleToIdentifier.get( handle );
+		try
+		{
+			return this.rtiamb.getObjectClassHandle( identifier );
+		}
+		catch( FederateNotExecutionMember | NotConnected | RTIinternalError | NameNotFound e )
+		{
+			return null;
+		}
 	}
 	
-	public AttributeHandle getHandleFromAttributeIdentifier( String identifier )
+	public ObjectClassHandle getClassHandleFromInstanceHandle(ObjectInstanceHandle handle)
 	{
-		return this.identifierToAttributeHandle.get( identifier );
+		try
+		{
+			return rtiamb.getKnownObjectClassHandle( handle );
+		}
+		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		{
+			return null;
+		}
+	}
+
+	public String getAttributeIdentifierFromHandle( ObjectClassHandle objectClassHandle, 
+	                                                AttributeHandle attributeHandle )
+	{
+		try
+		{
+			return this.rtiamb.getAttributeName( objectClassHandle, attributeHandle );
+		}
+		catch( AttributeNotDefined | InvalidAttributeHandle | InvalidObjectClassHandle
+		    | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		{
+			return null;
+		}
+	}
+	
+	public AttributeHandle getHandleFromAttributeIdentifier( ObjectClassHandle objectClassHandle, 
+	                                                         String identifier )
+	{
+		try
+		{
+			return this.rtiamb.getAttributeHandle( objectClassHandle, identifier );
+		}
+		catch( NameNotFound | InvalidObjectClassHandle | FederateNotExecutionMember | NotConnected
+		    | RTIinternalError e )
+		{
+			return null;
+		}
 	}
 
 	public String getInteractionIdentifierFromHandle( InteractionClassHandle handle )
 	{
-		return this.interactionHandleToIdentifier.get( handle );
+		try
+		{
+			return this.rtiamb.getInteractionClassName( handle );
+		}
+		catch( InvalidInteractionClassHandle | FederateNotExecutionMember | NotConnected
+		    | RTIinternalError e )
+		{
+			return null;
+		}		
 	}	
 	
 	public InteractionClassHandle getHandleFromInteractionIdentifier( String identifier )
 	{
-		return this.identifierToInteractionHandle.get( identifier );
+		try
+		{
+			return this.rtiamb.getInteractionClassHandle( identifier );
+		}
+		catch( NameNotFound | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		{
+			return null;
+		}
 	}
 
-	public String getInstanceIdentifierFromHandle( ObjectInstanceHandle handle )
+	public String getObjectInstanceIdentifierFromHandle( ObjectInstanceHandle handle )
 	{
-		return this.objectInstanceHandleToIdentifier.get( handle );
+		try
+		{
+			return this.rtiamb.getObjectInstanceName( handle );
+		}
+		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected
+		    | RTIinternalError e )
+		{
+			return null;
+		}
 	}
 
-	public ObjectInstanceHandle getHandleFromInstanceIdentifier( String identifier )
+	public ObjectInstanceHandle getHandleFromObjectInstanceIdentifier( String identifier )
 	{
-		return this.identifierToObjectInstanceHandle.get( identifier );
+		try
+		{
+			return this.rtiamb.getObjectInstanceHandle( identifier );
+		}
+		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected
+		    | RTIinternalError e )
+		{
+			return null;
+		}
 	}
 	
 	private void initializeAmbassadorAndConnect() throws RTIexception
@@ -532,23 +595,19 @@ public class FederateBase
 		// this information
 		for(Entry<String,Set<String>> publication : this.publishedAttributes.entrySet())
 		{
-			String klass = publication.getKey();
+			String klassIdentifier = publication.getKey();
 			
 			// get all the handle information for the attributes of the current class
-			ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klass );
-			// update lookup maps
-			this.identifierToObjectClassHandle.put(klass, klassHandle);
-			this.objectClassHandleToIdentifier.put(klassHandle, klass);
+			ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
+			logger.error( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
 			
 			// package the information into the handle set
 			AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
 			for(String attribute : publication.getValue())
 			{
 				AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attribute );
+				logger.error( "Obtained AttributeHandle for '" + attribute + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
 				attributeHandleSet.add( attributeHandle );
-				// update lookup maps
-				this.identifierToAttributeHandle.put(attribute, attributeHandle);
-				this.attributeHandleToIdentifier.put(attributeHandle, attribute);
 			}
 			
 			// do the actual publication
@@ -566,19 +625,15 @@ public class FederateBase
 			
 			// get all the handle information for the attributes of the current class
 			ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
-			// update lookup maps
-			this.identifierToObjectClassHandle.put(klassIdentifier, klassHandle);
-			this.objectClassHandleToIdentifier.put(klassHandle, klassIdentifier);
+			logger.error( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
 			
 			// package the information into the handle set
 			AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
 			for(String attributeIdentifier : subscription.getValue())
 			{
 				AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attributeIdentifier );
+				logger.error( "Obtained AttributeHandle for '" + attributeIdentifier + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
 				attributeHandleSet.add( attributeHandle );
-				// update lookup maps
-				this.identifierToAttributeHandle.put(attributeIdentifier, attributeHandle);
-				this.attributeHandleToIdentifier.put(attributeHandle, attributeIdentifier);
 			}
 			
 			// do the actual subscription
@@ -593,8 +648,7 @@ public class FederateBase
 		for(String interactionIdentifier : this.publishedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
-			this.interactionHandleToIdentifier.put(interactionHandle, interactionIdentifier);
-			this.identifierToInteractionHandle.put(interactionIdentifier, interactionHandle);
+			logger.error( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
 			// do the publication
 			rtiamb.publishInteractionClass( interactionHandle );
 		}
@@ -607,8 +661,7 @@ public class FederateBase
 		for(String interactionIdentifier : this.subscribedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
-			this.interactionHandleToIdentifier.put(interactionHandle, interactionIdentifier);
-			this.identifierToInteractionHandle.put(interactionIdentifier, interactionHandle);
+			logger.error( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
 			// do the publication
 			rtiamb.subscribeInteractionClass( interactionHandle );
 		}
@@ -621,12 +674,15 @@ public class FederateBase
 	 */
 	private ObjectInstanceHandle registerObject(String klassIdentifier) throws RTIexception
 	{
-		ObjectClassHandle klassHandle = this.identifierToObjectClassHandle.get( klassIdentifier );
+		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
+		logger.error( "Looked up ObjectClassHandle for '" + klassIdentifier + " handle=" + klassHandle);
 
 		if( klassHandle == null )
 			return null;
 
-		return rtiamb.registerObjectInstance( klassHandle );
+		ObjectInstanceHandle instanceHandle = rtiamb.registerObjectInstance( klassHandle );
+		logger.error( "Registered object instance with class handle '" + klassHandle + " handle=" + instanceHandle);
+		return instanceHandle;
 	}
 	
 	/**
@@ -638,12 +694,14 @@ public class FederateBase
 	 * Note that we don't actually have to update all the attributes at once, we
 	 * could update them individually, in groups or not at all!
 	 */
-	private void updateAttributeValues( ObjectInstanceHandle objectHandle ) throws RTIexception
+	private void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle ) throws RTIexception
 	{
 		///////////////////////////////////////////////
 		// create the necessary container and values //
 		///////////////////////////////////////////////
 		// create a new map with an initial capacity - this will grow as required
+		ObjectClassHandle objectClassHandle = rtiamb.getKnownObjectClassHandle( objectinstanceHandle );
+		
 		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create(2);
 		
 		// create the collection to store the values in, as you can see
@@ -654,54 +712,60 @@ public class FederateBase
 		
 		// HLAinteger16BE cupsValue = encoderFactory.createHLAinteger16BE( getTimeAsShort() );
 		// TODO - hard coded string
-		updateAttribute( "NumberCups", getTimeAsShort(), attributes );
+		updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
 		
 		// generate the value for the flavour on our magically flavour changing drink
 		// the values for the enum are defined in the FOM
 		// TODO - hard coded string
 		int randomValue = 101 + new Random().nextInt(3);
 		// HLAinteger32BE flavValue = encoderFactory.createHLAinteger32BE( randomValue );
-		updateAttribute( "Flavor", randomValue, attributes );
+		updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
 
 		//////////////////////////
 		// do the actual update //
 		//////////////////////////
-		rtiamb.updateAttributeValues( objectHandle, attributes, generateTag() );
+		rtiamb.updateAttributeValues( objectinstanceHandle, attributes, generateTag() );
 		
 		// note that if you want to associate a particular timestamp with the
 		// update. here we send another update, this time with a timestamp:
 		HLAfloat64Time time = timeFactory.makeTime( fedamb.federateTime+fedamb.federateLookahead );
-		rtiamb.updateAttributeValues( objectHandle, attributes, generateTag(), time );
+		rtiamb.updateAttributeValues( objectinstanceHandle, attributes, generateTag(), time );
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, short value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier, 
+	                                                short value, AttributeHandleValueMap attributes)
 	{
-		return updateAttribute(identifier, Short.toString(value), attributes);
+		return updateAttribute(objectClassHandle, identifier, Short.toString(value), attributes);
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, int value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier,
+	                                                int value, AttributeHandleValueMap attributes)
 	{
-		return updateAttribute(identifier, Integer.toString(value), attributes);
+		return updateAttribute(objectClassHandle, identifier, Integer.toString(value), attributes);
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, long value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier,
+	                                                long value, AttributeHandleValueMap attributes)
 	{
-		return updateAttribute(identifier, Long.toString(value), attributes);
+		return updateAttribute(objectClassHandle, identifier, Long.toString(value), attributes);
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, double value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier,
+	                                                double value, AttributeHandleValueMap attributes)
 	{
-		return updateAttribute(identifier, Double.toString(value), attributes);
+		return updateAttribute(objectClassHandle, identifier, Double.toString(value), attributes);
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, float value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier,
+	                                                float value, AttributeHandleValueMap attributes)
 	{
-		return updateAttribute(identifier, Float.toString(value), attributes);
+		return updateAttribute(objectClassHandle, identifier, Float.toString(value), attributes);
 	}
 	
-	private AttributeHandleValueMap updateAttribute(String identifier, String value, AttributeHandleValueMap attributes)
+	private AttributeHandleValueMap updateAttribute(ObjectClassHandle objectClassHandle, String identifier, 
+	                                                String value, AttributeHandleValueMap attributes)
 	{
-		AttributeHandle attrHandle = this.identifierToAttributeHandle.get( identifier );
+		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, identifier );
 
 		if( attrHandle != null )
 		{
@@ -720,7 +784,7 @@ public class FederateBase
 	 */
 	private void sendInteraction(String identifier, ParameterHandleValueMap parameters) throws RTIexception
 	{
-		InteractionClassHandle servedHandle = this.identifierToInteractionHandle.get( identifier );
+		InteractionClassHandle servedHandle = getHandleFromInteractionIdentifier( identifier );
 		
 		//////////////////////////
 		// send the interaction //
