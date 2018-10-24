@@ -33,6 +33,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.ucef.hla.util.HLACodecUtils;
 import gov.nist.ucef.hla.util.InputUtils;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
@@ -45,7 +46,6 @@ import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
-import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.AttributeNotDefined;
 import hla.rti1516e.exceptions.FederateNotExecutionMember;
@@ -96,7 +96,7 @@ public class FederateBase
 	private RTIambassador rtiamb;
 	private AmbassadorBase fedamb;  // created when we connect
 	private HLAfloat64TimeFactory timeFactory; // set when we join
-	protected EncoderFactory encoderFactory;     // set when we join
+	protected HLACodecUtils codecUtils = HLACodecUtils.instance();     // set when we join
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -501,7 +501,6 @@ public class FederateBase
 	{
 		logger.error( "Creating RTIambassador" );
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-		this.encoderFactory = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
 		
 		logger.error( "Connecting..." );
 		this.fedamb = new AmbassadorBase( this );
@@ -769,7 +768,7 @@ public class FederateBase
 
 		if( attrHandle != null )
 		{
-			HLAunicodeString attrValue = encoderFactory.createHLAunicodeString( value );
+			HLAunicodeString attrValue = codecUtils.makeString( value );
 			attributes.put( attrHandle, attrValue.toByteArray() );
 		}
 		

@@ -20,10 +20,12 @@
  */
 package gov.nist.ucef.hla.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.FederateHandle;
 import hla.rti1516e.FederateHandleSet;
@@ -33,15 +35,9 @@ import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.OrderType;
-import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.SynchronizationPointFailureReason;
 import hla.rti1516e.TransportationTypeHandle;
-import hla.rti1516e.encoding.DecoderException;
-import hla.rti1516e.encoding.HLAinteger16BE;
-import hla.rti1516e.encoding.HLAinteger32BE;
-import hla.rti1516e.encoding.HLAinteger64BE;
-import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.time.HLAfloat64Time;
 
@@ -70,6 +66,8 @@ public class AmbassadorBase extends NullFederateAmbassador
 	
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
+	
+	private Map<ObjectInstanceHandle, ObjectBase> objectInstanceLookup;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -77,73 +75,14 @@ public class AmbassadorBase extends NullFederateAmbassador
 	public AmbassadorBase( FederateBase federate )
 	{
 		this.federate = federate;
+		
+		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, ObjectBase>(); 
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	private String decodeString( byte[] bytes )
-	{
-		HLAunicodeString value = federate.encoderFactory.createHLAunicodeString();
-		// decode
-		try
-		{
-			value.decode( bytes );
-			return value.getValue();
-		}
-		catch( DecoderException de )
-		{
-			return "Decoder Exception: "+de.getMessage();
-		}
-	}
 
-	private short decodeShort( byte[] bytes )
-	{
-		HLAinteger16BE value = federate.encoderFactory.createHLAinteger16BE();
-		// decode
-		try
-		{
-			value.decode( bytes );
-			return value.getValue();
-		}
-		catch( DecoderException de )
-		{
-			de.printStackTrace();
-			return 0;
-		}
-	}
-	
-	private int decodeInt( byte[] bytes )
-	{
-		HLAinteger32BE value = federate.encoderFactory.createHLAinteger32BE();
-		// decode
-		try
-		{
-			value.decode( bytes );
-			return value.getValue();
-		}
-		catch( DecoderException de )
-		{
-			de.printStackTrace();
-			return 0;
-		}
-	}
-	
-	private long decodeLong( byte[] bytes )
-	{
-		HLAinteger64BE value = federate.encoderFactory.createHLAinteger64BE();
-		// decode
-		try
-		{
-			value.decode( bytes );
-			return value.getValue();
-		}
-		catch( DecoderException de )
-		{
-			de.printStackTrace();
-			return 0;
-		}
-	}
 	
 	//////////////////////////////////////////////////////////////////////////
 	////////////////////////// RTI Callback Methods //////////////////////////
@@ -257,42 +196,19 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		StringBuilder builder = new StringBuilder( "Reflection for object:" );
+		ObjectBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
 		
-		// print the handle
-		builder.append( "\n\thandle = " + objectInstanceHandle );
-		builder.append( ": " );
-		ObjectClassHandle objectClassHandle = federate.getClassHandleFromInstanceHandle( objectInstanceHandle );
-		String instanceIdentifier = federate.getClassIdentifierFromClassHandle( objectClassHandle );
-		builder.append( instanceIdentifier == null ? "UNKNOWN INSTANCE" : instanceIdentifier );
-		
-		// print the tag
-		builder.append( "\n\ttag = " + new String(tag) );
-		// print the time (if we have it) we'll get null if we are just receiving
-		// a forwarded call from the other reflect callback above
-		if( time != null )
+		if(objectBase != null)
 		{
-			builder.append( "\n\ttime = " + ((HLAfloat64Time)time).getValue() );
+			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
+		}
+		else
+		{
+			objectBase = new ObjectBase(federate, objectInstanceHandle, attributeHandleValueMap, tag, time);
+			this.objectInstanceLookup.put(objectInstanceHandle, objectBase);
 		}
 		
-		// print the attribute information
-		builder.append( "\n\tattributeCount = " + attributeHandleValueMap.size() );
-		for( AttributeHandle attributeHandle : attributeHandleValueMap.keySet() )
-		{
-			// print the attribute handle
-			builder.append( "\n\t\tattributeHandle = " );
-
-			String attributeIdentifier = federate.getAttributeIdentifierFromHandle( objectClassHandle, attributeHandle );
-			// if we're dealing with Flavor, decode into the appropriate enum value
-			builder.append( attributeHandle );
-			builder.append( ": " );
-			builder.append( attributeIdentifier == null ? "UNKNOWN ATTRIBUTE" : attributeIdentifier );
-			builder.append( "\n\t\tattributeValue = " );
-			// TODO decode appropriately, automatically!
-			builder.append( decodeString(attributeHandleValueMap.get(attributeHandle)) );
-		}
-		builder.append( "\n" );
-		
+		StringBuilder builder = new StringBuilder( "Reflection for object:" ).append( objectBase.toString() );
 		logger.error( builder.toString() );
 	}
 
@@ -307,15 +223,9 @@ public class AmbassadorBase extends NullFederateAmbassador
 	{
 		// just pass it on to the other method for printing purposes
 		// passing null as the time will let the other method know it
-		// it from us, not from the RTI
-		this.receiveInteraction( interactionClass,
-		                         theParameters,
-		                         tag,
-		                         sentOrdering,
-		                         theTransport,
-		                         null,
-		                         sentOrdering,
-		                         receiveInfo );
+		// it came from us, not from the RTI
+		this.receiveInteraction( interactionClass, theParameters, tag, 
+		                         sentOrdering, theTransport, null, sentOrdering, receiveInfo );
 	}
 
 	@Override
@@ -329,39 +239,8 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		StringBuilder builder = new StringBuilder( "Interaction Received:" );
-		
-		// print the handle
-		builder.append( "\n\thandle = " + interactionHandle );
-		builder.append( ": " );
-		
-		String interactionIdentifier = federate.getInteractionIdentifierFromHandle( interactionHandle );
-		
-		builder.append( interactionIdentifier == null ? "UNKOWN INTERACTION" : interactionIdentifier );
-		
-		// print the tag
-		builder.append( "\n\ttag = " + new String(tag) );
-		// print the time (if we have it) we'll get null if we are just receiving
-		// a forwarded call from the other reflect callback above
-		if( time != null )
-		{
-			builder.append( "\n\ttime = " + ((HLAfloat64Time)time).getValue() );
-		}
-		
-		// print the parameter information
-		builder.append( "\n\tparameterCount = " + theParameters.size() );
-		for( ParameterHandle parameter : theParameters.keySet() )
-		{
-			// print the parameter handle
-			builder.append( "\n\t\tparamHandle = " );
-			builder.append( parameter );
-			// print the parameter value
-			builder.append( "\n\t\tparamValue = " );
-			builder.append( theParameters.get(parameter).length );
-			builder.append( " bytes" );
-		}
-		builder.append( "\n" );
-
+		InteractionBase interaction = new InteractionBase(federate, interactionHandle, theParameters, tag, time);
+		StringBuilder builder = new StringBuilder( "Interaction Received:" ).append( interaction.toString() );
 		logger.error( builder.toString() );
 	}
 
