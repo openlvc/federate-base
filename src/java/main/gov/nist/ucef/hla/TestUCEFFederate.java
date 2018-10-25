@@ -25,6 +25,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import gov.nist.ucef.hla.common.FederateBase;
+import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.InteractionBase;
 import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
 import gov.nist.ucef.hla.common.ObjectBase;
@@ -39,8 +41,6 @@ import gov.nist.ucef.hla.util.InputUtils;
 
 public class TestUCEFFederate extends NullUCEFFederateImplementation
 {
-	private String federateName;
-
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -52,9 +52,9 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public TestUCEFFederate(String federateName)
+	public TestUCEFFederate()
 	{
-		this.federateName = federateName;
+				
 	}
 
 	//----------------------------------------------------------
@@ -62,6 +62,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	public void go()
 	{
+		// somebody set us up the FOM... 
 		// somebody set us up the FOM... 
 		List<URL> modules = new ArrayList<>();
 		List<URL> joinModules = new ArrayList<>();
@@ -109,18 +110,19 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
 		Set<String> publishedInteractions = new HashSet<>(Arrays.asList( new String[] {foodServedBase+"DrinkServed"} ));
 		Set<String> subscribedInteractions = new HashSet<>(Arrays.asList( new String[] {foodServedBase+"DrinkServed"} ));
-
+		
+		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", "Federate-" + new Date().getTime(), "TestFederate" );		
+		config.addModules( modules )
+			  .addJoinModules( joinModules )
+			  .addPublishedAtributes( publishedAttributes )
+			  .addSubscribedAtributes( subscribedAttributes )
+			  .addPublishedInteractions( publishedInteractions )
+			  .addSubscribedInteractions( subscribedInteractions );
+		
 		try
 		{
 			// let's go...
-			new FederateBase( this, "TheUnitedFederationOfPlanets", federateName, "TestFederate")
-				.addModules( modules )
-    			.addJoinModules( joinModules )
-				.addPublishedAtributes( publishedAttributes )
-				.addSubscribedAtributes( subscribedAttributes )
-				.addPublishedInteractions( publishedInteractions )
-				.addSubscribedInteractions( subscribedInteractions )
-				.runFederate();
+			new FederateBase( config, this ).runFederate();
 		}
 		catch( Exception rtie )
 		{
@@ -142,6 +144,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		// wait until the user hits enter before proceeding, so there is time for
 		// a human to interact with other federates.
 		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to advance to Ready To Populate <<<<<<<<<<" );
+		System.out.println( "Off we go..." );
 	}
 	
 	@Override
@@ -156,6 +159,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		// wait until the user hits enter before proceeding, so there is time for
 		// a human to interact with other federates.
 		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to advance to Ready To Run <<<<<<<<<<" );
+		System.out.println( "Off we go..." );
 	}
 
 	@Override
@@ -188,6 +192,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		// wait until the user hits enter before proceeding, so there is time for
 		// a human to interact with other federates.
 		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to advance to Ready To Resign <<<<<<<<<<" );
+		System.out.println( "Off we go..." );
 	}
 
 	@Override

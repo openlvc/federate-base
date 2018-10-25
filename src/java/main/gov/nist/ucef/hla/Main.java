@@ -20,8 +20,20 @@
  */
 package gov.nist.ucef.hla;
 
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import gov.nist.ucef.hla.common.FederateBase;
+import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
 
 public class Main extends NullUCEFFederateImplementation
@@ -53,9 +65,10 @@ public class Main extends NullUCEFFederateImplementation
 	{
 		System.out.println( "UCEF!" );
 		
-		TestUCEFFederate testFed = new TestUCEFFederate("Federate-" + new Date().getTime());
-		testFed.go();
+		new TestUCEFFederate().go();
 
+		System.out.println( "Shutting down." );
+		
 		System.exit( 0 );
 	}
 }

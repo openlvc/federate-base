@@ -21,11 +21,8 @@
 package gov.nist.ucef.hla.common;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -67,11 +64,9 @@ import hla.rti1516e.time.HLAfloat64TimeFactory;
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
  * federates in order to minimize the amount of code required in UCEF HLA federate implementations.
- * 
  */
 public class FederateBase
 {
-
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -81,17 +76,8 @@ public class FederateBase
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
     // parameters which set up the federate - can only be modified *before* the federate is run
-    // TODO - prevent modification of these once the federate starts
+    private FederateConfiguration federateConfiguration;
     private IUCEFFederateImplementation federateImplementation;
-	private String federationName;
-	private String federateType;
-    private String federateName;
-    private List<URL> modules;
-    private List<URL> joinModules;
-	private Map<String,Set<String>> publishedAttributes;
-	private Map<String,Set<String>> subscribedAttributes;
-	private Set<String> publishedInteractions;
-	private Set<String> subscribedInteractions;
 	
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
@@ -103,34 +89,11 @@ public class FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateBase(IUCEFFederateImplementation federateImplementation,
-	                    String federationName, String federateName, String federateType)
+	public FederateBase(FederateConfiguration federateConfiguration,
+	                    IUCEFFederateImplementation federateImplementation)
 	{
-		this(federateImplementation,
-		     federationName, federateName, federateType,
-		     null, null, 
-		     null, null, 
-		     null, null);
-	}
-	
-	public FederateBase(IUCEFFederateImplementation federateImplementation,
-	                    String federationName, String federateName, String federateType, 
-	                    List<URL> modules, List<URL> joinModules,
-	                    Map<String, Set<String>> publishedAttributes, Map<String, Set<String>> subscribedAttributes,
-	                    Set<String> publishedInteractions, Set<String> subscribedInteractions)
-	{
+		this.federateConfiguration = federateConfiguration;
 		this.federateImplementation = federateImplementation;
-		this.federationName = federationName;
-		
-		this.federateName = federateName;
-		this.federateType= federateType;
-		
-		this.modules = modules == null ? new ArrayList<URL>() : modules;
-		this.joinModules = joinModules == null ? new ArrayList<URL>() : joinModules;
-		this.publishedAttributes = publishedAttributes == null ? new HashMap<>() : publishedAttributes;
-		this.subscribedAttributes = subscribedAttributes == null ? new HashMap<>() : subscribedAttributes;
-		this.publishedInteractions = publishedInteractions == null ? new HashSet<>() : publishedInteractions;
-		this.subscribedInteractions = subscribedInteractions == null ? new HashSet<>() : subscribedInteractions;
 		
 		this.objectInstanceHandles = new HashSet<ObjectInstanceHandle>();
 	}
@@ -180,6 +143,7 @@ public class FederateBase
 		logger.info( "Registered Object '" + sodaIdentifier + "' handle=" + objectInstanceHandle);
 
 		// -------------------------------------------------------------------------------------
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 		federateImplementation.runSimulation();
 		// main simulation loop
 		// here is where we do the meat of our work. in each iteration, we will update the attribute
@@ -215,50 +179,6 @@ public class FederateBase
 		// destroy the federation (though if other federates remain it will stay
 		// up and they will destroy it instead)
 		destroyFederation();
-	}
-	
-	public FederateBase addModules(List<URL> modules)
-	{
-		if(modules != null)
-			this.modules.addAll( modules );
-		
-		return this;
-	}
-	
-	public FederateBase addJoinModules(List<URL> joinModules)
-	{
-		if(joinModules != null)
-			this.joinModules.addAll( joinModules );
-		
-		return this;
-	}
-	
-	public FederateBase addPublishedAtributes(Map<String, Set<String>> publishedAttributes)
-	{
-		mergeSetMaps(publishedAttributes, this.publishedAttributes);
-		return this;
-	}
-	
-	public FederateBase addSubscribedAtributes(Map<String, Set<String>> subscribedAttributes)
-	{
-		mergeSetMaps(subscribedAttributes, this.subscribedAttributes);
-		return this;
-	}
-	
-	public FederateBase addPublishedInteractions(Set<String> publishedInteractions)
-	{
-		if(publishedInteractions != null)
-			this.publishedInteractions.addAll( publishedInteractions );
-
-		return this;
-	}
-	
-	public FederateBase addSubscribedInteractions(Set<String> subscribedInteractions)
-	{
-		if(subscribedInteractions != null)
-			this.subscribedInteractions.addAll( subscribedInteractions );
-		
-		return this;
 	}
 	
 	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
@@ -393,25 +313,29 @@ public class FederateBase
 	private void createAndJoinFederation() throws RTIexception
 	{
 		logger.info( "Creating Federation..." );
-		// We attempt to create a new federation with the configured FOM modules
+		
+		String federateName = this.federateConfiguration.getFederateName();
+		String federateType = this.federateConfiguration.getFederateType();
+		String federationName = this.federateConfiguration.getFederationName();
+		URL[] modules = this.federateConfiguration.getModules().toArray(new URL[0]);		
+		URL[] joinModules = this.federateConfiguration.getJoinModules().toArray(new URL[0]);
+		
 		try
 		{
-			this.rtiamb.createFederationExecution( this.federationName, this.modules.toArray(new URL[0]) );
-			logger.info( String.format( "Created federation '%s'.", this.federationName ) );
+			// We attempt to create a new federation with the configured FOM modules
+			this.rtiamb.createFederationExecution( federationName, modules );
+			logger.info( String.format( "Created federation '%s'.", federationName ) );
 		}
 		catch( FederationExecutionAlreadyExists exists )
 		{
 			// ignore - this is not an error condition as such, it just means that
 			// the federation was created by someone else so we don't need to
 			logger.info( String.format("Didn't create federation '%s' because it already existed.",
-			                           this.federationName ) );
+			                           federationName ) );
 		}
 		
-		// join the federation
-		rtiamb.joinFederationExecution( this.federateName,
-		                                this.federateType,
-		                                this.federationName,
-		                                this.joinModules.toArray(new URL[0]) );
+		// join the federation with the configured join FOM modules
+		rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules);
 		logger.info( String.format( "Joined Federation as '%s'", federateName) );
 	}
 	
@@ -501,20 +425,21 @@ public class FederateBase
 	
 	private void destroyFederation() throws RTIexception
 	{
+		String federationName = this.federateConfiguration.getFederationName();
 		try
 		{
-			logger.info( String.format("Attempting to destroy federation '%s'...", this.federationName ) );
-			rtiamb.destroyFederationExecution( this.federationName );
-			logger.info( String.format("Federation '%s' has been destroyed.", this.federationName ) );
+			logger.info( String.format("Attempting to destroy federation '%s'...", federationName ) );
+			rtiamb.destroyFederationExecution( federationName );
+			logger.info( String.format("Federation '%s' has been destroyed.", federationName ) );
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{
-			logger.info( String.format("Federation '%s' could not be destroyed because it does not exist.", this.federationName ) );
+			logger.info( String.format("Federation '%s' could not be destroyed because it does not exist.", federationName ) );
 		}
 		catch( FederatesCurrentlyJoined fcj )
 		{
 			// if other federates remain we have to leave it for them to clean up
-			logger.info( String.format("Federation '%s' was not be destroyed because federates still remain.", this.federationName ) );
+			logger.info( String.format("Federation '%s' was not be destroyed because federates still remain.", federationName ) );
 		}
 	}
 
@@ -568,7 +493,8 @@ public class FederateBase
 		// before we can register instances of the object classes and update the values of 
 		// the various attributes, we need to tell the RTI that we intend to publish
 		// this information
-		for(Entry<String,Set<String>> publication : this.publishedAttributes.entrySet())
+		Map<String,Set<String>> publishedAttributes = this.federateConfiguration.getPublishedAttributes();		
+		for(Entry<String,Set<String>> publication : publishedAttributes.entrySet())
 		{
 			String klassIdentifier = publication.getKey();
 			
@@ -594,7 +520,8 @@ public class FederateBase
 		////////////////////////////////////////
 		// we need to subscribe to hear about information on attributes of classes
 		// created and altered in other federates
-		for(Entry<String,Set<String>> subscription : this.subscribedAttributes.entrySet())
+		Map<String,Set<String>> subscribedAttributes = this.federateConfiguration.getSubscribedAttributes();
+		for(Entry<String,Set<String>> subscription : subscribedAttributes.entrySet())
 		{
 			String klassIdentifier = subscription.getKey();
 			
@@ -620,7 +547,8 @@ public class FederateBase
 		/////////////////////////////////////
 		// we need to tell the RTI about the interactions we are publishing. We don't need to
 		// inform it of the parameters, only the class, making it much simpler
-		for(String interactionIdentifier : this.publishedInteractions)
+		Set<String> publishedInteractions = this.federateConfiguration.getPublishedInteractions();		
+		for(String interactionIdentifier : publishedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
 			logger.debug( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
@@ -633,7 +561,8 @@ public class FederateBase
 		//////////////////////////////////////////
 		// we need to tell the RTI about the interactions we are are interested in which are
 		// sent out by other federates, so we we subscribe to those here
-		for(String interactionIdentifier : this.subscribedInteractions)
+		Set<String> subscribedInteractions = this.federateConfiguration.getPublishedInteractions();		
+		for(String interactionIdentifier : subscribedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
 			logger.debug( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
@@ -837,29 +766,6 @@ public class FederateBase
 	private byte[] generateTag()
 	{
 		return ("(timestamp) "+System.currentTimeMillis()).getBytes();
-	}
-
-	/**
-	 * Utility method to merge the content of a maps of sets into another map of sets
-	 * 
-	 * Doesn't really need to use generics here, but why not, eh? :)
-	 * 
-	 * @param src the map containing the source data
-	 * @param dest the existing map to merge the source data into
-	 */
-	private <K, V> void mergeSetMaps(Map<K, Set<V>> src, Map<K, Set<V>> dest)
-	{
-		if(src == null || dest == null)
-			return;
-		
-		// this is "clever"
-		// src.entrySet().forEach( (entry) -> dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() ) );
-		
-		// this is far more readable, IMHO
-		for( Entry<K,Set<V>> entry : src.entrySet() )
-		{
-			dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() );
-		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
