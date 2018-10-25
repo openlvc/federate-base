@@ -1,7 +1,7 @@
 /*
  *   Copyright 2018 Calytrix Technologies
  *
- *   This file is part of ucef-gateway.
+ *   This file is part of ucef-java.
  *
  *   NOTICE:  All information contained herein is, and remains
  *            the property of Calytrix Technologies Pty Ltd.
@@ -18,44 +18,37 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla;
+package gov.nist.ucef.hla.common;
 
-import java.util.Date;
-
-import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
-
-public class Main extends NullUCEFFederateImplementation
+public interface IUCEFFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	// LIFECYCLE MAINTENANCE CALLBACKS /////////////////////////
+	// 0. START
+	public void doInitialisationTasks();
+	// 1. announce READY_TO_POPULATE
+	public void doPostAnnouncePreAchievePopulateTasks();
+	// 2. achieve READY_TO_POPULATE
+	public void doPopulationTasks();
+	// 3. announce READY_TO_RUN
+	public void doPostAnnouncePreAchieveRunTasks();
+	// 4. achieve READY_TO_RUN
+	public void runSimulation();
+	// 5. announce READY_TO_RESIGN
+	public void doPostAnnouncePreAchieveResignTasks();
+	// 6. achieve READY_TO_RESIGN
+	public void doResignTasks();
+	// 7. achieve READY_TO_RESIGN
+	public void doShutdownTasks();
+	// 8. EXIT
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	public static void main( String[] args )
-	{
-		System.out.println( "UCEF!" );
-		
-		TestUCEFFederate testFed = new TestUCEFFederate("Federate-" + new Date().getTime());
-		testFed.go();
-
-		System.exit( 0 );
-	}
+	// EVENT HANDLING CALLBACKS ////////////////////////////////
+	public void handleInteraction( InteractionBase interactionBase );
+	public void handleReflection( ObjectBase objectBase );
 }

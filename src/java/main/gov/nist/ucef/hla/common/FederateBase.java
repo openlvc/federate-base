@@ -22,6 +22,7 @@ package gov.nist.ucef.hla.common;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -34,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nist.ucef.hla.util.HLACodecUtils;
-import gov.nist.ucef.hla.util.InputUtils;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -82,6 +82,7 @@ public class FederateBase
 	//----------------------------------------------------------
     // parameters which set up the federate - can only be modified *before* the federate is run
     // TODO - prevent modification of these once the federate starts
+    private IUCEFFederateImplementation federateImplementation;
 	private String federationName;
 	private String federateType;
     private String federateName;
@@ -95,27 +96,30 @@ public class FederateBase
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
 	private AmbassadorBase fedamb;  // created when we connect
+	private Set<ObjectInstanceHandle> objectInstanceHandles;
 	private HLAfloat64TimeFactory timeFactory; // set when we join
-	protected HLACodecUtils codecUtils = HLACodecUtils.instance();     // set when we join
+	protected HLACodecUtils codecUtils = HLACodecUtils.instance(); // set when we join
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateBase(String federationName,
-	                    String federateName, String federateType)
+	public FederateBase(IUCEFFederateImplementation federateImplementation,
+	                    String federationName, String federateName, String federateType)
 	{
-		this(federationName, federateName, federateType,
+		this(federateImplementation,
+		     federationName, federateName, federateType,
 		     null, null, 
 		     null, null, 
 		     null, null);
 	}
 	
-	public FederateBase(String federationName,
-	                    String federateName, String federateType, 
+	public FederateBase(IUCEFFederateImplementation federateImplementation,
+	                    String federationName, String federateName, String federateType, 
 	                    List<URL> modules, List<URL> joinModules,
 	                    Map<String, Set<String>> publishedAttributes, Map<String, Set<String>> subscribedAttributes,
 	                    Set<String> publishedInteractions, Set<String> subscribedInteractions)
 	{
+		this.federateImplementation = federateImplementation;
 		this.federationName = federationName;
 		
 		this.federateName = federateName;
@@ -127,11 +131,91 @@ public class FederateBase
 		this.subscribedAttributes = subscribedAttributes == null ? new HashMap<>() : subscribedAttributes;
 		this.publishedInteractions = publishedInteractions == null ? new HashSet<>() : publishedInteractions;
 		this.subscribedInteractions = subscribedInteractions == null ? new HashSet<>() : subscribedInteractions;
+		
+		this.objectInstanceHandles = new HashSet<ObjectInstanceHandle>();
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public IUCEFFederateImplementation getFederateImplementation()
+	{
+		return this.federateImplementation;
+	}
+	
+	/**
+	 * This is the main simulation loop. It can be thought of as the main method of
+	 * the federate. For a description of the basic flow of this federate, see the
+	 * class level comments
+	 */
+	public void runFederate() throws Exception
+	{
+		initializeAmbassadorAndConnect();
+		createAndJoinFederation();
+		
+		federateImplementation.doInitialisationTasks();
+
+		// register the READY_TO_POPULATE sync point and announce it so that we can prepare for this state
+		registerSyncPointAndWaitForAnnounce( SyncPoint.READY_TO_POPULATE );
+		federateImplementation.doPostAnnouncePreAchievePopulateTasks();
+		// achieve the READY_TO_POPULATE sync point and then wait until the federation has synchronized
+		achieveSyncPointAndWaitForFederation( SyncPoint.READY_TO_POPULATE );
+		federateImplementation.doPopulationTasks();
+
+		// register the READY_TO_RUN sync point and announce it so that we can prepare for this state
+		registerSyncPointAndWaitForAnnounce( SyncPoint.READY_TO_RUN );
+		federateImplementation.doPostAnnouncePreAchieveRunTasks();
+		// achieve the READY_TO_RUN sync point and then wait until the federation has synchronized
+		achieveSyncPointAndWaitForFederation( SyncPoint.READY_TO_RUN );
+
+		// set up time policies - here we enable/disable all time policies (note that this is optional!)
+		enableTimePolicy();
+		// tell the RTI of all the data we are going to produce, and all the data we want to know about
+		initializePublishAndSubscribe();
+
+		// register object(s) to update
+		// TODO - hard coded strings
+		String sodaIdentifier = "HLAobjectRoot.Food.Drink.Soda";
+		ObjectInstanceHandle objectInstanceHandle = registerObject( sodaIdentifier );
+		logger.info( "Registered Object '" + sodaIdentifier + "' handle=" + objectInstanceHandle);
+
+		// -------------------------------------------------------------------------------------
+		federateImplementation.runSimulation();
+		// main simulation loop
+		// here is where we do the meat of our work. in each iteration, we will update the attribute
+		// values of the object we registered, and will
+		// send an interaction.
+		for( int i = 0; i < 10; i++ )
+		{
+			// 9.1 update the attribute values of the instance //
+			updateAttributeValues( objectInstanceHandle );
+			
+			// 9.2 send an interaction
+			ParameterHandleValueMap parameters = rtiamb.getParameterHandleValueMapFactory().create( 0 );
+			// TODO - hard coded string
+			sendInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", parameters );
+			
+			// 9.3 request a time advance and wait until we get it
+			advanceTimeAndWait( 1.0 );
+			System.out.println( "Time Advanced to " + fedamb.federateTime );
+		}
+		// -------------------------------------------------------------------------------------
+
+
+		// register the READY_TO_RESIGN sync point and announce it so that we can prepare for this state
+		registerSyncPointAndWaitForAnnounce( SyncPoint.READY_TO_RESIGN );
+		federateImplementation.doPostAnnouncePreAchieveResignTasks();
+		// achieve the READY_TO_RESIGN sync point and then wait until the federation has synchronized
+		achieveSyncPointAndWaitForFederation( SyncPoint.READY_TO_RESIGN );
+		federateImplementation.doResignTasks();
+		
+		// delete all the objects we created and resign from the federation 
+		cleanUpAndResign();
+
+		// destroy the federation (though if other federates remain it will stay
+		// up and they will destroy it instead)
+		destroyFederation();
+	}
 	
 	public FederateBase addModules(List<URL> modules)
 	{
@@ -175,211 +259,6 @@ public class FederateBase
 			this.subscribedInteractions.addAll( subscribedInteractions );
 		
 		return this;
-	}
-	
-	/**
-	 * Utility method to merge the content of a maps of sets into another map of sets
-	 * 
-	 * Doesn't really need to use generics here, but why not, eh? :)
-	 * 
-	 * @param src the map containing the source data
-	 * @param dest the existing map to merge the source data into
-	 */
-	private <K, V> void mergeSetMaps(Map<K, Set<V>> src, Map<K, Set<V>> dest)
-	{
-		if(src == null || dest == null)
-			return;
-		
-		for( Entry<K,Set<V>> entry : src.entrySet() )
-		{
-			dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() );
-		}
-	}
-
-	/**
-	 * This is the main simulation loop. It can be thought of as the main method of
-	 * the federate. For a description of the basic flow of this federate, see the
-	 * class level comments
-	 */
-	public void runFederate() throws Exception
-	{
-		/////////////////////////////////////////////////
-		// 1 & 2. create the RTIambassador and Connect //
-		/////////////////////////////////////////////////
-		initializeAmbassadorAndConnect();
-
-		//////////////////////////////
-		// 3. create the federation //
-		//////////////////////////////
-		logger.error( "Creating Federation..." );
-		// We attempt to create a new federation with the first three of the
-		// restaurant FOM modules covering processes, food and drink
-		try
-		{
-			rtiamb.createFederationExecution( this.federationName, this.modules.toArray(new URL[0]) );
-			logger.error( "Created Federation" );
-		}
-		catch( FederationExecutionAlreadyExists exists )
-		{
-			logger.error( "Didn't create federation, it already existed" );
-		}
-		
-		////////////////////////////
-		// 4. join the federation //
-		////////////////////////////
-		rtiamb.joinFederationExecution( this.federateName,
-		                                this.federateType,
-		                                this.federationName,
-		                                this.joinModules.toArray(new URL[0]) );
-
-		logger.error( "Joined Federation as " + federateName );
-
-		// cache the time factory for easy access
-		this.timeFactory = (HLAfloat64TimeFactory)rtiamb.getTimeFactory();
-
-		//////////////////////////////////////////////////
-		// 5. announce the READY_TO_POPULATE sync point //
-		//////////////////////////////////////////////////
-		// announce a sync point to get everyone on the same page. if the point
-		// has already been registered, we'll get a callback saying it failed,
-		// but we don't care about that, as long as someone registered it
-		SyncPoint syncPoint = SyncPoint.READY_TO_POPULATE;
-		registerSyncPoint( syncPoint );
-		// wait until the point is announced
-		waitForSyncPointAnnouncement( syncPoint );
-
-		// WAIT FOR USER
-		// wait until the user hits enter before proceeding, so there is 
-		// time for the human to interact with other federates.
-		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to Continue <<<<<<<<<<" );
-
-		//////////////////////////////////////////////////////////////////////////////
-		// 6. achieve the READY_TO_POPULATE sync point and wait for synchronization //
-		//////////////////////////////////////////////////////////////////////////////
-		// tell the RTI we are ready to move past the sync point and then wait
-		// until the federation has synchronized on
-		achieveSyncPoint( syncPoint );
-		logger.error( "Achieved sync point: " + syncPoint.toString() + ", waiting for federation..." );
-		waitForFederationToAchieve( syncPoint );
-
-		/////////////////////////////////////////////
-		// 5. announce the READY_TO_RUN sync point //
-		/////////////////////////////////////////////
-		syncPoint = SyncPoint.READY_TO_RUN;
-		registerSyncPoint( syncPoint );
-		// wait until the point is announced
-		waitForSyncPointAnnouncement( syncPoint );
-		// WAIT FOR USER
-		// wait until the user hits enter before proceeding, so there is 
-		// time for the human to interact with other federates.
-		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to Continue <<<<<<<<<<" );
-
-		/////////////////////////////////////////////////////////////////////////
-		// 6. achieve the READY_TO_RUN sync point and wait for synchronization //
-		/////////////////////////////////////////////////////////////////////////
-		// tell the RTI we are ready to move past the sync point and then wait
-		// until the federation has synchronized on
-		achieveSyncPoint( syncPoint );
-		logger.error( "Achieved sync point: " + syncPoint.toString() + ", waiting for federation..." );
-		waitForFederationToAchieve( syncPoint );
-
-		/////////////////////////////
-		// 7. enable time policies //
-		/////////////////////////////
-		// in this section we enable/disable all time policies
-		// note that this step is optional!
-		enableTimePolicy();
-		logger.error( "Time Policy Enabled" );
-
-		//////////////////////////////
-		// 8. publish and subscribe //
-		//////////////////////////////
-		// in this section we tell the RTI of all the data we are going to
-		// produce, and all the data we want to know about
-		initializePublishAndSubscribe();
-		logger.error( "Published and Subscribed" );
-
-		/////////////////////////////////////
-		// 9. register an object to update //
-		/////////////////////////////////////
-		// TODO - hard coded strings
-		String sodaIdentifier = "HLAobjectRoot.Food.Drink.Soda";
-		ObjectInstanceHandle objectInstanceHandle = registerObject( sodaIdentifier );
-		logger.error( "Registered Object '" + sodaIdentifier + "' handle=" + objectInstanceHandle);
-
-		/////////////////////////////////////
-		// 10. do the main simulation loop //
-		/////////////////////////////////////
-		// here is where we do the meat of our work. in each iteration, we will
-		// update the attribute values of the object we registered, and will
-		// send an interaction.
-		for( int i = 0; i < 10; i++ )
-		{
-			// 9.1 update the attribute values of the instance //
-			updateAttributeValues( objectInstanceHandle );
-
-			// 9.2 send an interaction
-			ParameterHandleValueMap parameters = rtiamb.getParameterHandleValueMapFactory().create( 0 );
-			// TODO - hard coded string
-			sendInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", parameters );
-
-			// 9.3 request a time advance and wait until we get it
-			advanceTime( 1.0 );
-			logger.error( "Time Advanced to " + fedamb.federateTime );
-		}
-
-		////////////////////////////////////////////////
-		// 5. announce the READY_TO_RESIGN sync point //
-		////////////////////////////////////////////////
-		syncPoint = SyncPoint.READY_TO_RESIGN;
-		registerSyncPoint( syncPoint );
-		// wait until the point is announced
-		waitForSyncPointAnnouncement( syncPoint );
-
-		// WAIT FOR USER
-		// wait until the user hits enter before proceeding, so there is 
-		// time for the human to interact with other federates.
-		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to Continue <<<<<<<<<<" );
-
-		////////////////////////////////////////////////////////////////////////////
-		// 6. achieve the READY_TO_RESIGN sync point and wait for synchronization //
-		////////////////////////////////////////////////////////////////////////////
-		// tell the RTI we are ready to move past the sync point and then wait
-		// until the federation has synchronized on
-		achieveSyncPoint( syncPoint );
-		logger.error( "Achieved sync point: " + syncPoint.toString() + ", waiting for federation..." );
-		waitForFederationToAchieve( syncPoint );
-
-		//////////////////////////////////////
-		// 11. delete the object we created //
-		//////////////////////////////////////
-		deleteObject( objectInstanceHandle );
-		logger.error( "Deleted Object, handle=" + objectInstanceHandle );
-
-		////////////////////////////////////
-		// 12. resign from the federation //
-		////////////////////////////////////
-		rtiamb.resignFederationExecution( ResignAction.DELETE_OBJECTS );
-		logger.error( "Resigned from Federation" );
-
-		////////////////////////////////////////
-		// 13. try and destroy the federation //
-		////////////////////////////////////////
-		// NOTE: we won't die if we can't do this because other federates
-		//       remain. in that case we'll leave it for them to clean up
-		try
-		{
-			rtiamb.destroyFederationExecution( this.federationName );
-			logger.error( "Destroyed Federation" );
-		}
-		catch( FederationExecutionDoesNotExist dne )
-		{
-			logger.error( "No need to destroy federation, it doesn't exist" );
-		}
-		catch( FederatesCurrentlyJoined fcj )
-		{
-			logger.error( "Didn't destroy federation, federates still joined" );
-		}
 	}
 	
 	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
@@ -499,51 +378,146 @@ public class FederateBase
 	
 	private void initializeAmbassadorAndConnect() throws RTIexception
 	{
-		logger.error( "Creating RTIambassador" );
+		logger.info( "Creating RTI Ambassador" );
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
 		
-		logger.error( "Connecting..." );
+		logger.info( "Connecting RTI Ambassador..." );
 		this.fedamb = new AmbassadorBase( this );
 		this.rtiamb.connect( fedamb, CallbackModel.HLA_EVOKED );
+		logger.info( "RTI Ambassador is connected." );
+		
+		// cache the time factory for easy access
+		this.timeFactory = (HLAfloat64TimeFactory)rtiamb.getTimeFactory();
 	}
 	
-	private FederateBase registerSyncPoint(SyncPoint syncPoint) throws RTIexception
+	private void createAndJoinFederation() throws RTIexception
 	{
-		return registerSyncPoint( syncPoint, null);		
+		logger.info( "Creating Federation..." );
+		// We attempt to create a new federation with the configured FOM modules
+		try
+		{
+			this.rtiamb.createFederationExecution( this.federationName, this.modules.toArray(new URL[0]) );
+			logger.info( String.format( "Created federation '%s'.", this.federationName ) );
+		}
+		catch( FederationExecutionAlreadyExists exists )
+		{
+			// ignore - this is not an error condition as such, it just means that
+			// the federation was created by someone else so we don't need to
+			logger.info( String.format("Didn't create federation '%s' because it already existed.",
+			                           this.federationName ) );
+		}
+		
+		// join the federation
+		rtiamb.joinFederationExecution( this.federateName,
+		                                this.federateType,
+		                                this.federationName,
+		                                this.joinModules.toArray(new URL[0]) );
+		logger.info( String.format( "Joined Federation as '%s'", federateName) );
 	}
 	
-	private FederateBase registerSyncPoint(SyncPoint syncPoint, byte[] tag) throws RTIexception
+	private void registerSyncPointAndWaitForAnnounce(SyncPoint syncPoint) throws RTIexception
 	{
-		rtiamb.registerFederationSynchronizationPoint( syncPoint.getID(), tag );		
-		return this;
+		registerSyncPointAndWait( syncPoint, null);		
 	}
 	
-	private FederateBase waitForSyncPointAnnouncement(SyncPoint syncPoint) throws RTIexception
+	private void registerSyncPointAndWait(SyncPoint syncPoint, byte[] tag) throws RTIexception
 	{
+		registerSyncPoint( syncPoint, tag );
+		waitForSyncPointAnnouncement(syncPoint);
+	}
+	
+	private void achieveSyncPointAndWaitForFederation(SyncPoint syncPoint) throws RTIexception
+	{
+		achieveSyncPoint( syncPoint );
+		waitForFederationToAchieve( syncPoint );
+	}
+	
+	private void cleanUpAndResign() throws RTIexception
+	{
+		deleteObjects(this.objectInstanceHandles);
+		resignFromFederation();
+	}
+	
+	private void registerSyncPoint(SyncPoint syncPoint) throws RTIexception
+	{
+		registerSyncPoint( syncPoint, null);		
+	}
+	
+	private void registerSyncPoint(SyncPoint syncPoint, byte[] tag) throws RTIexception
+	{
+		// Note that if the point already been registered, there will be a callback saying this
+		// failed, but as long as *someone* registered it everything is fine
+		
+		rtiamb.registerFederationSynchronizationPoint( syncPoint.getID(), tag );
+		
+		logger.info( String.format( "Synchronization point '%s' was registered.", syncPoint.toString() ) );
+	}
+	
+	private void waitForSyncPointAnnouncement(SyncPoint syncPoint) throws RTIexception
+	{
+		// TODO - Is it possible to get into a state whereby we never exit this loop...?
 		// wait until the point is announced
+		logger.info( String.format( "Waiting for announcement of synchronization point '%s'", syncPoint.toString() ) );
+		
 		while( syncPoint.isNot( fedamb.announcedSyncPoint ) )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
-		return this;
+		
+		logger.info( String.format( "Synchronization point '%s' was announced.", syncPoint.toString() ) );
 	}
 	
-	private FederateBase achieveSyncPoint(SyncPoint syncPoint) throws RTIexception
+	private void achieveSyncPoint(SyncPoint syncPoint) throws RTIexception
 	{
 		rtiamb.synchronizationPointAchieved( syncPoint.getID() );
-		return this;
+		logger.info( String.format( "Achieved synchronization point '%s'", syncPoint.toString() ) );
 	}
 	
-	private FederateBase waitForFederationToAchieve(SyncPoint syncPoint) throws RTIexception
+	private void waitForFederationToAchieve(SyncPoint syncPoint) throws RTIexception
 	{
+		logger.info( String.format( "Waiting for federation to achieve synchronization point '%s'", syncPoint.toString() ) );
+
+		// TODO - Is it possible to get into a state whereby we never exit this loop...?
 		// wait until the synchronization point is reached by the federation
 		while( syncPoint.isNot( fedamb.currentSyncPoint ) )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
-		return this;
+
+		logger.info( String.format( "Federation has achieved synchronization point '%s'", syncPoint.toString() ) );
 	}
 	
+	private void resignFromFederation() throws RTIexception
+	{
+		resignFromFederation( ResignAction.DELETE_OBJECTS );
+	}
+	
+	private void resignFromFederation(ResignAction resignAction) throws RTIexception
+	{
+		rtiamb.resignFederationExecution( ResignAction.DELETE_OBJECTS );
+		
+		logger.info( "Resigned from Federation" );		
+	}
+	
+	private void destroyFederation() throws RTIexception
+	{
+		try
+		{
+			logger.info( String.format("Attempting to destroy federation '%s'...", this.federationName ) );
+			rtiamb.destroyFederationExecution( this.federationName );
+			logger.info( String.format("Federation '%s' has been destroyed.", this.federationName ) );
+		}
+		catch( FederationExecutionDoesNotExist dne )
+		{
+			logger.info( String.format("Federation '%s' could not be destroyed because it does not exist.", this.federationName ) );
+		}
+		catch( FederatesCurrentlyJoined fcj )
+		{
+			// if other federates remain we have to leave it for them to clean up
+			logger.info( String.format("Federation '%s' was not be destroyed because federates still remain.", this.federationName ) );
+		}
+	}
+
 	/**
 	 * This method will attempt to enable the various time related properties for
 	 * the federate
@@ -577,6 +551,8 @@ public class FederateBase
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
+		
+		logger.info( "Time Policy Enabled" );
 	}
 	
 	/**
@@ -598,14 +574,14 @@ public class FederateBase
 			
 			// get all the handle information for the attributes of the current class
 			ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
-			logger.error( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
+			logger.debug( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
 			
 			// package the information into the handle set
 			AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
 			for(String attribute : publication.getValue())
 			{
 				AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attribute );
-				logger.error( "Obtained AttributeHandle for '" + attribute + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
+				logger.debug( "Obtained AttributeHandle for '" + attribute + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
 				attributeHandleSet.add( attributeHandle );
 			}
 			
@@ -624,14 +600,14 @@ public class FederateBase
 			
 			// get all the handle information for the attributes of the current class
 			ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
-			logger.error( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
+			logger.debug( "Obtained ObjectClassHandle for '" + klassIdentifier + "' handle=" + klassHandle);
 			
 			// package the information into the handle set
 			AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
 			for(String attributeIdentifier : subscription.getValue())
 			{
 				AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attributeIdentifier );
-				logger.error( "Obtained AttributeHandle for '" + attributeIdentifier + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
+				logger.debug( "Obtained AttributeHandle for '" + attributeIdentifier + "' of '" + klassIdentifier + "' handle=" + attributeHandle);
 				attributeHandleSet.add( attributeHandle );
 			}
 			
@@ -647,7 +623,7 @@ public class FederateBase
 		for(String interactionIdentifier : this.publishedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
-			logger.error( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
+			logger.debug( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
 			// do the publication
 			rtiamb.publishInteractionClass( interactionHandle );
 		}
@@ -660,10 +636,12 @@ public class FederateBase
 		for(String interactionIdentifier : this.subscribedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
-			logger.error( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
+			logger.debug( "Obtained InteractionClassHandle for '" + interactionIdentifier + " handle=" + interactionHandle);
 			// do the publication
 			rtiamb.subscribeInteractionClass( interactionHandle );
 		}
+		
+		logger.info( "Publications and subscriptions initialized." );
 	}
 	
 	/**
@@ -674,13 +652,18 @@ public class FederateBase
 	private ObjectInstanceHandle registerObject(String klassIdentifier) throws RTIexception
 	{
 		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
-		logger.error( "Looked up ObjectClassHandle for '" + klassIdentifier + " handle=" + klassHandle);
-
 		if( klassHandle == null )
+		{
+			logger.error( String.format( "Could not register object instance. No handle was found for class identifier '%s'", klassIdentifier) );
 			return null;
+		}
 
 		ObjectInstanceHandle instanceHandle = rtiamb.registerObjectInstance( klassHandle );
-		logger.error( "Registered object instance with class handle '" + klassHandle + " handle=" + instanceHandle);
+		logger.info( String.format( "Registered object instance of class '%s' (class handle is %s). Instance handle is %s", 
+		                            klassIdentifier, klassHandle, instanceHandle ) );
+		
+		this.objectInstanceHandles.add( instanceHandle );
+		
 		return instanceHandle;
 	}
 	
@@ -802,7 +785,7 @@ public class FederateBase
 	 * timestep. It will then wait until a notification of the time advance grant
 	 * has been received.
 	 */
-	private void advanceTime( double timestep ) throws RTIexception
+	private void advanceTimeAndWait( double timestep ) throws RTIexception
 	{
 		// request the advance
 		fedamb.isAdvancing = true;
@@ -816,17 +799,36 @@ public class FederateBase
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
 	}
-
+	
 	/**
-	 * This method will attempt to delete the object instance of the given
-	 * handle. We can only delete objects we created, or for which we own the
+	 * This method will attempt to delete the object instances withthe given
+	 * handles. We can only delete objects we created, or for which we own the
 	 * privilegeToDelete attribute.
 	 */
-	private void deleteObject( ObjectInstanceHandle handle ) throws RTIexception
+	private void deleteObjects( Collection<ObjectInstanceHandle> handles )
 	{
-		rtiamb.deleteObjectInstance( handle, generateTag() );
+		Set<ObjectInstanceHandle> deleted = new HashSet<ObjectInstanceHandle>();
+		
+		for(ObjectInstanceHandle handle : handles)
+		{
+			try
+			{
+				rtiamb.deleteObjectInstance( handle, generateTag() );
+				deleted.add( handle );
+			}
+			catch( RTIexception e )
+			{
+				logger.error( "Unable to delete object instance '" +
+				              getObjectInstanceIdentifierFromHandle( handle ) + "' with handle " +
+				              handle );
+			}
+		}
+		
+		deleted.forEach( (handle) -> this.objectInstanceHandles.remove( handle ) );
+		
+		logger.info( String.format("Deleted %d objects.", deleted.size()) );
 	}
-
+	
 	private short getTimeAsShort()
 	{
 		return (short)fedamb.federateTime;
@@ -835,6 +837,29 @@ public class FederateBase
 	private byte[] generateTag()
 	{
 		return ("(timestamp) "+System.currentTimeMillis()).getBytes();
+	}
+
+	/**
+	 * Utility method to merge the content of a maps of sets into another map of sets
+	 * 
+	 * Doesn't really need to use generics here, but why not, eh? :)
+	 * 
+	 * @param src the map containing the source data
+	 * @param dest the existing map to merge the source data into
+	 */
+	private <K, V> void mergeSetMaps(Map<K, Set<V>> src, Map<K, Set<V>> dest)
+	{
+		if(src == null || dest == null)
+			return;
+		
+		// this is "clever"
+		// src.entrySet().forEach( (entry) -> dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() ) );
+		
+		// this is far more readable, IMHO
+		for( Entry<K,Set<V>> entry : src.entrySet() )
+		{
+			dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() );
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

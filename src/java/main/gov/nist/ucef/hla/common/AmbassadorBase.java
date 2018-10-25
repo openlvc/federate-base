@@ -67,7 +67,9 @@ public class AmbassadorBase extends NullFederateAmbassador
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
 	
+	private IUCEFFederateImplementation federateImplementation;
 	private Map<ObjectInstanceHandle, ObjectBase> objectInstanceLookup;
+
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -76,14 +78,18 @@ public class AmbassadorBase extends NullFederateAmbassador
 	{
 		this.federate = federate;
 		
+		this.federateImplementation = federate.getFederateImplementation();
 		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, ObjectBase>(); 
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public ObjectBase getObjectBaseFromHandle(ObjectInstanceHandle objectInstanceHandle)
+	{
+		return this.objectInstanceLookup.get(objectInstanceHandle);
+	}
 
-	
 	//////////////////////////////////////////////////////////////////////////
 	////////////////////////// RTI Callback Methods //////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -92,21 +98,21 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                                    SynchronizationPointFailureReason reason )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.error( "Failed to register sync point: " + syncPoint.toString() + ", reason="+reason );
+		logger.warn( "Failed to register sync point: " + syncPoint.toString() + ", reason="+reason );
 	}
 
 	@Override
 	public void synchronizationPointRegistrationSucceeded( String label )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.error( "Successfully registered sync point: " + syncPoint.toString() );
+		logger.info( "Successfully registered sync point: " + syncPoint.toString() );
 	}
 
 	@Override
 	public void announceSynchronizationPoint( String label, byte[] tag )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.error( "Synchronization point announced: " + syncPoint.toString() );
+		logger.info( "Synchronization point announced: " + syncPoint.toString() );
 		this.announcedSyncPoint = syncPoint;
 	}
 
@@ -114,7 +120,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	public void federationSynchronized( String label, FederateHandleSet failed )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.error( "Federation Synchronized: " + syncPoint.toString() );
+		logger.info( "Federation Synchronized: " + syncPoint.toString() );
 		this.currentSyncPoint = syncPoint;
 	}
 
@@ -148,7 +154,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    String objectName)
 	    throws FederateInternalError
 	{
-		logger.error( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
+		logger.debug( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
 		     objectClassHandle + ", name=" + objectName);
 	}
 	
@@ -159,7 +165,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    FederateHandle federateHandle)
     	throws FederateInternalError
 	{
-		logger.error( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
+		logger.debug( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
 			objectClassHandle + ", name=" + objectName + " federate="+federateHandle);
 	}
 
@@ -196,7 +202,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		ObjectBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
+		ObjectBase objectBase = getObjectBaseFromHandle(objectInstanceHandle);
 		
 		if(objectBase != null)
 		{
@@ -208,10 +214,9 @@ public class AmbassadorBase extends NullFederateAmbassador
 			this.objectInstanceLookup.put(objectInstanceHandle, objectBase);
 		}
 		
-		StringBuilder builder = new StringBuilder( "Reflection for object:" ).append( objectBase.toString() );
-		logger.error( builder.toString() );
+		this.federateImplementation.handleReflection(objectBase);
 	}
-
+	
 	@Override
 	public void receiveInteraction( InteractionClassHandle interactionClass,
 	                                ParameterHandleValueMap theParameters,
@@ -240,8 +245,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	    throws FederateInternalError
 	{
 		InteractionBase interaction = new InteractionBase(federate, interactionHandle, theParameters, tag, time);
-		StringBuilder builder = new StringBuilder( "Interaction Received:" ).append( interaction.toString() );
-		logger.error( builder.toString() );
+		this.federateImplementation.handleInteraction( interaction );
 	}
 
 	@Override
@@ -251,7 +255,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                  SupplementalRemoveInfo removeInfo )
 	    throws FederateInternalError
 	{
-		logger.error( "Object Removed: handle = " + theObject );
+		logger.info( "Object Removed: handle = " + theObject );
 	}
 	
 

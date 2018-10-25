@@ -1,7 +1,7 @@
 /*
  *   Copyright 2018 Calytrix Technologies
  *
- *   This file is part of ucef-gateway.
+ *   This file is part of ucef-java.
  *
  *   NOTICE:  All information contained herein is, and remains
  *            the property of Calytrix Technologies Pty Ltd.
@@ -18,13 +18,9 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla;
+package gov.nist.ucef.hla.util;
 
-import java.util.Date;
-
-import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
-
-public class Main extends NullUCEFFederateImplementation
+public class RTIUtils
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -49,13 +45,28 @@ public class Main extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	public static void main( String[] args )
+	/**
+	 * Utility method to obtain the "simple name" for a dot delimited fully qualified name.
+	 * 
+	 * In practice this simply returns the portion of the fully qualified name after the final
+	 * dot.
+	 * 
+	 * For example, given "some.namespace.here.then.thename", this method will return "thename"
+	 * 
+	 * @param fullyQualifiedName the fully qualified name
+	 * @return the portion of the fully qualified name after the final dot, or the original string
+	 *         if there is no dot, or an empty string if the source string is null.
+	 */
+	public static String simpleName(String fullyQualifiedName)
 	{
-		System.out.println( "UCEF!" );
-		
-		TestUCEFFederate testFed = new TestUCEFFederate("Federate-" + new Date().getTime());
-		testFed.go();
+		if( fullyQualifiedName == null )
+			return "";
 
-		System.exit( 0 );
+		int lastDot = fullyQualifiedName.lastIndexOf( '.' );
+
+		if( lastDot < 0 )
+			return fullyQualifiedName;
+
+		return fullyQualifiedName.substring( lastDot );
 	}
 }

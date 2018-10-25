@@ -20,6 +20,14 @@
  */
 package gov.nist.ucef.hla.common;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -94,11 +102,17 @@ public class ObjectBase
 		}
 	}
 	
-	public AttributeHandleValueMap getAttributes()
-	{
-		return attributes;
-	}
-	
+    /**
+     * Get the current value of all attributes this object instance.
+     *
+     * @return An map of attribute handles names to their current values (note that this is not modifiable 
+     *         but reflects changes made to the underlying data)
+     */
+    public Map<AttributeHandle, byte[]> getState()
+    {
+    	return Collections.unmodifiableMap(this.attributes);
+    }
+    
 	@Override
 	public String toString()
 	{
@@ -144,11 +158,7 @@ public class ObjectBase
 		if( attributes == null )
 			return;
 
-		for( AttributeHandle key : attributes.keySet() )
-		{
-			byte[] value = attributes.get( key );
-			this.attributes.put( key, value );
-		}
+		this.attributes.putAll( attributes );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

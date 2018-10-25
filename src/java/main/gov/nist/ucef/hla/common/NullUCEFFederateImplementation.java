@@ -1,7 +1,7 @@
 /*
  *   Copyright 2018 Calytrix Technologies
  *
- *   This file is part of ucef-gateway.
+ *   This file is part of ucef-java.
  *
  *   NOTICE:  All information contained herein is, and remains
  *            the property of Calytrix Technologies Pty Ltd.
@@ -18,13 +18,9 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla;
+package gov.nist.ucef.hla.common;
 
-import java.util.Date;
-
-import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
-
-public class Main extends NullUCEFFederateImplementation
+public class NullUCEFFederateImplementation implements IUCEFFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -33,7 +29,43 @@ public class Main extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	@Override
+	public void doInitialisationTasks() {}
+	
+	// announce READY_TO_POPULATE
+	@Override
+	public void doPostAnnouncePreAchievePopulateTasks() {}
+	// achieve READY_TO_POPULATE
+	@Override
+	public void doPopulationTasks() {}
+	
+	// announce READY_TO_RUN
+	@Override
+	public void doPostAnnouncePreAchieveRunTasks() {}
+	// achieve READY_TO_RUN
+	@Override
+	public void runSimulation() {}
+	
+	// announce READY_TO_RESIGN
+	@Override
+	public void doPostAnnouncePreAchieveResignTasks() {}
+	// achieve READY_TO_RESIGN
+	@Override
+	public void doResignTasks() {}
+	
+	@Override
+	public void doShutdownTasks() {}
 
+	
+	
+	
+	
+	
+	@Override
+	public void handleInteraction( InteractionBase interactionBase ) {}
+	@Override
+	public void handleReflection( ObjectBase objectBase ) {}
+	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -49,13 +81,4 @@ public class Main extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	public static void main( String[] args )
-	{
-		System.out.println( "UCEF!" );
-		
-		TestUCEFFederate testFed = new TestUCEFFederate("Federate-" + new Date().getTime());
-		testFed.go();
-
-		System.exit( 0 );
-	}
 }

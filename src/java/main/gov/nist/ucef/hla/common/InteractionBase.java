@@ -53,14 +53,16 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public InteractionBase(FederateBase federate, InteractionClassHandle interactionHandle,
-                           ParameterHandleValueMap parameters, byte[] tag)
+    public InteractionBase(FederateBase federate, 
+                           InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters, 
+                           byte[] tag)
     {
     	this(federate, interactionHandle, parameters, tag, null);
     }
     
-	public InteractionBase(FederateBase federate, InteractionClassHandle interactionHandle,
-	                       ParameterHandleValueMap parameters, byte[] tag, LogicalTime time)
+	public InteractionBase(FederateBase federate,
+	                       InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters,
+	                       byte[] tag, LogicalTime time)
 	{
 		this.federate = federate;
 		this.interactionHandle = interactionHandle;
