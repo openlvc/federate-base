@@ -20,6 +20,8 @@
  */
 package gov.nist.ucef.hla.common;
 
+import java.util.HashSet;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -65,6 +67,41 @@ public class SynchronizationPointTest extends TestCase
 		assertEquals( "readyToResign", SyncPoint.READY_TO_RESIGN.getID() );
 	}
 
+	/**
+	 * This is trivial test which checks that no {@link SyncPoint}s are added or removed
+	 * without due consideration.
+	 * 
+	 * If a change is made to the {@link SyncPoint}s, and the change is correct, this test should be 
+	 * updated to reflect the new state of affairs.
+	 */
+	public void testExpectedSyncPoints()
+	{
+		// these are the ONLY synchronisation points we expect. If there are others,
+		// we need to make sure that the code is properly updated. If any are removed.
+		// this test will cause compilation errors
+		SyncPoint[] expectedSyncPoints = new SyncPoint[]{ SyncPoint.READY_TO_POPULATE,
+		                                                  SyncPoint.READY_TO_RUN,
+		                                                  SyncPoint.READY_TO_RESIGN };
+		
+		for(SyncPoint syncPoint : SyncPoint.values())
+		{
+			boolean found = false;
+			for(SyncPoint expectedSyncPoint : expectedSyncPoints)
+			{
+				if(syncPoint.equals(expectedSyncPoint))
+				{
+					found = true;
+					break;
+				}
+			}
+			
+			// if this assertion fails, it means that we have come across a new synchronization point
+			// which was not around when this test was written. Ensure that the extra synchronization
+			// point is valid and all required code changes have been made, and then update this test.
+			assertEquals(String.format("The SynchronizationPoint with ID '%s' was not expected - has it been added?.", syncPoint.getID()), true, found);
+		}
+	}
+	
 	/**
 	 * This is trivial test which validates that the IDs of the various
 	 * {@link SyncPoint}s have not been changed without due consideration.
