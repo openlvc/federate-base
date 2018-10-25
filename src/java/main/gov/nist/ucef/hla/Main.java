@@ -65,7 +65,7 @@ public class Main extends NullUCEFFederateImplementation
 	{
 		System.out.println( "UCEF!" );
 		
-		new TestUCEFFederate().go();
+		new TestUCEFFederate().execute();
 
 		System.out.println( "Shutting down." );
 		

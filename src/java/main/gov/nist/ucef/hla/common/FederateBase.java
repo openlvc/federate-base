@@ -547,7 +547,7 @@ public class FederateBase
 		/////////////////////////////////////
 		// we need to tell the RTI about the interactions we are publishing. We don't need to
 		// inform it of the parameters, only the class, making it much simpler
-		Set<String> publishedInteractions = this.federateConfiguration.getPublishedInteractions();		
+		Collection<String> publishedInteractions = this.federateConfiguration.getPublishedInteractions();		
 		for(String interactionIdentifier : publishedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );
@@ -561,7 +561,7 @@ public class FederateBase
 		//////////////////////////////////////////
 		// we need to tell the RTI about the interactions we are are interested in which are
 		// sent out by other federates, so we we subscribe to those here
-		Set<String> subscribedInteractions = this.federateConfiguration.getPublishedInteractions();		
+		Collection<String> subscribedInteractions = this.federateConfiguration.getPublishedInteractions();		
 		for(String interactionIdentifier : subscribedInteractions)
 		{
 			InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionIdentifier );

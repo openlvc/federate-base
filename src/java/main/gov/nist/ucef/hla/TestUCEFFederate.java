@@ -21,16 +21,13 @@
 package gov.nist.ucef.hla;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
@@ -54,71 +51,54 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	public TestUCEFFederate()
 	{
-				
+		// nothing special here...
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public void go()
+	public void execute()
 	{
-		// somebody set us up the FOM... 
-		// somebody set us up the FOM... 
-		List<URL> modules = new ArrayList<>();
-		List<URL> joinModules = new ArrayList<>();
-		try
-		{
-			// modules
-			String[] foms = {"RestaurantProcesses.xml", 
-			                 "RestaurantFood.xml", 
-			                 "RestaurantDrinks.xml"};
-			for(String fom : foms)
-			{
-				modules.add( new File( "resources/foms/"+fom ).toURI().toURL() );
-			}
-			
-			// join modules
-			foms = new String[]{"RestaurantSoup.xml"};
-			for(String fom : foms)
-			{
-				joinModules.add( new File( "resources/foms/"+fom ).toURI().toURL() );
-			}
-		}
-		catch( MalformedURLException urle )
-		{
-			modules.clear();
-			joinModules.clear();
-			
-			System.err.println( "Exception loading one of the FOM modules from disk: " + urle.getMessage() );
-			urle.printStackTrace();
-			
-			// bail out now!
-			System.exit( 1 );
-		}
+		// TODO Read configuration from JSON(?)
+		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+		                                                          "Federate-" + new Date().getTime(), 
+		                                                          "TestFederate" );
 
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String drinkBase = "HLAobjectRoot.Food.Drink.";
-		Map<String, Set<String>> publishedAttributes = new HashMap<>();
-		publishedAttributes.put( drinkBase+"Soda",
-		                         new HashSet<>(Arrays.asList( new String[] {"NumberCups", "Flavor"} ) ));
-		Map<String, Set<String>> subscribedAttributes = new HashMap<>();
-		subscribedAttributes.put( drinkBase+"Soda",
-		                          new HashSet<>(Arrays.asList( new String[] {"NumberCups", "Flavor"} ) ));
+		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
 		
 		// set up lists of interactions to be published and subscribed to
 		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
-		Set<String> publishedInteractions = new HashSet<>(Arrays.asList( new String[] {foodServedBase+"DrinkServed"} ));
-		Set<String> subscribedInteractions = new HashSet<>(Arrays.asList( new String[] {foodServedBase+"DrinkServed"} ));
+		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
+		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
 		
-		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", "Federate-" + new Date().getTime(), "TestFederate" );		
-		config.addModules( modules )
-			  .addJoinModules( joinModules )
-			  .addPublishedAtributes( publishedAttributes )
-			  .addSubscribedAtributes( subscribedAttributes )
-			  .addPublishedInteractions( publishedInteractions )
-			  .addSubscribedInteractions( subscribedInteractions );
-		
+		// somebody set us up the FOM...
+		try
+		{
+			String fomRootPath = "resources/foms/";
+			// modules
+			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
+			                       fomRootPath+"RestaurantFood.xml", 
+			                       fomRootPath+"RestaurantDrinks.xml"};
+			config.addModules( urlsFromPaths(moduleFoms) );
+			
+			// join modules
+			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
+		}
+		catch( FileNotFoundException | MalformedURLException ex )
+		{
+			System.err.println( "Exception loading one of the FOM modules from disk: " + ex.getMessage() );
+			ex.printStackTrace();
+			
+			// bail out now!
+			System.err.println( "Cannot proceed - shutting down now." );
+			System.exit( 1 );
+		}
+
 		try
 		{
 			// let's go...
@@ -131,7 +111,23 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		}				
 	}
 	
+	private Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
+	{
+		List<URL> result = new ArrayList<>();
+		for(String path : paths)
+		{
+			File file = new File( path );
+			if(file.isFile())
+				result.add( new File( path ).toURI().toURL() );
+			else
+				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
+		}
+		return result;
+	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////// LIFECYCLE /////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void doInitialisationTasks()
 	{
@@ -207,6 +203,9 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		System.out.println("There are no shutdown tasks.");
 	}	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////// INTERACTIONS ///////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void handleInteraction( InteractionBase interaction )
 	{
@@ -215,6 +214,9 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		System.out.println( builder.toString() );
 	}
 
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////// REFLECTIONS ////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void handleReflection( ObjectBase objectBase )
 	{
@@ -223,10 +225,6 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		System.out.println( builder.toString() );
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
