@@ -11,12 +11,12 @@ namespace ucef
 
 		public:
 
-			////////////////////////////////
-			//        Constructors        //
-			////////////////////////////////
+			//----------------------------------------------------------
+			//                     Constructors
+			//----------------------------------------------------------
 			FederateAmbassador();
 			virtual ~FederateAmbassador() throw();
-
+			FederateAmbassador(const FederateAmbassador&) = delete;
 	};
 
 }
