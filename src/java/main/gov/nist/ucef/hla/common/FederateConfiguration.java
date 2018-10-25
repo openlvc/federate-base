@@ -423,7 +423,7 @@ public class FederateConfiguration
 	 *            the class which are to be published
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( Map<String,Collection<String>> publishedAttributes )
+	public FederateConfiguration addPublishedAtributes( Map<String, Collection<String>> publishedAttributes )
 	{
 		if(canWrite())
 		{
