@@ -55,7 +55,7 @@ public enum SyncPoint
 	// the string identifier for the synchronization point
 	private String id;
 	// the "human readable" text name for the synchronization point, primarily used for
-	// and debugging purposes
+	// logging/debugging purposes
 	private String name;
 
 	//----------------------------------------------------------
@@ -118,19 +118,18 @@ public enum SyncPoint
 	}
 
 	/**
-	 * Determine if this synchronization point is not the same as the provided synchronization point
+	 * Determine if this synchronization point is not the same as the provided synchronization
+	 * point
 	 * 
-	 * NOTE: this is just a negatiion of the standard enumeration equals() method provided to improve 
-	 *       code readbility
+	 * NOTE: this is just a negatiion of the standard enumeration equals() method provided to
+	 * improve code readbility
 	 * 
 	 * @param other the other synchronization point
-	 * @return true if this synchronization point not the same as the provided synchronization point,
-	 *         false otherwise
+	 * @return true if this synchronization point not the same as the provided synchronization
+	 *         point, false otherwise
 	 */
 	public boolean isNot( SyncPoint other )
 	{
-		// NOTE: relies on the enumerated values being defined in the expected 
-		//       chronological order
 		return !this.equals(other);
 	}
 	

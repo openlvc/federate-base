@@ -20,8 +20,6 @@
  */
 package gov.nist.ucef.hla.common;
 
-import java.util.HashSet;
-
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

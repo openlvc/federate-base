@@ -55,4 +55,15 @@ public class StringUtils
 	{
 		return str == null || str.trim().length() == 0;
 	}
+	
+	/**
+	 * Utility method to quickly determine if a {@link String} is not null and not empty
+	 * 
+	 * @param str the {@link String} to check
+	 * @return true if the {@link String} is neither null, of zero length, or contains only whitespace characters
+	 */
+	public static boolean isNotNullOrEmpty( String str )
+	{
+		return !isNullOrEmpty( str );
+	}
 }

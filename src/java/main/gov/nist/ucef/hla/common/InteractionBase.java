@@ -20,8 +20,8 @@
  */
 package gov.nist.ucef.hla.common;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.Collections;
+import java.util.Map;
 
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
@@ -39,7 +39,6 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getLogger(InteractionBase.class);
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -74,6 +73,30 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public void update(InteractionClassHandle instanceHandle, ParameterHandleValueMap parameters,
+	                   byte[] tag, LogicalTime time)
+	{
+		// sanity check that we are not updating from another instance's properties
+		if( this.interactionHandle.equals( instanceHandle ) )
+		{
+			// do the things
+			this.tag = tag;
+			this.time = time;
+			mergeParameters( parameters );
+		}
+	}
+	
+    /**
+     * Get the current value of all parameters this object instance.
+     *
+     * @return An map of parameters handle names to their current values (note that this is not 
+     * 		   modifiable but reflects changes made to the underlying data)
+     */
+    public Map<ParameterHandle, byte[]> getState()
+    {
+    	return Collections.unmodifiableMap(this.parameters);
+    }
+    
 	@Override
 	public String toString()
 	{
@@ -110,6 +133,14 @@ public class InteractionBase
 		builder.append( "\n" );
 
 		return builder.toString();		
+	}
+	
+	private void mergeParameters( ParameterHandleValueMap parameters )
+	{
+		if( parameters == null )
+			return;
+
+		this.parameters.putAll( parameters );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

@@ -29,19 +29,47 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.ucef.hla.util.StringUtils;
+
+
 /**
- * The purpose of this class is to encapsulate all data required to configure a federate
+ * The purpose of this class is to encapsulate all data required to configure a federate. The main
+ * usage pattern is something like:
+ * 
+ * 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+ * 		                                                          "FederateName", 
+ * 		                                                          "TestFederate" );
+ * 		config.addPublishedAtributes( publishedAttributes )
+ * 			  .addSubscribedAtributes( subscribedAttributes )
+ * 			  .addPublishedInteractions( publishedInteractions )
+ * 			  .addSubscribedInteractions( publishedInteractions )
+ * 			  .setLookAhead(0.5)
+ * 			  .freeze();
+ * 
+ * Once "frozen", the configuration cannot be modified further - attempts to do so will result in
+ * errors being logged, but there is no other "adverse" impact (apart from the attempted 
+ * modification to the configuration not being applied).
+ * 
+ * The configuration should be frozen before being used to configure a federate, and most federates
+ * will freeze the configuration when it is passed in to prevent modification.
  */
 public class FederateConfiguration
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getFormatterLogger(FederateConfiguration.class);
+	private static final Logger logger = LogManager.getFormatterLogger( FederateConfiguration.class );
+	
+	private static final int DEFAULT_MAX_RECONNECT_ATTEMPTS = 5;
+	private static final long DEFAULT_RECONNECT_WAIT_MS = 5000; // 5 seconds
+	private static final boolean DEFAULT_IS_LATE_JOINER = false;
+	private static final double DEFAULT_LOOK_AHEAD = 1.0;
+	private static final double DEFAULT_STEP_SIZE = 0.1;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -53,242 +81,294 @@ public class FederateConfiguration
 	private Set<URL> joinModules;
 	private Set<String> publishedInteractions;
 	private Set<String> subscribedInteractions;
-	private Map<String, Set<String>> publishedAttributes;
-	private Map<String, Set<String>> subscribedAttributes;
-	
-	// TODO
-    private int maxReconnectAttempts = 5;
-    private long waitReconnectMs = 5000;
-    private boolean isLateJoiner = false;
-    private double lookAhead = 1.0;
-    private double stepSize = 0.1;	
-    
-    // flag indicating whether the configuration in this instance is modifiable or not
-    // IMPORTANT: Do not expose this to modification from outside of this class!
-    private boolean isReadOnly = false;
+	private Map<String,Set<String>> publishedAttributes;
+	private Map<String,Set<String>> subscribedAttributes;
+
+	private int maxReconnectAttempts;
+	private long waitReconnectMs;
+	private boolean isLateJoiner;
+	private double lookAhead;
+	private double stepSize;
+
+	// flag indicating whether the configuration in this instance is modifiable or not
+	// IMPORTANT: Do not expose this to modification from outside of this class!
+	private boolean isFrozen = false;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateConfiguration(String federationName, String federateName, String federateType)
-	{
-		this( federationName, federateName, federateType, 
-		      null, null, // modules, joinModules 
-		      null, null, // published attributes, subscribed attributes
-		      null, null );// published interactions, subscribed interactions
-	}
-	
-	public FederateConfiguration( String federationName, String federateName, String federateType,
-	                              Set<URL> modules, Set<URL> joinModules,
-	                              Map<String,Set<String>> publishedAttributes,
-	                              Map<String,Set<String>> subscribedAttributes,
-	                              Set<String> publishedInteractions,
-	                              Set<String> subscribedInteractions )
+	/**
+	 * Constructor - the federation name, federate name and federation types are supplied, and all
+	 * other properties are left as defaults and or empty.
+	 * 
+	 * @param federationName
+	 * @param federateName
+	 * @param federateType
+	 */
+	public FederateConfiguration( String federationName, String federateName, String federateType )
 	{
 		this.federationName = federationName;
-		
+
 		this.federateName = federateName;
-		this.federateType= federateType;
+		this.federateType = federateType;
+
+		this.modules = new HashSet<>();
+		this.joinModules = new HashSet<>();
+		this.publishedAttributes = new HashMap<>();
+		this.subscribedAttributes = new HashMap<>();
+		this.publishedInteractions = new HashSet<>();
+		this.subscribedInteractions = new HashSet<>();
 		
-		this.modules = modules == null ? new HashSet<>() : modules;
-		this.joinModules = joinModules == null ? new HashSet<>() : joinModules;
-		this.publishedAttributes = publishedAttributes == null ? new HashMap<>() : publishedAttributes;
-		this.subscribedAttributes = subscribedAttributes == null ? new HashMap<>() : subscribedAttributes;
-		this.publishedInteractions = publishedInteractions == null ? new HashSet<>() : publishedInteractions;
-		this.subscribedInteractions = subscribedInteractions == null ? new HashSet<>() : subscribedInteractions;
+		this.maxReconnectAttempts = DEFAULT_MAX_RECONNECT_ATTEMPTS;
+		this.waitReconnectMs = DEFAULT_RECONNECT_WAIT_MS;
+		this.isLateJoiner = DEFAULT_IS_LATE_JOINER;
+		this.lookAhead = DEFAULT_LOOK_AHEAD;
+		this.stepSize = DEFAULT_STEP_SIZE;
+		
+		this.isFrozen = false;
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	/**
-	 * Determine if this instance is currently modifiable.
-	 * 
-	 * The instance will become unmodifiable once any of the configured properties are read. 
-	 * 
-	 * @return true if this instance is currently modifiable, false otherwise.
-	 */
-	public boolean isReadOnly()
-	{
-		return this.isReadOnly;
-	}
-	
-	/**
-	 * Make this this instance is unmodifiable.
-	 * 
-	 * This is called when any of the configured properties are read. 
-	 */
-	private void makeReadOnly()
-	{
-		this.isReadOnly = true;
-	}
 
-	/**
-	 * Utility method to check if this instance is currently modifiable before carrying out modifications
-	 * to the configured properties.
-	 * 
-	 * If it is logged, an ERROR level error log will be produced
-	 * 
-	 * @return true if this instance is modifiable, false otherwise.
-	 */
-	private boolean canWrite()
-	{
-		if(isReadOnly())
-		{
-			// can't modify values
-			logger.error(String.format("Configuration for federate '%s' of type '%s' in federation '%s' is locked and cannot be modified.", 
-			                           this.federateName, this.federateType, this.federationName));
-			return false;
-		}
-		return true;
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Determine if this instance is currently modifiable.
+	 * 
+	 * @return true if this instance is currently modifiable, false otherwise.
+	 */
+	public boolean isFrozen()
+	{
+		return this.isFrozen;
+	}
 
 	/**
-	 * Obtain the configured federation name
+	 * Make this this instance is unmodifiable.
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
+	 * Once an instance is frozen, it cannot be "thawed" (i.e., made modifiable again).
+	 * 
+	 * Calling this multiple times has no "additional" effect - the instance will simply remain in
+	 * its "locked" state.
+	 * 
+	 * NOTE: This will cause the configuration to become locked. No further modifications may be
+	 * made after this method is called, and this instance will become read only. See also
+	 * {@link #isFrozen()}
+	 * 
+	 * @return this instance
+	 */
+	public FederateConfiguration freeze()
+	{
+		this.isFrozen = true;
+		return this;
+	}
+	
+	/**
+	 * Obtain the configured federation name
 	 * 
 	 * @return the configured federation name (not modifiable)
 	 */
 	public String getFederationName()
 	{
-		makeReadOnly();
 		return federationName;
 	}
 
 	/**
 	 * Obtain the configured federate name
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the configured federate name (not modifiable)
 	 */
 	public String getFederateName()
 	{
-		makeReadOnly();
 		return federateName;
 	}
 
 	/**
 	 * Obtain the configured federate type
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the configured federate type (not modifiable)
 	 */
 	public String getFederateType()
 	{
-		makeReadOnly();
 		return federateType;
+	}
+
+	/**
+	 * Obtain the maximum number of reconnection attempts
+	 * 
+	 * @return the maximum number of reconnection attempts
+	 */
+	public int getMaxReconnectAttempts()
+	{
+		return maxReconnectAttempts;
+	}
+
+	/**
+	 * Obtain the maximum reconnection wait time (before timeout) in milliseconds
+	 * 
+	 * @return the maximum reconnection wait time (before timeout) in milliseconds
+	 */
+	public long getReconnectWaitTime()
+	{
+		return waitReconnectMs;
+	}
+
+	/**
+	 * Obtain the lookahead
+	 * 
+	 * @return the lookahead
+	 */
+	public double getLookAhead()
+	{
+		return lookAhead;
+	}
+
+	/**
+	 * Obtain the step size
+	 * 
+	 * @return the step size
+	 */
+	public double getStepSize()
+	{
+		return stepSize;
+	}
+
+	/**
+	 * Determine if the federate is configured to be a late joiner
+	 * 
+	 * @return true if the federate is configured to be a late joiner, false otherwise
+	 */
+	public boolean isLateJoiner()
+	{
+		return isLateJoiner;
 	}
 
 	/**
 	 * Obtain the configured FOM modules
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the configured FOM modules (not modifiable)
 	 */
 	public Collection<URL> getModules()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableSet( modules );
 	}
 
 	/**
 	 * Obtain the configured join FOM modules
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the configured join FOM modules (not modifiable)
 	 */
 	public Collection<URL> getJoinModules()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableSet( joinModules );
 	}
 
 	/**
 	 * Obtain the published interactions
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the published interactions (not modifiable)
 	 */
 	public Collection<String> getPublishedInteractions()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableSet( publishedInteractions );
 	}
 
 	/**
 	 * Obtain the subscribed interactions
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the subscribed interactions (not modifiable)
 	 */
 	public Collection<String> getSubscribedInteractions()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableSet( subscribedInteractions );
 	}
 
 	/**
 	 * Obtain the published attributes
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the published attributes (not modifiable)
 	 */
 	public Map<String,Set<String>> getPublishedAttributes()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableMap( publishedAttributes );
 	}
 
 	/**
 	 * Obtain the subscribed attributes
 	 * 
-	 * NOTE: This will cause the configiuration to become locked.
-	 *       No further modfications may be made after this method
-	 *       is called, and this instance will become read only.
-	 *       See also {@link #isReadOnly()}
-	 * 
 	 * @return the subscribed attributes (not modifiable)
 	 */
 	public Map<String,Set<String>> getSubscribedAttributes()
 	{
-		makeReadOnly();
 		return Collections.unmodifiableMap( subscribedAttributes );
+	}
+
+	/**
+	 * Configure the federate's maximum number of reconnection attempts
+	 * 
+	 * @param maxReconnectAttempts the maximum number of reconnection attempts
+	 * @return this instance
+	 */
+	public FederateConfiguration setMaxReconnectAttempts( int maxReconnectAttempts )
+	{
+		if(canWrite())
+			this.maxReconnectAttempts = maxReconnectAttempts;
+		return this;
+	}
+
+	/**
+	 * Configure the federate's maximum reconnection wait time (before timeout) in milliseconds
+	 * 
+	 * @param reconnectWaitTimeMs the maximum reconnection wait time (before timeout) in
+	 *            milliseconds
+	 * @return this instance
+	 */
+	public FederateConfiguration setReconnectWaitTime( long reconnectWaitTimeMs )
+	{
+		if(canWrite())
+			this.waitReconnectMs = reconnectWaitTimeMs;
+		return this;
+	}
+
+	/**
+	 * Configure the federate's lookahead
+	 * 
+	 * @param lookahead the lookahead
+	 * @return this instance
+	 */
+	public FederateConfiguration setLookAhead( double lookAhead )
+	{
+		if(canWrite())
+			this.lookAhead = lookAhead;
+		return this;
+	}
+
+	/**
+	 * Configure the federate's step size
+	 * 
+	 * @param stepSize the step size
+	 * @return this instance
+	 */
+	public FederateConfiguration setStepSize( double stepSize )
+	{
+		if(canWrite())
+			this.stepSize = stepSize;
+		return this;
+	}
+
+	/**
+	 * Configure whether the federate is configured to be a late joiner
+	 * 
+	 * @param isLateJoiner true if the federate to be a late joiner, false otherwise
+	 * @return this instance
+	 */
+	public FederateConfiguration setLateJoiner( boolean isLateJoiner )
+	{
+		if(canWrite())
+			this.isLateJoiner = isLateJoiner;
+		return this;
 	}
 
 	/**
@@ -299,12 +379,18 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addModule( URL module )
 	{
-		if(canWrite())
-		{
-			if( module != null )
-				this.modules.add( module );
-		}
-		return this;
+		return addModules( new URL[]{ module } );
+	}
+
+	/**
+	 * Add FOM modules to the configuration
+	 * 
+	 * @param modules the FOM modules to add to the configuration
+	 * @return this instance
+	 */
+	public FederateConfiguration addModules( URL[] modules )
+	{
+		return addModules( asCollection( modules ) );
 	}
 
 	/**
@@ -315,12 +401,10 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addModules( Collection<URL> modules )
 	{
-		if(canWrite())
+		if( canWrite( modules ) )
 		{
-    		if( modules != null )
-    			this.modules.addAll( modules );
+			this.modules.addAll( collectNonEmptyURLs( modules ) );
 		}
-
 		return this;
 	}
 
@@ -332,13 +416,18 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addJoinModule( URL joinModule )
 	{
-		if(canWrite())
-		{
-    		if( joinModule != null )
-    			this.joinModules.add( joinModule );
-		}
+		return addJoinModules( new URL[]{ joinModule } );
+	}
 
-		return this;
+	/**
+	 * Add join FOM modules to the configuration
+	 * 
+	 * @param joinModules the join FOM modules to add to the configuration
+	 * @return this instance
+	 */
+	public FederateConfiguration addJoinModules( URL[] joinModules )
+	{
+		return addJoinModules( asCollection( joinModules ) );
 	}
 
 	/**
@@ -349,12 +438,10 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addJoinModules( Collection<URL> joinModules )
 	{
-		if(canWrite())
+		if( canWrite( joinModules ) )
 		{
-    		if( joinModules != null )
-    			this.joinModules.addAll( joinModules );
+			this.joinModules.addAll( collectNonEmptyURLs( joinModules ) );
 		}
-
 		return this;
 	}
 
@@ -368,13 +455,7 @@ public class FederateConfiguration
 	public FederateConfiguration addPublishedAtribute( String klassIdentifier,
 	                                                   String attributeIdentifier )
 	{
-		if(canWrite())
-		{
-    		this.publishedAttributes.computeIfAbsent( klassIdentifier,
-    		                                          x -> new HashSet<>() ).add( attributeIdentifier );
-		}
-
-		return this;
+		return addPublishedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
 	}
 
 	/**
@@ -387,13 +468,7 @@ public class FederateConfiguration
 	public FederateConfiguration addPublishedAtributes( String klassIdentifier,
 	                                                    String[] attributeIdentifiers )
 	{
-		if(canWrite())
-		{
-    		if( attributeIdentifiers != null )
-    			addPublishedAtributes( klassIdentifier, Arrays.asList( attributeIdentifiers ) );
-		}
-
-		return this;
+		return addPublishedAtributes( klassIdentifier, asCollection( attributeIdentifiers ) );
 	}
 
 	/**
@@ -406,12 +481,11 @@ public class FederateConfiguration
 	public FederateConfiguration addPublishedAtributes( String klassIdentifier,
 	                                                    Collection<String> attributeIdentifiers )
 	{
-		if(canWrite())
+		if( canWrite( klassIdentifier ) && canWrite( attributeIdentifiers ) )
 		{
-    		this.publishedAttributes.computeIfAbsent( klassIdentifier,
-    		                                          x -> new HashSet<>() ).addAll( attributeIdentifiers );
+			this.publishedAttributes.computeIfAbsent( klassIdentifier,
+			                                          x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeIdentifiers ) );
 		}
-
 		return this;
 	}
 
@@ -423,13 +497,12 @@ public class FederateConfiguration
 	 *            the class which are to be published
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( Map<String, Collection<String>> publishedAttributes )
+	public FederateConfiguration addPublishedAtributes( Map<String,Collection<String>> publishedAttributes )
 	{
-		if(canWrite())
+		if( canWrite( publishedAttributes ) )
 		{
 			mergeSetMaps( publishedAttributes, this.publishedAttributes );
 		}
-
 		return this;
 	}
 
@@ -443,13 +516,7 @@ public class FederateConfiguration
 	public FederateConfiguration addSubscribedAtribute( String klassIdentifier,
 	                                                    String attributeIdentifier )
 	{
-		if(canWrite())
-		{
-    		this.subscribedAttributes.computeIfAbsent( klassIdentifier,
-    		                                           x -> new HashSet<>() ).add( attributeIdentifier );
-		}
-    		
-		return this;
+		return addPublishedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
 	}
 
 	/**
@@ -462,13 +529,7 @@ public class FederateConfiguration
 	public FederateConfiguration addSubscribedAtributes( String klassIdentifier,
 	                                                     String[] attributeIdentifiers )
 	{
-		if(canWrite())
-		{
-    		if( attributeIdentifiers != null )
-    			addSubscribedAtributes( klassIdentifier, Arrays.asList( attributeIdentifiers ) );
-		}
-
-		return this;
+		return addSubscribedAtributes( klassIdentifier, asCollection( attributeIdentifiers ) );
 	}
 
 	/**
@@ -481,12 +542,11 @@ public class FederateConfiguration
 	public FederateConfiguration addSubscribedAtributes( String klassIdentifier,
 	                                                     Collection<String> attributeIdentifiers )
 	{
-		if(canWrite())
+		if( canWrite( klassIdentifier ) && canWrite( attributeIdentifiers ) )
 		{
-    		this.subscribedAttributes.computeIfAbsent( klassIdentifier,
-    		                                           x -> new HashSet<>() ).addAll( attributeIdentifiers );
+			this.subscribedAttributes.computeIfAbsent( klassIdentifier,
+			                                           x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeIdentifiers ) );
 		}
-
 		return this;
 	}
 
@@ -500,11 +560,10 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addSubscribedAtributes( Map<String,Collection<String>> subscribedAttributes )
 	{
-		if(canWrite())
+		if( canWrite( subscribedAttributes ) )
 		{
 			mergeSetMaps( subscribedAttributes, this.subscribedAttributes );
 		}
-
 		return this;
 	}
 
@@ -516,13 +575,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addPublishedInteraction( String interactionIdentifier )
 	{
-		if(canWrite())
-		{
-    		if( interactionIdentifier != null )
-    			this.publishedInteractions.add( interactionIdentifier );
-		}
-		
-		return this;
+		return addPublishedInteractions( new String[]{ interactionIdentifier } );
 	}
 
 	/**
@@ -533,13 +586,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addPublishedInteractions( String[] interactionIdentifiers )
 	{
-		if(canWrite())
-		{
-    		if( interactionIdentifiers != null )
-    			addPublishedInteractions( Arrays.asList( interactionIdentifiers ) );
-		}
-
-		return this;
+		return addPublishedInteractions( asCollection( interactionIdentifiers ) );
 	}
 
 	/**
@@ -550,12 +597,10 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addPublishedInteractions( Collection<String> interactionIdentifiers )
 	{
-		if(canWrite())
+		if( canWrite( interactionIdentifiers ) )
 		{
-    		if( interactionIdentifiers != null )
-    			this.publishedInteractions.addAll( interactionIdentifiers );
+			this.publishedInteractions.addAll( collectNonEmptyStrings( interactionIdentifiers ) );
 		}
-
 		return this;
 	}
 
@@ -567,13 +612,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addSubscribedInteraction( String interactionIdentifier )
 	{
-		if(canWrite())
-		{
-    		if( interactionIdentifier != null )
-    			this.subscribedInteractions.add( interactionIdentifier );
-		}
-
-		return this;
+		return addSubscribedInteractions( new String[]{ interactionIdentifier } );
 	}
 
 	/**
@@ -584,13 +623,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addSubscribedInteractions( String[] interactionIdentifiers )
 	{
-		if(canWrite())
-		{
-    		if( interactionIdentifiers != null )
-    			addSubscribedInteractions( Arrays.asList( interactionIdentifiers ) );
-		}
-
-		return this;
+		return addSubscribedInteractions( asCollection( interactionIdentifiers ) );
 	}
 
 	/**
@@ -601,18 +634,63 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration addSubscribedInteractions( Collection<String> interactionIdentifiers )
 	{
-		if(canWrite())
+		if( canWrite( interactionIdentifiers ) )
 		{
-    		if( interactionIdentifiers != null )
-    			this.subscribedInteractions.addAll( interactionIdentifiers );
+			this.subscribedInteractions.addAll( collectNonEmptyStrings( interactionIdentifiers ) );
 		}
-
 		return this;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// Utility Methods /////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Utility method to turn an array of {@link String}s into a {@link Collection} of
+	 * {@link String}s
+	 * 
+	 * @param values the array of {@link String}s
+	 * @return a {@link Collection} of {@link String}s
+	 */
+	private Collection<String> asCollection( String[] values )
+	{
+		return values == null ? Collections.emptyList() : Arrays.asList( values );
+	}
+
+	/**
+	 * Utility method to turn an array of {@link URL}s into a {@link Collection} of {@link URL}s
+	 * 
+	 * @param values the array of {@link URL}s
+	 * @return a {@link Collection} of {@link URL}s
+	 */
+	private Collection<URL> asCollection( URL[] values )
+	{
+		return values == null ? Collections.emptyList() : Arrays.asList( values );
+	}
+
+	/**
+	 * Utility method to collect all the non null/non empty {@link String}s in a collection and
+	 * return them as a new {@link Collection}
+	 * 
+	 * @param values the values
+	 * @return the {@link Collection} of non-null/non-empty values
+	 */
+	public Collection<String> collectNonEmptyStrings( Collection<String> values )
+	{
+		return values.stream().filter( ( str ) -> StringUtils.isNotNullOrEmpty( str ) ).collect( Collectors.toList() );
+	}
+
+	/**
+	 * Utility method to collect all the non null/non empty {@link URL}s in a collection and
+	 * return them as a new {@link Collection}
+	 * 
+	 * @param values the values
+	 * @return the {@link Collection} of non-null/non-empty values
+	 */
+	public Collection<URL> collectNonEmptyURLs( Collection<URL> values )
+	{
+		return values.stream().filter( ( url ) -> notNullOrEmpty( url ) ).collect( Collectors.toList() );
+	}
+
 	/**
 	 * Utility method to merge the content of a maps of sets into another map of sets
 	 * 
@@ -632,6 +710,114 @@ public class FederateConfiguration
 		{
 			dest.computeIfAbsent( entry.getKey(), x -> new HashSet<>() ).addAll( entry.getValue() );
 		}
+	}
+
+	/**
+	 * Utility method to check if this instance is currently modifiable before carrying out
+	 * modifications to the configured properties.
+	 * 
+	 * If it is no modifiable, an ERROR level error log will be produced
+	 * 
+	 * @return true if this instance is modifiable, false otherwise.
+	 */
+	private boolean canWrite()
+	{
+		if( isFrozen() )
+		{
+			// can't modify values
+			logger.error( String.format( "Configuration for federate '%s' of type '%s' in federation '%s' is locked and cannot be modified.",
+			                             this.federateName,
+			                             this.federateType,
+			                             this.federationName ) );
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Utility method to check if this instance is currently modifiable and that the parameter is
+	 * not null or empty before carrying out modifications to the configured properties.
+	 * 
+	 * If it is no modifiable, an ERROR level error log will be produced
+	 * 
+	 * @return true if this instance is currently modifiable and that the parameter is not null or
+	 *         empty, false otherwise
+	 */
+	private boolean canWrite( String value )
+	{
+		return canWrite() && notNullOrEmpty( value );
+	}
+
+	/**
+	 * Utility method to check if this instance is currently modifiable and that the parameter is
+	 * not null or empty before carrying out modifications to the configured properties.
+	 * 
+	 * If it is no modifiable, an ERROR level error log will be produced
+	 * 
+	 * @return true if this instance is currently modifiable and that the parameter is not null or
+	 *         empty, false otherwise
+	 */
+	private boolean canWrite( Collection<?> value )
+	{
+		return canWrite() && notNullOrEmpty( value );
+	}
+
+	/**
+	 * Utility method to check if this instance is currently modifiable and that the parameter is
+	 * not null or empty before carrying out modifications to the configured properties.
+	 * 
+	 * If it is no modifiable, an ERROR level error log will be produced
+	 * 
+	 * @return true if this instance is currently modifiable and that the parameter is not null or
+	 *         empty, false otherwise
+	 */
+	private boolean canWrite( Map<?,?> value )
+	{
+		return canWrite() && notNullOrEmpty( value );
+	}
+
+	/**
+	 * Utility method to make sure that a string is neither null nor empty
+	 * 
+	 * @param toTest the {@link String} to test
+	 * @return true if the string is neither null nor empty, false if it is null or empty
+	 */
+	private boolean notNullOrEmpty( String toTest )
+	{
+		return toTest != null && toTest.trim().length() > 0;
+	}
+
+	/**
+	 * Utility method to make sure that a URL is neither null nor empty
+	 * 
+	 * @param toTest the {@link URL} to test
+	 * @return true if the URL is neither null nor empty, false if it is null or empty
+	 */
+	private boolean notNullOrEmpty( URL toTest )
+	{
+		return toTest != null && toTest.toString().length() > 0;
+	}
+
+	/**
+	 * Utility method to make sure that a collection is neither null nor empty
+	 * 
+	 * @param toTest the {@link Collection} to test
+	 * @return true if the collection is neither null nor empty, false if it is null or empty
+	 */
+	private boolean notNullOrEmpty( Collection<?> toTest )
+	{
+		return toTest != null && !toTest.isEmpty();
+	}
+
+	/**
+	 * Utility method to make sure that a map is neither null nor empty
+	 * 
+	 * @param toTest the {@link Map} to test
+	 * @return true if the collection is neither null nor empty, false if it is null or empty
+	 */
+	private boolean notNullOrEmpty( Map<?,?> toTest )
+	{
+		return toTest != null && !toTest.isEmpty();
 	}
 
 	//----------------------------------------------------------

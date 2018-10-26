@@ -53,23 +53,21 @@ public class AmbassadorBase extends NullFederateAmbassador
 	//----------------------------------------------------------
 	private FederateBase federate;
 
-	// TODO - provide accessors for these rather than making them externally available
-	//        within the package via `protected`
-	
-	// these variables are accessible in the package
-	protected double federateTime        = 0.0;
-	protected double federateLookahead   = 1.0;
-	
-	protected boolean isRegulating       = false;
-	protected boolean isConstrained      = false;
-	protected boolean isAdvancing        = false;
+	private IUCEFFederateImplementation federateImplementation;
+	private FederateConfiguration federateConfiguration;
 	
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
-	
-	private IUCEFFederateImplementation federateImplementation;
 	private Map<ObjectInstanceHandle, ObjectBase> objectInstanceLookup;
-
+	private Map<InteractionClassHandle, InteractionBase> interactionLookup;
+	
+	// TODO - should we provide accessors for these rather than making them externally available
+	//        within the package via `protected`...?
+	// NOTE: these variables are accessible in the package
+	protected double federateTime        = 0.0;
+	protected boolean isRegulating       = false;
+	protected boolean isConstrained      = false;
+	protected boolean isAdvancing        = false;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -79,49 +77,50 @@ public class AmbassadorBase extends NullFederateAmbassador
 		this.federate = federate;
 		
 		this.federateImplementation = federate.getFederateImplementation();
+		this.federateConfiguration = federate.getFederateConfiguration();
+		
 		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, ObjectBase>(); 
+		this.interactionLookup = new HashMap<InteractionClassHandle, InteractionBase>(); 
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public ObjectBase getObjectBaseFromHandle(ObjectInstanceHandle objectInstanceHandle)
-	{
-		return this.objectInstanceLookup.get(objectInstanceHandle);
-	}
 
 	//////////////////////////////////////////////////////////////////////////
 	////////////////////////// RTI Callback Methods //////////////////////////
 	//////////////////////////////////////////////////////////////////////////
 	@Override
-	public void synchronizationPointRegistrationFailed( String label,
-	                                                    SynchronizationPointFailureReason reason )
+	public void synchronizationPointRegistrationSucceeded( String syncPointID )
 	{
-		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.warn( "Failed to register sync point: " + syncPoint.toString() + ", reason="+reason );
+		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
+		logger.info( String.format( "Successfully registered synchronization point '%s'",
+		                            syncPoint.toString() ) );
+	}
+	
+	@Override
+	public void synchronizationPointRegistrationFailed( String syncPointID, SynchronizationPointFailureReason reason )
+	{
+		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
+		logger.error( String.format( "Failed to register synchronization point '%s' because %s",
+		                            syncPoint.toString(), reason ) );
 	}
 
 	@Override
-	public void synchronizationPointRegistrationSucceeded( String label )
+	public void announceSynchronizationPoint( String syncPointID, byte[] tag )
 	{
-		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.info( "Successfully registered sync point: " + syncPoint.toString() );
-	}
-
-	@Override
-	public void announceSynchronizationPoint( String label, byte[] tag )
-	{
-		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.info( "Synchronization point announced: " + syncPoint.toString() );
+		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
 		this.announcedSyncPoint = syncPoint;
+		logger.info( "Synchronization point '%s' was announced.", syncPoint.toString() );
 	}
 
 	@Override
-	public void federationSynchronized( String label, FederateHandleSet failed )
+	public void federationSynchronized( String syncPointID, FederateHandleSet handleSet )
 	{
-		SyncPoint syncPoint = SyncPoint.fromID( label );
-		logger.info( "Federation Synchronized: " + syncPoint.toString() );
+		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
 		this.currentSyncPoint = syncPoint;
+		logger.info( "Federation of %d federate(s) has synchronized at '%s'.",
+		             handleSet.size(), syncPoint.toString() );
 	}
 
 	/**
@@ -154,8 +153,8 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    String objectName)
 	    throws FederateInternalError
 	{
-		logger.debug( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
-		     objectClassHandle + ", name=" + objectName);
+		logger.debug( String.format( "Discovered Object: instance handle = %s, class handle = %s, name = %s",
+		                             objectClassHandle, objectInstanceHandle, objectName) );
 	}
 	
 	@Override
@@ -165,27 +164,27 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    FederateHandle federateHandle)
     	throws FederateInternalError
 	{
-		logger.debug( "Discovered Object: handle=" + objectInstanceHandle + ", classHandle=" +
-			objectClassHandle + ", name=" + objectName + " federate="+federateHandle);
+		logger.debug( String.format( "Discovered Object: instance handle = %s, class handle = %s, name = %s, federate handle = %s",
+		                             objectClassHandle, objectInstanceHandle, objectName, federateHandle) );
 	}
 
 	@Override
-	public void reflectAttributeValues( ObjectInstanceHandle theObject,
-	                                    AttributeHandleValueMap theAttributes,
+	public void reflectAttributeValues( ObjectInstanceHandle objectInstanceHandle,
+	                                    AttributeHandleValueMap attributeHandleValueMap,
 	                                    byte[] tag,
 	                                    OrderType sentOrder,
-	                                    TransportationTypeHandle transport,
+	                                    TransportationTypeHandle transportationTypeHandle,
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
 			// just pass it on to the other method for printing purposes
 			// passing null as the time will let the other method know it
 			// it from us, not from the RTI
-			reflectAttributeValues( theObject,
-			                        theAttributes,
+			reflectAttributeValues( objectInstanceHandle,
+			                        attributeHandleValueMap,
 			                        tag,
 			                        sentOrder,
-			                        transport,
+			                        transportationTypeHandle,
 			                        null,
 			                        sentOrder,
 			                        reflectInfo );
@@ -196,45 +195,44 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    AttributeHandleValueMap attributeHandleValueMap,
 	                                    byte[] tag,
 	                                    OrderType sentOrdering,
-	                                    TransportationTypeHandle transportTypeHandle,
+	                                    TransportationTypeHandle transportationTypeHandle,
 	                                    LogicalTime time,
 	                                    OrderType receivedOrdering,
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		ObjectBase objectBase = getObjectBaseFromHandle(objectInstanceHandle);
-		
-		if(objectBase != null)
-		{
-			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
-		}
-		else
+		ObjectBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
+		if(objectBase == null)
 		{
 			objectBase = new ObjectBase(federate, objectInstanceHandle, attributeHandleValueMap, tag, time);
 			this.objectInstanceLookup.put(objectInstanceHandle, objectBase);
+		}
+		else
+		{
+			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
 		}
 		
 		this.federateImplementation.handleReflection(objectBase);
 	}
 	
 	@Override
-	public void receiveInteraction( InteractionClassHandle interactionClass,
-	                                ParameterHandleValueMap theParameters,
+	public void receiveInteraction( InteractionClassHandle interactionClassHandle,
+	                                ParameterHandleValueMap parameterHandleValueMap,
 	                                byte[] tag,
 	                                OrderType sentOrdering,
-	                                TransportationTypeHandle theTransport,
+	                                TransportationTypeHandle transportTypeHandle,
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
 		// just pass it on to the other method for printing purposes
 		// passing null as the time will let the other method know it
 		// it came from us, not from the RTI
-		this.receiveInteraction( interactionClass, theParameters, tag, 
-		                         sentOrdering, theTransport, null, sentOrdering, receiveInfo );
+		this.receiveInteraction( interactionClassHandle, parameterHandleValueMap, tag, 
+		                         sentOrdering, transportTypeHandle, null, sentOrdering, receiveInfo );
 	}
 
 	@Override
-	public void receiveInteraction( InteractionClassHandle interactionHandle,
+	public void receiveInteraction( InteractionClassHandle interactionClassHandle,
 	                                ParameterHandleValueMap theParameters,
 	                                byte[] tag,
 	                                OrderType sentOrdering,
@@ -244,8 +242,18 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		InteractionBase interaction = new InteractionBase(federate, interactionHandle, theParameters, tag, time);
-		this.federateImplementation.handleInteraction( interaction );
+		InteractionBase interactionBase = this.interactionLookup.get(interactionClassHandle);
+		if(interactionBase == null)
+		{
+			interactionBase = new InteractionBase(federate, interactionClassHandle, theParameters, tag, time);
+			this.interactionLookup.put(interactionClassHandle, interactionBase);
+		}
+		else
+		{
+			interactionBase.update(interactionClassHandle, theParameters, tag, time);
+		}
+		
+		this.federateImplementation.handleInteraction( interactionBase );
 	}
 
 	@Override
@@ -255,9 +263,8 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                  SupplementalRemoveInfo removeInfo )
 	    throws FederateInternalError
 	{
-		logger.info( "Object Removed: handle = " + theObject );
+		logger.info( String.format("Object Removed: handle = %s", theObject ) );
 	}
-	
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////

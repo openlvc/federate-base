@@ -20,7 +20,12 @@
  */
 package gov.nist.ucef.hla.common;
 
-public class NullUCEFFederateImplementation implements IUCEFFederateImplementation
+/**
+ * This is an "empty" abstract implementation of the IUCEFFederateImplementation with no-op methods
+ * for all required overrides so that developers can simply implement only those methods relevant
+ * to their particular federate.
+ */
+public abstract class NullUCEFFederateImplementation implements IUCEFFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -29,6 +34,15 @@ public class NullUCEFFederateImplementation implements IUCEFFederateImplementati
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+
+	//----------------------------------------------------------
+	//                      CONSTRUCTORS
+	//----------------------------------------------------------
+
+	//----------------------------------------------------------
+	//                    INSTANCE METHODS
+	//----------------------------------------------------------
+	// LIFECYCLE MAINTENANCE CALLBACKS /////////////////////////
 	@Override
 	public void doInitialisationTasks() {}
 	
@@ -56,23 +70,11 @@ public class NullUCEFFederateImplementation implements IUCEFFederateImplementati
 	@Override
 	public void doShutdownTasks() {}
 
-	
-	
-	
-	
-	
+	// EVENT HANDLING CALLBACKS ////////////////////////////////
 	@Override
 	public void handleInteraction( InteractionBase interactionBase ) {}
 	@Override
 	public void handleReflection( ObjectBase objectBase ) {}
-	
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                    INSTANCE METHODS
-	//----------------------------------------------------------
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
