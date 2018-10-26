@@ -13,9 +13,10 @@ using namespace ucef::util;
 namespace ucef
 {
 
-	FederateBase::FederateBase(wstring& federateName) : m_rtiAmbassador (nullptr),
-                                                        m_federateAmbassador(),
-	                                                    m_federateName(federateName)
+	FederateBase::FederateBase( wstring& federateName ) : m_federateName(federateName),
+                                                          m_federateAmbassador(),
+														  m_rtiAmbassador(nullptr)
+
 	{
 		initialiseRti();
 		initialiseFederation();
@@ -37,9 +38,11 @@ namespace ucef
 		//----------------------------------------
 		//            Connect to the RTI
 		//-----------------------------------------
+		wcout << m_federateName << " trying to connect to RTI." << endl;
 		try
 		{
 			m_rtiAmbassador->connect(m_federateAmbassador, HLA_IMMEDIATE);
+			wcout << m_federateName << " Successfully connected to the RTI" << endl;
 		}
 		catch( ConnectionFailed& connectionFailed )
 		{
@@ -108,7 +111,7 @@ namespace ucef
 		//----------------------------------------------------------
 		//            Store object class handlers
 		//----------------------------------------------------------
-		list<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( name, path );
+		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( name, path );
 
 		for( const shared_ptr<ObjectClass> &objectClass : objectClasses )
 		{
@@ -128,7 +131,7 @@ namespace ucef
 		//----------------------------------------------------------
 		//            Store interaction class handlers
 		//----------------------------------------------------------
-		list<shared_ptr<InteractionClass>> interactionClasses = SOMParser::getInteractionClasses( name, path );
+		vector<shared_ptr<InteractionClass>> interactionClasses = SOMParser::getInteractionClasses( name, path );
 		for( const shared_ptr<InteractionClass> &interactionClass : interactionClasses )
 		{
 			wcout << L"Checking class " << interactionClass->name << endl;

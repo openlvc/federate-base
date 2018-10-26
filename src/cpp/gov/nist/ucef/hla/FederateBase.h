@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "gov/nist/ucef/hla/FederateAmbassador.h"
+#include "FederateAmbassador.h"
 #include "gov/nist/ucef/util/types.h"
 
 #include "RTI/RTIambassador.h"
