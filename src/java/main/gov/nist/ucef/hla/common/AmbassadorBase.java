@@ -102,7 +102,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 	public void synchronizationPointRegistrationFailed( String syncPointID, SynchronizationPointFailureReason reason )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
-		logger.error( String.format( "Failed to register synchronization point '%s' because %s",
+		logger.warn( String.format( "Failed to register synchronization point '%s' because %s",
 		                            syncPoint.toString(), reason ) );
 	}
 
@@ -211,8 +211,8 @@ public class AmbassadorBase extends NullFederateAmbassador
 		{
 			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
 		}
-		
-		this.federateImplementation.handleReflection(objectBase);
+
+		this.federateImplementation.handleReflection( objectBase );
 	}
 	
 	@Override

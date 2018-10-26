@@ -28,6 +28,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
@@ -35,23 +39,42 @@ import gov.nist.ucef.hla.common.InteractionBase;
 import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
 import gov.nist.ucef.hla.common.ObjectBase;
 import gov.nist.ucef.hla.util.InputUtils;
+import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.exceptions.RTIexception;
 
 public class TestUCEFFederate extends NullUCEFFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final Logger logger = LogManager.getFormatterLogger( TestUCEFFederate.class );
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	private FederateBase federateBase;
+	
+	private int tickCount;
+	private int maxTickCount;
+	private double timeStep;
+
+	private String objectIdentifier = "HLAobjectRoot.Food.Drink.Soda";
+	private String interactionIdentifier = "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed";
+
+	private ObjectInstanceHandle objectInstanceHandle;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+
 	public TestUCEFFederate()
 	{
 		// nothing special here...
+		this.tickCount = 0;
+		this.maxTickCount = 10;
+		this.timeStep = 1.0;
+		
+		this.federateBase = initialiseFederateBase();
 	}
 
 	//----------------------------------------------------------
@@ -59,11 +82,25 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	public void execute()
 	{
-		// TODO Read configuration from JSON(?)
+		if(this.federateBase != null)
+		{
+			try
+			{
+				this.federateBase.runFederate();
+			}
+			catch( Exception e )
+			{
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private FederateBase initialiseFederateBase()
+	{
 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
 		                                                          "Federate-" + new Date().getTime(), 
-		                                                          "TestFederate" );
-
+																  "TestFederate" );
+		
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String drinkBase = "HLAobjectRoot.Food.Drink.";
@@ -98,31 +135,19 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 			System.err.println( "Cannot proceed - shutting down now." );
 			System.exit( 1 );
 		}
-
+		
 		try
 		{
 			// let's go...
-			new FederateBase( config, this ).runFederate();
+			return new FederateBase( config, this );
 		}
 		catch( Exception rtie )
 		{
 			// an exception occurred, just log the information and exit
 			rtie.printStackTrace();
 		}				
-	}
-	
-	private Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
-	{
-		List<URL> result = new ArrayList<>();
-		for(String path : paths)
-		{
-			File file = new File( path );
-			if(file.isFile())
-				result.add( new File( path ).toURI().toURL() );
-			else
-				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
-		}
-		return result;
+		
+		return null;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -152,6 +177,18 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	@Override
 	public void doPostAnnouncePreAchieveRunTasks()
 	{
+		
+		try
+		{
+			this.objectInstanceHandle = this.federateBase.registerObject( this.objectIdentifier );
+			logger.info( String.format( "Registered Object '%s' (handle = %s)",
+			                            this.objectIdentifier , objectInstanceHandle ) );
+		}
+		catch( RTIexception e )
+		{
+			e.printStackTrace();
+		}
+		
 		// wait until the user hits enter before proceeding, so there is time for
 		// a human to interact with other federates.
 		InputUtils.waitForUser( " >>>>>>>>>> Press Enter to advance to Ready To Run <<<<<<<<<<" );
@@ -159,29 +196,39 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	}
 
 	@Override
-	public void runSimulation()
+	public boolean shouldTick()
 	{
-		System.out.println("There is no simulation to run. Yet.");
-		/*
+		return this.tickCount < this.maxTickCount;
+	}
+	
+	@Override
+	public void tick()
+	{
 		// in each iteration, we will update the attribute values of the object we registered,
 		// and send an interaction.
-		for( int i = 0; i < 10; i++ )
+		try
 		{
-			// 9.1 update the attribute values of the instance //
-			updateAttributeValues( objectInstanceHandle );
-
+			// 9.1 update the attribute values of the instance
+			// TODO - this needs to happen in this class, not be done by the FederateBase instance
+			this.federateBase.updateAttributeValues( this.objectInstanceHandle );
 			// 9.2 send an interaction
-			ParameterHandleValueMap parameters = rtiamb.getParameterHandleValueMapFactory().create( 0 );
-			// TODO - hard coded string
-			sendInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", parameters );
-
-			// 9.3 request a time advance and wait until we get it
-			advanceTime( 1.0 );
-			logger.error( "Time Advanced to " + fedamb.federateTime );
+			// TODO - this needs to happen in this class, not be done by the FederateBase instance
+			this.federateBase.sendInteraction( this.interactionIdentifier );
 		}
-		*/
+		catch( RTIexception e )
+		{
+			e.printStackTrace();
+		}
+		
+		this.tickCount ++;
 	}
-
+	
+	@Override
+	public double getTimeStep()
+	{
+		return this.timeStep;
+	}
+	
 	@Override
 	public void doPostAnnouncePreAchieveResignTasks()
 	{
@@ -209,8 +256,17 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	@Override
 	public void handleInteraction( InteractionBase interaction )
 	{
-		StringBuilder builder = new StringBuilder( "Interaction Received:" );
-		builder.append( interaction.toString() );
+		StringBuilder builder = new StringBuilder( "Interaction Received:\n" );
+		builder.append( "\t" + interaction.getName() + "\n" );
+		Map<String,String> paramsAndValues = interaction.getParameterNamesAndValues();
+		if(paramsAndValues.isEmpty())
+		{
+			builder.append( "\t\t<No Parameters>" );
+		}
+		else
+		{
+			paramsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
+		}
 		System.out.println( builder.toString() );
 	}
 
@@ -220,9 +276,35 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	@Override
 	public void handleReflection( ObjectBase objectBase )
 	{
-		StringBuilder builder = new StringBuilder( "Reflection for object:" );
-		builder.append( objectBase.toString() );
+		StringBuilder builder = new StringBuilder( "Reflection for object:\n" );
+		builder.append( "\t" + objectBase.getName() + "\n" );
+		Map<String,String> attrsAndValues = objectBase.getAttributeNamesAndValues();
+		if(attrsAndValues.isEmpty())
+		{
+			builder.append( "\t\t<No Attributes>" );
+		}
+		else
+		{
+			attrsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
+		}
 		System.out.println( builder.toString() );
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////// Utility Methods //////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	private Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
+	{
+		List<URL> result = new ArrayList<>();
+		for(String path : paths)
+		{
+			File file = new File( path );
+			if(file.isFile())
+				result.add( new File( path ).toURI().toURL() );
+			else
+				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
+		}
+		return result;
 	}
 	
 	//----------------------------------------------------------

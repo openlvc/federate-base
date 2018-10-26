@@ -20,11 +20,13 @@
  */
 package gov.nist.ucef.hla.common;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.util.Map.Entry;
 
 import gov.nist.ucef.hla.util.HLACodecUtils;
 import hla.rti1516e.AttributeHandle;
@@ -43,7 +45,7 @@ public class ObjectBase
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getLogger(ObjectBase.class);
+	private static HLACodecUtils CODEC_UTILS = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -97,6 +99,41 @@ public class ObjectBase
 		}
 	}
 	
+	/**
+	 * Get the name of this object instance.
+	 *
+	 * @return the name of this object instance
+	 */
+	public String getName()
+	{
+		return this.instanceIdentifier;
+	}
+	
+	/**
+	 * Get the handle of this interaction.
+	 *
+	 * @return the handle of this interaction.
+	 */
+	public ObjectInstanceHandle getHandle()
+	{
+		return this.instanceHandle;
+	}
+	
+    public String attributeName(AttributeHandle handle)
+    {
+    	return this.federate.getAttributeIdentifierFromHandle( this.objectClassHandle, handle );
+    }
+    
+    public byte[] attributeRawValue(AttributeHandle handle)
+    {
+    	return this.attributes.get(handle);
+    }
+    
+    public String attributeValue(AttributeHandle handle)
+    {
+    	return CODEC_UTILS.decodeString(attributeRawValue(handle));
+    }
+    
     /**
      * Get the current value of all attributes this object instance.
      *
@@ -108,11 +145,50 @@ public class ObjectBase
     	return Collections.unmodifiableMap(this.attributes);
     }
     
+    /**
+     * Get the attribute handles of this object instance.
+     *
+     * @return the attribute handles of this object instance.
+     */
+    public Collection<AttributeHandle> getAttributeHandles()
+    {
+    	return Collections.unmodifiableSet(this.attributes.keySet());
+    }
+    
+    /**
+     * Get the attribute identifiers of this object instance.
+     *
+     * @return the attribute identifiers of this object instance.
+     */
+    public Collection<String> getAttributeNames()
+    {
+		List<String> result = new ArrayList<>();
+		for( AttributeHandle handle : this.attributes.keySet() )
+		{
+			result.add( attributeName( handle ) );
+		}
+		return Collections.unmodifiableList(result);
+    }
+    
+    /**
+     * Get the attribute identifiers and associated values of this object instance.
+     *
+     * @return An map of attribute handle names to their current values
+     */
+    public Map<String, String> getAttributeNamesAndValues()
+    {
+    	Map<String, String> result = new HashMap<>();
+		for( AttributeHandle handle : this.attributes.keySet() )
+		{
+			result.put(attributeName(handle), attributeValue(handle) );
+		}
+    	return Collections.unmodifiableMap(result);
+    }
+	
+	
 	@Override
 	public String toString()
 	{
-		HLACodecUtils codecUtils = HLACodecUtils.instance();
-			
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append( "\n\thandle = " + instanceHandle );
@@ -129,20 +205,26 @@ public class ObjectBase
 		}
 		
 		// print the attribute information
-		builder.append( "\n\tattributeCount = " + attributes.size() );
-		for( AttributeHandle attributeHandle : attributes.keySet() )
+		builder.append( "\n\tattributeCount = " + this.attributes.size() );
+		for( Entry<AttributeHandle,byte[]> entry : this.attributes.entrySet() )
 		{
+			AttributeHandle attributeHandle = entry.getKey();
+			byte[] rawValue = entry.getValue();
+			
 			// print the attribute handle
 			builder.append( "\n\t\tattributeHandle = " );
 
-			String attributeIdentifier = federate.getAttributeIdentifierFromHandle( objectClassHandle, attributeHandle );
+			String attributeIdentifier = attributeName( attributeHandle );
 			// if we're dealing with Flavor, decode into the appropriate enum value
 			builder.append( attributeHandle );
 			builder.append( ": " );
 			builder.append( attributeIdentifier == null ? "UNKNOWN ATTRIBUTE" : attributeIdentifier );
 			builder.append( "\n\t\tattributeValue = " );
 			// TODO decode appropriately, automatically!
-			builder.append( codecUtils.decodeString(attributes.get(attributeHandle)) );
+			builder.append( CODEC_UTILS.decodeString(rawValue) );
+			builder.append( "' (" );
+			builder.append( rawValue.length );
+			builder.append( " bytes)" );
 		}
 		
 		return builder.toString();		

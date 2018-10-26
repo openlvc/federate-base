@@ -39,7 +39,9 @@ public interface IUCEFFederateImplementation
 	// 3. announce READY_TO_RUN
 	public void doPostAnnouncePreAchieveRunTasks();
 	// 4. achieve READY_TO_RUN
-	public void runSimulation();
+	public boolean shouldTick();
+	public void tick();
+	public double getTimeStep();
 	// 5. announce READY_TO_RESIGN
 	public void doPostAnnouncePreAchieveResignTasks();
 	// 6. achieve READY_TO_RESIGN

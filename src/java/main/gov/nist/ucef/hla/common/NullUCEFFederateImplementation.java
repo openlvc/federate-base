@@ -58,8 +58,11 @@ public abstract class NullUCEFFederateImplementation implements IUCEFFederateImp
 	public void doPostAnnouncePreAchieveRunTasks() {}
 	// achieve READY_TO_RUN
 	@Override
-	public void runSimulation() {}
-	
+	public boolean shouldTick() { return false; }
+	@Override
+	public void tick() {}
+	@Override
+	public double getTimeStep() {return 1.0;}
 	// announce READY_TO_RESIGN
 	@Override
 	public void doPostAnnouncePreAchieveResignTasks() {}
