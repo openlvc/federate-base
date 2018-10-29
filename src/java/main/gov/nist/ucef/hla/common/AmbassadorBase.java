@@ -64,10 +64,10 @@ public class AmbassadorBase extends NullFederateAmbassador
 	// TODO - should we provide accessors for these rather than making them externally available
 	//        within the package via `protected`...?
 	// NOTE: these variables are accessible in the package
-	protected double federateTime        = 0.0;
-	protected boolean isRegulating       = false;
-	protected boolean isConstrained      = false;
-	protected boolean isAdvancing        = false;
+	private double federateTime        = 0.0;
+	private boolean isRegulating       = false;
+	private boolean isConstrained      = false;
+	private boolean isAdvancing        = false;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -86,7 +86,32 @@ public class AmbassadorBase extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public double getFederateTime()
+	{
+		return this.federateTime;
+	}
 
+	public boolean isRegulating()
+	{
+		return this.isRegulating;
+	}
+	
+	public boolean isConstrained()
+	{
+		return this.isConstrained;
+	}
+	
+	public boolean isAdvancing()
+	{
+		return this.isAdvancing;
+	}
+	
+	public AmbassadorBase setAdvancing(boolean isAdvancing)
+	{
+		this.isAdvancing = isAdvancing;
+		return this;
+	}
+	
 	//////////////////////////////////////////////////////////////////////////
 	////////////////////////// RTI Callback Methods //////////////////////////
 	//////////////////////////////////////////////////////////////////////////

@@ -21,50 +21,25 @@
 package gov.nist.ucef.hla.common;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import gov.nist.ucef.hla.util.HLACodecUtils;
-import hla.rti1516e.AttributeHandle;
-import hla.rti1516e.AttributeHandleSet;
-import hla.rti1516e.AttributeHandleValueMap;
+import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.CallbackModel;
-import hla.rti1516e.InteractionClassHandle;
-import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.ParameterHandle;
-import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
-import hla.rti1516e.encoding.HLAunicodeString;
-import hla.rti1516e.exceptions.AttributeNotDefined;
-import hla.rti1516e.exceptions.FederateNotExecutionMember;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
-import hla.rti1516e.exceptions.InteractionParameterNotDefined;
-import hla.rti1516e.exceptions.InvalidAttributeHandle;
-import hla.rti1516e.exceptions.InvalidInteractionClassHandle;
-import hla.rti1516e.exceptions.InvalidObjectClassHandle;
-import hla.rti1516e.exceptions.InvalidParameterHandle;
-import hla.rti1516e.exceptions.NameNotFound;
-import hla.rti1516e.exceptions.NotConnected;
-import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516e.exceptions.RTIexception;
-import hla.rti1516e.exceptions.RTIinternalError;
 import hla.rti1516e.time.HLAfloat64Interval;
 import hla.rti1516e.time.HLAfloat64Time;
-import hla.rti1516e.time.HLAfloat64TimeFactory;
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to
@@ -87,16 +62,16 @@ public class FederateBase
 
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
-	private AmbassadorBase fedamb; // created when we connect
-	private Set<ObjectInstanceHandle> objectInstanceHandles;
-	private HLAfloat64TimeFactory timeFactory; // set when we join
-	protected HLACodecUtils codecUtils = HLACodecUtils.instance(); // set when we join
+	private AmbassadorBase federateAmbassador; // created when we connect
+	private Set<ObjectInstanceHandle> objectInstanceHandles; // used for cleanup during resignation
+	
+	private RTIUtils rtiUtils;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateBase( FederateConfiguration federateConfiguration,
-	                     IUCEFFederateImplementation federateImplementation )
+	public FederateBase( IUCEFFederateImplementation federateImplementation,
+	                     FederateConfiguration federateConfiguration )
 	{
 		// freeze the configuration now - probably it is already frozen, but since we want to
 		// ensure that there are no modifications once it is used to set up the federate, we 
@@ -119,7 +94,17 @@ public class FederateBase
 	{
 		return this.federateImplementation;
 	}
-
+	
+	public RTIUtils getRTIUtils()
+	{
+		return this.rtiUtils;
+	}
+	
+	public double getFederateTime()
+	{
+		return this.federateAmbassador.getFederateTime();
+	}
+	
 	/**
 	 * This is the main simulation loop. It can be thought of as the main method of the federate.
 	 * For a description of the basic flow of this federate, see the class level comments
@@ -152,7 +137,6 @@ public class FederateBase
 		achieveSyncPointAndWaitForFederation( SyncPoint.READY_TO_RUN );
 
 		// -------------------------------------------------------------------------------------
-		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
 		// main simulation loop
 		while(federateImplementation.shouldTick())
 		{
@@ -176,161 +160,19 @@ public class FederateBase
 		destroyFederation();
 	}
 
-	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
-	{
-		try
-		{
-			return this.rtiamb.getObjectClassName( handle );
-		}
-		catch( InvalidObjectClassHandle | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public ObjectClassHandle getClassHandleFromClassIdentifier( String identifier )
-	{
-		try
-		{
-			return this.rtiamb.getObjectClassHandle( identifier );
-		}
-		catch( FederateNotExecutionMember | NotConnected | RTIinternalError | NameNotFound e )
-		{
-			return null;
-		}
-	}
-
-	public ObjectClassHandle getClassHandleFromInstanceHandle( ObjectInstanceHandle handle )
-	{
-		try
-		{
-			return rtiamb.getKnownObjectClassHandle( handle );
-		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public String getAttributeIdentifierFromHandle( ObjectClassHandle objectClassHandle,
-	                                                AttributeHandle attributeHandle )
-	{
-		try
-		{
-			return this.rtiamb.getAttributeName( objectClassHandle, attributeHandle );
-		}
-		catch( AttributeNotDefined | InvalidAttributeHandle | InvalidObjectClassHandle |
-			   FederateNotExecutionMember | NotConnected | RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public AttributeHandle getHandleFromAttributeIdentifier( ObjectClassHandle objectClassHandle,
-	                                                         String identifier )
-	{
-		try
-		{
-			return this.rtiamb.getAttributeHandle( objectClassHandle, identifier );
-		}
-		catch( NameNotFound | InvalidObjectClassHandle | FederateNotExecutionMember |
-			   NotConnected | RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public String getInteractionIdentifierFromHandle( InteractionClassHandle handle )
-	{
-		try
-		{
-			return this.rtiamb.getInteractionClassName( handle );
-		}
-		catch( InvalidInteractionClassHandle | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public InteractionClassHandle getHandleFromInteractionIdentifier( String identifier )
-	{
-		try
-		{
-			return this.rtiamb.getInteractionClassHandle( identifier );
-		}
-		catch( NameNotFound | FederateNotExecutionMember | NotConnected | RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public ParameterHandle getHandleFromParameterIdentifier( InteractionClassHandle klassHandle, String identifier )
-	{
-		try
-		{
-			return this.rtiamb.getParameterHandle( klassHandle, identifier );
-		}
-		catch( NameNotFound | FederateNotExecutionMember | NotConnected | RTIinternalError |
-			   InvalidInteractionClassHandle e )
-		{
-			return null;
-		}
-	}
-	
-	public String getParameterIdentifierFromHandle( InteractionClassHandle klassHandle, ParameterHandle handle )
-	{
-		try
-		{
-			return this.rtiamb.getParameterName( klassHandle, handle );
-		}
-		catch( FederateNotExecutionMember | NotConnected | RTIinternalError |
-			   InvalidInteractionClassHandle | InteractionParameterNotDefined |
-			   InvalidParameterHandle e )
-		{
-			return null;
-		}
-	}
-	
-	public String getObjectInstanceIdentifierFromHandle( ObjectInstanceHandle handle )
-	{
-		try
-		{
-			return this.rtiamb.getObjectInstanceName( handle );
-		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
-	public ObjectInstanceHandle getHandleFromObjectInstanceIdentifier( String identifier )
-	{
-		try
-		{
-			return this.rtiamb.getObjectInstanceHandle( identifier );
-		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected | RTIinternalError e )
-		{
-			return null;
-		}
-	}
-
 	private void initializeAmbassadorAndConnect() throws RTIexception
 	{
 		logger.info( "Creating RTI Ambassador" );
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
 
 		logger.info( "Connecting RTI Ambassador..." );
-		this.fedamb = new AmbassadorBase( this );
-		this.rtiamb.connect( fedamb, CallbackModel.HLA_EVOKED );
+		this.federateAmbassador = new AmbassadorBase( this );
+		this.rtiamb.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
 		logger.info( "RTI Ambassador is connected." );
 
-		// cache the time factory for easy access
-		this.timeFactory = (HLAfloat64TimeFactory)rtiamb.getTimeFactory();
+		// initialise the RTI utilities with the ambassador to provide simpler
+		// access to a bunch of functionality
+		this.rtiUtils = new RTIUtils(rtiamb);		
 	}
 
 	private void createAndJoinFederation() throws RTIexception
@@ -398,8 +240,8 @@ public class FederateBase
 
 		rtiamb.registerFederationSynchronizationPoint( syncPoint.getID(), tag );
 
-		logger.info( String.format( "Synchronization point '%s' was registered.",
-		                            syncPoint.toString() ) );
+		logger.info( String.format( "Federate '%s' registered synchronization point '%s'.",
+		                            this.federateConfiguration.getFederateName(), syncPoint.toString() ) );
 	}
 
 	private void waitForSyncPointAnnouncement( SyncPoint syncPoint )
@@ -407,10 +249,10 @@ public class FederateBase
 	{
 		// TODO - Is it possible to get into a state whereby we never exit this loop...?
 		// wait until the point is announced
-		logger.info( String.format( "Waiting for announcement of synchronization point '%s'",
-		                            syncPoint.toString() ) );
+		logger.info( String.format( "Federate '%s' is waiting for announcement of synchronization point '%s'",
+		                            this.federateConfiguration.getFederateName(), syncPoint.toString() ) );
 
-		while( syncPoint.isNot( fedamb.announcedSyncPoint ) )
+		while( syncPoint.isNot( federateAmbassador.announcedSyncPoint ) )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
@@ -423,19 +265,21 @@ public class FederateBase
 	    throws RTIexception
 	{
 		rtiamb.synchronizationPointAchieved( syncPoint.getID() );
-		logger.info( String.format( "Achieved synchronization point '%s'", syncPoint.toString() ) );
+		logger.info( String.format( "Federate '%s' has achieved synchronization point '%s'",
+		                            this.federateConfiguration.getFederateName(), syncPoint.toString() ) );
 	}
 
 	private void waitForFederationToAchieve( SyncPoint syncPoint )
 	    throws RTIexception
 	{
-		logger.info( String.format( "Waiting for federation '%s' to achieve synchronization point '%s'",
+		logger.info( String.format( "Federate '%s' is waiting for federation '%s' to achieve synchronization point '%s'",
+		                            this.federateConfiguration.getFederateName(), 
 		                            this.federateConfiguration.getFederationName(),
 		                            syncPoint.toString() ) );
 
 		// TODO - Is it possible to get into a state whereby we never exit this loop...?
 		// wait until the synchronization point is reached by the federation
-		while( syncPoint.isNot( fedamb.currentSyncPoint ) )
+		while( syncPoint.isNot( federateAmbassador.currentSyncPoint ) )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
@@ -460,10 +304,11 @@ public class FederateBase
 	private void destroyFederation() throws RTIexception
 	{
 		String federationName = this.federateConfiguration.getFederationName();
+		String federateName = this.federateConfiguration.getFederateName();
 		try
 		{
-			logger.info( String.format( "Attempting to destroy federation '%s'...",
-			                            federationName ) );
+			logger.info( String.format( "Federate '%s' is about to attempt to destroy federation '%s'...",
+			                            federateName, federationName ) );
 			rtiamb.destroyFederationExecution( federationName );
 			logger.info( String.format( "Federation '%s' has been destroyed.", federationName ) );
 		}
@@ -490,8 +335,7 @@ public class FederateBase
 		//       Portico specific. You will have to alter this if you move to a
 		//       different RTI implementation. As such, we've isolated it into a
 		//       method so that any change only needs to happen in a couple of spots 
-		HLAfloat64Interval lookahead =
-		    timeFactory.makeInterval( federateConfiguration.getLookAhead() );
+		HLAfloat64Interval lookahead = this.rtiUtils.makeInterval( federateConfiguration.getLookAhead() );
 
 		////////////////////////////
 		// enable time regulation //
@@ -499,7 +343,7 @@ public class FederateBase
 		this.rtiamb.enableTimeRegulation( lookahead );
 
 		// tick until we get the callback
-		while( fedamb.isRegulating == false )
+		while( federateAmbassador.isRegulating() == false )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
@@ -510,7 +354,7 @@ public class FederateBase
 		this.rtiamb.enableTimeConstrained();
 
 		// tick until we get the callback
-		while( fedamb.isConstrained == false )
+		while( federateAmbassador.isConstrained() == false )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
@@ -524,344 +368,17 @@ public class FederateBase
 	 */
 	private void initializePublishAndSubscribe() throws RTIexception
 	{
-		initializePublishInteractions();
-		initializePublishAttributes();
+		FederateConfiguration config = this.federateConfiguration;
+		String federateName = config.getFederateName();
 		
-		initializeSubscribeInteractions();
-		initializeSubscribeAttributes();
+		rtiUtils.registerPublishedInteractions(federateName, config.getPublishedInteractions());
+		rtiUtils.registerPublishedAttributes(federateName, config.getPublishedAttributes());
+		
+		rtiUtils.registerSubscribedInteractions(federateName, config.getSubscribedInteractions());
+		rtiUtils.registerSubscribedAttributes(federateName, config.getSubscribedAttributes());
 
-		logger.debug( String.format( "Publications and subscriptions initialized for federate '%s'.", 
+		logger.debug( String.format( "Federate '%s' has initialized publications and subscriptions.", 
 		                             this.federateConfiguration.getFederateName() ) );
-	}
-	
-	/**
-	 * This method will inform the RTI about the types of interactions that the federate will be
-	 * publishing to the federation.
-	 */
-	private void initializePublishInteractions() throws RTIexception
-	{
-		String federateName = this.federateConfiguration.getFederateName();
-		Collection<String> publishedInteractions = this.federateConfiguration.getPublishedInteractions();
-		if(publishedInteractions.isEmpty())
-		{
-			logger.debug( String.format( "Federate '%s' will not publish any interactions.",
-			                             federateName ) );
-		}
-		else
-		{
-			for( String interactionID : publishedInteractions )
-			{
-				InteractionClassHandle handle = rtiamb.getInteractionClassHandle( interactionID );
-				// do the publication - we only need to tell the RTI about the interaction's class,
-				// not the associated parameters, so this is very simple:
-				rtiamb.publishInteractionClass( handle );
-				logger.debug( String.format( "Federate '%s' will publish interaction '%s', handle is %s",
-				                             federateName,
-				                             interactionID, handle ) );
-			}
-		}
-	}
-
-	/**
-	 * This method will inform the RTI about the types of attributes the federate will be
-	 * publishing to the federation, and to which classes they belong.
-	 * 
-	 * This needs to be done before registering instances of the object classes and updating their
-	 * attributes' values 
-	 */
-	private void initializePublishAttributes() throws RTIexception
-	{
-		String federateName = this.federateConfiguration.getFederateName();
-		
-		// publish attributes of classes
-		// before we can , we need to tell the RTI that we intend to publish
-		// this information
-		Map<String,Set<String>> publishedAttributes = this.federateConfiguration.getPublishedAttributes();
-		if(publishedAttributes.isEmpty())
-		{
-			logger.debug( String.format( "Federate '%s' will not publish any attributes.",
-			                             federateName ) );
-		}
-		else
-		{
-			for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
-			{
-				// this list is for logging purposes only
-				List<String> publicationDetails = new ArrayList<>();
-				
-				// get all the handle information for the attributes of the current class
-				String klassIdentifier = publication.getKey();
-				ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
-				// package the information into the handle set
-				AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
-				for( String attribute : publication.getValue() )
-				{
-					AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attribute );
-					attributeHandleSet.add( attributeHandle );
-					publicationDetails.add( String.format( "'%s' (handle = %s)", 
-					                                       attribute, attributeHandle ) );
-				}
-				// do the actual publication
-				rtiamb.publishObjectClassAttributes( klassHandle, attributeHandleSet );
-				logger.debug( String.format( "Federate '%s' will publish the following %d attribute(s) of '%s' (handle = %s): %s", 
-				                             federateName,
-				                             publicationDetails.size(),
-				                             klassIdentifier, klassHandle, 
-				                             String.join( ", ", publicationDetails ) ) );
-			}
-		}
-	}
-	
-	/**
-	 * This method will inform the RTI about the types of interactions that the federate will be
-	 * interested in hearing about as other federates produce them.
-	 */
-	private void initializeSubscribeInteractions() throws RTIexception
-	{
-		String federateName = this.federateConfiguration.getFederateName();
-		Collection<String> subscribedInteractions = this.federateConfiguration.getSubscribedInteractions();
-		if(subscribedInteractions.isEmpty())
-		{
-			logger.debug( String.format( "Federate '%s' will not subscribe to any interactions.",
-			                             federateName ) );
-		}
-		else
-		{
-			for( String interactionID : subscribedInteractions )
-			{
-				InteractionClassHandle handle = rtiamb.getInteractionClassHandle( interactionID );
-				// do the publication - we only need to tell the RTI about the interaction's class,
-				// not the associated parameters, so this is very simple:
-				rtiamb.subscribeInteractionClass( handle );
-				logger.debug( String.format( "Federate '%s' will subscribe to interaction '%s', handle is %s",
-				                             federateName,
-				                             interactionID, handle ) );
-			}
-		}
-	}
-	
-	/**
-	 * This method will inform the RTI about the types of attributes the federate will be
-	 * interested in hearing about, and to which classes they belong.
-	 * 
-	 * We need to subscribe to hear about information on attributes of classes created and altered
-	 * in other federates 
-	 */
-	private void initializeSubscribeAttributes() throws RTIexception
-	{
-		String federateName = this.federateConfiguration.getFederateName();
-		
-		Map<String,Set<String>> subscribedAttributes = this.federateConfiguration.getSubscribedAttributes();
-		if(subscribedAttributes.isEmpty())
-		{
-			logger.debug( String.format( "Federate '%s' will not subscribe to any attributes.",
-			                             federateName ) );
-		}
-		else
-		{
-			for( Entry<String,Set<String>> subscription : subscribedAttributes.entrySet() )
-			{
-				// this list is for logging purposes only
-				List<String> subscriptionDetails = new ArrayList<>();
-				
-				// get all the handle information for the attributes of the current class
-				String klassIdentifier = subscription.getKey();
-				ObjectClassHandle klassHandle = rtiamb.getObjectClassHandle( klassIdentifier );
-				// package the information into the handle set
-				AttributeHandleSet attributeHandleSet = rtiamb.getAttributeHandleSetFactory().create();
-				for( String attribute : subscription.getValue() )
-				{
-					AttributeHandle attributeHandle = rtiamb.getAttributeHandle( klassHandle, attribute );
-					attributeHandleSet.add( attributeHandle );
-					subscriptionDetails.add( String.format( "'%s' (handle = %s)",
-					                                        attribute, attributeHandle ) );
-				}
-				
-				// do the actual subscription
-				rtiamb.subscribeObjectClassAttributes( klassHandle, attributeHandleSet );
-				logger.debug( String.format( "Federate '%s' will subscribe to the following %d attribute(s) of '%s' (handle = %s): %s", 
-				                             federateName,
-				                             subscriptionDetails.size(),
-				                             klassIdentifier, klassHandle, 
-				                             String.join( ", ", subscriptionDetails ) ) );
-			}
-		}
-	}
-	
-	/**
-	 * This method will register an instance of the class and will return the federation-wide
-	 * unique handle for that instance. Later in the simulation, we will update the attribute
-	 * values for this instance.
-	 */
-	public ObjectInstanceHandle registerObject( String klassIdentifier ) throws RTIexception
-	{
-		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
-		if( klassHandle == null )
-		{
-			logger.error( String.format( "Could not register object instance. No handle was found for class identifier '%s'",
-			                             klassIdentifier ) );
-			return null;
-		}
-
-		ObjectInstanceHandle instanceHandle = rtiamb.registerObjectInstance( klassHandle );
-		logger.info( String.format( "Registered object instance of class '%s' (class handle is %s). Instance handle is %s",
-		                            klassIdentifier, klassHandle, instanceHandle ) );
-
-		this.objectInstanceHandles.add( instanceHandle );
-
-		return instanceHandle;
-	}
-
-	/**
-	 * This method will update all the values of the given object instance. It will set the
-	 * flavour of the soda to a random value from the options specified in the FOM (Cola - 101,
-	 * Orange - 102, RootBeer - 103, Cream - 104) and it will set the number of cups to the same
-	 * value as the current time.
-	 * <p/>
-	 * Note that we don't actually have to update all the attributes at once, we could update them
-	 * individually, in groups or not at all!
-	 */
-	public void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle ) throws RTIexception
-	{
-		///////////////////////////////////////////////
-		// create the necessary container and values //
-		///////////////////////////////////////////////
-		ObjectClassHandle objectClassHandle = rtiamb.getKnownObjectClassHandle( objectinstanceHandle );
-
-		// create a new map with an initial capacity - this will grow as required
-		AttributeHandleValueMap attributes = rtiamb.getAttributeHandleValueMapFactory().create( 2 );
-
-		// create the collection to store the values in, as you can see
-		// this is quite a lot of work. You don't have to use the encoding
-		// helpers if you don't want. The RTI just wants an arbitrary byte[]
-
-		// generate the value for the number of cups (same as the timestep)
-
-		// HLAinteger16BE cupsValue = encoderFactory.createHLAinteger16BE( getTimeAsShort() );
-		// TODO - hard coded string
-		updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
-
-		// generate the value for the flavour on our magically flavour changing drink
-		// the values for the enum are defined in the FOM
-		// TODO - hard coded string
-		int randomValue = 101 + new Random().nextInt( 3 );
-		// HLAinteger32BE flavValue = encoderFactory.createHLAinteger32BE( randomValue );
-		updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
-
-		//////////////////////////
-		// do the actual update //
-		//////////////////////////
-		rtiamb.updateAttributeValues( objectinstanceHandle, attributes, generateTag() );
-
-		// note that if you want to associate a particular timestamp with the
-		// update. here we send another update, this time with a timestamp:
-		HLAfloat64Time time = timeFactory.makeTime( fedamb.federateTime + federateConfiguration.getLookAhead() );
-		rtiamb.updateAttributeValues( objectinstanceHandle, attributes, generateTag(), time );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 short value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Short.toString( value ),
-		                        attributes );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 int value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Integer.toString( value ),
-		                        attributes );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 long value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle, identifier, Long.toString( value ), attributes );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 double value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		return updateAttribute(
-		                        objectClassHandle,
-		                        identifier,
-		                        Double.toString( value ),
-		                        attributes );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 float value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		return updateAttribute(
-		                        objectClassHandle,
-		                        identifier,
-		                        Float.toString( value ),
-		                        attributes );
-	}
-
-	private AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                 String identifier,
-	                                                 String value,
-	                                                 AttributeHandleValueMap attributes )
-	{
-		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, identifier );
-
-		if( attrHandle != null )
-		{
-			HLAunicodeString attrValue = codecUtils.makeString( value );
-			attributes.put( attrHandle, attrValue.toByteArray() );
-		}
-
-		return attributes;
-	}
-
-	/**
-	 * This method will send out an interaction of the type FoodServed.DrinkServed. Any federates
-	 * which are subscribed to it will receive a notification the next time they tick(). This
-	 * particular interaction has no parameters, so you pass an empty map, but the process of
-	 * encoding them is the same as for attributes.
-	 */
-	public void sendInteraction( String identifier ) throws RTIexception
-	{
-		ParameterHandleValueMap parameters = rtiamb.getParameterHandleValueMapFactory().create( 0 );
-		sendInteraction( identifier, parameters); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the type FoodServed.DrinkServed. Any federates
-	 * which are subscribed to it will receive a notification the next time they tick(). This
-	 * particular interaction has no parameters, so you pass an empty map, but the process of
-	 * encoding them is the same as for attributes.
-	 */
-	public void sendInteraction( String identifier, ParameterHandleValueMap parameters )
-	    throws RTIexception
-	{
-		InteractionClassHandle servedHandle = getHandleFromInteractionIdentifier( identifier );
-
-		//////////////////////////
-		// send the interaction //
-		//////////////////////////
-		rtiamb.sendInteraction( servedHandle, parameters, generateTag() );
-
-		// if you want to associate a particular timestamp with the
-		// interaction, you will have to supply it to the RTI. Here
-		// we send another interaction, this time with a timestamp:
-		HLAfloat64Time time = timeFactory.makeTime( fedamb.federateTime + federateConfiguration.getLookAhead() );
-		rtiamb.sendInteraction( servedHandle, parameters, generateTag(), time );
 	}
 
 	/**
@@ -872,13 +389,17 @@ public class FederateBase
 	    throws RTIexception
 	{
 		// request the advance
-		fedamb.isAdvancing = true;
-		HLAfloat64Time time = timeFactory.makeTime( fedamb.federateTime + timestep );
+		federateAmbassador.setAdvancing(true);
+		double newTime = federateAmbassador.getFederateTime() + timestep;
+		HLAfloat64Time time = this.rtiUtils.makeTime( newTime );
 		rtiamb.timeAdvanceRequest( time );
+		
+		logger.debug( String.format( "Federate '%s' has requested a time advance to %s.",
+		                             this.federateConfiguration.getFederateName(), newTime ) );
 
 		// wait for the time advance to be granted. ticking will tell the
 		// LRC to start delivering callbacks to the federate
-		while( fedamb.isAdvancing )
+		while( federateAmbassador.isAdvancing() )
 		{
 			rtiamb.evokeMultipleCallbacks( 0.1, 0.2 );
 		}
@@ -902,18 +423,14 @@ public class FederateBase
 			catch( RTIexception e )
 			{
 				logger.error( String.format( "Unable to delete object instance '%s' with handle $s",
-				                             getObjectInstanceIdentifierFromHandle( handle ), handle) );
+				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), handle) );
 			}
 		}
 
 		deleted.forEach( ( handle ) -> this.objectInstanceHandles.remove( handle ) );
 
-		logger.info( String.format( "Deleted %d objects.", deleted.size() ) );
-	}
-
-	private short getTimeAsShort()
-	{
-		return (short)fedamb.federateTime;
+		logger.info( String.format( "Federate '%s' deleted %d object(s).",
+		                            this.federateConfiguration.getFederateName(), deleted.size() ) );
 	}
 
 	private byte[] generateTag()

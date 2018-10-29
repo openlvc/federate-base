@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import gov.nist.ucef.hla.util.HLACodecUtils;
+import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.LogicalTime;
@@ -50,37 +51,39 @@ public class ObjectBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private FederateBase federate;
+	private FederateBase federateBase;
 	private ObjectInstanceHandle instanceHandle;
 	private AttributeHandleValueMap attributes;
 	private byte[] tag;
 	private LogicalTime time;
 
+	private RTIUtils rtiUtils;
 	private ObjectClassHandle objectClassHandle;
 	private String instanceIdentifier;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public ObjectBase(FederateBase federate,
+    public ObjectBase(FederateBase federateBase,
                       ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
                       byte[] tag)
     {
-    	this(federate, instanceHandle, attributes, tag, null);
+    	this(federateBase, instanceHandle, attributes, tag, null);
     }
     
-	public ObjectBase(FederateBase federate,
+	public ObjectBase(FederateBase federateBase,
 	                  ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
 	                  byte[] tag, LogicalTime time)
 	{
-		this.federate = federate;
+		this.federateBase = federateBase;
 		this.instanceHandle = instanceHandle;
 		this.attributes = attributes;
 		this.tag = tag;
 		this.time = time; // will be null if the attribute update was local rather than from RTI
 		
-		this.objectClassHandle = federate.getClassHandleFromInstanceHandle( instanceHandle );
-		this.instanceIdentifier = federate.getClassIdentifierFromClassHandle( objectClassHandle );
+		this.rtiUtils = federateBase.getRTIUtils();
+		this.objectClassHandle = this.rtiUtils.getClassHandleFromInstanceHandle( instanceHandle );
+		this.instanceIdentifier = this.rtiUtils.getClassIdentifierFromClassHandle( objectClassHandle );
 	}
 	
 	//----------------------------------------------------------
@@ -121,7 +124,7 @@ public class ObjectBase
 	
     public String attributeName(AttributeHandle handle)
     {
-    	return this.federate.getAttributeIdentifierFromHandle( this.objectClassHandle, handle );
+    	return this.rtiUtils.getAttributeIdentifierFromHandle( this.objectClassHandle, handle );
     }
     
     public byte[] attributeRawValue(AttributeHandle handle)
