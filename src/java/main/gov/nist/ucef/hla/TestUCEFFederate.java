@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import gov.nist.ucef.hla.common.AmbassadorBase;
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.InteractionBase;
@@ -68,7 +67,6 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-
 	public TestUCEFFederate()
 	{
 		// nothing special here...
@@ -99,117 +97,6 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 				e.printStackTrace();
 			}
 		}
-	}
-
-	private FederateBase initialiseFederateBase(FederateConfiguration config)
-	{
-		// set up maps with classes and corresponding lists of attributes to 
-		// be published and subscribed to
-		String drinkBase = "HLAobjectRoot.Food.Drink.";
-		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		
-		// set up lists of interactions to be published and subscribed to
-		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
-		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
-		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
-		
-		// somebody set us up the FOM...
-		try
-		{
-			String fomRootPath = "resources/foms/";
-			// modules
-			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
-			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml"};
-			config.addModules( urlsFromPaths(moduleFoms) );
-			
-			// join modules
-			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
-			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
-		}
-		catch( FileNotFoundException | MalformedURLException ex )
-		{
-			System.err.println( "Exception loading one of the FOM modules from disk: " + ex.getMessage() );
-			ex.printStackTrace();
-			
-			// bail out now!
-			System.err.println( "Cannot proceed - shutting down now." );
-			System.exit( 1 );
-		}
-		
-		try
-		{
-			// let's go...
-			return new FederateBase( config, this );
-		}
-		catch( Exception rtie )
-		{
-			// an exception occurred, just log the information and exit
-			rtie.printStackTrace();
-		}				
-		
-		return null;
-	}
-	
-	/**
-	 * This method will update all the values of the given object instance. It will set the
-	 * flavour of the soda to a random value from the options specified in the FOM (Cola - 101,
-	 * Orange - 102, RootBeer - 103, Cream - 104) and it will set the number of cups to the same
-	 * value as the current time.
-	 * <p/>
-	 * Note that we don't actually have to update all the attributes at once, we could update them
-	 * individually, in groups or not at all!
-	 */
-	public void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle )
-	{
-		AmbassadorBase federateAmbassador = this.federateBase.getFederateAmbassador();
-		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
-		///////////////////////////////////////////////
-		// create the necessary container and values //
-		///////////////////////////////////////////////
-		ObjectClassHandle objectClassHandle = rtiUtils.getClassHandleFromInstanceHandle( objectinstanceHandle );
-
-		// create a new map with an initial capacity - this will grow as required
-		AttributeHandleValueMap attributes = rtiUtils.makeAttributeMap( 2 );
-
-		// create the collection to store the values in, as you can see this is quite a lot of work. You
-		// don't have to use the encoding helpers if you don't want. The RTI just wants a byte[]
-
-		// generate the value for the number of cups (same as the timestep)
-		rtiUtils.updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
-
-		// generate the value for the flavour on our magically flavour changing drink
-		// the values for the enum are defined in the FOM
-		int randomValue = 101 + new Random().nextInt( 3 );
-		rtiUtils.updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
-
-		//////////////////////////
-		// do the actual update //
-		//////////////////////////
-		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag() );
-
-		// note that if you want to associate a particular timestamp with the
-		// update. here we send another update, this time with a timestamp:
-		HLAfloat64Time time = rtiUtils.makeTime( federateAmbassador.getFederateTime() + 
-		                                         federateConfiguration.getLookAhead() );
-		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag(), time );
-	}
-	
-	private void sendInteraction(String interactionIdentifier)
-	{
-		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
-		rtiUtils.publishInteraction(interactionIdentifier);
-	}
-
-	private byte[] generateTag()
-	{
-		return ("(timestamp) " + System.currentTimeMillis()).getBytes();
-	}
-	
-	private short getTimeAsShort()
-	{
-		return (short)this.federateBase.getFederateAmbassador().getFederateTime();
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -345,6 +232,96 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Utility Methods //////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	private FederateBase initialiseFederateBase(FederateConfiguration config)
+	{
+		// set up maps with classes and corresponding lists of attributes to 
+		// be published and subscribed to
+		String drinkBase = "HLAobjectRoot.Food.Drink.";
+		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		
+		// set up lists of interactions to be published and subscribed to
+		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
+		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
+		
+		// somebody set us up the FOM...
+		try
+		{
+			String fomRootPath = "resources/foms/";
+			// modules
+			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
+			                       fomRootPath+"RestaurantFood.xml", 
+			                       fomRootPath+"RestaurantDrinks.xml"};
+			config.addModules( urlsFromPaths(moduleFoms) );
+			
+			// join modules
+			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
+		}
+		catch( FileNotFoundException | MalformedURLException ex )
+		{
+			System.err.println( "Exception loading one of the FOM modules from disk: " + ex.getMessage() );
+			ex.printStackTrace();
+			
+			// bail out now!
+			System.err.println( "Cannot proceed - shutting down now." );
+			System.exit( 1 );
+		}
+		
+		// let's go...
+		return new FederateBase( this, config);
+	}
+	
+	/**
+	 * This method will update all the values of the given object instance. It will set the
+	 * flavour of the soda to a random value from the options specified in the FOM (Cola - 101,
+	 * Orange - 102, RootBeer - 103, Cream - 104) and it will set the number of cups to the same
+	 * value as the current time.
+	 * <p/>
+	 * Note that we don't actually have to update all the attributes at once, we could update them
+	 * individually, in groups or not at all!
+	 */
+	private void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle )
+	{
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
+		///////////////////////////////////////////////
+		// create the necessary container and values //
+		///////////////////////////////////////////////
+		ObjectClassHandle objectClassHandle = rtiUtils.getClassHandleFromInstanceHandle( objectinstanceHandle );
+
+		// create a new map with an initial capacity - this will grow as required
+		AttributeHandleValueMap attributes = rtiUtils.makeAttributeMap( 2 );
+
+		// create the collection to store the values in, as you can see this is quite a lot of work. You
+		// don't have to use the encoding helpers if you don't want. The RTI just wants a byte[]
+
+		// generate the value for the number of cups (same as the timestep)
+		rtiUtils.updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
+
+		// generate the value for the flavour on our magically flavour changing drink
+		// the values for the enum are defined in the FOM
+		int randomValue = 101 + new Random().nextInt( 3 );
+		rtiUtils.updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
+
+		//////////////////////////
+		// do the actual update //
+		//////////////////////////
+		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag() );
+
+		// note that if you want to associate a particular timestamp with the
+		// update. here we send another update, this time with a timestamp:
+		HLAfloat64Time time = rtiUtils.makeTime( this.federateBase.getFederateTime() + 
+		                                         federateConfiguration.getLookAhead() );
+		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag(), time );
+	}
+	
+	private void sendInteraction(String interactionIdentifier)
+	{
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
+		rtiUtils.publishInteraction(interactionIdentifier);
+	}
+	
 	private Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
 	{
 		List<URL> result = new ArrayList<>();
@@ -358,7 +335,17 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		}
 		return result;
 	}
+
+	private byte[] generateTag()
+	{
+		return ("(timestamp) " + System.currentTimeMillis()).getBytes();
+	}
 	
+	private short getTimeAsShort()
+	{
+		return (short)this.federateBase.getFederateTime();
+	}
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

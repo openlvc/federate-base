@@ -70,8 +70,8 @@ public class FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateBase( FederateConfiguration federateConfiguration,
-	                     IUCEFFederateImplementation federateImplementation )
+	public FederateBase( IUCEFFederateImplementation federateImplementation,
+	                     FederateConfiguration federateConfiguration )
 	{
 		// freeze the configuration now - probably it is already frozen, but since we want to
 		// ensure that there are no modifications once it is used to set up the federate, we 
@@ -95,19 +95,14 @@ public class FederateBase
 		return this.federateImplementation;
 	}
 	
-	public AmbassadorBase getFederateAmbassador()
-	{
-		return this.federateAmbassador;
-	}
-
-	public RTIambassador getRTIAmbassador()
-	{
-		return this.rtiamb;
-	}
-	
 	public RTIUtils getRTIUtils()
 	{
 		return this.rtiUtils;
+	}
+	
+	public double getFederateTime()
+	{
+		return this.federateAmbassador.getFederateTime();
 	}
 	
 	/**
