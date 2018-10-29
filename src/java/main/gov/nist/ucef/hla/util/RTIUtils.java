@@ -86,11 +86,9 @@ public class RTIUtils
 	private RTIambassador rtiamb;
 
 	private HLAfloat64TimeFactory timeFactory;
-
 	private ParameterHandleValueMapFactory parameterMapFactory;
 	private AttributeHandleValueMapFactory attributeMapFactory;
 	private AttributeHandleSetFactory attributeHandleSetFactory;
-
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -101,6 +99,7 @@ public class RTIUtils
 		
 		try
 		{
+			// cache the commonly used factories
 			this.timeFactory = (HLAfloat64TimeFactory)rtiamb.getTimeFactory();
 			this.parameterMapFactory = rtiamb.getParameterHandleValueMapFactory();
 			this.attributeMapFactory = rtiamb.getAttributeHandleValueMapFactory();
@@ -115,6 +114,10 @@ public class RTIUtils
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////// TIME ///////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	
 	public HLAfloat64Time makeTime( double time )
 	{
 		return this.timeFactory.makeTime( time );
@@ -125,6 +128,9 @@ public class RTIUtils
 		return timeFactory.makeInterval( interval );		
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////// HANDLE MAPS ////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	public ParameterHandleValueMap makeEmptyParameterMap()
 	{
 		return makeParameterMap(0);
@@ -152,6 +158,9 @@ public class RTIUtils
 		return attributeMapFactory.create( paramCount );
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////// IDENTIFIER <-> HANDLE LOOKUPS ETC /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
 	{
 		try
@@ -295,11 +304,146 @@ public class RTIUtils
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////// OBJECT REGISTRATION ////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * This method will register an instance of the class and will return the federation-wide
+	 * unique handle for that instance. Later in the simulation, we will update the attribute
+	 * values for this instance.
+	 */
+	public ObjectInstanceHandle registerObject( String federateName, String klassIdentifier )
+	{
+		return registerObject( federateName, klassIdentifier, null );
+	}
 	
+	/**
+	 * This method will register an instance of the class and will return the federation-wide
+	 * unique handle for that instance. Later in the simulation, we will update the attribute
+	 * values for this instance.
+	 */
+	public ObjectInstanceHandle registerObject( String federateName, 
+	                                            String klassIdentifier, String instanceIdentifier )
+	{
+		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
+		if( klassHandle == null )
+		{
+			logger.error( String.format( "Could not register object instance. No handle was found for class identifier '%s'",
+			                             klassIdentifier ) );
+			return null;
+		}
+
+		try
+		{
+			ObjectInstanceHandle instanceHandle = null;
+			if( StringUtils.isNullOrEmpty( instanceIdentifier ) )
+				instanceHandle = rtiamb.registerObjectInstance( klassHandle );
+			else
+				instanceHandle = rtiamb.registerObjectInstance( klassHandle, instanceIdentifier );
+			
+			logger.info( String.format( "Federate '%s' registered object instance of class '%s' (class handle is %s). Instance handle is %s",
+			                            federateName, 
+			                            klassIdentifier, klassHandle, instanceHandle ) );
+			
+			return instanceHandle;
+		}
+		catch( ObjectClassNotPublished | ObjectClassNotDefined | SaveInProgress
+		    | RestoreInProgress | FederateNotExecutionMember | NotConnected
+		    | RTIinternalError | ObjectInstanceNameInUse | ObjectInstanceNameNotReserved e )
+		{
+			logger.error( String.format( "Federate '%s' failed to register object instance of class '%s' (class handle is %s): %s",
+			                             federateName, 
+			                             klassIdentifier, klassHandle, e.getMessage() ) );
+		}
+		
+		return null;
+	}	
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////// ATTRIBUTE MANIPULATION //////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                short value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle,
+		                        identifier,
+		                        Short.toString( value ),
+		                        attributes );
+	}
+
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                int value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle,
+		                        identifier,
+		                        Integer.toString( value ),
+		                        attributes );
+	}
+
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                long value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle, identifier, Long.toString( value ), attributes );
+	}
+
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                double value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle,
+		                        identifier,
+		                        Double.toString( value ),
+		                        attributes );
+	}
+
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                float value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle,
+		                        identifier,
+		                        Float.toString( value ),
+		                        attributes );
+	}
+
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                boolean value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		return updateAttribute( objectClassHandle,
+		                        identifier,
+		                        Boolean.toString( value ),
+		                        attributes );
+	}
 	
+	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
+	                                                String identifier,
+	                                                String value,
+	                                                AttributeHandleValueMap attributes )
+	{
+		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, identifier );
+
+		if( attrHandle != null )
+		{
+			HLAunicodeString attrValue = codecUtils.makeString( value );
+			attributes.put( attrHandle, attrValue.toByteArray() );
+		}
+
+		return attributes;
+	}
 	
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////// PUBLISH AND SUBSCRIBE REGISTRATION /////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
@@ -634,126 +778,9 @@ public class RTIUtils
 		return false;
 	}	
 	
-	/**
-	 * This method will register an instance of the class and will return the federation-wide
-	 * unique handle for that instance. Later in the simulation, we will update the attribute
-	 * values for this instance.
-	 */
-	public ObjectInstanceHandle registerObject( String federateName, String klassIdentifier )
-	{
-		return registerObject( federateName, klassIdentifier, null );
-	}
-	
-	/**
-	 * This method will register an instance of the class and will return the federation-wide
-	 * unique handle for that instance. Later in the simulation, we will update the attribute
-	 * values for this instance.
-	 */
-	public ObjectInstanceHandle registerObject( String federateName, 
-	                                            String klassIdentifier, String instanceIdentifier )
-	{
-		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
-		if( klassHandle == null )
-		{
-			logger.error( String.format( "Could not register object instance. No handle was found for class identifier '%s'",
-			                             klassIdentifier ) );
-			return null;
-		}
-
-		try
-		{
-			ObjectInstanceHandle instanceHandle = null;
-			if( StringUtils.isNullOrEmpty( instanceIdentifier ) )
-				instanceHandle = rtiamb.registerObjectInstance( klassHandle );
-			else
-				instanceHandle = rtiamb.registerObjectInstance( klassHandle, instanceIdentifier );
-			
-			logger.info( String.format( "Federate '%s' registered object instance of class '%s' (class handle is %s). Instance handle is %s",
-			                            federateName, 
-			                            klassIdentifier, klassHandle, instanceHandle ) );
-			
-			return instanceHandle;
-		}
-		catch( ObjectClassNotPublished | ObjectClassNotDefined | SaveInProgress
-		    | RestoreInProgress | FederateNotExecutionMember | NotConnected
-		    | RTIinternalError | ObjectInstanceNameInUse | ObjectInstanceNameNotReserved e )
-		{
-			logger.error( String.format( "Federate '%s' failed to register object instance of class '%s' (class handle is %s): %s",
-			                             federateName, 
-			                             klassIdentifier, klassHandle, e.getMessage() ) );
-		}
-		
-		return null;
-	}	
-	
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                short value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Short.toString( value ),
-		                        attributes );
-	}
-
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                int value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Integer.toString( value ),
-		                        attributes );
-	}
-
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                long value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle, identifier, Long.toString( value ), attributes );
-	}
-
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                double value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Double.toString( value ),
-		                        attributes );
-	}
-
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                float value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		return updateAttribute( objectClassHandle,
-		                        identifier,
-		                        Float.toString( value ),
-		                        attributes );
-	}
-
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
-	                                                String value,
-	                                                AttributeHandleValueMap attributes )
-	{
-		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, identifier );
-
-		if( attrHandle != null )
-		{
-			HLAunicodeString attrValue = codecUtils.makeString( value );
-			attributes.put( attrHandle, attrValue.toByteArray() );
-		}
-
-		return attributes;
-	}
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////// PUBLICATION /////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will send out an attribute update for the specified object instance with the given
 	 * attributes/values, but with no tag or timestamp information.
@@ -1156,9 +1183,20 @@ public class RTIUtils
 			                            interactionIdentifier, e.getMessage() ));
 		}
 	}
-	
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////// MISCELLANEOUS ////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Utility method to collate a stack trace array to text suitable for printing to console or log file
+	 * @param stackTrace the stack trace elements
+	 * @return text of the stack trace suitable for printing to console or log file
+	 */
 	private String makeStackStrace(StackTraceElement[] stackTrace)
 	{
+		if(stackTrace == null)
+			return "";
+		
 		StringBuilder result = new StringBuilder();
 		for( int i = 1; i < stackTrace.length; i++ )
 		{
@@ -1167,13 +1205,6 @@ public class RTIUtils
 		return result.toString();
 	}
 	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
 	/**
 	 * Utility method to obtain the "simple name" for a dot delimited fully qualified name.
 	 * 
@@ -1186,7 +1217,7 @@ public class RTIUtils
 	 * @return the portion of the fully qualified name after the final dot, or the original string
 	 *         if there is no dot, or an empty string if the source string is null.
 	 */
-	public static String simpleName(String fullyQualifiedName)
+	private String simpleName(String fullyQualifiedName)
 	{
 		if( fullyQualifiedName == null )
 			return "";
@@ -1198,4 +1229,12 @@ public class RTIUtils
 
 		return fullyQualifiedName.substring( lastDot );
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
 }
