@@ -516,7 +516,7 @@ public class FederateConfiguration
 	public FederateConfiguration addSubscribedAtribute( String klassIdentifier,
 	                                                    String attributeIdentifier )
 	{
-		return addPublishedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
+		return addSubscribedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
 	}
 
 	/**
@@ -716,7 +716,7 @@ public class FederateConfiguration
 	 * Utility method to check if this instance is currently modifiable before carrying out
 	 * modifications to the configured properties.
 	 * 
-	 * If it is no modifiable, an ERROR level error log will be produced
+	 * If it is no modifiable, an WARNING level error log will be produced
 	 * 
 	 * @return true if this instance is modifiable, false otherwise.
 	 */
@@ -725,7 +725,7 @@ public class FederateConfiguration
 		if( isFrozen() )
 		{
 			// can't modify values
-			logger.error( String.format( "Configuration for federate '%s' of type '%s' in federation '%s' is locked and cannot be modified.",
+			logger.warn( String.format( "Configuration for federate '%s' of type '%s' in federation '%s' is frozen and so cannot be modified.",
 			                             this.federateName,
 			                             this.federateType,
 			                             this.federationName ) );
