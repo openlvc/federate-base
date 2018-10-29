@@ -29,25 +29,26 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import gov.nist.ucef.hla.common.AmbassadorBase;
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.InteractionBase;
 import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
 import gov.nist.ucef.hla.common.ObjectBase;
 import gov.nist.ucef.hla.util.InputUtils;
+import gov.nist.ucef.hla.util.RTIUtils;
+import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
-import hla.rti1516e.exceptions.RTIexception;
+import hla.rti1516e.time.HLAfloat64Time;
 
 public class TestUCEFFederate extends NullUCEFFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final Logger logger = LogManager.getFormatterLogger( TestUCEFFederate.class );
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -57,10 +58,11 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	private int tickCount;
 	private int maxTickCount;
 	private double timeStep;
+	private FederateConfiguration federateConfiguration;
 
 	private String objectIdentifier = "HLAobjectRoot.Food.Drink.Soda";
 	private String interactionIdentifier = "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed";
-
+	
 	private ObjectInstanceHandle objectInstanceHandle;
 
 	//----------------------------------------------------------
@@ -74,7 +76,11 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		this.maxTickCount = 10;
 		this.timeStep = 1.0;
 		
-		this.federateBase = initialiseFederateBase();
+		this.federateConfiguration = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+		                                                        "Federate-" + new Date().getTime(), 
+																"TestFederate" );
+		
+		this.federateBase = initialiseFederateBase(this.federateConfiguration);
 	}
 
 	//----------------------------------------------------------
@@ -95,12 +101,8 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		}
 	}
 
-	private FederateBase initialiseFederateBase()
+	private FederateBase initialiseFederateBase(FederateConfiguration config)
 	{
-		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
-		                                                          "Federate-" + new Date().getTime(), 
-																  "TestFederate" );
-		
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String drinkBase = "HLAobjectRoot.Food.Drink.";
@@ -150,6 +152,66 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		return null;
 	}
 	
+	/**
+	 * This method will update all the values of the given object instance. It will set the
+	 * flavour of the soda to a random value from the options specified in the FOM (Cola - 101,
+	 * Orange - 102, RootBeer - 103, Cream - 104) and it will set the number of cups to the same
+	 * value as the current time.
+	 * <p/>
+	 * Note that we don't actually have to update all the attributes at once, we could update them
+	 * individually, in groups or not at all!
+	 */
+	public void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle )
+	{
+		AmbassadorBase federateAmbassador = this.federateBase.getFederateAmbassador();
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
+		///////////////////////////////////////////////
+		// create the necessary container and values //
+		///////////////////////////////////////////////
+		ObjectClassHandle objectClassHandle = rtiUtils.getClassHandleFromInstanceHandle( objectinstanceHandle );
+
+		// create a new map with an initial capacity - this will grow as required
+		AttributeHandleValueMap attributes = rtiUtils.makeAttributeMap( 2 );
+
+		// create the collection to store the values in, as you can see this is quite a lot of work. You
+		// don't have to use the encoding helpers if you don't want. The RTI just wants a byte[]
+
+		// generate the value for the number of cups (same as the timestep)
+		rtiUtils.updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
+
+		// generate the value for the flavour on our magically flavour changing drink
+		// the values for the enum are defined in the FOM
+		int randomValue = 101 + new Random().nextInt( 3 );
+		rtiUtils.updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
+
+		//////////////////////////
+		// do the actual update //
+		//////////////////////////
+		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag() );
+
+		// note that if you want to associate a particular timestamp with the
+		// update. here we send another update, this time with a timestamp:
+		HLAfloat64Time time = rtiUtils.makeTime( federateAmbassador.getFederateTime() + 
+		                                         federateConfiguration.getLookAhead() );
+		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag(), time );
+	}
+	
+	private void sendInteraction(String interactionIdentifier)
+	{
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
+		rtiUtils.publishInteraction(interactionIdentifier);
+	}
+
+	private byte[] generateTag()
+	{
+		return ("(timestamp) " + System.currentTimeMillis()).getBytes();
+	}
+	
+	private short getTimeAsShort()
+	{
+		return (short)this.federateBase.getFederateAmbassador().getFederateTime();
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////// LIFECYCLE /////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,16 +239,13 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	@Override
 	public void doPostAnnouncePreAchieveRunTasks()
 	{
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
+		this.objectInstanceHandle = rtiUtils.registerObject( this.federateConfiguration.getFederateName(), 
+		                                                     this.objectIdentifier );
 		
-		try
+		if(this.objectInstanceHandle == null)
 		{
-			this.objectInstanceHandle = this.federateBase.registerObject( this.objectIdentifier );
-			logger.info( String.format( "Registered Object '%s' (handle = %s)",
-			                            this.objectIdentifier , objectInstanceHandle ) );
-		}
-		catch( RTIexception e )
-		{
-			e.printStackTrace();
+			System.exit( 1 );
 		}
 		
 		// wait until the user hits enter before proceeding, so there is time for
@@ -198,6 +257,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	@Override
 	public boolean shouldTick()
 	{
+		// a very complicated choice about whether the simulation has finished or not
 		return this.tickCount < this.maxTickCount;
 	}
 	
@@ -206,20 +266,12 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	{
 		// in each iteration, we will update the attribute values of the object we registered,
 		// and send an interaction.
-		try
-		{
-			// 9.1 update the attribute values of the instance
-			// TODO - this needs to happen in this class, not be done by the FederateBase instance
-			this.federateBase.updateAttributeValues( this.objectInstanceHandle );
-			// 9.2 send an interaction
-			// TODO - this needs to happen in this class, not be done by the FederateBase instance
-			this.federateBase.sendInteraction( this.interactionIdentifier );
-		}
-		catch( RTIexception e )
-		{
-			e.printStackTrace();
-		}
+		// 9.1 update the attribute values of the instance
+		updateAttributeValues( this.objectInstanceHandle );
+		// 9.2 send an interaction
+		sendInteraction( this.interactionIdentifier );
 		
+		// important - update the tick count otherwise we'll loop forever!
 		this.tickCount ++;
 	}
 	

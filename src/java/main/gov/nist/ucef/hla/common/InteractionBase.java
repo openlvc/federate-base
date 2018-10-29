@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import gov.nist.ucef.hla.util.HLACodecUtils;
+import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.LogicalTime;
 import hla.rti1516e.ParameterHandle;
@@ -50,35 +51,39 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private FederateBase federate;
+	private FederateBase federateBase;
 	private InteractionClassHandle interactionHandle;
 	private ParameterHandleValueMap parameters;
 	private byte[] tag;
 	private LogicalTime time;
+
+	private RTIUtils rtiUtils;
 
 	private String interactionIdentifier;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public InteractionBase(FederateBase federate, 
+    public InteractionBase(FederateBase federateBase, 
                            InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters, 
                            byte[] tag)
     {
-    	this(federate, interactionHandle, parameters, tag, null);
+    	this(federateBase, interactionHandle, parameters, tag, null);
     }
     
-	public InteractionBase(FederateBase federate,
+	public InteractionBase(FederateBase federateBase,
 	                       InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters,
 	                       byte[] tag, LogicalTime time)
 	{
-		this.federate = federate;
+		this.federateBase = federateBase;
 		this.interactionHandle = interactionHandle;
 		this.parameters = parameters;
 		this.tag = tag;
 		this.time = time;
 		
-		this.interactionIdentifier = this.federate.getInteractionIdentifierFromHandle( this.interactionHandle );
+		this.rtiUtils = federateBase.getRTIUtils();
+		
+		this.interactionIdentifier = this.rtiUtils.getInteractionIdentifierFromHandle( this.interactionHandle );
 	}
 
 	//----------------------------------------------------------
@@ -119,7 +124,7 @@ public class InteractionBase
 	
     public String parameterName(ParameterHandle handle)
     {
-    	return federate.getParameterIdentifierFromHandle( this.interactionHandle, handle );
+    	return this.rtiUtils.getParameterIdentifierFromHandle( this.interactionHandle, handle );
     }
     
     public byte[] parameterRawValue(ParameterHandle handle)
