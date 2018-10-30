@@ -8,7 +8,7 @@ namespace ucef
 	namespace util
 	{
 		vector<shared_ptr<ObjectClass>> SOMParser::getObjectClasses( const string& SomFilePath,
-		                                                           const string& SomFileName )
+		                                                             const string& SomFileName )
 		{
 			vector<shared_ptr<ObjectClass>> SomObjects;
 			vector<shared_ptr<ObjectAttribute>> SomA;
@@ -55,10 +55,12 @@ namespace ucef
 			return childElements;
 		}
 
+		// this is a recursive method and passing copies of objectClassName and
+		// attributes are required for the correct evaluation of values
 		void SOMParser::traverseObjectClasses( wstring objectClassName,
 		                                       vector<shared_ptr<ObjectAttribute>> attributes,
-											   XMLElement* parentElement,
-											   vector<shared_ptr<ObjectClass>> &objectClasses )
+		                                       XMLElement* parentElement,
+		                                       vector<shared_ptr<ObjectClass>>& objectClasses )
 		{
 			if( parentElement->FirstChildElement( "objectClass" ) == nullptr )
 			{

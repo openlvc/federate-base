@@ -14,8 +14,8 @@ namespace ucef
 {
 
 	FederateBase::FederateBase( wstring& federateName ) : m_federateName(federateName),
-                                                          m_federateAmbassador(),
-														  m_rtiAmbassador(nullptr)
+	                                                      m_federateAmbassador(),
+	                                                      m_rtiAmbassador(nullptr)
 
 	{
 		initialiseRti();

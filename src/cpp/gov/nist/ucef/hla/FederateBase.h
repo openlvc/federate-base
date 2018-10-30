@@ -35,11 +35,9 @@ namespace ucef
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
-
 			std::wstring m_federateName;
 			FederateAmbassador m_federateAmbassador;
 			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
 	};
-
 }
 

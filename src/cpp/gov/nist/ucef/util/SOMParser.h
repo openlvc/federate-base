@@ -76,9 +76,9 @@ namespace ucef
 				 *
 				 */
 				static void traverseObjectClasses( std::wstring objectClassName,
-											std::vector<std::shared_ptr<ObjectAttribute>> attributes,
-											tinyxml2::XMLElement* parentElement,
-											std::vector<std::shared_ptr<ObjectClass>> &objectClasses);
+				                                   std::vector<std::shared_ptr<ObjectAttribute>> attributes,
+				                                   tinyxml2::XMLElement* parentElement,
+				                                   std::vector<std::shared_ptr<ObjectClass>> &objectClasses);
 		};
 
 	}

@@ -18,6 +18,4 @@ namespace ucef
 			virtual ~FederateAmbassador() throw();
 			FederateAmbassador(const FederateAmbassador&) = delete;
 	};
-
 }
-
