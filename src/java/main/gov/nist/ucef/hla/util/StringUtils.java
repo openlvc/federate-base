@@ -66,4 +66,29 @@ public class StringUtils
 	{
 		return !isNullOrEmpty( str );
 	}
+	
+	/**
+	 * Utility method to obtain the "simple name" for a dot delimited fully qualified name.
+	 * 
+	 * In practice this simply returns the portion of the fully qualified name after the final
+	 * dot.
+	 * 
+	 * For example, given "some.namespace.here.then.thename", this method will return "thename"
+	 * 
+	 * @param fullyQualifiedName the fully qualified name
+	 * @return the portion of the fully qualified name after the final dot, or the original string
+	 *         if there is no dot, or an empty string if the source string is null.
+	 */
+	public String simpleName(String fullyQualifiedName)
+	{
+		if( fullyQualifiedName == null )
+			return "";
+
+		int lastDot = fullyQualifiedName.lastIndexOf( '.' );
+
+		if( lastDot < 0 )
+			return fullyQualifiedName;
+
+		return fullyQualifiedName.substring( lastDot );
+	}
 }

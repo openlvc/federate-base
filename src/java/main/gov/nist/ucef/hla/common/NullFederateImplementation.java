@@ -77,7 +77,7 @@ public abstract class NullFederateImplementation implements IFederateImplementat
 	@Override
 	public void handleInteractionSubscription( InteractionBase interactionBase ) {}
 	@Override
-	public void handleAttributeSubscription( InstanceBase objectBase ) {}
+	public void handleAttributeSubscription( InstanceBase instanceBase ) {}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////

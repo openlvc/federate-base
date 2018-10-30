@@ -25,6 +25,7 @@ import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,14 +37,13 @@ import java.util.function.Consumer;
 
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
+import gov.nist.ucef.hla.common.InstanceBase;
 import gov.nist.ucef.hla.common.InteractionBase;
 import gov.nist.ucef.hla.common.NullFederateImplementation;
-import gov.nist.ucef.hla.common.InstanceBase;
 import gov.nist.ucef.hla.util.InputUtils;
 import gov.nist.ucef.hla.util.RTIUtils;
-import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ObjectClassHandle;
-import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.time.HLAfloat64Time;
 
 public class TestUCEFFederate extends NullFederateImplementation
@@ -56,20 +56,20 @@ public class TestUCEFFederate extends NullFederateImplementation
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private FederateBase federateBase;
+	private FederateConfiguration federateConfiguration;
 	
 	private int tickCount;
 	private int maxTickCount;
 	private double timeStep;
-	private FederateConfiguration federateConfiguration;
 
-	private String objectIdentifier = "HLAobjectRoot.Food.Drink.Soda";
+	private String objectClassIdentifier = "HLAobjectRoot.Food.Drink.Soda";
 	private String interactionIdentifier = "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed";
-	
-	private ObjectInstanceHandle objectInstanceHandle;
 	
 	private Map<String, Consumer<String>> attributeSubscriptionHandlers;
 	private Map<String, Consumer<Map<String, String>>> interactionSubscriptionHandlers;
 
+	private InstanceBase instanceBase;
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// GENERATED - DON'T TOUCH //////////////////////////////////
 	/////////////////////////////////   NOT YET, BUT SOON...  //////////////////////////////////
@@ -79,7 +79,7 @@ public class TestUCEFFederate extends NullFederateImplementation
 	private String foodServed = null;
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -146,13 +146,11 @@ public class TestUCEFFederate extends NullFederateImplementation
 	public void doPostAnnouncePreAchieveRunTasks()
 	{
 		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
-		this.objectInstanceHandle = rtiUtils.registerObject( this.federateConfiguration.getFederateName(), 
-		                                                     this.objectIdentifier );
 		
-		if(this.objectInstanceHandle == null)
-		{
-			System.exit( 1 );
-		}
+		ObjectClassHandle classhandle = rtiUtils.getClassHandleFromClassIdentifier( this.objectClassIdentifier );
+		Collection<String> attributes = Arrays.asList( new String[] {"NumberCups", "Flavor"} );
+		this.instanceBase = new InstanceBase( rtiUtils, classhandle, attributes );
+		this.federateBase.registerInstanceBase( instanceBase);
 		
 		// wait until the user hits enter before proceeding, so there is time for
 		// a human to interact with other federates.
@@ -173,9 +171,9 @@ public class TestUCEFFederate extends NullFederateImplementation
 		// in each iteration, we will update the attribute values of the object we registered,
 		// and send an interaction.
 		// 9.1 update the attribute values of the instance
-		updateAttributeValues( this.objectInstanceHandle );
+		updateAttributeValues();
 		// 9.2 send an interaction
-		sendInteraction( this.interactionIdentifier );
+		sendInteraction();
 		
 		// important - update the tick count otherwise we'll loop forever!
 		this.tickCount ++;
@@ -199,7 +197,7 @@ public class TestUCEFFederate extends NullFederateImplementation
 	@Override
 	public void doResignTasks()
 	{
-		System.out.println("There are no resign tasks.");
+		System.out.println("There are no resignation tasks.");
 	}
 
 	@Override
@@ -217,19 +215,7 @@ public class TestUCEFFederate extends NullFederateImplementation
 		String interactionID = interaction.getIdentifier();
 		Map<String,String> paramsAndValues = interaction.getParameterNamesAndValues();
 		
-		/*
-		StringBuilder builder = new StringBuilder( "Interaction Received:\n" );
-		builder.append( "\t" + interactionID  + "\n" );
-		if(paramsAndValues.isEmpty())
-		{
-			builder.append( "\t\t<No Parameters>" );
-		}
-		else
-		{
-			paramsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
-		}
-		System.out.println( builder.toString() );
-		*/
+		System.out.println( "Interaction of type " + interactionID );
 		
 		Consumer<Map<String, String>> func = this.interactionSubscriptionHandlers.get( interactionID );
 		if(func != null)
@@ -246,26 +232,10 @@ public class TestUCEFFederate extends NullFederateImplementation
 	/////////////////////////////////////// REFLECTIONS ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void handleAttributeSubscription( InstanceBase objectBase )
+	public void handleAttributeSubscription( InstanceBase instanceBase )
 	{
-		Map<String,String> attrsAndValues = objectBase.getAttributeNamesAndValues();
-		
-		/*
-		StringBuilder builder = new StringBuilder( "Reflection for object:\n" );
-		builder.append( "\t" + objectBase.getClassIdentifier() );
-		builder.append( "\t" + objectBase.getInstanceIdentifier() );
-		builder.append( "\t(" + objectBase.getInstanceHandle() + ")\n" );
-		if(attrsAndValues.isEmpty())
-		{
-			builder.append( "\t\t<No Attributes>" );
-		}
-		else
-		{
-			attrsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
-		}
-		System.out.println( builder.toString() );
-		*/
-		
+		System.out.println( "Reflection of type " + instanceBase.getClassIdentifier() + " for " + instanceBase.getInstanceHandle() );
+		Map<String,String> attrsAndValues = instanceBase.getAttributeNamesAndValues();
 		// TODO
 		for(Entry<String, String> entry : attrsAndValues.entrySet())
 		{
@@ -281,7 +251,6 @@ public class TestUCEFFederate extends NullFederateImplementation
 			{
 				_uNkNoWnAtTrIbUtEuPdAtE(key, value);
 			}
-				
 		}
 	}
 	
@@ -405,55 +374,35 @@ public class TestUCEFFederate extends NullFederateImplementation
 		}
 		
 		// let's go...
-		return new FederateBase( this, config);
+		return new FederateBase( this, config );
 	}
 	
 	/**
-	 * This method will update all the values of the given object instance. It will set the
-	 * flavour of the soda to a random value from the options specified in the FOM (Cola - 101,
-	 * Orange - 102, RootBeer - 103, Cream - 104) and it will set the number of cups to the same
-	 * value as the current time.
-	 * <p/>
-	 * Note that we don't actually have to update all the attributes at once, we could update them
-	 * individually, in groups or not at all!
+	 * This method just updates the values of our object instances. The actual implementation will
+	 * depend on the intent of the simulation 
 	 */
-	private void updateAttributeValues( ObjectInstanceHandle objectinstanceHandle )
+	private void updateAttributeValues()
 	{
-		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
-		///////////////////////////////////////////////
-		// create the necessary container and values //
-		///////////////////////////////////////////////
-		ObjectClassHandle objectClassHandle = rtiUtils.getClassHandleFromInstanceHandle( objectinstanceHandle );
-
-		// create a new map with an initial capacity - this will grow as required
-		AttributeHandleValueMap attributes = rtiUtils.makeAttributeMap( 2 );
-
-		// create the collection to store the values in, as you can see this is quite a lot of work. You
-		// don't have to use the encoding helpers if you don't want. The RTI just wants a byte[]
-
-		// generate the value for the number of cups (same as the timestep)
-		rtiUtils.updateAttribute( objectClassHandle, "NumberCups", getTimeAsShort(), attributes );
-
-		// generate the value for the flavour on our magically flavour changing drink
-		// the values for the enum are defined in the FOM
 		int randomValue = 101 + new Random().nextInt( 3 );
-		rtiUtils.updateAttribute( objectClassHandle, "Flavor", randomValue, attributes );
-
-		//////////////////////////
-		// do the actual update //
-		//////////////////////////
-		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag() );
-
+		this.instanceBase.updateAttribute("NumberCups", getTimeAsShort())
+						 .updateAttribute("Flavor", randomValue);
+		
+		// do the actual update
+		this.instanceBase.publish( generateTag() );
+		
 		// send another update, this time with a timestamp:
+		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
 		HLAfloat64Time time = rtiUtils.makeTime( this.federateBase.getFederateTime() + 
 		                                         federateConfiguration.getLookAhead() );
-		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag(), time );
+		this.instanceBase.publish( generateTag(), time );
 	}
 	
-	private void sendInteraction(String interactionIdentifier)
+	private void sendInteraction()
 	{
 		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
-		rtiUtils.publishInteraction(interactionIdentifier);
+        InteractionClassHandle interactionHandle = rtiUtils.getHandleFromInteractionIdentifier( this.interactionIdentifier );
+		InteractionBase interaction = new InteractionBase( rtiUtils, interactionHandle, null, null );
+		interaction.publish();
 	}
 	
 	private Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException

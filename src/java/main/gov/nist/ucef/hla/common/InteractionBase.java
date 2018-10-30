@@ -51,7 +51,6 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private FederateBase federateBase;
 	private InteractionClassHandle interactionHandle;
 	private ParameterHandleValueMap parameters;
 	private byte[] tag;
@@ -64,24 +63,22 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public InteractionBase(FederateBase federateBase, 
+    public InteractionBase(RTIUtils rtiUtils,
                            InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters, 
                            byte[] tag)
     {
-    	this(federateBase, interactionHandle, parameters, tag, null);
+    	this(rtiUtils, interactionHandle, parameters, tag, null);
     }
     
-	public InteractionBase(FederateBase federateBase,
+	public InteractionBase(RTIUtils rtiUtils,
 	                       InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters,
 	                       byte[] tag, LogicalTime time)
 	{
-		this.federateBase = federateBase;
+		this.rtiUtils = rtiUtils;
 		this.interactionHandle = interactionHandle;
 		this.parameters = parameters;
 		this.tag = tag;
 		this.time = time;
-		
-		this.rtiUtils = federateBase.getRTIUtils();
 		
 		this.interactionIdentifier = this.rtiUtils.getInteractionIdentifierFromHandle( this.interactionHandle );
 	}
@@ -179,16 +176,6 @@ public class InteractionBase
     public void publish()
     {
     	publish( null, null );
-    }
-    
-    public void publish(byte[] tag)
-    {
-    	publish( tag, null );
-    }
-    
-    public void publish(HLAfloat64Time time)
-    {
-    	publish( null, time );
     }
     
     public void publish(byte[] tag, HLAfloat64Time time)

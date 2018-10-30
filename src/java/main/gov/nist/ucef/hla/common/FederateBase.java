@@ -34,10 +34,17 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
+import hla.rti1516e.exceptions.DeletePrivilegeNotHeld;
+import hla.rti1516e.exceptions.FederateNotExecutionMember;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
+import hla.rti1516e.exceptions.NotConnected;
+import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516e.exceptions.RTIexception;
+import hla.rti1516e.exceptions.RTIinternalError;
+import hla.rti1516e.exceptions.RestoreInProgress;
+import hla.rti1516e.exceptions.SaveInProgress;
 import hla.rti1516e.time.HLAfloat64Interval;
 import hla.rti1516e.time.HLAfloat64Time;
 
@@ -63,7 +70,6 @@ public class FederateBase
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
 	private FederateAmbassadorBase federateAmbassador; // created when we connect
-	private Set<ObjectInstanceHandle> objectInstanceHandles; // used for cleanup during resignation
 	
 	private RTIUtils rtiUtils;
 
@@ -78,8 +84,6 @@ public class FederateBase
 		// make sure that it really is frozen.
 		this.federateConfiguration = federateConfiguration.freeze();
 		this.federateImplementation = federateImplementation;
-
-		this.objectInstanceHandles = new HashSet<ObjectInstanceHandle>();
 	}
 
 	//----------------------------------------------------------
@@ -103,6 +107,16 @@ public class FederateBase
 	public double getFederateTime()
 	{
 		return this.federateAmbassador.getFederateTime();
+	}
+	
+	public InstanceBase getInstanceBase(ObjectInstanceHandle handle)
+	{
+		return this.federateAmbassador.getInstanceBase(handle);
+	}
+	
+	public void registerInstanceBase(InstanceBase instanceBase)
+	{
+		this.federateAmbassador.registerInstanceBase(instanceBase);
 	}
 	
 	/**
@@ -164,15 +178,14 @@ public class FederateBase
 	{
 		logger.info( "Creating RTI Ambassador" );
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-
-		logger.info( "Connecting RTI Ambassador..." );
-		this.federateAmbassador = new FederateAmbassadorBase( this );
-		this.rtiamb.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
-		logger.info( "RTI Ambassador is connected." );
-
 		// initialise the RTI utilities with the ambassador to provide simpler
 		// access to a bunch of functionality
 		this.rtiUtils = new RTIUtils(rtiamb);		
+
+		logger.info( "Connecting RTI Ambassador..." );
+		this.federateAmbassador = new FederateAmbassadorBase( this.rtiUtils, this.federateImplementation );
+		this.rtiamb.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
+		logger.info( "RTI Ambassador is connected." );
 	}
 
 	private void createAndJoinFederation() throws RTIexception
@@ -223,21 +236,16 @@ public class FederateBase
 
 	private void cleanUpAndResign() throws RTIexception
 	{
-		deleteObjects( this.objectInstanceHandles );
+		deleteObjects( this.federateAmbassador.getRegisteredInstanceHandles() );
 		resignFromFederation();
-	}
-
-	private void registerSyncPoint( SyncPoint syncPoint ) throws RTIexception
-	{
-		registerSyncPoint( syncPoint, null );
 	}
 
 	private void registerSyncPoint( SyncPoint syncPoint, byte[] tag )
 	    throws RTIexception
 	{
+		tag = tag == null ? new byte[0] : tag;
 		// Note that if the point already been registered, there will be a callback saying this
 		// failed, but as long as *someone* registered it everything is fine
-
 		rtiamb.registerFederationSynchronizationPoint( syncPoint.getID(), tag );
 
 		logger.info( String.format( "Federate '%s' registered synchronization point '%s'.",
@@ -369,16 +377,14 @@ public class FederateBase
 	private void initializePublishAndSubscribe() throws RTIexception
 	{
 		FederateConfiguration config = this.federateConfiguration;
-		String federateName = config.getFederateName();
 		
-		rtiUtils.registerPublishedInteractions(federateName, config.getPublishedInteractions());
-		rtiUtils.registerPublishedAttributes(federateName, config.getPublishedAttributes());
+		rtiUtils.registerPublishedInteractions(config.getPublishedInteractions());
+		rtiUtils.registerPublishedAttributes(config.getPublishedAttributes());
 		
-		rtiUtils.registerSubscribedInteractions(federateName, config.getSubscribedInteractions());
-		rtiUtils.registerSubscribedAttributes(federateName, config.getSubscribedAttributes());
+		rtiUtils.registerSubscribedInteractions(config.getSubscribedInteractions());
+		rtiUtils.registerSubscribedAttributes(config.getSubscribedAttributes());
 
-		logger.debug( String.format( "Federate '%s' has initialized publications and subscriptions.", 
-		                             this.federateConfiguration.getFederateName() ) );
+		logger.debug( "Federate '%s' has initialized publications and subscriptions." );
 	}
 
 	/**
@@ -406,7 +412,7 @@ public class FederateBase
 	}
 
 	/**
-	 * This method will attempt to delete the object instances withthe given handles. We can only
+	 * This method will attempt to delete the object instances with the given handles. We can only
 	 * delete objects we created, or for which we own the privilegeToDelete attribute.
 	 */
 	private void deleteObjects( Collection<ObjectInstanceHandle> handles )
@@ -420,14 +426,22 @@ public class FederateBase
 				rtiamb.deleteObjectInstance( handle, generateTag() );
 				deleted.add( handle );
 			}
-			catch( RTIexception e )
+			catch( DeletePrivilegeNotHeld e )
 			{
-				logger.error( String.format( "Unable to delete object instance '%s' with handle $s",
-				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), handle) );
+				logger.warn( String.format( "Unable to delete object instance '%s' with handle %s: %s",
+				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), 
+				                             handle, e.getMessage() ) );
+			}
+			catch( ObjectInstanceNotKnown | SaveInProgress | RestoreInProgress
+				| FederateNotExecutionMember | NotConnected | RTIinternalError e )
+			{
+				logger.error( String.format( "Unable to delete object instance '%s' with handle %s: %s",
+				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), 
+				                             handle, e.getMessage() ) );
 			}
 		}
 
-		deleted.forEach( ( handle ) -> this.objectInstanceHandles.remove( handle ) );
+		deleted.forEach( ( handle ) -> this.federateAmbassador.deregisterInstanceBase( handle ) );
 
 		logger.info( String.format( "Federate '%s' deleted %d object(s).",
 		                            this.federateConfiguration.getFederateName(), deleted.size() ) );

@@ -21,11 +21,13 @@
 package gov.nist.ucef.hla.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,6 +83,7 @@ public class RTIUtils
 	private static final HLACodecUtils codecUtils = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
+	
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private RTIambassador rtiamb;
@@ -89,7 +92,7 @@ public class RTIUtils
 	private ParameterHandleValueMapFactory parameterMapFactory;
 	private AttributeHandleValueMapFactory attributeMapFactory;
 	private AttributeHandleSetFactory attributeHandleSetFactory;
-	
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -152,10 +155,45 @@ public class RTIUtils
 		return makeAttributeMap(0);
 	}
 	
-	public AttributeHandleValueMap makeAttributeMap(int paramCount)
+	public AttributeHandleValueMap makeAttributeMap(int attrCount)
 	{
 		// create a new map with an initial capacity - this will grow as required
-		return attributeMapFactory.create( paramCount );
+		return attributeMapFactory.create( attrCount );
+	}
+	
+	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
+	                                                 String[] attributes )
+	{
+		Collection<String> attrs = attributes == null ? null : Arrays.asList( attributes );
+		return makeAttributeMap( objectClassHandle, attrs);
+	}
+	
+	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
+	                                                 Collection<String> attributes )
+	{
+		// sanity check for null
+		attributes = attributes == null ? Collections.emptyList() : attributes;
+		
+		AttributeHandleValueMap attributeMap = makeAttributeMap( attributes.size() );
+		for( String attributeID : attributes )
+		{
+			updateAttribute( objectClassHandle, attributeID, null, attributeMap );
+		}
+		return attributeMap;
+	}
+	
+	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
+	                                                 Map<String,String> attributes )
+	{
+		// sanity check for null
+		attributes = attributes == null ? Collections.emptyMap() : attributes;
+		
+		AttributeHandleValueMap attributeMap = makeAttributeMap( attributes.size() );
+		for( Entry<String,String> entry : attributes.entrySet() )
+		{
+			updateAttribute( objectClassHandle, entry.getKey(), entry.getValue(), attributeMap );
+		}
+		return attributeMap;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,133 +347,132 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
-	 * unique handle for that instance. Later in the simulation, we will update the attribute
-	 * values for this instance.
+	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObject( String federateName, String klassIdentifier )
+	public ObjectInstanceHandle registerObject( ObjectClassHandle klassHandle)
 	{
-		return registerObject( federateName, klassIdentifier, null );
+		return registerObject( klassHandle, null );
 	}
 	
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
-	 * unique handle for that instance. Later in the simulation, we will update the attribute
-	 * values for this instance.
+	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObject( String federateName, 
-	                                            String klassIdentifier, String instanceIdentifier )
+	public ObjectInstanceHandle registerObject( ObjectClassHandle klassHandle, String instanceIdentifier )
 	{
-		ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
 		if( klassHandle == null )
 		{
-			logger.error( String.format( "Could not register object instance. No handle was found for class identifier '%s'",
-			                             klassIdentifier ) );
+			StringBuilder errorMsg = new StringBuilder("Failed to register object - class handle was null.\n");
+			errorMsg.append( makeStackStrace( Thread.currentThread().getStackTrace() ) );
+			logger.error( errorMsg.toString() );
 			return null;
 		}
-
+		
+		ObjectInstanceHandle instanceHandle = null;
 		try
 		{
-			ObjectInstanceHandle instanceHandle = null;
 			if( StringUtils.isNullOrEmpty( instanceIdentifier ) )
 				instanceHandle = rtiamb.registerObjectInstance( klassHandle );
 			else
 				instanceHandle = rtiamb.registerObjectInstance( klassHandle, instanceIdentifier );
 			
-			logger.info( String.format( "Federate '%s' registered object instance of class '%s' (class handle is %s). Instance handle is %s",
-			                            federateName, 
-			                            klassIdentifier, klassHandle, instanceHandle ) );
-			
-			return instanceHandle;
+			logger.info( String.format( "Registered object instance with class handle %s. Instance handle is %s",
+			                            klassHandle, instanceHandle ) );
 		}
 		catch( ObjectClassNotPublished | ObjectClassNotDefined | SaveInProgress
-		    | RestoreInProgress | FederateNotExecutionMember | NotConnected
-		    | RTIinternalError | ObjectInstanceNameInUse | ObjectInstanceNameNotReserved e )
+			| RestoreInProgress | FederateNotExecutionMember | NotConnected
+			| RTIinternalError | ObjectInstanceNameInUse | ObjectInstanceNameNotReserved e )
 		{
-			logger.error( String.format( "Federate '%s' failed to register object instance of class '%s' (class handle is %s): %s",
-			                             federateName, 
-			                             klassIdentifier, klassHandle, e.getMessage() ) );
+			logger.error( String.format( "Failed to register object instance with class handle %s: %s",
+			                             klassHandle, e.getMessage() ) );
 		}
-		
-		return null;
+		return instanceHandle;
 	}	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////// ATTRIBUTE MANIPULATION //////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                short value,
 	                                                AttributeHandleValueMap attributes )
 	{
 		return updateAttribute( objectClassHandle,
-		                        identifier,
+		                        attributeIdentifier,
 		                        Short.toString( value ),
 		                        attributes );
 	}
 
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                int value,
 	                                                AttributeHandleValueMap attributes )
 	{
 		return updateAttribute( objectClassHandle,
-		                        identifier,
+		                        attributeIdentifier,
 		                        Integer.toString( value ),
 		                        attributes );
 	}
 
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                long value,
 	                                                AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle, identifier, Long.toString( value ), attributes );
+		return updateAttribute( objectClassHandle, attributeIdentifier, Long.toString( value ), attributes );
 	}
 
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                double value,
 	                                                AttributeHandleValueMap attributes )
 	{
 		return updateAttribute( objectClassHandle,
-		                        identifier,
+		                        attributeIdentifier,
 		                        Double.toString( value ),
 		                        attributes );
 	}
 
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                float value,
 	                                                AttributeHandleValueMap attributes )
 	{
 		return updateAttribute( objectClassHandle,
-		                        identifier,
+		                        attributeIdentifier,
 		                        Float.toString( value ),
 		                        attributes );
 	}
 
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                boolean value,
 	                                                AttributeHandleValueMap attributes )
 	{
 		return updateAttribute( objectClassHandle,
-		                        identifier,
+		                        attributeIdentifier,
 		                        Boolean.toString( value ),
 		                        attributes );
 	}
 	
 	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String identifier,
+	                                                String attributeIdentifier,
 	                                                String value,
 	                                                AttributeHandleValueMap attributes )
 	{
-		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, identifier );
-
+		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, 
+		                                                               attributeIdentifier );
 		if( attrHandle != null )
 		{
-			HLAunicodeString attrValue = codecUtils.makeString( value );
-			attributes.put( attrHandle, attrValue.toByteArray() );
+			if(value == null)
+			{
+				attributes.put( attrHandle, new byte[0] );
+			}
+			else
+			{
+    			HLAunicodeString attrValue = codecUtils.makeString( value );
+    			attributes.put( attrHandle, attrValue.toByteArray() );
+			}
 		}
 
 		return attributes;
@@ -448,18 +485,17 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	public void registerPublishedInteractions(String federateName, Collection<String> interactionIDs)
+	public void registerPublishedInteractions( Collection<String> interactionIDs)
 	{
 		if( interactionIDs.isEmpty() )
 		{
-			logger.debug( String.format( "Federate '%s' will not publish any interactions.",
-			                             federateName ) );
+			logger.debug( "Federate will not publish any interactions." );
 		}
 		else
 		{
 			for( String interactionID : interactionIDs )
 			{
-				registerPublishedInteraction( federateName, interactionID );
+				registerPublishedInteraction( interactionID );
 			}
 		}
 	}
@@ -468,20 +504,20 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	public void registerPublishedInteraction(String federateName, String interactionID)
+	public void registerPublishedInteraction( String interactionID)
 	{
 		InteractionClassHandle handle = getHandleFromInteractionIdentifier( interactionID );
 		// do the publication - we only need to tell the RTI about the interaction's class,
 		// not the associated parameters, so this is very simple:
 		if(registerPublishedInteraction( handle ))
 		{
-			logger.debug( String.format( "Federate '%s' registered intent to publish interaction '%s', handle is %s",
-			                             federateName, interactionID, handle ) );
+			logger.debug( String.format( "Registered intent to publish interaction '%s', handle is %s",
+			                             interactionID, handle ) );
 		}
 		else
 		{
-			logger.error( String.format( "Federate '%s' failed to register intent to publish interaction '%s', handle was %s",
-			                             federateName, interactionID,
+			logger.error( String.format( "Failed to register intent to publish interaction '%s', handle was %s",
+			                             interactionID,
 			                             handle == null ? "null" : handle) );
 		}
 	}
@@ -520,12 +556,11 @@ public class RTIUtils
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values 
 	 */
-	public void registerPublishedAttributes(String federateName, Map<String,Set<String>> publishedAttributes) throws RTIexception
+	public void registerPublishedAttributes( Map<String,Set<String>> publishedAttributes) throws RTIexception
 	{
 		if(publishedAttributes.isEmpty())
 		{
-			logger.debug( String.format( "Federate '%s' will not publish any attributes.",
-			                             federateName ) );
+			logger.debug( "Federate will not publish any attributes." );
 		}
 		else
 		{
@@ -552,16 +587,14 @@ public class RTIUtils
 				// do the actual publication
 				if(registerPublishedAttributes( klassHandle, attributeHandleSet ))
 				{
-					logger.debug( String.format( "Federate '%s' registered intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             federateName,
+					logger.debug( String.format( "Registered intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
 					                             publicationDetails.size(),
 					                             klassIdentifier, klassHandle, 
 					                             String.join( ", ", publicationDetails ) ) );
 				}
 				else
 				{
-					logger.error( String.format( "Federate '%s' failed to register intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             federateName,
+					logger.error( String.format( "Failed to register intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
 					                             publicationDetails.size(),
 					                             klassIdentifier, klassHandle, 
 					                             String.join( ", ", publicationDetails ) ) );
@@ -615,18 +648,17 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * interested in hearing about as other federates produce them.
 	 */
-	public void registerSubscribedInteractions(String federateName, Collection<String> subscribedInteractions)
+	public void registerSubscribedInteractions( Collection<String> subscribedInteractions)
 	{
 		if(subscribedInteractions.isEmpty())
 		{
-			logger.debug( String.format( "Federate '%s' will not subscribe to any interactions.",
-			                             federateName ) );
+			logger.debug( "Federate will not subscribe to any interactions." );
 		}
 		else
 		{
 			for( String interactionID : subscribedInteractions )
 			{
-				registerSubscribedInteraction(federateName, interactionID);
+				registerSubscribedInteraction(interactionID);
 			}
 		}
 	}
@@ -635,20 +667,20 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	public void registerSubscribedInteraction(String federateName, String interactionID)
+	public void registerSubscribedInteraction( String interactionID)
 	{
 		InteractionClassHandle handle = getHandleFromInteractionIdentifier( interactionID );
 		// do the publication - we only need to tell the RTI about the interaction's class,
 		// not the associated parameters, so this is very simple:
 		if(registerSubscribedInteraction( handle ))
 		{
-			logger.debug( String.format( "Federate '%s' registered subscription to interaction '%s', handle is %s",
-			                             federateName, interactionID, handle ) );
+			logger.debug( String.format( "Registered subscription to interaction '%s', handle is %s",
+			                             interactionID, handle ) );
 		}
 		else
 		{
-			logger.error( String.format( "Federate '%s' failed to register subscription to interaction '%s', handle was %s",
-			                             federateName, interactionID,
+			logger.error( String.format( "Failed to register subscription to interaction '%s', handle was %s",
+			                             interactionID,
 			                             handle == null ? "null" : handle) );
 		}
 	}
@@ -689,12 +721,11 @@ public class RTIUtils
 	 * We need to subscribe to hear about information on attributes of classes created and altered
 	 * in other federates 
 	 */
-	public void registerSubscribedAttributes(String federateName, Map<String,Set<String>> subscribedAttributes)
+	public void registerSubscribedAttributes( Map<String,Set<String>> subscribedAttributes)
 	{
 		if(subscribedAttributes.isEmpty())
 		{
-			logger.debug( String.format( "Federate '%s' will not subscribe to any attributes.",
-			                             federateName ) );
+			logger.debug( "Federate will not subscribe to any attributes." );
 		}
 		else
 		{
@@ -719,16 +750,14 @@ public class RTIUtils
 				// do the actual subscription
 				if(registerSubscribedAttributes( klassHandle, attributeHandleSet ))
 				{
-					logger.debug( String.format( "Federate '%s' will subscribe to the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             federateName,
+					logger.debug( String.format( "Subscribed to the following %d attribute(s) of '%s' (handle = %s): %s", 
 					                             subscriptionDetails.size(),
 					                             klassIdentifier, klassHandle, 
 					                             String.join( ", ", subscriptionDetails ) ) );
 				}
 				else
 				{
-					logger.error( String.format( "Federate '%s' failed to subscribe to the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             federateName,
+					logger.error( String.format( "Failed to subscribe to the following %d attribute(s) of '%s' (handle = %s): %s", 
 					                             subscriptionDetails.size(),
 					                             klassIdentifier, klassHandle, 
 					                             String.join( ", ", subscriptionDetails ) ) );
@@ -783,110 +812,21 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values, but with no tag or timestamp information.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param instanceIdentifier the identifier of the instance for the attributes 
-	 * @param attributes the attributes and their associated values
-	 * @throws RTIexception
-	 */
-	public void publishAttributes( String instanceIdentifier, AttributeHandleValueMap attributes )
-	{
-		publishAttributes( instanceIdentifier, attributes, null, null); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values, but with no tag or timestamp information.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param handle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @throws RTIexception
-	 */
-	public void publishAttributes( ObjectInstanceHandle handle, AttributeHandleValueMap attributes )
-	{
-		publishAttributes( handle, attributes, null, null); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
 	 * attributes/values and timestamp information, but with no associated tag.
 	 * 
 	 * Federates which are subscribed to a matching combination of class type and attributes will receive
 	 * a notification the next time they tick().
 	 * 
-	 * @param instanceIdentifier the identifier of the instance for the attributes 
-	 * @param attributes the attributes and their associated values
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishAttributes( String instanceIdentifier, AttributeHandleValueMap attributes, 
-	                               HLAfloat64Time time )
-	{
-		publishAttributes( instanceIdentifier, attributes, null, time); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values and timestamp information, but with no associated tag.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param handle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishAttributes( ObjectInstanceHandle handle, AttributeHandleValueMap attributes, 
-	                               HLAfloat64Time time )
-	{
-		publishAttributes( handle, attributes, null, time); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values and timestamp information, but with no associated tag.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param instanceIdentifier the identifier of the instance for the attributes 
+	 * @param instanceHandle the instance handle of the object to which the attributes belong 
 	 * @param attributes the attributes and their associated values
 	 * @param tag the tag of the interaction
 	 * @throws RTIexception
 	 * 
 	 */
-	public void publishAttributes( String instanceIdentifier, AttributeHandleValueMap attributes, 
-	                               byte[] tag)
-	{
-		publishAttributes( instanceIdentifier, attributes, tag, null); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values and timestamp information, but with no associated tag.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param handle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @param tag the tag of the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishAttributes( ObjectInstanceHandle handle, AttributeHandleValueMap attributes, 
+	public void publishAttributes( ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes, 
 	                               byte[] tag )
 	{
-		publishAttributes( handle, attributes, tag, null); 
+		publishAttributes( instanceHandle, attributes, tag, null); 
 	}
 	
 	/**
@@ -896,46 +836,19 @@ public class RTIUtils
 	 * Federates which are subscribed to a matching combination of class type and attributes will receive
 	 * a notification the next time they tick().
 	 * 
-	 * @param instanceIdentifier the identifier of the instance for the attributes
+	 * @param instanceHandle the instance handle of the object to which the attributes belong 
 	 * @param attributes the attributes and their associated values
 	 * @param tag the tag of the interaction
 	 * @param time the timestamp for the interaction
 	 * @throws RTIexception
 	 * 
 	 */
-	public void publishAttributes( String instanceIdentifier, AttributeHandleValueMap attributes,
-	                               byte[] tag, HLAfloat64Time time)
-	{
-		ObjectInstanceHandle servedHandle = getHandleFromObjectInstanceIdentifier( instanceIdentifier );
-		if(servedHandle == null)
-		{
-			logger.error(String.format( "Failed to publish attribute update for instance '%s' - unknown object instance.", 
-			                            instanceIdentifier ));
-			return;
-		}
-		
-		publishAttributes( servedHandle, attributes, tag, time );
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values, timestamp and tag information.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param handle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishAttributes( ObjectInstanceHandle handle, AttributeHandleValueMap attributes,
+	public void publishAttributes( ObjectInstanceHandle instanceHandle,
+	                               AttributeHandleValueMap attributes,
 	                               byte[] tag, HLAfloat64Time time)
 	{
 		// sanity check the handle for null - without a handle we can't do anything
-		if( handle == null )
+		if( instanceHandle == null )
 		{
 			// we print a stack trace here so it's a bit more obvious how the situation is arising for 
 			// debugging purposes - a null handle for the object instance is unlikely, and probably will
@@ -953,8 +866,8 @@ public class RTIUtils
 		attributes = attributes == null ? makeEmptyAttributeMap() : attributes;
 		if( attributes == null )
 		{
-			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( handle );
-			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( handle );
+			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( instanceHandle );
+			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( instanceHandle );
 			String classIdentifier = getClassIdentifierFromClassHandle( classHandle );
 			if( instanceIdentifier != null )
 			{
@@ -972,16 +885,16 @@ public class RTIUtils
 		try
 		{
 			if( time == null )
-				rtiamb.updateAttributeValues( handle, attributes, tag );
+				rtiamb.updateAttributeValues( instanceHandle, attributes, tag );
 			else
-				rtiamb.updateAttributeValues( handle, attributes, tag, time );
+				rtiamb.updateAttributeValues( instanceHandle, attributes, tag, time );
 		}
 		catch( AttributeNotOwned | AttributeNotDefined | ObjectInstanceNotKnown | SaveInProgress
 			| RestoreInProgress | FederateNotExecutionMember | NotConnected | RTIinternalError
 			| InvalidLogicalTime e )
 		{
-			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( handle );
-			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( handle );
+			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( instanceHandle );
+			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( instanceHandle );
 			String classIdentifier = getClassIdentifierFromClassHandle( classHandle );
 			if( instanceIdentifier != null )
 			{
@@ -999,132 +912,6 @@ public class RTIUtils
 		}
 	}
 	
-	/**
-	 * This method will send out an interaction of the specified type, with no parameters, tag 
-	 * or timestamp information.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param interactionIdentifier the identifier of the interaction
-	 * @throws RTIexception
-	 */
-	public void publishInteraction( String interactionIdentifier )
-	{
-		publishInteraction( interactionIdentifier, null); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type, with no parameters, tag 
-	 * or timestamp information.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param handle the handle of the interaction
-	 * @throws RTIexception
-	 */
-	public void publishInteraction( InteractionClassHandle handle )
-	{
-		publishInteraction( handle, null); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type with the given timestamp
-	 * information, but with no associated parameters or tag.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param interactionIdentifier the identifier of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishInteraction( String interactionIdentifier, HLAfloat64Time time )
-	{
-		publishInteraction( interactionIdentifier, null, time); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type with the given timestamp
-	 * information, but with no associated parameters or tag.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param handle the handle of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishInteraction( InteractionClassHandle handle, HLAfloat64Time time )
-	{
-		publishInteraction( handle, null, time); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type with the given timestamp and tag,
-	 * information but with no associated parameters.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param interactionIdentifier the identifier of the interaction
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishInteraction( String interactionIdentifier, byte[] tag, HLAfloat64Time time )
-	{
-		publishInteraction( interactionIdentifier, null, tag, time); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type with the given timestamp and tag,
-	 * information but with no associated parameters.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 * 
-	 * @param handle the handle of the interaction
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishInteraction( InteractionClassHandle handle, byte[] tag, HLAfloat64Time time )
-	{
-		publishInteraction( handle, null, tag, time); 
-	}
-	
-	/**
-	 * This method will send out an interaction of the specified type, with parameters and a timestamp.
-	 * 
-	 * Federates which are subscribed to this type of interaction will receive a notification the next
-	 * time they tick().
-	 *
-	 * @param interactionIdentifier the identifier of the interaction
-	 * @param parameters the parameters of the interaction
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
-	 */
-	public void publishInteraction( String interactionIdentifier, ParameterHandleValueMap parameters,
-	                                byte[] tag, HLAfloat64Time time )
-	{
-		InteractionClassHandle servedHandle = getHandleFromInteractionIdentifier( interactionIdentifier );
-		if(servedHandle == null)
-		{
-			logger.error(String.format( "Failed to publish interaction of type '%s' - unrecognized interaction.", 
-			                            interactionIdentifier ));
-			return;
-		}
-		
-		publishInteraction( servedHandle, parameters, tag, time );
-	}
-
 	/**
 	 * This method will send out an interaction of the specified type, with parameters and a timestamp.
 	 * 
@@ -1203,31 +990,6 @@ public class RTIUtils
 			result.append( stackTrace[i].toString() ).append( "\n" );
 		}
 		return result.toString();
-	}
-	
-	/**
-	 * Utility method to obtain the "simple name" for a dot delimited fully qualified name.
-	 * 
-	 * In practice this simply returns the portion of the fully qualified name after the final
-	 * dot.
-	 * 
-	 * For example, given "some.namespace.here.then.thename", this method will return "thename"
-	 * 
-	 * @param fullyQualifiedName the fully qualified name
-	 * @return the portion of the fully qualified name after the final dot, or the original string
-	 *         if there is no dot, or an empty string if the source string is null.
-	 */
-	private String simpleName(String fullyQualifiedName)
-	{
-		if( fullyQualifiedName == null )
-			return "";
-
-		int lastDot = fullyQualifiedName.lastIndexOf( '.' );
-
-		if( lastDot < 0 )
-			return fullyQualifiedName;
-
-		return fullyQualifiedName.substring( lastDot );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
