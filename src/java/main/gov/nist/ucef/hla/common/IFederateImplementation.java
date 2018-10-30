@@ -52,5 +52,5 @@ public interface IFederateImplementation
 
 	// EVENT HANDLING CALLBACKS ////////////////////////////////
 	public void handleInteractionSubscription( InteractionBase interactionBase );
-	public void handleAttributeSubscription( InstanceBase objectBase );
+	public void handleAttributeSubscription( InstanceBase instanceBase );
 }

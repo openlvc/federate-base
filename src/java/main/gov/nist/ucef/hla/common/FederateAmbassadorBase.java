@@ -20,12 +20,14 @@
  */
 package gov.nist.ucef.hla.common;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.FederateHandle;
 import hla.rti1516e.FederateHandleSet;
@@ -51,10 +53,8 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private FederateBase federate;
-
+    private RTIUtils rtiUtils;
 	private IFederateImplementation federateImplementation;
-	private FederateConfiguration federateConfiguration;
 	
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
@@ -71,13 +71,10 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateAmbassadorBase( FederateBase federate )
+	public FederateAmbassadorBase( RTIUtils rtiUtils, IFederateImplementation federateImplementation)
 	{
-		this.federate = federate;
-		
-		this.federateImplementation = federate.getFederateImplementation();
-		this.federateConfiguration = federate.getFederateConfiguration();
-		
+		this.federateImplementation = federateImplementation;
+		this.rtiUtils = rtiUtils;
 		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, InstanceBase>(); 
 	}
 
@@ -108,6 +105,26 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	{
 		this.isAdvancing = isAdvancing;
 		return this;
+	}
+	
+	public Collection<ObjectInstanceHandle> getRegisteredInstanceHandles()
+	{
+		return this.objectInstanceLookup.keySet();
+	}
+	
+	public void registerInstanceBase(InstanceBase instanceBase)
+	{
+		this.objectInstanceLookup.put(instanceBase.getInstanceHandle(), instanceBase);
+	}
+	
+	public void deregisterInstanceBase(ObjectInstanceHandle handle)
+	{
+		this.objectInstanceLookup.remove(handle);
+	}
+	
+	public InstanceBase getInstanceBase(ObjectInstanceHandle handle)
+	{
+		return this.objectInstanceLookup.get(handle);
 	}
 	
 	//////////////////////////////////////////////////////////////////////////
@@ -224,18 +241,20 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		InstanceBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
-		if(objectBase == null)
+		InstanceBase instanceBase = getInstanceBase( objectInstanceHandle );
+		
+		if(instanceBase == null)
 		{
-			objectBase = new InstanceBase(federate, objectInstanceHandle, attributeHandleValueMap, tag, time);
-			this.objectInstanceLookup.put(objectInstanceHandle, objectBase);
+			// remote instance
+			instanceBase = new InstanceBase(this.rtiUtils, objectInstanceHandle, attributeHandleValueMap);
+			this.objectInstanceLookup.put(objectInstanceHandle, instanceBase);
 		}
 		else
 		{
-			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
+			instanceBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
 		}
 
-		this.federateImplementation.handleAttributeSubscription( objectBase );
+		this.federateImplementation.handleAttributeSubscription( instanceBase );
 	}
 	
 	@Override
@@ -265,7 +284,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		InteractionBase interactionBase = new InteractionBase(federate, interactionClassHandle,
+		InteractionBase interactionBase = new InteractionBase(this.rtiUtils, interactionClassHandle,
 		                                                      theParameters, tag, time);
 		this.federateImplementation.handleInteractionSubscription( interactionBase );
 	}
