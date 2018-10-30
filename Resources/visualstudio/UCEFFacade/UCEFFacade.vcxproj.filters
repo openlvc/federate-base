@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\gov">
+      <UniqueIdentifier>{790fc87e-8dd0-495b-8c87-4b9d6ed4bbd2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gov\nist">
+      <UniqueIdentifier>{d81cf349-ed40-48cf-940f-9ed13b59810b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gov\nist\ucef">
+      <UniqueIdentifier>{74d49e25-cdca-485b-b49a-8fe9c65e6312}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gov\nist\ucef\hla">
+      <UniqueIdentifier>{f4539825-a526-4317-892e-fa332aacb85a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gov\nist\ucef\util">
+      <UniqueIdentifier>{ba202fa0-11ee-4cd4-82e1-c87e007e3afc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.cpp">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.cpp">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.h">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

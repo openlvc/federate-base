@@ -1,2 +1,11 @@
 /bin/
 /target/
+/build/
+**/.vs/
+local.properties
+*.opensdf
+*.sdf
+*.v12.suo
+*.vcxproj.user
+*.VC.db
+*.VC.opendb
