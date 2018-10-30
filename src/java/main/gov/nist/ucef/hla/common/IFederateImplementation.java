@@ -20,7 +20,7 @@
  */
 package gov.nist.ucef.hla.common;
 
-public interface IUCEFFederateImplementation
+public interface IFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -39,8 +39,8 @@ public interface IUCEFFederateImplementation
 	// 3. announce READY_TO_RUN
 	public void doPostAnnouncePreAchieveRunTasks();
 	// 4. achieve READY_TO_RUN
-	public boolean shouldTick();
-	public void tick();
+	public boolean shouldContinueSimulation();
+	public void tickSimulation();
 	public double getTimeStep();
 	// 5. announce READY_TO_RESIGN
 	public void doPostAnnouncePreAchieveResignTasks();
@@ -51,6 +51,6 @@ public interface IUCEFFederateImplementation
 	// 8. EXIT
 
 	// EVENT HANDLING CALLBACKS ////////////////////////////////
-	public void handleInteraction( InteractionBase interactionBase );
-	public void handleReflection( ObjectBase objectBase );
+	public void handleInteractionSubscription( InteractionBase interactionBase );
+	public void handleAttributeSubscription( InstanceBase objectBase );
 }

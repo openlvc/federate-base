@@ -58,11 +58,11 @@ public class FederateBase
 	//----------------------------------------------------------
 	// parameters which set up the federate - can only be modified *before* the federate is run
 	private FederateConfiguration federateConfiguration;
-	private IUCEFFederateImplementation federateImplementation;
+	private IFederateImplementation federateImplementation;
 
 	// Bits and pieces related to the RTI 
 	private RTIambassador rtiamb;
-	private AmbassadorBase federateAmbassador; // created when we connect
+	private FederateAmbassadorBase federateAmbassador; // created when we connect
 	private Set<ObjectInstanceHandle> objectInstanceHandles; // used for cleanup during resignation
 	
 	private RTIUtils rtiUtils;
@@ -70,7 +70,7 @@ public class FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateBase( IUCEFFederateImplementation federateImplementation,
+	public FederateBase( IFederateImplementation federateImplementation,
 	                     FederateConfiguration federateConfiguration )
 	{
 		// freeze the configuration now - probably it is already frozen, but since we want to
@@ -90,7 +90,7 @@ public class FederateBase
 		return this.federateConfiguration;
 	}
 
-	public IUCEFFederateImplementation getFederateImplementation()
+	public IFederateImplementation getFederateImplementation()
 	{
 		return this.federateImplementation;
 	}
@@ -138,9 +138,9 @@ public class FederateBase
 
 		// -------------------------------------------------------------------------------------
 		// main simulation loop
-		while(federateImplementation.shouldTick())
+		while(federateImplementation.shouldContinueSimulation())
 		{
-			federateImplementation.tick();
+			federateImplementation.tickSimulation();
 			advanceTimeAndWait( federateImplementation.getTimeStep() );
 		}
 		// -------------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ public class FederateBase
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
 
 		logger.info( "Connecting RTI Ambassador..." );
-		this.federateAmbassador = new AmbassadorBase( this );
+		this.federateAmbassador = new FederateAmbassadorBase( this );
 		this.rtiamb.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
 		logger.info( "RTI Ambassador is connected." );
 

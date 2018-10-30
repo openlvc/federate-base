@@ -25,7 +25,7 @@ package gov.nist.ucef.hla.common;
  * for all required overrides so that developers can simply implement only those methods relevant
  * to their particular federate.
  */
-public abstract class NullUCEFFederateImplementation implements IUCEFFederateImplementation
+public abstract class NullFederateImplementation implements IFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -58,9 +58,9 @@ public abstract class NullUCEFFederateImplementation implements IUCEFFederateImp
 	public void doPostAnnouncePreAchieveRunTasks() {}
 	// achieve READY_TO_RUN
 	@Override
-	public boolean shouldTick() { return false; }
+	public boolean shouldContinueSimulation() { return false; }
 	@Override
-	public void tick() {}
+	public void tickSimulation() {}
 	@Override
 	public double getTimeStep() {return 1.0;}
 	// announce READY_TO_RESIGN
@@ -75,9 +75,9 @@ public abstract class NullUCEFFederateImplementation implements IUCEFFederateImp
 
 	// EVENT HANDLING CALLBACKS ////////////////////////////////
 	@Override
-	public void handleInteraction( InteractionBase interactionBase ) {}
+	public void handleInteractionSubscription( InteractionBase interactionBase ) {}
 	@Override
-	public void handleReflection( ObjectBase objectBase ) {}
+	public void handleAttributeSubscription( InstanceBase objectBase ) {}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////

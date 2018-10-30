@@ -39,9 +39,10 @@ import hla.rti1516e.time.HLAfloat64Time;
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
- * federate objects in order to minimize the amount of code required in UCEF HLA federate implementations.
+ * federate object instances in order to minimize the amount of code required in UCEF HLA federate
+ * implementations.
  */
-public class ObjectBase
+public class InstanceBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -58,20 +59,21 @@ public class ObjectBase
 	private LogicalTime time;
 
 	private RTIUtils rtiUtils;
-	private ObjectClassHandle objectClassHandle;
 	private String instanceIdentifier;
+	private ObjectClassHandle objectClassHandle;
+	private String classIdentifier;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public ObjectBase(FederateBase federateBase,
+    public InstanceBase(FederateBase federateBase,
                       ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
                       byte[] tag)
     {
     	this(federateBase, instanceHandle, attributes, tag, null);
     }
     
-	public ObjectBase(FederateBase federateBase,
+	public InstanceBase(FederateBase federateBase,
 	                  ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
 	                  byte[] tag, LogicalTime time)
 	{
@@ -82,8 +84,9 @@ public class ObjectBase
 		this.time = time; // will be null if the attribute update was local rather than from RTI
 		
 		this.rtiUtils = federateBase.getRTIUtils();
+		this.instanceIdentifier = this.rtiUtils.getObjectInstanceIdentifierFromHandle( instanceHandle );
 		this.objectClassHandle = this.rtiUtils.getClassHandleFromInstanceHandle( instanceHandle );
-		this.instanceIdentifier = this.rtiUtils.getClassIdentifierFromClassHandle( objectClassHandle );
+		this.classIdentifier = this.rtiUtils.getClassIdentifierFromClassHandle( objectClassHandle );
 	}
 	
 	//----------------------------------------------------------
@@ -103,23 +106,43 @@ public class ObjectBase
 	}
 	
 	/**
-	 * Get the name of this object instance.
+	 * Get the identifier of this object instance.
 	 *
-	 * @return the name of this object instance
+	 * @return the identifier of this object instance
 	 */
-	public String getName()
+	public String getInstanceIdentifier()
 	{
 		return this.instanceIdentifier;
 	}
 	
 	/**
-	 * Get the handle of this interaction.
+	 * Get the handle of this object instance.
+	 *
+	 * @return the handle of this object instance.
+	 */
+	public ObjectInstanceHandle getInstanceHandle()
+	{
+		return this.instanceHandle;
+	}
+	
+	/**
+	 * Get the class identifier of this object instance.
+	 *
+	 * @return the class identifier of this object instance
+	 */
+	public String getClassIdentifier()
+	{
+		return this.classIdentifier;
+	}
+	
+	/**
+	 * Get the class handle of this object instance.
 	 *
 	 * @return the handle of this interaction.
 	 */
-	public ObjectInstanceHandle getHandle()
+	public ObjectClassHandle getClassHandle()
 	{
-		return this.instanceHandle;
+		return this.objectClassHandle;
 	}
 	
     public String attributeName(AttributeHandle handle)
@@ -187,16 +210,41 @@ public class ObjectBase
 		}
     	return Collections.unmodifiableMap(result);
     }
-	
+    
+    public void publish()
+    {
+    	publish( null, null );
+    }
+    
+    public void publish(byte[] tag)
+    {
+    	publish( tag, null );
+    }
+    
+    public void publish(HLAfloat64Time time)
+    {
+    	publish( null, time );
+    }
+    
+    public void publish(byte[] tag, HLAfloat64Time time)
+    {
+    	tag = tag == null ? new byte[0] : tag;
+    	this.rtiUtils.publishAttributes( this.instanceHandle, this.attributes, tag, time );
+    }
 	
 	@Override
 	public String toString()
 	{
 		StringBuilder builder = new StringBuilder();
 		
-		builder.append( "\n\thandle = " + instanceHandle );
+		builder.append( "\n\tinstance handle = " + instanceHandle );
+		if( instanceIdentifier != null )
+			builder.append( " (" + instanceIdentifier + ") " );
+		builder.append( " > class handle = " );
+		builder.append( objectClassHandle );
+		if( classIdentifier != null )
+			builder.append( " (" + classIdentifier + ")" );
 		builder.append( ": " );
-		builder.append( instanceIdentifier == null ? "UNKNOWN INSTANCE" : instanceIdentifier );
 		
 		// print the tag
 		builder.append( "\n\ttag = " + new String(tag) );
