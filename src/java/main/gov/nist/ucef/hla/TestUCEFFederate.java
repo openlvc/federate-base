@@ -27,15 +27,18 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.function.Consumer;
 
 import gov.nist.ucef.hla.common.FederateBase;
 import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.InteractionBase;
-import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
-import gov.nist.ucef.hla.common.ObjectBase;
+import gov.nist.ucef.hla.common.NullFederateImplementation;
+import gov.nist.ucef.hla.common.InstanceBase;
 import gov.nist.ucef.hla.util.InputUtils;
 import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -43,7 +46,7 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.time.HLAfloat64Time;
 
-public class TestUCEFFederate extends NullUCEFFederateImplementation
+public class TestUCEFFederate extends NullFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -63,6 +66,19 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	private String interactionIdentifier = "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed";
 	
 	private ObjectInstanceHandle objectInstanceHandle;
+	
+	private Map<String, Consumer<String>> attributeSubscriptionHandlers;
+	private Map<String, Consumer<Map<String, String>>> interactionSubscriptionHandlers;
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// GENERATED - DON'T TOUCH //////////////////////////////////
+	/////////////////////////////////   NOT YET, BUT SOON...  //////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	private int numberCups = 0;
+	private String flavor = null;
+	private String foodServed = null;
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -73,6 +89,9 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		this.tickCount = 0;
 		this.maxTickCount = 10;
 		this.timeStep = 1.0;
+		
+		this.attributeSubscriptionHandlers = new HashMap<>();
+		this.interactionSubscriptionHandlers = new HashMap<>();
 		
 		this.federateConfiguration = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
 		                                                        "Federate-" + new Date().getTime(), 
@@ -142,14 +161,14 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	}
 
 	@Override
-	public boolean shouldTick()
+	public boolean shouldContinueSimulation()
 	{
 		// a very complicated choice about whether the simulation has finished or not
 		return this.tickCount < this.maxTickCount;
 	}
 	
 	@Override
-	public void tick()
+	public void tickSimulation()
 	{
 		// in each iteration, we will update the attribute values of the object we registered,
 		// and send an interaction.
@@ -193,11 +212,14 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	/////////////////////////////////////// INTERACTIONS ///////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void handleInteraction( InteractionBase interaction )
+	public void handleInteractionSubscription( InteractionBase interaction )
 	{
-		StringBuilder builder = new StringBuilder( "Interaction Received:\n" );
-		builder.append( "\t" + interaction.getName() + "\n" );
+		String interactionID = interaction.getIdentifier();
 		Map<String,String> paramsAndValues = interaction.getParameterNamesAndValues();
+		
+		/*
+		StringBuilder builder = new StringBuilder( "Interaction Received:\n" );
+		builder.append( "\t" + interactionID  + "\n" );
 		if(paramsAndValues.isEmpty())
 		{
 			builder.append( "\t\t<No Parameters>" );
@@ -207,17 +229,32 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 			paramsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
 		}
 		System.out.println( builder.toString() );
+		*/
+		
+		Consumer<Map<String, String>> func = this.interactionSubscriptionHandlers.get( interactionID );
+		if(func != null)
+		{
+			func.accept( paramsAndValues );
+		}
+		else
+		{
+			_uNkNoWnInTeRaCtIoN(interactionID, paramsAndValues); 				
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////// REFLECTIONS ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void handleReflection( ObjectBase objectBase )
+	public void handleAttributeSubscription( InstanceBase objectBase )
 	{
-		StringBuilder builder = new StringBuilder( "Reflection for object:\n" );
-		builder.append( "\t" + objectBase.getName() + "\n" );
 		Map<String,String> attrsAndValues = objectBase.getAttributeNamesAndValues();
+		
+		/*
+		StringBuilder builder = new StringBuilder( "Reflection for object:\n" );
+		builder.append( "\t" + objectBase.getClassIdentifier() );
+		builder.append( "\t" + objectBase.getInstanceIdentifier() );
+		builder.append( "\t(" + objectBase.getInstanceHandle() + ")\n" );
 		if(attrsAndValues.isEmpty())
 		{
 			builder.append( "\t\t<No Attributes>" );
@@ -227,7 +264,94 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 			attrsAndValues.entrySet().forEach( (x) -> builder.append( String.format( "\t\t%s = %s\n", x.getKey(), x.getValue() ) ) );
 		}
 		System.out.println( builder.toString() );
+		*/
+		
+		// TODO
+		for(Entry<String, String> entry : attrsAndValues.entrySet())
+		{
+			String key = entry.getKey();
+			String value = entry.getValue();
+			
+			Consumer<String> func = attributeSubscriptionHandlers.get( key );
+			if(func != null)
+			{
+				func.accept( value );
+			}
+			else
+			{
+				_uNkNoWnAtTrIbUtEuPdAtE(key, value);
+			}
+				
+		}
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// GENERATED - DON'T TOUCH //////////////////////////////////
+	/////////////////////////////////   NOT YET, BUT SOON...  //////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	public int getNumberCups()
+	{
+		return this.numberCups;
+	}
+	
+	public String getFlavor()
+	{
+		return this.flavor;
+	}
+	
+	public String getFoodServed()
+	{
+		return this.foodServed;
+	}
+	
+	private void _numberCups(String value)
+	{
+		System.out.println( String.format( "_numberCups(%s);", value ) );
+		this.numberCups = Integer.parseInt( value );
+	}
+	
+	private void _flavor(String value)
+	{
+		System.out.println( String.format( "_flavor(%s);", value ) );
+		this.flavor = value;
+	}
+	
+	private void _uNkNoWnAtTrIbUtEuPdAtE(String key, String value)
+	{
+		System.out.println( String.format( "_uNkNoWnAtTrIbUtEuPdAtE(%s);", value ) );
+	}
+	
+	private void _drinkServed(Map<String, String> parameters)
+	{
+		StringBuilder builder = new StringBuilder();
+		if(parameters.isEmpty())
+		{
+			builder.append( "<No Parameters>" );
+		}
+		else
+		{
+			builder.append( mapToString(parameters) );
+		}
+		System.out.println( String.format( "_drinkServed(%s);", builder.toString() ) );
+		// TODO actually "handle" the interaction, whatever that means
+	}
+	
+	private void _uNkNoWnInTeRaCtIoN(String key, Map<String, String> parameters)
+	{
+		StringBuilder builder = new StringBuilder();
+		if(parameters.isEmpty())
+		{
+			builder.append( "<No Parameters>" );
+		}
+		else
+		{
+			builder.append( mapToString(parameters) );
+		}
+		System.out.println( String.format( "_uNkNoWnInTeRaCtIoN(%s);", builder.toString() ) );
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Utility Methods //////////////////////////////////////
@@ -240,10 +364,21 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
 		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
 		
+		
 		// set up lists of interactions to be published and subscribed to
 		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
 		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
 		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
+		
+		////////////////////////////////////////////////////////////////////////////////////////////
+		///////////////////////////////// GENERATED - DON'T TOUCH //////////////////////////////////
+		/////////////////////////////////   NOT YET, BUT SOON...  //////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
+		this.attributeSubscriptionHandlers.put( "NumberCups", this::_numberCups );
+		this.attributeSubscriptionHandlers.put( "Flavor", this::_flavor );
+		this.interactionSubscriptionHandlers.put( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", this::_drinkServed );
+		////////////////////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
 		
 		// somebody set us up the FOM...
 		try
@@ -309,8 +444,7 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 		//////////////////////////
 		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag() );
 
-		// note that if you want to associate a particular timestamp with the
-		// update. here we send another update, this time with a timestamp:
+		// send another update, this time with a timestamp:
 		HLAfloat64Time time = rtiUtils.makeTime( this.federateBase.getFederateTime() + 
 		                                         federateConfiguration.getLookAhead() );
 		rtiUtils.publishAttributes( objectinstanceHandle, attributes, generateTag(), time );
@@ -344,6 +478,13 @@ public class TestUCEFFederate extends NullUCEFFederateImplementation
 	private short getTimeAsShort()
 	{
 		return (short)this.federateBase.getFederateTime();
+	}
+	
+	private String mapToString(Map<String, String> map)
+	{
+		StringBuilder builder = new StringBuilder();
+		map.entrySet().forEach( (entry) -> builder.append( entry.getKey() ).append( "=\"" ).append( entry.getValue() ).append( "\", " ) );
+		return builder.toString();
 	}
 
 	//----------------------------------------------------------

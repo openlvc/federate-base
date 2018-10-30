@@ -41,25 +41,24 @@ import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.time.HLAfloat64Time;
 
-public class AmbassadorBase extends NullFederateAmbassador
+public class FederateAmbassadorBase extends NullFederateAmbassador
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-    private static final Logger logger = LogManager.getFormatterLogger(AmbassadorBase.class);
+    private static final Logger logger = LogManager.getFormatterLogger(FederateAmbassadorBase.class);
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private FederateBase federate;
 
-	private IUCEFFederateImplementation federateImplementation;
+	private IFederateImplementation federateImplementation;
 	private FederateConfiguration federateConfiguration;
 	
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
-	private Map<ObjectInstanceHandle, ObjectBase> objectInstanceLookup;
-	private Map<InteractionClassHandle, InteractionBase> interactionLookup;
+	private Map<ObjectInstanceHandle, InstanceBase> objectInstanceLookup;
 	
 	// TODO - should we provide accessors for these rather than making them externally available
 	//        within the package via `protected`...?
@@ -72,15 +71,14 @@ public class AmbassadorBase extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public AmbassadorBase( FederateBase federate )
+	public FederateAmbassadorBase( FederateBase federate )
 	{
 		this.federate = federate;
 		
 		this.federateImplementation = federate.getFederateImplementation();
 		this.federateConfiguration = federate.getFederateConfiguration();
 		
-		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, ObjectBase>(); 
-		this.interactionLookup = new HashMap<InteractionClassHandle, InteractionBase>(); 
+		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, InstanceBase>(); 
 	}
 
 	//----------------------------------------------------------
@@ -106,7 +104,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 		return this.isAdvancing;
 	}
 	
-	public AmbassadorBase setAdvancing(boolean isAdvancing)
+	public FederateAmbassadorBase setAdvancing(boolean isAdvancing)
 	{
 		this.isAdvancing = isAdvancing;
 		return this;
@@ -226,10 +224,10 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		ObjectBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
+		InstanceBase objectBase = this.objectInstanceLookup.get(objectInstanceHandle);
 		if(objectBase == null)
 		{
-			objectBase = new ObjectBase(federate, objectInstanceHandle, attributeHandleValueMap, tag, time);
+			objectBase = new InstanceBase(federate, objectInstanceHandle, attributeHandleValueMap, tag, time);
 			this.objectInstanceLookup.put(objectInstanceHandle, objectBase);
 		}
 		else
@@ -237,7 +235,7 @@ public class AmbassadorBase extends NullFederateAmbassador
 			objectBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
 		}
 
-		this.federateImplementation.handleReflection( objectBase );
+		this.federateImplementation.handleAttributeSubscription( objectBase );
 	}
 	
 	@Override
@@ -267,18 +265,9 @@ public class AmbassadorBase extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		InteractionBase interactionBase = this.interactionLookup.get(interactionClassHandle);
-		if(interactionBase == null)
-		{
-			interactionBase = new InteractionBase(federate, interactionClassHandle, theParameters, tag, time);
-			this.interactionLookup.put(interactionClassHandle, interactionBase);
-		}
-		else
-		{
-			interactionBase.update(interactionClassHandle, theParameters, tag, time);
-		}
-		
-		this.federateImplementation.handleInteraction( interactionBase );
+		InteractionBase interactionBase = new InteractionBase(federate, interactionClassHandle,
+		                                                      theParameters, tag, time);
+		this.federateImplementation.handleInteractionSubscription( interactionBase );
 	}
 
 	@Override

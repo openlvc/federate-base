@@ -89,35 +89,23 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public void update(InteractionClassHandle instanceHandle, ParameterHandleValueMap parameters,
-	                   byte[] tag, LogicalTime time)
-	{
-		// sanity check that we are not updating from another instance's properties
-		if( this.interactionHandle.equals( instanceHandle ) )
-		{
-			// do the things
-			this.tag = tag;
-			this.time = time;
-			mergeParameters( parameters );
-		}
-	}
-	
+
 	/**
-	 * Get the name of this interaction.
+	 * Get the identifier of this interaction.
 	 *
-	 * @return the name of this interaction.
+	 * @return the identifier of this interaction.
 	 */
-	public String getName()
+	public String getIdentifier()
 	{
 		return this.interactionIdentifier;
 	}
 	
 	/**
-	 * Get the handle of this interaction.
+	 * Get the class handle of this interaction.
 	 *
-	 * @return the handle of this interaction.
+	 * @return the class handle of this interaction.
 	 */
-	public InteractionClassHandle getHandle()
+	public InteractionClassHandle getClassHandle()
 	{
 		return this.interactionHandle;
 	}
@@ -188,6 +176,27 @@ public class InteractionBase
     	return Collections.unmodifiableMap(result);
     }
     
+    public void publish()
+    {
+    	publish( null, null );
+    }
+    
+    public void publish(byte[] tag)
+    {
+    	publish( tag, null );
+    }
+    
+    public void publish(HLAfloat64Time time)
+    {
+    	publish( null, time );
+    }
+    
+    public void publish(byte[] tag, HLAfloat64Time time)
+    {
+    	tag = tag == null ? new byte[0] : tag;
+    	this.rtiUtils.publishInteraction( this.interactionHandle, this.parameters, tag, time );
+    }
+    
 	@Override
 	public String toString()
 	{
@@ -195,9 +204,9 @@ public class InteractionBase
 		
 		// print the handle
 		builder.append( "\n\thandle = " + interactionHandle );
+		if( this.interactionIdentifier != null )
+			builder.append( " (" + this.interactionIdentifier + ") " );
 		builder.append( ": " );
-		
-		builder.append( this.interactionIdentifier == null ? "UNKOWN INTERACTION" : this.interactionIdentifier );
 		
 		// print the tag
 		builder.append( "\n\ttag = " + new String(tag) );
@@ -230,14 +239,6 @@ public class InteractionBase
 		builder.append( "\n" );
 
 		return builder.toString();		
-	}
-	
-	private void mergeParameters( ParameterHandleValueMap parameters )
-	{
-		if( parameters == null )
-			return;
-
-		this.parameters.putAll( parameters );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

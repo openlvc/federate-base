@@ -20,9 +20,9 @@
  */
 package gov.nist.ucef.hla;
 
-import gov.nist.ucef.hla.common.NullUCEFFederateImplementation;
+import gov.nist.ucef.hla.common.NullFederateImplementation;
 
-public class Main extends NullUCEFFederateImplementation
+public class Main extends NullFederateImplementation
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
