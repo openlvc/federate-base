@@ -178,7 +178,7 @@ public class FederateBase
 	{
 		logger.info( "Creating RTI Ambassador" );
 		this.rtiamb = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-		// initialise the RTI utilities with the ambassador to provide simpler
+		// initialize the RTI utilities with the ambassador to provide simpler
 		// access to a bunch of functionality
 		this.rtiUtils = new RTIUtils(rtiamb);		
 
@@ -343,7 +343,7 @@ public class FederateBase
 		//       Portico specific. You will have to alter this if you move to a
 		//       different RTI implementation. As such, we've isolated it into a
 		//       method so that any change only needs to happen in a couple of spots 
-		HLAfloat64Interval lookahead = this.rtiUtils.makeInterval( federateConfiguration.getLookAhead() );
+		HLAfloat64Interval lookahead = this.rtiUtils.makeHLAInterval( federateConfiguration.getLookAhead() );
 
 		////////////////////////////
 		// enable time regulation //
@@ -378,11 +378,11 @@ public class FederateBase
 	{
 		FederateConfiguration config = this.federateConfiguration;
 		
-		rtiUtils.registerPublishedInteractions(config.getPublishedInteractions());
-		rtiUtils.registerPublishedAttributes(config.getPublishedAttributes());
+		rtiUtils.publishInteractionClasses(config.getPublishedInteractions());
+		rtiUtils.publishObjectClassAttributes(config.getPublishedAttributes());
 		
-		rtiUtils.registerSubscribedInteractions(config.getSubscribedInteractions());
-		rtiUtils.registerSubscribedAttributes(config.getSubscribedAttributes());
+		rtiUtils.subscribeInteractionClasses(config.getSubscribedInteractions());
+		rtiUtils.subscribeObjectClassessAttributes(config.getSubscribedAttributes());
 
 		logger.debug( "Federate '%s' has initialized publications and subscriptions." );
 	}
@@ -397,7 +397,7 @@ public class FederateBase
 		// request the advance
 		federateAmbassador.setAdvancing(true);
 		double newTime = federateAmbassador.getFederateTime() + timestep;
-		HLAfloat64Time time = this.rtiUtils.makeTime( newTime );
+		HLAfloat64Time time = this.rtiUtils.makeHLATime( newTime );
 		rtiamb.timeAdvanceRequest( time );
 		
 		logger.debug( String.format( "Federate '%s' has requested a time advance to %s.",
@@ -429,14 +429,14 @@ public class FederateBase
 			catch( DeletePrivilegeNotHeld e )
 			{
 				logger.warn( String.format( "Unable to delete object instance '%s' with handle %s: %s",
-				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), 
+				                             rtiUtils.getObjectInstanceName( handle ), 
 				                             handle, e.getMessage() ) );
 			}
 			catch( ObjectInstanceNotKnown | SaveInProgress | RestoreInProgress
 				| FederateNotExecutionMember | NotConnected | RTIinternalError e )
 			{
 				logger.error( String.format( "Unable to delete object instance '%s' with handle %s: %s",
-				                             rtiUtils.getObjectInstanceIdentifierFromHandle( handle ), 
+				                             rtiUtils.getObjectInstanceName( handle ), 
 				                             handle, e.getMessage() ) );
 			}
 		}

@@ -254,7 +254,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 			instanceBase.update(objectInstanceHandle, attributeHandleValueMap, tag, time);
 		}
 
-		this.federateImplementation.handleAttributeSubscription( instanceBase );
+		this.federateImplementation.handleAttributeReflection( instanceBase );
 	}
 	
 	@Override
@@ -286,7 +286,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	{
 		InteractionBase interactionBase = new InteractionBase(this.rtiUtils, interactionClassHandle,
 		                                                      theParameters, tag, time);
-		this.federateImplementation.handleInteractionSubscription( interactionBase );
+		this.federateImplementation.handleInteractionReceived( interactionBase );
 	}
 
 	@Override

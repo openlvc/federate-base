@@ -75,9 +75,9 @@ public abstract class NullFederateImplementation implements IFederateImplementat
 
 	// EVENT HANDLING CALLBACKS ////////////////////////////////
 	@Override
-	public void handleInteractionSubscription( InteractionBase interactionBase ) {}
+	public void handleInteractionReceived( InteractionBase interactionBase ) {}
 	@Override
-	public void handleAttributeSubscription( InstanceBase instanceBase ) {}
+	public void handleAttributeReflection( InstanceBase instanceBase ) {}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////

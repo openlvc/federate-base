@@ -20,19 +20,13 @@
  */
 package gov.nist.ucef.hla.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import gov.nist.ucef.hla.common.FederateBase;
+import gov.nist.ucef.hla.common.UCEFException;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleSetFactory;
@@ -45,41 +39,20 @@ import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.ParameterHandleValueMapFactory;
 import hla.rti1516e.RTIambassador;
-import hla.rti1516e.encoding.HLAunicodeString;
-import hla.rti1516e.exceptions.AttributeNotDefined;
-import hla.rti1516e.exceptions.AttributeNotOwned;
-import hla.rti1516e.exceptions.FederateNotExecutionMember;
-import hla.rti1516e.exceptions.FederateServiceInvocationsAreBeingReportedViaMOM;
-import hla.rti1516e.exceptions.InteractionClassNotDefined;
-import hla.rti1516e.exceptions.InteractionClassNotPublished;
-import hla.rti1516e.exceptions.InteractionParameterNotDefined;
-import hla.rti1516e.exceptions.InvalidAttributeHandle;
-import hla.rti1516e.exceptions.InvalidInteractionClassHandle;
-import hla.rti1516e.exceptions.InvalidLogicalTime;
-import hla.rti1516e.exceptions.InvalidObjectClassHandle;
-import hla.rti1516e.exceptions.InvalidParameterHandle;
-import hla.rti1516e.exceptions.NameNotFound;
-import hla.rti1516e.exceptions.NotConnected;
-import hla.rti1516e.exceptions.ObjectClassNotDefined;
-import hla.rti1516e.exceptions.ObjectClassNotPublished;
-import hla.rti1516e.exceptions.ObjectInstanceNameInUse;
-import hla.rti1516e.exceptions.ObjectInstanceNameNotReserved;
-import hla.rti1516e.exceptions.ObjectInstanceNotKnown;
 import hla.rti1516e.exceptions.RTIexception;
-import hla.rti1516e.exceptions.RTIinternalError;
-import hla.rti1516e.exceptions.RestoreInProgress;
-import hla.rti1516e.exceptions.SaveInProgress;
 import hla.rti1516e.time.HLAfloat64Interval;
 import hla.rti1516e.time.HLAfloat64Time;
 import hla.rti1516e.time.HLAfloat64TimeFactory;
 
+/**
+ * The purpose of this class is to provide a collection of "safe" and useful ways to interact with the
+ * functionality of the RTI Ambassador
+ */
 public class RTIUtils
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final Logger logger = LogManager.getFormatterLogger( FederateBase.class );
-	
 	private static final HLACodecUtils codecUtils = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
@@ -108,9 +81,9 @@ public class RTIUtils
 			this.attributeMapFactory = rtiamb.getAttributeHandleValueMapFactory();
 			this.attributeHandleSetFactory = rtiamb.getAttributeHandleSetFactory();
 		}
-		catch( FederateNotExecutionMember | NotConnected e )
+		catch( Exception e )
 		{
-			logger.error( "Failed to initialize RTIUtils: %s", e.getMessage());
+			throw new UCEFException( "Failed to initialize RTIUtils", e );
 		}
 	}
 
@@ -121,12 +94,12 @@ public class RTIUtils
 	/////////////////////////////////////////// TIME ///////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	public HLAfloat64Time makeTime( double time )
+	public HLAfloat64Time makeHLATime( double time )
 	{
 		return this.timeFactory.makeTime( time );
 	}
 	
-	public HLAfloat64Interval makeInterval( double interval )
+	public HLAfloat64Interval makeHLAInterval( double interval )
 	{
 		return timeFactory.makeInterval( interval );		
 	}
@@ -134,40 +107,68 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////// HANDLE MAPS ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	public ParameterHandleValueMap makeEmptyParameterMap()
+	/**
+	 * Utility method to create an empty parameter handle value map (this will grow as required)
+	 * 
+	 * @return an empty parameter handle value map
+	 */
+	public ParameterHandleValueMap makeParameterMap()
 	{
 		return makeParameterMap(0);
 	}
 	
+	/**
+	 * Utility method to create a parameter handle value map with an initial capacity (this will 
+	 * grow as required)
+	 * 
+	 * @param paramCount the initial capacity of the map
+	 * @return a parameter handle value map with the specified initial capacity
+	 */
 	public ParameterHandleValueMap makeParameterMap(int paramCount)
 	{
-		// create a new map with an initial capacity - this will grow as required
 		return this.parameterMapFactory.create( paramCount );
 	}
 
-	public AttributeHandleSet makeAttributeHandles()
+	/**
+	 * Utility method to create an empty attribute handle set (this will grow as required)
+	 * 
+	 * @return an empty attribute handle set
+	 */
+	public AttributeHandleSet makeAttributeHandleSet()
 	{
 		return this.attributeHandleSetFactory.create();
 	}
 	
-	public AttributeHandleValueMap makeEmptyAttributeMap()
+	/**
+	 * Utility method to create an empty attribute handle value map (this will grow as required)
+	 * 
+	 * @return an empty attribute handle value map
+	 */
+	public AttributeHandleValueMap makeAttributeMap()
 	{
 		return makeAttributeMap(0);
 	}
 	
+	/**
+	 * Utility method to create a attribute handle value map with an initial capacity (this will 
+	 * grow as required)
+	 * 
+	 * @param paramCount the initial capacity of the map
+	 * @return a attribute handle value map with the specified initial capacity
+	 */
 	public AttributeHandleValueMap makeAttributeMap(int attrCount)
 	{
 		// create a new map with an initial capacity - this will grow as required
 		return attributeMapFactory.create( attrCount );
 	}
 	
-	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
-	                                                 String[] attributes )
-	{
-		Collection<String> attrs = attributes == null ? null : Arrays.asList( attributes );
-		return makeAttributeMap( objectClassHandle, attrs);
-	}
-	
+	/**
+	 * Utility method to create a attribute handle value map populated with the specified attributes
+	 * 
+	 * @param objectClassHandle the object class handle associated with the attributes
+	 * @param attributes the attribute names to populate the map with
+	 * @return a populated attribute handle value map
+	 */
 	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
 	                                                 Collection<String> attributes )
 	{
@@ -177,21 +178,7 @@ public class RTIUtils
 		AttributeHandleValueMap attributeMap = makeAttributeMap( attributes.size() );
 		for( String attributeID : attributes )
 		{
-			updateAttribute( objectClassHandle, attributeID, null, attributeMap );
-		}
-		return attributeMap;
-	}
-	
-	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
-	                                                 Map<String,String> attributes )
-	{
-		// sanity check for null
-		attributes = attributes == null ? Collections.emptyMap() : attributes;
-		
-		AttributeHandleValueMap attributeMap = makeAttributeMap( attributes.size() );
-		for( Entry<String,String> entry : attributes.entrySet() )
-		{
-			updateAttribute( objectClassHandle, entry.getKey(), entry.getValue(), attributeMap );
+			setAttribute( objectClassHandle, attributeID, new byte[0], attributeMap );
 		}
 		return attributeMap;
 	}
@@ -199,144 +186,216 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////// IDENTIFIER <-> HANDLE LOOKUPS ETC /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	public String getClassIdentifierFromClassHandle( ObjectClassHandle handle )
+	/**
+	 * A "safe" way to get an object class name from a handle. If anything goes wrong, exceptions are 
+	 * absorbed and a null value is returned
+	 * 
+	 * @param handle the object class handle to obtain the object class name for
+	 * @return the corresponding object class name, or null if anything went wrong
+	 */
+	public String getObjectClassName( ObjectClassHandle handle )
 	{
 		try
 		{
 			return this.rtiamb.getObjectClassName( handle );
 		}
-		catch( InvalidObjectClassHandle | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public ObjectClassHandle getClassHandleFromClassIdentifier( String identifier )
+	/**
+	 * A "safe" way to get an object class handle from a name. If anything goes wrong, exceptions are 
+	 * absorbed and a null value is returned
+	 * 
+	 * @param name the object class name to obtain the object class handle for
+	 * @return the corresponding object class handle, or null if anything went wrong
+	 */
+	public ObjectClassHandle getObjectClassHandle( String name )
 	{
 		try
 		{
-			return this.rtiamb.getObjectClassHandle( identifier );
+			return this.rtiamb.getObjectClassHandle( name );
 		}
-		catch( FederateNotExecutionMember | NotConnected | RTIinternalError | NameNotFound e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public ObjectClassHandle getClassHandleFromInstanceHandle( ObjectInstanceHandle handle )
+	/**
+	 * A "safe" way to get an object class handle from an object instance handle. If anything goes wrong,
+	 * exceptions are absorbed and a null value is returned
+	 * 
+	 * @param handle the object instance handle to obtain the object class handle for
+	 * @return the corresponding object class handle, or null if anything went wrong
+	 */
+	public ObjectClassHandle getKnownObjectClassHandle( ObjectInstanceHandle handle )
 	{
 		try
 		{
 			return rtiamb.getKnownObjectClassHandle( handle );
 		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public String getAttributeIdentifierFromHandle( ObjectClassHandle objectClassHandle,
-	                                                AttributeHandle attributeHandle )
+	/**
+	 * A "safe" way to get an attribute name from an object class handle and attribute handle. If 
+	 * anything goes wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param objectClassHandle the object class handle with which the attribute handle is associated
+	 * @param attributeHandle the attribute handle to obtain the name for
+	 * @return the corresponding attribute name, or null if anything went wrong
+	 */
+	public String getAttributeName( ObjectClassHandle objectClassHandle,
+	                                AttributeHandle attributeHandle )
 	{
 		try
 		{
 			return this.rtiamb.getAttributeName( objectClassHandle, attributeHandle );
 		}
-		catch( AttributeNotDefined | InvalidAttributeHandle | InvalidObjectClassHandle |
-			   FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public AttributeHandle getHandleFromAttributeIdentifier( ObjectClassHandle objectClassHandle,
-	                                                         String identifier )
+	/**
+	 * A "safe" way to get an attribute handle from an object class handle and attribute name. If 
+	 * anything goes wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param handle the object class handle with which the attribute handle is associated
+	 * @param attributeName the attribute name to obtain the handle for
+	 * @return the corresponding attribute handle, or null if anything went wrong
+	 */
+	public AttributeHandle getAttributeHandle( ObjectClassHandle handle, String attributeName )
 	{
 		try
 		{
-			return this.rtiamb.getAttributeHandle( objectClassHandle, identifier );
+			return this.rtiamb.getAttributeHandle( handle, attributeName );
 		}
-		catch( NameNotFound | InvalidObjectClassHandle | FederateNotExecutionMember |
-			   NotConnected | RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public String getInteractionIdentifierFromHandle( InteractionClassHandle handle )
+	/**
+	 * A "safe" way to get an interaction class name from an interaction class handle. If anything goes 
+	 * wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param handle the interaction class handle to obtain the name for
+	 * @return the corresponding interaction class name, or null if anything went wrong
+	 */
+	public String getInteractionClassName( InteractionClassHandle handle )
 	{
 		try
 		{
 			return this.rtiamb.getInteractionClassName( handle );
 		}
-		catch( InvalidInteractionClassHandle | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public InteractionClassHandle getHandleFromInteractionIdentifier( String identifier )
+	/**
+	 * A "safe" way to get an interaction handle name from an interaction class name. If anything goes 
+	 * wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param name the interaction class name to obtain the handle for
+	 * @return the corresponding interaction class handle, or null if anything went wrong
+	 */
+	public InteractionClassHandle getInteractionClassHandle( String name )
 	{
 		try
 		{
-			return this.rtiamb.getInteractionClassHandle( identifier );
+			return this.rtiamb.getInteractionClassHandle( name );
 		}
-		catch( NameNotFound | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public ParameterHandle getHandleFromParameterIdentifier( InteractionClassHandle klassHandle, String identifier )
+	/**
+	 * A "safe" way to get a parameter handle from an interaction class handle and parameter name. If
+	 * anything goes wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param handle the interaction class handle with which the parameter is associated
+	 * @param parameterName the parameter name to obtain the handle for
+	 * @return the corresponding parameter handle, or null if anything went wrong
+	 */
+	public ParameterHandle getParameterHandle( InteractionClassHandle handle, String parameterName )
 	{
 		try
 		{
-			return this.rtiamb.getParameterHandle( klassHandle, identifier );
+			return this.rtiamb.getParameterHandle( handle, parameterName );
 		}
-		catch( NameNotFound | FederateNotExecutionMember | NotConnected | RTIinternalError |
-			   InvalidInteractionClassHandle e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 	
-	public String getParameterIdentifierFromHandle( InteractionClassHandle klassHandle, ParameterHandle handle )
+	/**
+	 * A "safe" way to get a parameter name from an interaction class handle and parameter handle. If
+	 * anything goes wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param interactionClassHandle the interaction class handle with which the parameter is associated
+	 * @param parameterHandle the parameter handle to obtain the name for
+	 * @return the corresponding parameter handle, or null if anything went wrong
+	 */
+	public String getParameterName( InteractionClassHandle interactionClassHandle,
+	                                ParameterHandle parameterHandle )
 	{
 		try
 		{
-			return this.rtiamb.getParameterName( klassHandle, handle );
+			return this.rtiamb.getParameterName( interactionClassHandle, parameterHandle );
 		}
-		catch( FederateNotExecutionMember | NotConnected | RTIinternalError |
-			   InvalidInteractionClassHandle | InteractionParameterNotDefined |
-			   InvalidParameterHandle e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 	
-	public String getObjectInstanceIdentifierFromHandle( ObjectInstanceHandle handle )
+	/**
+	 * A "safe" way to get an object instance name from an object instance handle. If anything goes
+	 * wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param handle the object instance handle to obtain the name for
+	 * @return the corresponding object instance name, or null if anything went wrong
+	 */
+	public String getObjectInstanceName( ObjectInstanceHandle handle )
 	{
 		try
 		{
 			return this.rtiamb.getObjectInstanceName( handle );
 		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected |
-			   RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
 	}
 
-	public ObjectInstanceHandle getHandleFromObjectInstanceIdentifier( String identifier )
+	/**
+	 * A "safe" way to get an object instance handle from an object instance name. If anything goes
+	 * wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param name the object instance name to obtain the handle for
+	 * @return the corresponding object instance handle, or null if anything went wrong
+	 */
+	public ObjectInstanceHandle getObjectInstanceHandle( String name )
 	{
 		try
 		{
-			return this.rtiamb.getObjectInstanceHandle( identifier );
+			return this.rtiamb.getObjectInstanceHandle( name );
 		}
-		catch( ObjectInstanceNotKnown | FederateNotExecutionMember | NotConnected | RTIinternalError e )
+		catch( Exception e )
 		{
 			return null;
 		}
@@ -349,42 +408,34 @@ public class RTIUtils
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObject( ObjectClassHandle klassHandle)
+	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle)
 	{
-		return registerObject( klassHandle, null );
+		return registerObjectInstance( handle, null );
 	}
 	
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObject( ObjectClassHandle klassHandle, String instanceIdentifier )
+	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle, String instanceIdentifier )
 	{
-		if( klassHandle == null )
+		if( handle == null )
 		{
-			StringBuilder errorMsg = new StringBuilder("Failed to register object - class handle was null.\n");
-			errorMsg.append( makeStackStrace( Thread.currentThread().getStackTrace() ) );
-			logger.error( errorMsg.toString() );
-			return null;
+			throw new UCEFException( "NULL object class handle. Cannot register object instance." );
 		}
 		
 		ObjectInstanceHandle instanceHandle = null;
 		try
 		{
 			if( StringUtils.isNullOrEmpty( instanceIdentifier ) )
-				instanceHandle = rtiamb.registerObjectInstance( klassHandle );
+				instanceHandle = rtiamb.registerObjectInstance( handle );
 			else
-				instanceHandle = rtiamb.registerObjectInstance( klassHandle, instanceIdentifier );
-			
-			logger.info( String.format( "Registered object instance with class handle %s. Instance handle is %s",
-			                            klassHandle, instanceHandle ) );
+				instanceHandle = rtiamb.registerObjectInstance( handle, instanceIdentifier );
 		}
-		catch( ObjectClassNotPublished | ObjectClassNotDefined | SaveInProgress
-			| RestoreInProgress | FederateNotExecutionMember | NotConnected
-			| RTIinternalError | ObjectInstanceNameInUse | ObjectInstanceNameNotReserved e )
+		catch( Exception e )
 		{
-			logger.error( String.format( "Failed to register object instance with class handle %s: %s",
-			                             klassHandle, e.getMessage() ) );
+			throw new UCEFException( e, "Failed to register object instance for object class %s", 
+			                         assembleObjectClassDetails( handle ) );
 		}
 		return instanceHandle;
 	}	
@@ -392,89 +443,73 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////// ATTRIBUTE MANIPULATION //////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                short value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeName,
+	                                             short value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle,
-		                        attributeIdentifier,
-		                        Short.toString( value ),
-		                        attributes );
+		return setAttribute( objectClassHandle, attributeName, Short.toString( value ), attributes );
 	}
 
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                int value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             int value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle,
-		                        attributeIdentifier,
-		                        Integer.toString( value ),
-		                        attributes );
+		return setAttribute( objectClassHandle, attributeIdentifier, Integer.toString( value ), attributes );
 	}
 
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                long value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             long value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle, attributeIdentifier, Long.toString( value ), attributes );
+		return setAttribute( objectClassHandle, attributeIdentifier, Long.toString( value ), attributes );
 	}
 
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                double value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             double value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle,
-		                        attributeIdentifier,
-		                        Double.toString( value ),
-		                        attributes );
+		return setAttribute( objectClassHandle, attributeIdentifier, Double.toString( value ), attributes );
 	}
 
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                float value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             float value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle,
-		                        attributeIdentifier,
-		                        Float.toString( value ),
-		                        attributes );
+		return setAttribute( objectClassHandle, attributeIdentifier, Float.toString( value ), attributes );
 	}
 
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                boolean value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             boolean value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		return updateAttribute( objectClassHandle,
-		                        attributeIdentifier,
-		                        Boolean.toString( value ),
-		                        attributes );
+		return setAttribute( objectClassHandle, attributeIdentifier, Boolean.toString( value ), attributes );
 	}
 	
-	public AttributeHandleValueMap updateAttribute( ObjectClassHandle objectClassHandle,
-	                                                String attributeIdentifier,
-	                                                String value,
-	                                                AttributeHandleValueMap attributes )
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             String value,
+	                                             AttributeHandleValueMap attributes )
 	{
-		AttributeHandle attrHandle = getHandleFromAttributeIdentifier( objectClassHandle, 
-		                                                               attributeIdentifier );
+		byte[] attrValue = codecUtils.makeHLAString( value ).toByteArray();
+		return setAttribute(objectClassHandle, attributeIdentifier, attrValue, attributes);
+	}
+	
+	public AttributeHandleValueMap setAttribute( ObjectClassHandle objectClassHandle,
+	                                             String attributeIdentifier,
+	                                             byte[] value,
+	                                             AttributeHandleValueMap attributes )
+	{
+		AttributeHandle attrHandle = getAttributeHandle( objectClassHandle, attributeIdentifier );
 		if( attrHandle != null )
 		{
-			if(value == null)
-			{
-				attributes.put( attrHandle, new byte[0] );
-			}
-			else
-			{
-    			HLAunicodeString attrValue = codecUtils.makeString( value );
-    			attributes.put( attrHandle, attrValue.toByteArray() );
-			}
+			attributes.put( attrHandle, value == null ? new byte[0] : value);
 		}
-
 		return attributes;
 	}
 	
@@ -485,18 +520,14 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	public void registerPublishedInteractions( Collection<String> interactionIDs)
+	public void publishInteractionClasses( Collection<String> interactionIDs)
 	{
-		if( interactionIDs.isEmpty() )
+		if( interactionIDs == null || interactionIDs.isEmpty() )
+			return;
+
+		for( String interactionID : interactionIDs )
 		{
-			logger.debug( "Federate will not publish any interactions." );
-		}
-		else
-		{
-			for( String interactionID : interactionIDs )
-			{
-				registerPublishedInteraction( interactionID );
-			}
+			publishInteractionClass( interactionID );
 		}
 	}
 
@@ -504,102 +535,29 @@ public class RTIUtils
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	public void registerPublishedInteraction( String interactionID)
+	public void publishInteractionClass( String className )
 	{
-		InteractionClassHandle handle = getHandleFromInteractionIdentifier( interactionID );
-		// do the publication - we only need to tell the RTI about the interaction's class,
-		// not the associated parameters, so this is very simple:
-		if(registerPublishedInteraction( handle ))
-		{
-			logger.debug( String.format( "Registered intent to publish interaction '%s', handle is %s",
-			                             interactionID, handle ) );
-		}
-		else
-		{
-			logger.error( String.format( "Failed to register intent to publish interaction '%s', handle was %s",
-			                             interactionID,
-			                             handle == null ? "null" : handle) );
-		}
+		InteractionClassHandle handle = getInteractionClassHandle( className );
+		publishInteractionClass( handle );
 	}
 	
 	/**
 	 * This method will inform the RTI about the an interaction that a federate will be publishing to 
 	 * the federation.
 	 */
-	public boolean registerPublishedInteraction(InteractionClassHandle handle)
+	public void publishInteractionClass(InteractionClassHandle handle)
 	{
-		if(handle != null)
+		if( handle == null )
+			throw new UCEFException( "NULL interaction class handle. Cannot publish interaction class." );
+
+		try
 		{
-			try
-			{
-				rtiamb.publishInteractionClass( handle );
-				return true;
-			}
-			catch( InteractionClassNotDefined | SaveInProgress | RestoreInProgress
-				| FederateNotExecutionMember | NotConnected | RTIinternalError e )
-			{
-				logger.error( String.format( "Failed to register intent to publish interaction with handle %s: %s",
-				                             handle, e.getMessage() ) );
-			}
+			rtiamb.publishInteractionClass( handle );
 		}
-		else
+		catch( Exception e )
 		{
-			logger.error( "Failed to register intent to publish interaction - handle was null." );
-		}
-		return false;
-	}
-	
-	/**
-	 * This method will inform the RTI about the types of attributes the federate will be
-	 * publishing to the federation, and to which classes they belong.
-	 * 
-	 * This needs to be done before registering instances of the object classes and updating their
-	 * attributes' values 
-	 */
-	public void registerPublishedAttributes( Map<String,Set<String>> publishedAttributes) throws RTIexception
-	{
-		if(publishedAttributes.isEmpty())
-		{
-			logger.debug( "Federate will not publish any attributes." );
-		}
-		else
-		{
-			for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
-			{
-				// this list is for logging purposes only
-				List<String> publicationDetails = new ArrayList<>();
-				
-				String klassIdentifier = publication.getKey();
-				Set<String> attributes = publication.getValue();
-				
-				// get all the handle information for the attributes of the current class
-				ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
-				// package the information into a handle set
-				AttributeHandleSet attributeHandleSet = makeAttributeHandles();
-				for( String attribute : attributes )
-				{
-					AttributeHandle attributeHandle = getHandleFromAttributeIdentifier( klassHandle, attribute );
-					attributeHandleSet.add( attributeHandle );
-					publicationDetails.add( String.format( "'%s' (handle = %s)", 
-					                                       attribute, attributeHandle ) );
-				}
-				
-				// do the actual publication
-				if(registerPublishedAttributes( klassHandle, attributeHandleSet ))
-				{
-					logger.debug( String.format( "Registered intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             publicationDetails.size(),
-					                             klassIdentifier, klassHandle, 
-					                             String.join( ", ", publicationDetails ) ) );
-				}
-				else
-				{
-					logger.error( String.format( "Failed to register intent to publish the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             publicationDetails.size(),
-					                             klassIdentifier, klassHandle, 
-					                             String.join( ", ", publicationDetails ) ) );
-				}
-			}
+			throw new UCEFException( e, "Failed to publish interaction class with handle %s", 
+			                         assembleInteractionClassDetails( handle ) );
 		}
 	}
 	
@@ -610,201 +568,192 @@ public class RTIUtils
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values 
 	 */
-	public boolean registerPublishedAttributes(ObjectClassHandle klassHandle, AttributeHandleSet attributes)
+	public void publishObjectClassAttributes( Map<String,Set<String>> publishedAttributes) throws RTIexception
 	{
-		if(klassHandle != null && attributes != null)
+		if(publishedAttributes == null || publishedAttributes.isEmpty())
+			return;
+
+		for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
 		{
-			try
+			String className = publication.getKey();
+			ObjectClassHandle classHandle = getObjectClassHandle( className );
+			if( classHandle == null )
 			{
-				rtiamb.publishObjectClassAttributes( klassHandle, attributes );
-				return true;
+				throw new UCEFException( "Unknown object class name '%s'. Cannot publish attributes.",
+				                         className );
 			}
-			catch( SaveInProgress | RestoreInProgress | FederateNotExecutionMember | NotConnected 
-				| RTIinternalError | AttributeNotDefined | ObjectClassNotDefined e )
+			
+			AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
+			for( String attributeName : publication.getValue() )
 			{
-				logger.error( String.format( "Failed to register intent to publish attributes for class with handle %s: %s",
-				                             klassHandle, e.getMessage() ) );
+				AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
+				if( classHandle == null )
+				{
+					throw new UCEFException( "Unknown attribute name '%s'. Cannot publish attributes for object class %s.",
+					                         attributeName , assembleObjectClassDetails( classHandle ) );
+				}
+				attributeHandleSet.add( attributeHandle );
 			}
+			
+			publishObjectClassAttributes( classHandle, attributeHandleSet );
 		}
-		else
+	}
+	
+	/**
+	 * This method will inform the RTI about the types of attributes the federate will be
+	 * publishing to the federation, and to which classes they belong.
+	 * 
+	 * This needs to be done before registering instances of the object classes and updating their
+	 * attributes' values 
+	 */
+	public void publishObjectClassAttributes(ObjectClassHandle handle, AttributeHandleSet attributes)
+	{
+		if( handle == null )
+			throw new UCEFException( "NULL object class handle. Cannot publish object class atributes." );
+
+		if( attributes == null )
+			throw new UCEFException( "NULL attribute handle set. Cannot publish attributes for object class %s.",
+			                         assembleObjectClassDetails( handle ) );
+			
+		try
 		{
-			if(klassHandle == null && attributes == null)
-			{
-				logger.error( "Failed to register intent to publish attributes - the class and attribute handles were both null." );
-			}
-			else if(klassHandle == null)
-			{
-				logger.error( "Failed to register intent to publish attributes - the class handle was null." );
-			}
-			else
-			{
-				logger.error( "Failed to register intent to publish attributes - the attributes handle was null." );
-			}
+			rtiamb.publishObjectClassAttributes( handle, attributes );
 		}
-		return false;
+		catch( Exception e )
+		{
+			throw new UCEFException( e,
+			                         "Failed to publish object class atributes for object class %s.",
+			                         assembleObjectClassDetails( handle ) );
+		}
 	}
 	
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * interested in hearing about as other federates produce them.
 	 */
-	public void registerSubscribedInteractions( Collection<String> subscribedInteractions)
+	public void subscribeInteractionClasses( Collection<String> interactionClassNames )
 	{
-		if(subscribedInteractions.isEmpty())
+		if( interactionClassNames == null || interactionClassNames.isEmpty() )
+			return;
+
+		for( String interactionClassName : interactionClassNames )
 		{
-			logger.debug( "Federate will not subscribe to any interactions." );
-		}
-		else
-		{
-			for( String interactionID : subscribedInteractions )
-			{
-				registerSubscribedInteraction(interactionID);
-			}
+			subscribeInteractionClass( interactionClassName );
 		}
 	}
 	
 	/**
-	 * This method will inform the RTI about the types of interactions that the federate will be
-	 * publishing to the federation.
+	 * This method will inform the RTI about a class of interaction that a federate will subscribe to 
+	 * 
+	 * @param className the name of the interaction class to subscribe to
 	 */
-	public void registerSubscribedInteraction( String interactionID)
+	public void subscribeInteractionClass( String className )
 	{
-		InteractionClassHandle handle = getHandleFromInteractionIdentifier( interactionID );
-		// do the publication - we only need to tell the RTI about the interaction's class,
-		// not the associated parameters, so this is very simple:
-		if(registerSubscribedInteraction( handle ))
+		InteractionClassHandle handle = getInteractionClassHandle( className );
+
+		if( handle == null )
 		{
-			logger.debug( String.format( "Registered subscription to interaction '%s', handle is %s",
-			                             interactionID, handle ) );
+			throw new UCEFException( "Cannot subscribe to interaction class using unknown class name '%s'.",
+			                         className );
 		}
-		else
-		{
-			logger.error( String.format( "Failed to register subscription to interaction '%s', handle was %s",
-			                             interactionID,
-			                             handle == null ? "null" : handle) );
-		}
+
+		subscribeInteractionClass( handle );
 	}
 	
 	/**
-	 * This method will inform the RTI about the an interaction that a federate will be publishing to 
-	 * the federation.
+	 * This method will inform the RTI about a class of interaction that a federate will subscribe to 
+	 * 
+	 * @param handle the handle of the interaction class to subscribe to
 	 */
-	public boolean registerSubscribedInteraction(InteractionClassHandle handle)
+	public void subscribeInteractionClass( InteractionClassHandle handle )
 	{
-		if(handle != null)
+		if( handle == null )
+			throw new UCEFException( "NULL interaction class handle. Cannot subscribe to interaction class." );
+
+		try
 		{
-			try
-			{
-				rtiamb.subscribeInteractionClass( handle );
-				return true;
-			}
-			catch( InteractionClassNotDefined | SaveInProgress | RestoreInProgress
-				| FederateNotExecutionMember | NotConnected | RTIinternalError
-				| FederateServiceInvocationsAreBeingReportedViaMOM e )
-			{
-				logger.error( String.format( "Failed to register subscription to interaction with handle %s: %s",
-				                             handle, e.getMessage() ) );
-			}
+			rtiamb.subscribeInteractionClass( handle );
 		}
-		else
+		catch( Exception e )
 		{
-			logger.error( "Failed to register subscription to interaction - handle was null." );
+			throw new UCEFException( e,
+			                         "Failed to subscribe to interaction class %s",
+			                         assembleInteractionClassDetails( handle ) );
 		}
-		return false;
 	}
-	
 	
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * interested in hearing about, and to which classes they belong.
 	 * 
 	 * We need to subscribe to hear about information on attributes of classes created and altered
-	 * in other federates 
+	 * in other federates
+	 * 
+	 * @param subscribedAttributes a map which connects object class names to sets of attribute
+	 *            names to be subscribed to
 	 */
-	public void registerSubscribedAttributes( Map<String,Set<String>> subscribedAttributes)
+	public void subscribeObjectClassessAttributes( Map<String,Set<String>> subscribedAttributes)
 	{
-		if(subscribedAttributes.isEmpty())
+		if(subscribedAttributes == null || subscribedAttributes.isEmpty())
+			return;
+
+		for( Entry<String,Set<String>> subscription : subscribedAttributes.entrySet() )
 		{
-			logger.debug( "Federate will not subscribe to any attributes." );
-		}
-		else
-		{
-			for( Entry<String,Set<String>> subscription : subscribedAttributes.entrySet() )
+			// get all the handle information for the attributes of the current class
+			String className = subscription.getKey();
+			ObjectClassHandle classHandle = getObjectClassHandle( className );
+			if( classHandle == null )
 			{
-				// this list is for logging purposes only
-				List<String> subscriptionDetails = new ArrayList<>();
-				
-				// get all the handle information for the attributes of the current class
-				String klassIdentifier = subscription.getKey();
-				ObjectClassHandle klassHandle = getClassHandleFromClassIdentifier( klassIdentifier );
-				// package the information into the handle set
-				AttributeHandleSet attributeHandleSet = makeAttributeHandles();
-				for( String attribute : subscription.getValue() )
-				{
-					AttributeHandle attributeHandle = getHandleFromAttributeIdentifier( klassHandle, attribute );
-					attributeHandleSet.add( attributeHandle );
-					subscriptionDetails.add( String.format( "'%s' (handle = %s)",
-					                                        attribute, attributeHandle ) );
-				}
-				
-				// do the actual subscription
-				if(registerSubscribedAttributes( klassHandle, attributeHandleSet ))
-				{
-					logger.debug( String.format( "Subscribed to the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             subscriptionDetails.size(),
-					                             klassIdentifier, klassHandle, 
-					                             String.join( ", ", subscriptionDetails ) ) );
-				}
-				else
-				{
-					logger.error( String.format( "Failed to subscribe to the following %d attribute(s) of '%s' (handle = %s): %s", 
-					                             subscriptionDetails.size(),
-					                             klassIdentifier, klassHandle, 
-					                             String.join( ", ", subscriptionDetails ) ) );
-				}
+				throw new UCEFException( "Unknown object class name '%s'. Cannot subscribe to attributes.",
+				                         className );
 			}
+			// package the information into the handle set
+			AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
+			for( String attributeName : subscription.getValue() )
+			{
+				AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
+				if( attributeHandle == null )
+				{
+					throw new UCEFException( "Unknown attribute name '%s'. Cannot subscribe to attributes for object class %s.",
+					                         attributeName , assembleObjectClassDetails( classHandle ));
+				}
+				attributeHandleSet.add( attributeHandle );
+			}
+			
+			// do the actual subscription
+			subscribeObjectClassAttributes( classHandle, attributeHandleSet );
 		}
 	}
 	
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
-	 * publishing to the federation, and to which classes they belong.
+	 * publishing to the federation, and which class they are associated with.
 	 * 
 	 * This needs to be done before registering instances of the object classes and updating their
-	 * attributes' values 
+	 * attributes' values
+	 * 
+	 * @param handle the handle for the object class whose attributes are to be subscribed to
+	 * @param attributes the attribute handles identifying the attributes to be subscribed to
 	 */
-	public boolean registerSubscribedAttributes(ObjectClassHandle klassHandle, AttributeHandleSet attributes)
+	public void subscribeObjectClassAttributes(ObjectClassHandle handle, AttributeHandleSet attributes)
 	{
-		if(klassHandle != null && attributes != null)
+		if( handle == null )
+			throw new UCEFException( "NULL object class handle. Cannot subscribe to attributes." );
+
+		if( attributes == null )
+			throw new UCEFException( "NULL attribute handle set . Cannot subscribe to attributes for object class %s.",
+			                         assembleObjectClassDetails( handle ) );
+
+		try
 		{
-			try
-			{
-				rtiamb.subscribeObjectClassAttributes( klassHandle, attributes );
-				return true;
-			}
-			catch( SaveInProgress | RestoreInProgress | FederateNotExecutionMember | NotConnected 
-				| RTIinternalError | AttributeNotDefined | ObjectClassNotDefined e )
-			{
-				logger.error( String.format( "Failed to subscribe to attributes for class with handle %s: %s",
-				                             klassHandle, e.getMessage() ) );
-			}
+			rtiamb.subscribeObjectClassAttributes( handle, attributes );
 		}
-		else
+		catch( Exception e )
 		{
-			if(klassHandle == null && attributes == null)
-			{
-				logger.error( "Failed to subscribe to attributes - the class and attribute handles were both null." );
-			}
-			else if(klassHandle == null)
-			{
-				logger.error( "Failed to subscribe to attributes - the class handle was null." );
-			}
-			else
-			{
-				logger.error( "Failed to subscribe to attributes - the attributes handle was null." );
-			}
+			throw new UCEFException( e,
+			                         "Failed to subscribe to object class attributes for object class %s.",
+			                         assembleObjectClassDetails( handle ) );
 		}
-		return false;
 	}	
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -812,103 +761,44 @@ public class RTIUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values and timestamp information, but with no associated tag.
-	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
-	 * 
-	 * @param instanceHandle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @param tag the tag of the interaction
-	 * @throws RTIexception
-	 * 
-	 */
-	public void publishAttributes( ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes, 
-	                               byte[] tag )
-	{
-		publishAttributes( instanceHandle, attributes, tag, null); 
-	}
-	
-	/**
-	 * This method will send out an attribute update for the specified object instance with the given
 	 * attributes/values, timestamp and tag information.
 	 * 
 	 * Federates which are subscribed to a matching combination of class type and attributes will receive
 	 * a notification the next time they tick().
 	 * 
-	 * @param instanceHandle the instance handle of the object to which the attributes belong 
+	 * @param handle the instance handle of the object to which the attributes belong 
 	 * @param attributes the attributes and their associated values
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
+	 * @param tag the tag of the interaction - may be null
+	 * @param time the timestamp for the interaction - may be null
 	 * @throws RTIexception
 	 * 
 	 */
-	public void publishAttributes( ObjectInstanceHandle instanceHandle,
-	                               AttributeHandleValueMap attributes,
-	                               byte[] tag, HLAfloat64Time time)
+	public void updateAttributeValues( ObjectInstanceHandle handle,
+	                                   AttributeHandleValueMap attributes,
+	                                   byte[] tag, HLAfloat64Time time)
 	{
-		// sanity check the handle for null - without a handle we can't do anything
-		if( instanceHandle == null )
-		{
-			// we print a stack trace here so it's a bit more obvious how the situation is arising for 
-			// debugging purposes - a null handle for the object instance is unlikely, and probably will
-			// be hard to debug if it does.
-			StringBuilder errorMsg = new StringBuilder("Failed to publish attribute update - instance handle was null.\n");
-			errorMsg.append( makeStackStrace( Thread.currentThread().getStackTrace() ) );
-			logger.error( errorMsg.toString() );
-			
-			return;
-		}
+		if( handle == null )
+			throw new UCEFException( "NULL object instance handle. Cannot update attribute values." );
+		
+		if( attributes == null )
+			throw new UCEFException( "NULL attribute handle value map. Cannot update attributes for object instance %s.",
+			                         assembleObjectInstanceDetails( handle ) );
 		
 		// sanity check the tag for null
 		tag = tag == null ? new byte[0] : tag;
 		
-		attributes = attributes == null ? makeEmptyAttributeMap() : attributes;
-		if( attributes == null )
-		{
-			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( instanceHandle );
-			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( instanceHandle );
-			String classIdentifier = getClassIdentifierFromClassHandle( classHandle );
-			if( instanceIdentifier != null )
-			{
-				logger.error(String.format( "Failed to publish attribute update for instance '%s' with handle %s of type '%s' - attributes were null.", 
-				                            instanceIdentifier, classHandle, classIdentifier ));
-			}
-			else
-			{
-				logger.error(String.format( "Failed to publish attribute update for instance with handle %s of type '%s' - attributes were null.", 
-				                            classHandle,  classIdentifier ));
-			}
-			return;
-		}
-		
 		try
 		{
 			if( time == null )
-				rtiamb.updateAttributeValues( instanceHandle, attributes, tag );
+				rtiamb.updateAttributeValues( handle, attributes, tag );
 			else
-				rtiamb.updateAttributeValues( instanceHandle, attributes, tag, time );
+				rtiamb.updateAttributeValues( handle, attributes, tag, time );
 		}
-		catch( AttributeNotOwned | AttributeNotDefined | ObjectInstanceNotKnown | SaveInProgress
-			| RestoreInProgress | FederateNotExecutionMember | NotConnected | RTIinternalError
-			| InvalidLogicalTime e )
+		catch( Exception e )
 		{
-			String instanceIdentifier = getObjectInstanceIdentifierFromHandle( instanceHandle );
-			ObjectClassHandle classHandle = getClassHandleFromInstanceHandle( instanceHandle );
-			String classIdentifier = getClassIdentifierFromClassHandle( classHandle );
-			if( instanceIdentifier != null )
-			{
-				logger.error(String.format( "Failed to publish attribute update for instance '%s' with handle %s of type '%s': %s", 
-				                            instanceIdentifier, classHandle, classIdentifier, 
-				                            e.getMessage() ));
-			}
-			else
-			{
-				logger.error(String.format( "Failed to publish attribute update for instance with handle %s of type '%s': %s", 
-				                            classHandle,  classIdentifier, 
-				                            e.getMessage()));
-			}
-			return;
+			throw new UCEFException( e,
+			                         "Failed to update attribute values for object instance %s",
+			                         assembleObjectInstanceDetails( handle ) );
 		}
 	}
 	
@@ -924,36 +814,19 @@ public class RTIUtils
 	 * @param time the timestamp for the interaction
 	 * @throws RTIexception
 	 */
-	public void publishInteraction( InteractionClassHandle handle, ParameterHandleValueMap parameters,
-	                                byte[] tag, HLAfloat64Time time )
+	public void sendInteraction( InteractionClassHandle handle, ParameterHandleValueMap parameters,
+	                             byte[] tag, HLAfloat64Time time )
 	{
-		// sanity check the handle for null - without a handle we can't do anything
 		if( handle == null )
-		{
-			// we print a stack trace here so it's a bit more obvious how the situation is arising for 
-			// debugging purposes - a null handle for the interaction is unlikely, and probably will
-			// be hard to debug if it does.
-			StringBuilder errorMsg = new StringBuilder("Failed to publish attribute update - instance handle was null.\n");
-			errorMsg.append( makeStackStrace( Thread.currentThread().getStackTrace() ) );
-			logger.error( errorMsg.toString() );
-			return;
-		}
+			throw new UCEFException( "NULL interaction class handle. Cannot send interaction." );
 		
-		parameters = parameters == null ? makeEmptyParameterMap() : parameters;
-		if(parameters == null)
-		{
-			String interactionIdentifier = getInteractionIdentifierFromHandle( handle );
-			logger.error(String.format( "Failed to publish interaction for '%s' with handle %s - parameters were null.", 
-			                            interactionIdentifier, handle ));
-			return;
-		}
-		
+		if( parameters == null )
+			throw new UCEFException( "NULL attribute handle value map. Cannot send interaction %s.",
+			                         assembleInteractionClassDetails( handle ) );
+
 		// sanity check the tag for null
 		tag = tag == null ? new byte[0] : tag;
-		
-		//////////////////////////
-		// send the interaction //
-		//////////////////////////
+
 		try
 		{
 			if(time == null)
@@ -961,41 +834,49 @@ public class RTIUtils
 			else
 				rtiamb.sendInteraction( handle, parameters, tag, time );
 		}
-		catch( InteractionClassNotPublished | InteractionParameterNotDefined
-			| InteractionClassNotDefined | SaveInProgress | RestoreInProgress
-			| FederateNotExecutionMember | NotConnected | RTIinternalError | InvalidLogicalTime e )
+		catch( Exception e )
 		{
-			String interactionIdentifier = getInteractionIdentifierFromHandle( handle );
-			logger.error(String.format( "Failed to publish interaction of type '%s' with handle %s: %s", 
-			                            interactionIdentifier, e.getMessage() ));
+			throw new UCEFException( e, "Failed to send interaction %s",
+			                         assembleInteractionClassDetails( handle ) );
 		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////// MISCELLANEOUS ////////////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Utility method to collate a stack trace array to text suitable for printing to console or log file
-	 * @param stackTrace the stack trace elements
-	 * @return text of the stack trace suitable for printing to console or log file
-	 */
-	private String makeStackStrace(StackTraceElement[] stackTrace)
-	{
-		if(stackTrace == null)
-			return "";
-		
-		StringBuilder result = new StringBuilder();
-		for( int i = 1; i < stackTrace.length; i++ )
-		{
-			result.append( stackTrace[i].toString() ).append( "\n" );
-		}
-		return result.toString();
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	private String assembleObjectInstanceDetails(ObjectInstanceHandle handle)
+	{
+		String instanceName = getObjectInstanceName( handle );
+		ObjectClassHandle classHandle = getKnownObjectClassHandle( handle );
+		
+		StringBuilder details = new StringBuilder( "'" + instanceName + "' " );
+		details.append( " (handle '" + handle + "') of object class " );
+		details.append( assembleObjectClassDetails( classHandle ) );
+		
+		return details.toString();
+	}
 
+	private String assembleObjectClassDetails(ObjectClassHandle handle)
+	{
+		String className = getObjectClassName( handle );
+		
+		StringBuilder details = new StringBuilder( "'" + className + "'" );
+		details.append( " (handle'" + className + "')" );
+		
+		return details.toString();
+	}
+	
+	private String assembleInteractionClassDetails(InteractionClassHandle handle)
+	{
+		String className = getInteractionClassName( handle );
+		
+		StringBuilder details = new StringBuilder( "'" + className + "'" );
+		details.append( " (handle'" + className + "')" );
+		
+		return details.toString();
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

@@ -76,11 +76,11 @@ public class InteractionBase
 	{
 		this.rtiUtils = rtiUtils;
 		this.interactionHandle = interactionHandle;
-		this.parameters = parameters;
+		this.parameters = parameters == null ? rtiUtils.makeParameterMap() : parameters;
 		this.tag = tag;
 		this.time = time;
 		
-		this.interactionIdentifier = this.rtiUtils.getInteractionIdentifierFromHandle( this.interactionHandle );
+		this.interactionIdentifier = this.rtiUtils.getInteractionClassName( this.interactionHandle );
 	}
 
 	//----------------------------------------------------------
@@ -107,19 +107,40 @@ public class InteractionBase
 		return this.interactionHandle;
 	}
 	
+	/**
+	 * Obtain the name of a parameter from the handle
+	 * 
+	 * @param handle the parameter handle
+	 * @return the name of the parameter, or null if the given handle is not related to this interaction
+	 */
     public String parameterName(ParameterHandle handle)
     {
-    	return this.rtiUtils.getParameterIdentifierFromHandle( this.interactionHandle, handle );
+    	return this.rtiUtils.getParameterName( this.interactionHandle, handle );
     }
     
+	/**
+	 * Obtain the raw byte array value of a parameter from the handle
+	 * 
+	 * @param handle the parameter handle
+	 * @return the raw byte array value of a parameter from the handle, or null if the given handle is
+	 *         not related to this interaction or the parameter has not been initialized
+	 */
     public byte[] parameterRawValue(ParameterHandle handle)
     {
     	return parameters.get(handle);
     }
     
+    /**
+     * Obtain the String value of a parameter from the handle
+     * 
+     * @param handle the parameter handle
+     * @return the String value of a parameter from the handle (as decoded from the raw byte array), or
+     * 		   an empty string if the given handle is not related to this interaction or the parameter 
+     *         has not been initialized
+     */
     public String parameterValue(ParameterHandle handle)
     {
-    	return CODEC_UTILS.decodeString(parameterRawValue( handle ));
+    	return CODEC_UTILS.decodeHLAString(parameterRawValue( handle ));
     }
     
     /**
@@ -173,15 +194,25 @@ public class InteractionBase
     	return Collections.unmodifiableMap(result);
     }
     
-    public void publish()
+    /**
+     * Basic publish of this interaction with no tag or timestamp
+     */
+    public void send()
     {
     	publish( null, null );
     }
     
+    /**
+     * Publish this interaction with a tag and timestamp. Will gracefully handle tag and/or 
+     * timestamp arguments being null
+     * 
+     * @param tag the tag
+     * @param time the timestamp
+     */
     public void publish(byte[] tag, HLAfloat64Time time)
     {
     	tag = tag == null ? new byte[0] : tag;
-    	this.rtiUtils.publishInteraction( this.interactionHandle, this.parameters, tag, time );
+    	this.rtiUtils.sendInteraction( this.interactionHandle, this.parameters, tag, time );
     }
     
 	@Override
@@ -218,7 +249,7 @@ public class InteractionBase
 			builder.append( parameterHandle );
 			// print the parameter value
 			builder.append( "\n\t\tparamValue = '" );
-			builder.append( CODEC_UTILS.decodeString(rawValue) );
+			builder.append( CODEC_UTILS.decodeHLAString(rawValue) );
 			builder.append( "' (" );
 			builder.append( rawValue.length );
 			builder.append( " bytes)" );
