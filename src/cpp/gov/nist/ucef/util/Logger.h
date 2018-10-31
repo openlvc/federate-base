@@ -4,9 +4,13 @@
 #include <string>
 
 #include "gov/nist/ucef/version.h"
-#include "spdlog/spdlog.h"
 
 #include "types.h"
+
+namespace spdlog
+{
+	class logger;
+}
 
 namespace ucef
 {
