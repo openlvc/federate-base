@@ -20,7 +20,12 @@
  */
 package gov.nist.ucef.hla;
 
+import java.util.Date;
+
+import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.NullFederateImplementation;
+import gov.nist.ucef.hla.common.UCEFException;
+import gov.nist.ucef.hla.util.FileUtils;
 
 public class Main extends NullFederateImplementation
 {
@@ -51,10 +56,57 @@ public class Main extends NullFederateImplementation
 	{
 		System.out.println( "UCEF!" );
 		
-		new TestUCEFFederate().execute();
+		try
+		{
+			FederateConfiguration config = makeConfig();
+			new TestFederate( config ).execute();
+		}
+		catch(Exception e)
+		{
+			System.err.println( e.getMessage() );
+			System.err.println( "Cannot proceed - shutting down now." );
+			System.exit( 1 );
+		}
 
 		System.out.println( "Shutting down." );
-		
 		System.exit( 0 );
+	}
+	
+	private static FederateConfiguration makeConfig()
+	{
+		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+			                                                        "Federate-" + new Date().getTime(), 
+																	"TestFederate" );
+		// set up maps with classes and corresponding lists of attributes to 
+		// be published and subscribed to
+		String drinkBase = "HLAobjectRoot.Food.Drink.";
+		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		
+		// set up lists of interactions to be published and subscribed to
+		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
+		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
+		
+		// somebody set us up the FOM...
+		try
+		{
+			String fomRootPath = "resources/foms/";
+			// modules
+			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
+			                       fomRootPath+"RestaurantFood.xml", 
+			                       fomRootPath+"RestaurantDrinks.xml"};
+			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
+			
+			// join modules
+			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
+		}	
+		
+		return config;
 	}
 }

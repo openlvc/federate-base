@@ -23,6 +23,7 @@ package gov.nist.ucef.hla.util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.ucef.hla.common.UCEFException;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -32,9 +33,12 @@ import hla.rti1516e.encoding.HLAinteger64BE;
 import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.RTIinternalError;
 
+/**
+ * The purpose of this class is to provide encoding/decoding of various data types to/from HLA 
+ * standard representations
+ */
 public class HLACodecUtils
 {
-
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -42,6 +46,18 @@ public class HLACodecUtils
 	
 	private static HLACodecUtils instance;
 
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	public static HLACodecUtils instance()
+	{
+		if(instance == null)
+		{
+			instance = new HLACodecUtils(); 
+		}
+		return instance;
+	}
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -58,16 +74,16 @@ public class HLACodecUtils
 		}
 		catch( RTIinternalError e )
 		{
-			this.encoderFactory = null;
+			throw new UCEFException("Failed to initialize HLA codec utilities.", e);
 		}
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public String decodeString( byte[] bytes )
+	public String decodeHLAString( byte[] bytes )
 	{
-		HLAunicodeString value = makeString();
+		HLAunicodeString value = makeHLAString();
 		// decode
 		try
 		{
@@ -81,9 +97,9 @@ public class HLACodecUtils
 		return "";
 	}
 
-	public short decodeShort( byte[] bytes )
+	public short decodeHLAShort( byte[] bytes )
 	{
-		HLAinteger16BE value = makeShort();
+		HLAinteger16BE value = makeHLAShort();
 		// decode
 		try
 		{
@@ -97,9 +113,9 @@ public class HLACodecUtils
 		return 0;
 	}
 	
-	public int decodeInt( byte[] bytes )
+	public int decodeHLAInt( byte[] bytes )
 	{
-		HLAinteger32BE value = makeInt();
+		HLAinteger32BE value = makeHLAInt();
 		// decode
 		try
 		{
@@ -113,9 +129,9 @@ public class HLACodecUtils
 		return 0;
 	}
 	
-	public long decodeLong( byte[] bytes )
+	public long decodeHLALong( byte[] bytes )
 	{
-		HLAinteger64BE value = makeLong();
+		HLAinteger64BE value = makeHLALong();
 		// decode
 		try
 		{
@@ -129,42 +145,42 @@ public class HLACodecUtils
 		return 0L;
 	}
 	
-	public HLAunicodeString makeString()
+	public HLAunicodeString makeHLAString()
 	{
 		return encoderFactory.createHLAunicodeString("");
 	}
 	
-	public HLAunicodeString makeString(String value)
+	public HLAunicodeString makeHLAString(String value)
 	{
 		return encoderFactory.createHLAunicodeString(value == null ? "" : value);
 	}
 	
-	public HLAinteger16BE makeShort()
+	public HLAinteger16BE makeHLAShort()
 	{
-		return makeShort((short)0);
+		return makeHLAShort((short)0);
 	}
 
-	public HLAinteger16BE makeShort(short value)
+	public HLAinteger16BE makeHLAShort(short value)
 	{
 		return encoderFactory.createHLAinteger16BE(value);
 	}
 	
-	public HLAinteger32BE makeInt()
+	public HLAinteger32BE makeHLAInt()
 	{
-		return makeInt(0);
+		return makeHLAInt(0);
 	}
 	
-	public HLAinteger32BE makeInt(int value)
+	public HLAinteger32BE makeHLAInt(int value)
 	{
 		return encoderFactory.createHLAinteger32BE(value);
 	}
 	
-	public HLAinteger64BE makeLong()
+	public HLAinteger64BE makeHLALong()
 	{
-		return makeLong(0);
+		return makeHLALong(0);
 	}
 	
-	public HLAinteger64BE makeLong(long value)
+	public HLAinteger64BE makeHLALong(long value)
 	{
 		return encoderFactory.createHLAinteger64BE(value);
 	}
@@ -172,17 +188,4 @@ public class HLACodecUtils
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	public static HLACodecUtils instance()
-	{
-		if(instance == null)
-		{
-			instance = new HLACodecUtils(); 
-		}
-		return instance;
-	}
-	
 }

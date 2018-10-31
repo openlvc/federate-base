@@ -18,14 +18,17 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.common;
+package gov.nist.ucef.hla.util;
 
-/**
- * This is an "empty" abstract implementation of the IUCEFFederateImplementation with no-op methods
- * for all required overrides so that developers can simply implement only those methods relevant
- * to their particular federate.
- */
-public abstract class NullFederateImplementation implements IFederateImplementation
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+public class FileUtils
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -42,42 +45,6 @@ public abstract class NullFederateImplementation implements IFederateImplementat
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	// LIFECYCLE MAINTENANCE CALLBACKS /////////////////////////
-	@Override
-	public void doInitialisationTasks() {}
-	
-	// announce READY_TO_POPULATE
-	@Override
-	public void doPostAnnouncePreAchievePopulateTasks() {}
-	// achieve READY_TO_POPULATE
-	@Override
-	public void doPopulationTasks() {}
-	
-	// announce READY_TO_RUN
-	@Override
-	public void doPostAnnouncePreAchieveRunTasks() {}
-	// achieve READY_TO_RUN
-	@Override
-	public boolean shouldContinueSimulation() { return false; }
-	@Override
-	public void tickSimulation() {}
-	@Override
-	public double getTimeStep() {return 1.0;}
-	// announce READY_TO_RESIGN
-	@Override
-	public void doPostAnnouncePreAchieveResignTasks() {}
-	// achieve READY_TO_RESIGN
-	@Override
-	public void doResignTasks() {}
-	
-	@Override
-	public void doShutdownTasks() {}
-
-	// EVENT HANDLING CALLBACKS ////////////////////////////////
-	@Override
-	public void handleInteractionReceived( InteractionBase interactionBase ) {}
-	@Override
-	public void handleAttributeReflection( InstanceBase instanceBase ) {}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
@@ -86,4 +53,18 @@ public abstract class NullFederateImplementation implements IFederateImplementat
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
+	
+	public static Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
+	{
+		List<URL> result = new ArrayList<>();
+		for(String path : paths)
+		{
+			File file = new File( path );
+			if(file.isFile())
+				result.add( new File( path ).toURI().toURL() );
+			else
+				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
+		}
+		return result;
+	}
 }

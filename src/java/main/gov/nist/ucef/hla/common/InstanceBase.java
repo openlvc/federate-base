@@ -66,23 +66,16 @@ public class InstanceBase
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	public InstanceBase( RTIUtils rtiUtils,
-	                     ObjectClassHandle objectClassHandle, Collection<String> attributes)
+	                     ObjectClassHandle objectClassHandle, AttributeHandleValueMap attributes)
 	{
 		this.rtiUtils = rtiUtils;
 		this.objectClassHandle = objectClassHandle;
-		this.instanceHandle = this.rtiUtils.registerObject( this.objectClassHandle );
+		this.instanceHandle = this.rtiUtils.registerObjectInstance( this.objectClassHandle );
 		
-		if(attributes == null)
-		{
-			this.attributes = this.rtiUtils.makeEmptyAttributeMap();
-		}
-		else
-		{
-			this.attributes = rtiUtils.makeAttributeMap( objectClassHandle, attributes );
-		}
+		this.attributes = attributes == null ? this.rtiUtils.makeAttributeMap() : attributes;
 
-		this.classIdentifier = this.rtiUtils.getClassIdentifierFromClassHandle( this.objectClassHandle );
-		this.instanceIdentifier = this.rtiUtils.getObjectInstanceIdentifierFromHandle( instanceHandle );
+		this.classIdentifier = this.rtiUtils.getObjectClassName( this.objectClassHandle );
+		this.instanceIdentifier = this.rtiUtils.getObjectInstanceName( instanceHandle );
 		
 		this.tag = new byte[0];
 		this.time = null; // will be null if the attribute update was local rather than from RTI
@@ -93,11 +86,11 @@ public class InstanceBase
 	{
 		this.rtiUtils = rtiUtils;
 		this.instanceHandle = instanceHandle;
-		this.attributes = attributes == null ? this.rtiUtils.makeEmptyAttributeMap() : attributes;
+		this.attributes = attributes == null ? this.rtiUtils.makeAttributeMap() : attributes;
 		
-		this.instanceIdentifier = this.rtiUtils.getObjectInstanceIdentifierFromHandle( instanceHandle );
-		this.objectClassHandle = this.rtiUtils.getClassHandleFromInstanceHandle( instanceHandle );
-		this.classIdentifier = this.rtiUtils.getClassIdentifierFromClassHandle( this.objectClassHandle );
+		this.instanceIdentifier = this.rtiUtils.getObjectInstanceName( instanceHandle );
+		this.objectClassHandle = this.rtiUtils.getKnownObjectClassHandle( instanceHandle );
+		this.classIdentifier = this.rtiUtils.getObjectClassName( this.objectClassHandle );
 		
 		this.tag = new byte[0];
 		this.time = null; // will be null if the attribute update was local rather than from RTI
@@ -108,43 +101,43 @@ public class InstanceBase
 	//----------------------------------------------------------
 	public InstanceBase updateAttribute(String key, short value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, int value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, long value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, float value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, double value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, boolean value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
 	public InstanceBase updateAttribute(String key, String value)
 	{
-		rtiUtils.updateAttribute( this.objectClassHandle, key, value, this.attributes );
+		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
@@ -202,19 +195,41 @@ public class InstanceBase
 		return this.objectClassHandle;
 	}
 	
+	/**
+	 * Obtain the name of an attribute from the handle
+	 * 
+	 * @param handle the attribute handle
+	 * @return the name of the attribute, or null if the given handle is not related to this
+	 *         instance's class
+	 */
     public String attributeName(AttributeHandle handle)
     {
-    	return this.rtiUtils.getAttributeIdentifierFromHandle( this.objectClassHandle, handle );
+    	return this.rtiUtils.getAttributeName( this.objectClassHandle, handle );
     }
     
+	/**
+	 * Obtain the the raw byte array value of an attribute from the handle
+	 * 
+	 * @param handle the attribute handle
+	 * @return the raw byte array value of the attribute, or null if the given handle is not related to
+	 *         this instance's class
+	 */
     public byte[] attributeRawValue(AttributeHandle handle)
     {
     	return this.attributes.get(handle);
     }
     
+    /**
+     * Obtain the String value of an attribute from the handle
+     * 
+     * @param handle the attribute handle
+     * @return the String value of an attribute from the handle (as decoded from the raw byte array), or
+     * 		   an empty string if the given handle is not related to this instance's class or the
+     * 		   attribute has not been initialized
+     */
     public String attributeValue(AttributeHandle handle)
     {
-    	return CODEC_UTILS.decodeString(attributeRawValue(handle));
+    	return CODEC_UTILS.decodeHLAString(attributeRawValue(handle));
     }
     
     /**
@@ -268,25 +283,25 @@ public class InstanceBase
     	return Collections.unmodifiableMap(result);
     }
     
-    public void publish()
+    /**
+     * Basic update of this object instance with no tag or timestamp
+     */
+    public void update()
     {
-    	publish( null, null );
+    	update( null, null );
     }
     
-    public void publish(byte[] tag)
-    {
-    	publish( tag, null );
-    }
-    
-    public void publish(HLAfloat64Time time)
-    {
-    	publish( null, time );
-    }
-    
-    public void publish(byte[] tag, HLAfloat64Time time)
+    /**
+     * Update this instance with a tag and timestamp. Will gracefully handle tag and/or 
+     * timestamp arguments being null
+     * 
+     * @param tag the tag
+     * @param time the timestamp
+     */
+    public void update(byte[] tag, HLAfloat64Time time)
     {
     	tag = tag == null ? new byte[0] : tag;
-		this.rtiUtils.publishAttributes( this.instanceHandle, this.attributes, tag, time);
+		this.rtiUtils.updateAttributeValues( this.instanceHandle, this.attributes, tag, time);
     }
 	
 	@Override
@@ -328,7 +343,7 @@ public class InstanceBase
 			builder.append( ": " );
 			builder.append( attributeIdentifier == null ? "UNKNOWN ATTRIBUTE" : attributeIdentifier );
 			builder.append( "\n\t\tattributeValue = " );
-			builder.append( CODEC_UTILS.decodeString(rawValue) );
+			builder.append( CODEC_UTILS.decodeHLAString(rawValue) );
 			builder.append( "' (" );
 			builder.append( rawValue.length );
 			builder.append( " bytes)" );

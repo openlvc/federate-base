@@ -51,6 +51,6 @@ public interface IFederateImplementation
 	// 8. EXIT
 
 	// EVENT HANDLING CALLBACKS ////////////////////////////////
-	public void handleInteractionSubscription( InteractionBase interactionBase );
-	public void handleAttributeSubscription( InstanceBase instanceBase );
+	public void handleInteractionReceived( InteractionBase interactionBase );
+	public void handleAttributeReflection( InstanceBase instanceBase );
 }

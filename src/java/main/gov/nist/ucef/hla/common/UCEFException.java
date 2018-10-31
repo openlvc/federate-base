@@ -20,16 +20,12 @@
  */
 package gov.nist.ucef.hla.common;
 
-/**
- * This is an "empty" abstract implementation of the IUCEFFederateImplementation with no-op methods
- * for all required overrides so that developers can simply implement only those methods relevant
- * to their particular federate.
- */
-public abstract class NullFederateImplementation implements IFederateImplementation
+public class UCEFException extends RuntimeException
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final long serialVersionUID = -3642541500621823260L;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -38,50 +34,61 @@ public abstract class NullFederateImplementation implements IFederateImplementat
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * Just create an empty exception
+	 */
+	public UCEFException()
+	{
+		super();
+	}
+
+	/**
+	 * @param message The message to create the exception with
+	 */
+	public UCEFException( String message )
+	{
+		super( message );
+	}
+
+	/**
+	 * @param cause The cause of the exception
+	 */
+	public UCEFException( Throwable cause )
+	{
+		super( cause );
+	}
+
+	/**
+	 * @param message The message to create the exception with
+	 * @param cause The cause of the exception
+	 */
+	public UCEFException( String message, Throwable cause )
+	{
+		super( message, cause );
+	}
+
+	/**
+	 * @param formatString A format string to use with the arguments to construct the message
+	 * @param args The arguments to use with the format string
+	 */
+	public UCEFException( String formatString, Object... args )
+	{
+		super( String.format( formatString, args ) );
+	}
+
+	/**
+	 * @param cause The cause of the exception
+	 * @param formatString A format string to use with the arguments to construct the message
+	 * @param args The arguments to use with the format string
+	 */
+	public UCEFException( Throwable cause, String formatString, Object... args )
+	{
+		super( String.format( formatString, args ), cause );
+	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	// LIFECYCLE MAINTENANCE CALLBACKS /////////////////////////
-	@Override
-	public void doInitialisationTasks() {}
-	
-	// announce READY_TO_POPULATE
-	@Override
-	public void doPostAnnouncePreAchievePopulateTasks() {}
-	// achieve READY_TO_POPULATE
-	@Override
-	public void doPopulationTasks() {}
-	
-	// announce READY_TO_RUN
-	@Override
-	public void doPostAnnouncePreAchieveRunTasks() {}
-	// achieve READY_TO_RUN
-	@Override
-	public boolean shouldContinueSimulation() { return false; }
-	@Override
-	public void tickSimulation() {}
-	@Override
-	public double getTimeStep() {return 1.0;}
-	// announce READY_TO_RESIGN
-	@Override
-	public void doPostAnnouncePreAchieveResignTasks() {}
-	// achieve READY_TO_RESIGN
-	@Override
-	public void doResignTasks() {}
-	
-	@Override
-	public void doShutdownTasks() {}
-
-	// EVENT HANDLING CALLBACKS ////////////////////////////////
-	@Override
-	public void handleInteractionReceived( InteractionBase interactionBase ) {}
-	@Override
-	public void handleAttributeReflection( InstanceBase instanceBase ) {}
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
