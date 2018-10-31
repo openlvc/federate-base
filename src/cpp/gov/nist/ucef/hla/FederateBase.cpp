@@ -1,7 +1,10 @@
 #include "FederateBase.h"
 
+#include "FederateAmbassador.h"
 #include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/SOMParser.h"
+#include "gov/nist/ucef/util/UCEFConfig.h"
+#include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 
 using namespace rti1516e;
@@ -11,11 +14,12 @@ using namespace ucef::util;
 namespace ucef
 {
 
-	FederateBase::FederateBase( wstring& federateName ) : m_federateName(federateName),
-	                                                      m_federateAmbassador(),
+	FederateBase::FederateBase( wstring& federateName ) : m_ucefConfig(new UCEFConfig()),
+	                                                      m_federateAmbassador(nullptr),
 	                                                      m_rtiAmbassador(nullptr)
 
 	{
+		
 		initialiseRti();
 		initialiseFederation();
 		initialiseHandles();
@@ -29,6 +33,10 @@ namespace ucef
 	void FederateBase::initialiseRti()
 	{
 		//----------------------------------------
+		//            Create Federate Ambassador
+		//-----------------------------------------
+		m_federateAmbassador = make_shared<FederateAmbassador>();
+		//----------------------------------------
 		//            Create RTI Ambassador
 		//-----------------------------------------
 		RTIambassador* tmpAmbassador = RTIambassadorFactory().createRTIambassador().release();
@@ -38,11 +46,12 @@ namespace ucef
 		//            Connect to the RTI
 		//-----------------------------------------
 		Logger &logger = Logger::getInstance();
-		logger.log( ConversionHelper::ws2s(m_federateName) + " trying to connect to RTI.", LevelInfo );
+		logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) + " trying to connect to RTI.", LevelInfo );
 		try
 		{
-			m_rtiAmbassador->connect (m_federateAmbassador, HLA_IMMEDIATE );
-			logger.log( ConversionHelper::ws2s(m_federateName) + " Successfully connected to the RTI.", LevelInfo );
+			m_rtiAmbassador->connect (*m_federateAmbassador, HLA_IMMEDIATE );
+			logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) +
+			            " Successfully connected to the RTI.", LevelInfo );
 		}
 		catch( ConnectionFailed& connectionFailed )
 		{
@@ -78,12 +87,8 @@ namespace ucef
 		Logger &logger = Logger::getInstance();
 		try
 		{
-			vector<wstring> foms;
-			foms.push_back( L"restaurant/RestaurantFood.xml" );
-			foms.push_back( L"restaurant/RestaurantDrinks.xml" );
-			foms.push_back( L"restaurant/RestaurantProcesses.xml" );
-
-			m_rtiAmbassador->createFederationExecution( L"ExampleFederation", foms );
+			m_rtiAmbassador->createFederationExecution( m_ucefConfig->getFederationName(),
+			                                            m_ucefConfig->getFomPaths() );
 			logger.log( string("Federation Created."), LevelInfo );
 		}
 		catch( FederationExecutionAlreadyExists& )
@@ -99,17 +104,18 @@ namespace ucef
 		//            Join Federation
 		//-----------------------------------------
 
-		wstring federationName = L"ExampleFederation";
 		try
 		{
-			m_rtiAmbassador->joinFederationExecution( m_federateName,
-			                                          m_federateName + wstring( L"Type" ),
-			                                          federationName );
-			logger.log( "Joined Federation as " + ConversionHelper::ws2s(m_federateName), LevelInfo );
+			m_rtiAmbassador->joinFederationExecution( m_ucefConfig->getFederateName(),
+			                                          m_ucefConfig->getFederateType(),
+			                                          m_ucefConfig->getFederationName() );
+
+			logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) + " joined the federation " +
+			            ConversionHelper::ws2s(m_ucefConfig->getFederationName()) + ".", LevelInfo );
 		}
 		catch( Exception& e )
 		{
-			logger.log( "Could not joing the federation : " + ConversionHelper::ws2s(federationName) +
+			logger.log( "Could not join the federation : " + ConversionHelper::ws2s(m_ucefConfig->getFederationName()) +
 			            "Error: " + ConversionHelper::ws2s(e.what()), LevelError );
 		}
 
@@ -135,7 +141,6 @@ namespace ucef
 			{
 				AttributeHandle attributeHandle =
 						m_rtiAmbassador->getAttributeHandle( classHandle, attribute->name );
-
 			}
 		}
 

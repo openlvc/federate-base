@@ -2,13 +2,23 @@
 
 #include <memory>
 
-#include "FederateAmbassador.h"
 #include "gov/nist/ucef/version.h"
 #include "gov/nist/ucef/util/types.h"
-#include "RTI/RTIambassador.h"
+
+namespace rti1516e
+{
+	class RTIambassador;
+}
 
 namespace ucef
 {
+	class FederateAmbassador;
+
+	namespace util
+	{
+		class UCEFConfig;
+	}
+
 	class UCEF_API FederateBase
 	{
 
@@ -35,9 +45,9 @@ namespace ucef
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
-			std::wstring m_federateName;
-			FederateAmbassador m_federateAmbassador;
+			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
+			std::unique_ptr<util::UCEFConfig> m_ucefConfig;
 	};
 }
 

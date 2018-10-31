@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFConfig.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h" />
@@ -93,6 +94,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFConfig.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -24,8 +24,8 @@ namespace ucef
 			try
 			{
 				logger = basic_logger_mt( "ucef_federate", "logs/uceffederate.log", true );
-				// we are using same numeric values, so the cast is safe
-				logger->set_level( level::level_enum::debug );
+				logger->set_level( level::level_enum::info );
+				logger->info( "Logger initialised and the default log level is set to INFO" );
 			}
 			catch( const spdlog::spdlog_ex &e )
 			{
@@ -36,6 +36,7 @@ namespace ucef
 
 		void Logger::setLogLevel( LogLevel level )
 		{
+			// we are using the same numeric values as in spdlog, so the cast is safe.
 			logger->set_level( level::level_enum(level) );
 		}
 
@@ -53,6 +54,7 @@ namespace ucef
 				logger->info( message );
 			else if( level == LogLevel::LevelCritical )
 				logger->critical( message );
+			logger->flush();
 		}
 	}
 }
