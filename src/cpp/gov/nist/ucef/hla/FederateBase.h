@@ -3,13 +3,13 @@
 #include <memory>
 
 #include "FederateAmbassador.h"
+#include "gov/nist/ucef/version.h"
 #include "gov/nist/ucef/util/types.h"
-
 #include "RTI/RTIambassador.h"
 
 namespace ucef
 {
-	class FederateBase
+	class UCEF_API FederateBase
 	{
 
 		public:

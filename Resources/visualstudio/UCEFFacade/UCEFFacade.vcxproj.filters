@@ -35,6 +35,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
@@ -47,6 +50,12 @@
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\version.h">
+      <Filter>Source Files\gov\nist\ucef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
   </ItemGroup>

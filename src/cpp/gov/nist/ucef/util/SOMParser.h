@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "gov/nist/ucef/util/types.h"
-
 #include "tinyxml2.h"
 
 using namespace std;

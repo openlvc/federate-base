@@ -1,5 +1,9 @@
 #include "SOMParser.h"
 
+#include <iostream>
+
+#include "gov/nist/ucef/util/Logger.h"
+
 using namespace std;
 using namespace tinyxml2;
 
@@ -10,27 +14,34 @@ namespace ucef
 		vector<shared_ptr<ObjectClass>> SOMParser::getObjectClasses( const string& SomFilePath,
 		                                                             const string& SomFileName )
 		{
+			Logger &logger = Logger::getInstance();
+
 			vector<shared_ptr<ObjectClass>> SomObjects;
-			vector<shared_ptr<ObjectAttribute>> SomA;
+			vector<shared_ptr<ObjectAttribute>> SomAttributes;
 			string somPath = SomFilePath + SomFileName;
+
+			logger.log( "Trying to load SOM file in " + somPath, LevelInfo );
+
 			XMLDocument doc;
 			XMLError xmlError = doc.LoadFile( somPath.c_str() );
 			if( xmlError == XML_SUCCESS )
 			{
+				logger.log( "SOM loaded succefully " + somPath, LevelInfo );
+	
 				XMLElement* root = doc.FirstChildElement( "objectModel" );
 				if( root )
 				{
 					XMLElement* objectsElement = root->FirstChildElement( "objects" );
-					SOMParser::traverseObjectClasses( L"", SomA, objectsElement, SomObjects );
+					SOMParser::traverseObjectClasses( L"", SomAttributes, objectsElement, SomObjects );
 				}
 				else
 				{
-					// TO-DO Log an error
+					logger.log( string("Could not locate objectModel in given SOM file"), LevelError );
 				}
 			}
 			else
 			{
-				// TO-DO Log an error
+				logger.log( "Could not Load SOM file in " + somPath, LevelError );
 			}
 			return SomObjects;
 		}
@@ -62,21 +73,27 @@ namespace ucef
 		                                       XMLElement* parentElement,
 		                                       vector<shared_ptr<ObjectClass>>& objectClasses )
 		{
+			// this is a leaf object class
 			if( parentElement->FirstChildElement( "objectClass" ) == nullptr )
 			{
+				// get the name of the leaf object class
 				XMLElement* objectNameElement = parentElement->FirstChildElement( "name" );
 				if( objectNameElement )
 				{
 					shared_ptr<ObjectClass> objectClass = make_shared<ObjectClass>();
+
 					// fully qualified object class name
 					objectClass->name = objectClassName + ConversionHelper::s2ws(objectNameElement->GetText());
+
+					// sharing state (pub & sub) of the object
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
 					if( objectSharingElement )
 					{
 						// set the sharing state of the object (not the attribute)
 						objectClass->sharingState = ConversionHelper::toSharingState(objectSharingElement->GetText());
 					}
-					// collect attributes in this object class (leaf node)
+
+					// collect attributes in this object class (traverse only the leaf attributes)
 					for( XMLElement* attrElement = parentElement->FirstChildElement( "attribute" );
 						 attrElement != NULL; attrElement = attrElement->NextSiblingElement( "attribute" ))
 					{
@@ -87,14 +104,15 @@ namespace ucef
 							shared_ptr<ObjectAttribute> objectAttribute = make_shared<ObjectAttribute>();
 							// get attribute's name as in SOM
 							objectAttribute->name = ConversionHelper::s2ws(attributeNameElement->GetText());
+
+							// get the sharing state of this attribute
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
 								// set the sharing state of the attribute (not the object)
 								objectAttribute->sharingState =
-								ConversionHelper::toSharingState( attributeSharingElement->GetText() );
+									ConversionHelper::toSharingState( attributeSharingElement->GetText() );
 							}
-
 							attributes.push_back( objectAttribute );
 						}
 					}
@@ -111,7 +129,8 @@ namespace ucef
 					}
 					else
 					{
-						// TO-DO Log an data
+						string tmpObjectClassName = ConversionHelper::ws2s(objectClass->name);
+						Logger::getInstance().log( tmpObjectClassName + " doesn't have any attributes.", LevelWarn );
 					}
 
 				}
@@ -119,14 +138,14 @@ namespace ucef
 			else
 			{
 				// get the name element of this parentElement that represents an objectClass
-				XMLElement* classNameElement = parentElement->FirstChildElement( "name" );
-				if( classNameElement )
+				XMLElement* objectNameElement = parentElement->FirstChildElement( "name" );
+				if( objectNameElement )
 				{
 					// build up the fully qualified class name
 					objectClassName +=
-							ConversionHelper::s2ws(classNameElement->FirstChildElement( "name" )->GetText());
+							ConversionHelper::s2ws( objectNameElement->GetText() ) + L".";
 
-					// collect attributes in this object class
+					// collect attributes in this object class (traverse non-leaf attributes)
 					for( XMLElement* attrElement = parentElement->FirstChildElement( "attribute" );
 						 attrElement != NULL; attrElement = attrElement->NextSiblingElement( "attribute" ))
 					{
@@ -136,7 +155,7 @@ namespace ucef
 						{
 							shared_ptr<ObjectAttribute> objectAttribute = make_shared<ObjectAttribute>();
 							// get attribute's name as in SOM
-							objectAttribute->name = ConversionHelper::s2ws(attributeNameElement->GetText());
+							objectAttribute->name = ConversionHelper::s2ws( attributeNameElement->GetText() );
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
@@ -159,7 +178,6 @@ namespace ucef
 				}
 			}
 		}
-
 	}
 }
 

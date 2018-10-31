@@ -1,10 +1,8 @@
 #include "FederateBase.h"
 
-#include <iostream>
-
-#include "RTI/RTIambassadorFactory.h"
-
+#include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/SOMParser.h"
+#include "RTI/RTIambassadorFactory.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -20,6 +18,7 @@ namespace ucef
 	{
 		initialiseRti();
 		initialiseFederation();
+		initialiseHandles();
 	}
 
 	FederateBase::~FederateBase()
@@ -38,35 +37,36 @@ namespace ucef
 		//----------------------------------------
 		//            Connect to the RTI
 		//-----------------------------------------
-		wcout << m_federateName << " trying to connect to RTI." << endl;
+		Logger &logger = Logger::getInstance();
+		logger.log( ConversionHelper::ws2s(m_federateName) + " trying to connect to RTI.", LevelInfo );
 		try
 		{
-			m_rtiAmbassador->connect(m_federateAmbassador, HLA_IMMEDIATE);
-			wcout << m_federateName << " Successfully connected to the RTI" << endl;
+			m_rtiAmbassador->connect (m_federateAmbassador, HLA_IMMEDIATE );
+			logger.log( ConversionHelper::ws2s(m_federateName) + " Successfully connected to the RTI.", LevelInfo );
 		}
 		catch( ConnectionFailed& connectionFailed )
 		{
-			wcout << L"Connection failed " << connectionFailed.what() << endl;
+			logger.log( "Connection failed " + ConversionHelper::ws2s(connectionFailed.what()), LevelError );
 		}
 		catch( InvalidLocalSettingsDesignator& settings )
 		{
-			wcout << L"Connection failed, InvalidLocalSettingsDesignator: "
-			      << settings.what() << endl;
+			logger.log( "Connection failed, InvalidLocalSettingsDesignator: " +
+			            ConversionHelper::ws2s(settings.what()), LevelError );
 		}
 		catch( UnsupportedCallbackModel& callbackModel )
 		{
-			wcout << L"Connection failed, UnsupportedCallbackModel: "
-			      << callbackModel.what() << endl;
+			logger.log( "Connection failed, UnsupportedCallbackModel: " +
+			            ConversionHelper::ws2s(callbackModel.what()), LevelError );
 		}
 		catch( AlreadyConnected& connected )
 		{
-			wcout << L"Connection failed, AlreadyConnected: "
-			      << connected.what() << endl;
+			logger.log( "Connection failed, AlreadyConnected: " +
+			            ConversionHelper::ws2s(connected.what()), LevelError );
 		}
 		catch( RTIinternalError& error )
 		{
-			wcout << L"Connection failed, Generic Error: "
-			      << error.what() << endl;
+			logger.log( "Connection failed, Generic Error: " +
+			            ConversionHelper::ws2s(error.what()), LevelError );
 		}
 	}
 
@@ -75,6 +75,7 @@ namespace ucef
 		//----------------------------------------
 		//            Create Federation
 		//-----------------------------------------
+		Logger &logger = Logger::getInstance();
 		try
 		{
 			vector<wstring> foms;
@@ -83,39 +84,49 @@ namespace ucef
 			foms.push_back( L"restaurant/RestaurantProcesses.xml" );
 
 			m_rtiAmbassador->createFederationExecution( L"ExampleFederation", foms );
-			wcout << L"Federation Created." << endl;
+			logger.log( string("Federation Created."), LevelInfo );
 		}
-		catch( FederationExecutionAlreadyExists& exists )
+		catch( FederationExecutionAlreadyExists& )
 		{
-			wcout << L"Federation creation failed, already created" << endl;
+			logger.log( string("Federation creation failed, federation already exist."), LevelWarn );
 		}
 		catch( Exception& e )
 		{
-			wcout << L"Generic Error: " << e.what() << endl;
+			logger.log( "Generic Error: " + ConversionHelper::ws2s(e.what()),  LevelError );
 		}
 
 		//----------------------------------------
 		//            Join Federation
 		//-----------------------------------------
-		m_rtiAmbassador->joinFederationExecution( m_federateName,
-		                                          L"Example Federate",
-		                                          L"ExampleFederation" );
-		wcout << L"Joined Federation as " << m_federateName << endl;
+
+		wstring federationName = L"ExampleFederation";
+		try
+		{
+			m_rtiAmbassador->joinFederationExecution( m_federateName,
+			                                          m_federateName + wstring( L"Type" ),
+			                                          federationName );
+			logger.log( "Joined Federation as " + ConversionHelper::ws2s(m_federateName), LevelInfo );
+		}
+		catch( Exception& e )
+		{
+			logger.log( "Could not joing the federation : " + ConversionHelper::ws2s(federationName) +
+			            "Error: " + ConversionHelper::ws2s(e.what()), LevelError );
+		}
+
 	}
 
 	void FederateBase::initialiseHandles()
 	{
-		string name = "name";
-		string path = "path";
+		string name = "RestaurantSOMmodule.xml";
+		string path = "restaurant/";
 
 		//----------------------------------------------------------
 		//            Store object class handlers
 		//----------------------------------------------------------
-		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( name, path );
+		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( path, name );
 
 		for( const shared_ptr<ObjectClass> &objectClass : objectClasses )
 		{
-			wcout << L"Checking class " << objectClass->name << endl;
 			ObjectClassHandle classHandle =
 					m_rtiAmbassador->getObjectClassHandle( objectClass->name );
 
@@ -124,7 +135,7 @@ namespace ucef
 			{
 				AttributeHandle attributeHandle =
 						m_rtiAmbassador->getAttributeHandle( classHandle, attribute->name );
-				wcout << L"Checking attribute " << attribute->name << " in " << objectClass->name << endl;
+
 			}
 		}
 
@@ -134,7 +145,6 @@ namespace ucef
 		vector<shared_ptr<InteractionClass>> interactionClasses = SOMParser::getInteractionClasses( name, path );
 		for( const shared_ptr<InteractionClass> &interactionClass : interactionClasses )
 		{
-			wcout << L"Checking class " << interactionClass->name << endl;
 			InteractionClassHandle interactionHandle =
 					m_rtiAmbassador->getInteractionClassHandle( interactionClass->name );
 
@@ -143,7 +153,6 @@ namespace ucef
 			{
 				ParameterHandle parameterHandle =
 						m_rtiAmbassador->getParameterHandle( interactionHandle, parameter->name );
-				wcout << L"Checking attribute " << parameter->name << " in " << interactionClass->name << endl;
 			}
 		}
 	}

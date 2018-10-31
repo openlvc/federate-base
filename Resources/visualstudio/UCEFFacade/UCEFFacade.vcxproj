@@ -42,21 +42,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\..\..\build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\..\build\$(Configuration)\UCEFFacade.Int\</IntDir>
+    <OutDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\UCEFFacade.Int\</IntDir>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\..\..\build\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\</OutDir>
     <TargetExt>.dll</TargetExt>
-    <IntDir>$(SolutionDir)..\..\..\build\$(Configuration)\UCEFFacade.Int\</IntDir>
+    <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\UCEFFacade.Int\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;$(SolutionDir)..\..\..\external\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UCEF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libfedtime1516e64d.lib;librti1516e64d.lib;tinyxml2d.lib</AdditionalDependencies>
@@ -70,7 +71,8 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;$(SolutionDir)..\..\..\external\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>UCEF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -82,13 +84,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

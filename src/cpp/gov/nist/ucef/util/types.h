@@ -36,6 +36,23 @@ namespace ucef
 			StateNone,      // none
 		};
 
+		/**
+		 *  Represents the logging level of the logger
+		 *  parameter or attribute
+		 *
+		 *  @see Logger::setLogLevel( LogLevel level )
+		 */
+		enum LogLevel
+		{
+			LevelTrace = 0,
+			LevelDebug = 1,
+			LevelInfo = 2,
+			LevelWarn = 3,
+			LevelError = 4,
+			LevelCritical = 5,
+			LevelOff = 6
+		};
+
 		//----------------------------------------
 		//            Struct Declaration
 		//-----------------------------------------
