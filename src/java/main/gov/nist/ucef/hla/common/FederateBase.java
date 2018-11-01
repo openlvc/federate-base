@@ -28,6 +28,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import gov.nist.ucef.hla.common.config.FederateConfiguration;
 import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.CallbackModel;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -109,12 +110,12 @@ public class FederateBase
 		return this.federateAmbassador.getFederateTime();
 	}
 	
-	public InstanceBase getInstanceBase(ObjectInstanceHandle handle)
+	public HLAObject getInstanceBase(ObjectInstanceHandle handle)
 	{
 		return this.federateAmbassador.getInstanceBase(handle);
 	}
 	
-	public void registerInstanceBase(InstanceBase instanceBase)
+	public void registerInstanceBase(HLAObject instanceBase)
 	{
 		this.federateAmbassador.registerInstanceBase(instanceBase);
 	}
@@ -343,12 +344,12 @@ public class FederateBase
 		//       Portico specific. You will have to alter this if you move to a
 		//       different RTI implementation. As such, we've isolated it into a
 		//       method so that any change only needs to happen in a couple of spots 
-		HLAfloat64Interval lookahead = this.rtiUtils.makeHLAInterval( federateConfiguration.getLookAhead() );
+		HLAfloat64Interval lookAhead = this.rtiUtils.makeHLAInterval( federateConfiguration.getLookAhead() );
 
 		////////////////////////////
 		// enable time regulation //
 		////////////////////////////
-		this.rtiamb.enableTimeRegulation( lookahead );
+		this.rtiamb.enableTimeRegulation( lookAhead );
 
 		// tick until we get the callback
 		while( federateAmbassador.isRegulating() == false )

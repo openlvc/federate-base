@@ -58,7 +58,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	
 	protected SyncPoint announcedSyncPoint = null;
 	protected SyncPoint currentSyncPoint = null;
-	private Map<ObjectInstanceHandle, InstanceBase> objectInstanceLookup;
+	private Map<ObjectInstanceHandle, HLAObject> objectInstanceLookup;
 	
 	// TODO - should we provide accessors for these rather than making them externally available
 	//        within the package via `protected`...?
@@ -75,7 +75,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	{
 		this.federateImplementation = federateImplementation;
 		this.rtiUtils = rtiUtils;
-		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, InstanceBase>(); 
+		this.objectInstanceLookup = new HashMap<ObjectInstanceHandle, HLAObject>(); 
 	}
 
 	//----------------------------------------------------------
@@ -112,7 +112,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 		return this.objectInstanceLookup.keySet();
 	}
 	
-	public void registerInstanceBase(InstanceBase instanceBase)
+	public void registerInstanceBase(HLAObject instanceBase)
 	{
 		this.objectInstanceLookup.put(instanceBase.getInstanceHandle(), instanceBase);
 	}
@@ -122,7 +122,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 		this.objectInstanceLookup.remove(handle);
 	}
 	
-	public InstanceBase getInstanceBase(ObjectInstanceHandle handle)
+	public HLAObject getInstanceBase(ObjectInstanceHandle handle)
 	{
 		return this.objectInstanceLookup.get(handle);
 	}
@@ -150,6 +150,11 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	public void announceSynchronizationPoint( String syncPointID, byte[] tag )
 	{
 		SyncPoint syncPoint = SyncPoint.fromID( syncPointID );
+		if(syncPoint == null)
+		{
+			// TODO unknown synchronization point - just achieve it immediately
+			// rtiamb.synchronizationPointAchieved( syncPointID );
+		}
 		this.announcedSyncPoint = syncPoint;
 		logger.info( "Synchronization point '%s' was announced.", syncPoint.toString() );
 	}
@@ -241,12 +246,12 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		InstanceBase instanceBase = getInstanceBase( objectInstanceHandle );
+		HLAObject instanceBase = getInstanceBase( objectInstanceHandle );
 		
 		if(instanceBase == null)
 		{
 			// remote instance
-			instanceBase = new InstanceBase(this.rtiUtils, objectInstanceHandle, attributeHandleValueMap);
+			instanceBase = new HLAObject(this.rtiUtils, objectInstanceHandle, attributeHandleValueMap);
 			this.objectInstanceLookup.put(objectInstanceHandle, instanceBase);
 		}
 		else
@@ -284,7 +289,7 @@ public class FederateAmbassadorBase extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		InteractionBase interactionBase = new InteractionBase(this.rtiUtils, interactionClassHandle,
+		HLAInteraction interactionBase = new HLAInteraction(this.rtiUtils, interactionClassHandle,
 		                                                      theParameters, tag, time);
 		this.federateImplementation.handleInteractionReceived( interactionBase );
 	}

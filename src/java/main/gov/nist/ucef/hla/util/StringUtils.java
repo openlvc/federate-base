@@ -67,6 +67,14 @@ public class StringUtils
 		return !isNullOrEmpty( str );
 	}
 	
+	public static String repeat(char toRepeat, int numTimes)
+	{
+		if(numTimes <=0 )
+			return "";
+		
+		return new String(new char[numTimes]).replace("\0", Character.toString( toRepeat ));		
+	}
+	
 	/**
 	 * Utility method to obtain the "simple name" for a dot delimited fully qualified name.
 	 * 

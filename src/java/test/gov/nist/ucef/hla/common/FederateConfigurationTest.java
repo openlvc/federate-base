@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import gov.nist.ucef.hla.common.config.FederateConfiguration;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -84,6 +85,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals(5, config.getMaxReconnectAttempts());
 		assertEquals(5000, config.getReconnectWaitTime());
 		assertEquals(false, config.isLateJoiner());
+		assertEquals(false, config.isTimeStepped());
 		assertEquals(1.0, config.getLookAhead());
 		assertEquals(0.1, config.getStepSize());
 
@@ -156,6 +158,7 @@ public class FederateConfigurationTest extends TestCase
 		double expectedStepSize = 1.234;
 		double expectedLookAhead = 0.1234;
 		boolean expectedIsLateJoiner = true;
+		boolean expectedIsTimeStepped = true;
 		
 		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType);
 		config.addModules( expectedModules )
@@ -168,7 +171,8 @@ public class FederateConfigurationTest extends TestCase
 			  .setReconnectWaitTime( expectedReconnectWaitTime )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
-			  .setLateJoiner( expectedIsLateJoiner );
+			  .setLateJoiner( expectedIsLateJoiner )
+			  .setTimeStepped( expectedIsTimeStepped );
 		
 		// configuration should be writeable at this point
 		assertEquals( false, config.isFrozen());
@@ -180,6 +184,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts() );
 		assertEquals( expectedReconnectWaitTime, config.getReconnectWaitTime() );
 		assertEquals( expectedIsLateJoiner, config.isLateJoiner() );
+		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
 		assertEquals( expectedLookAhead, config.getLookAhead() );
 		assertEquals( expectedStepSize, config.getStepSize() );
 		
@@ -303,6 +308,28 @@ public class FederateConfigurationTest extends TestCase
 		config.freeze();
 		config.setLateJoiner( !expectedLateJoiner );
 		assertEquals( expectedLateJoiner, config.isLateJoiner());
+	}
+	
+	/**
+	 * This tests setting the is time stepped value 
+	 */
+	public void testTimeStepped()
+	{
+		String federationName = "federationName";
+		String federateName = "federateName";
+		String federateType = "federateType";
+		boolean expectedTimeStepped = true;
+		
+		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		// sanity check that the default value is not our test value, otherwise this test is pointless
+		assertTrue( expectedTimeStepped != config.isTimeStepped());
+		// try changing the value
+		config.setTimeStepped( expectedTimeStepped );
+		assertEquals( expectedTimeStepped, config.isTimeStepped());
+		// freeze the config and try to change the value - should not change
+		config.freeze();
+		config.setTimeStepped( !expectedTimeStepped );
+		assertEquals( expectedTimeStepped, config.isTimeStepped());
 	}
 	
 	/**
