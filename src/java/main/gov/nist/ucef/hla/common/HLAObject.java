@@ -42,7 +42,7 @@ import hla.rti1516e.time.HLAfloat64Time;
  * federate object instances in order to minimize the amount of code required in UCEF HLA federate
  * implementations.
  */
-public class InstanceBase
+public class HLAObject
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -65,8 +65,8 @@ public class InstanceBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public InstanceBase( RTIUtils rtiUtils,
-	                     ObjectClassHandle objectClassHandle, AttributeHandleValueMap attributes)
+	public HLAObject( RTIUtils rtiUtils,
+	                  ObjectClassHandle objectClassHandle, AttributeHandleValueMap attributes)
 	{
 		this.rtiUtils = rtiUtils;
 		this.objectClassHandle = objectClassHandle;
@@ -81,8 +81,8 @@ public class InstanceBase
 		this.time = null; // will be null if the attribute update was local rather than from RTI
 	}
 	
-	public InstanceBase( RTIUtils rtiUtils,
-	                     ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes)
+	public HLAObject( RTIUtils rtiUtils,
+	                  ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes)
 	{
 		this.rtiUtils = rtiUtils;
 		this.instanceHandle = instanceHandle;
@@ -99,49 +99,49 @@ public class InstanceBase
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public InstanceBase updateAttribute(String key, short value)
+	public HLAObject updateAttribute(String key, short value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, int value)
+	public HLAObject updateAttribute(String key, int value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, long value)
+	public HLAObject updateAttribute(String key, long value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, float value)
+	public HLAObject updateAttribute(String key, float value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, double value)
+	public HLAObject updateAttribute(String key, double value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, boolean value)
+	public HLAObject updateAttribute(String key, boolean value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase updateAttribute(String key, String value)
+	public HLAObject updateAttribute(String key, String value)
 	{
 		rtiUtils.setAttribute( this.objectClassHandle, key, value, this.attributes );
 		return this;
 	}
 	
-	public InstanceBase update(ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
+	public HLAObject update(ObjectInstanceHandle instanceHandle, AttributeHandleValueMap attributes,
 	                           byte[] tag, LogicalTime time)
 	{
 		// sanity check that we are not updating from another instance's properties

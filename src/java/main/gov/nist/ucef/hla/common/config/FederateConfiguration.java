@@ -18,14 +18,16 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.common;
+package gov.nist.ucef.hla.common.config;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -68,6 +70,7 @@ public class FederateConfiguration
 	private static final int DEFAULT_MAX_RECONNECT_ATTEMPTS = 5;
 	private static final long DEFAULT_RECONNECT_WAIT_MS = 5000; // 5 seconds
 	private static final boolean DEFAULT_IS_LATE_JOINER = false;
+	private static final boolean DEFAULT_IS_TIME_STEPPED = false;
 	private static final double DEFAULT_LOOK_AHEAD = 1.0;
 	private static final double DEFAULT_STEP_SIZE = 0.1;
 
@@ -87,6 +90,7 @@ public class FederateConfiguration
 	private int maxReconnectAttempts;
 	private long waitReconnectMs;
 	private boolean isLateJoiner;
+	private boolean isTimeStepped;
 	private double lookAhead;
 	private double stepSize;
 
@@ -122,6 +126,7 @@ public class FederateConfiguration
 		this.maxReconnectAttempts = DEFAULT_MAX_RECONNECT_ATTEMPTS;
 		this.waitReconnectMs = DEFAULT_RECONNECT_WAIT_MS;
 		this.isLateJoiner = DEFAULT_IS_LATE_JOINER;
+		this.isTimeStepped = DEFAULT_IS_TIME_STEPPED;
 		this.lookAhead = DEFAULT_LOOK_AHEAD;
 		this.stepSize = DEFAULT_STEP_SIZE;
 		
@@ -131,6 +136,108 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public String summary()
+	{
+		String dashRule = StringUtils.repeat( '-', 60 ) + "\n";
+		String dotRule = StringUtils.repeat( '.', 60 ) + "\n";
+		
+		List<String> classNames = new ArrayList<>();
+		List<String> attributeNames = new ArrayList<>();
+		
+		StringBuilder builder = new StringBuilder();
+		
+		builder.append( dashRule );
+		builder.append( "Federation Name            : " + this.federationName + "\n" );
+		builder.append( "Federate Name              : " + this.federateName + "\n" );
+		builder.append( "Federate Type              : " + this.federateType + "\n" );
+		
+		builder.append( dotRule );
+		builder.append( "Maximum Recconect Attempts : " + this.maxReconnectAttempts + "\n" );
+		builder.append( "Reconnect Wait Time        : " + this.waitReconnectMs + "ms\n" );
+		builder.append( "Late Joiner?               : " + (this.isLateJoiner?"Yes":"No") + "\n" );
+		builder.append( "Time Stepped?              : " + (this.isTimeStepped?"Yes":"No") + "\n" );
+		builder.append( "Look Ahead                 : " + this.lookAhead + "\n" );
+		builder.append( "Step Size                  : " + this.stepSize + "\n" );
+		
+		builder.append( dotRule );
+		builder.append( "Published Attributes:\n" );
+		if(this.publishedAttributes.isEmpty())
+		{
+			builder.append( "\t...none...\n" );
+		}
+		else
+		{
+    		classNames.addAll( this.publishedAttributes.keySet() );
+    		classNames.sort(null);
+    		for(String objectClassName : classNames)
+    		{
+    			builder.append( "\t" + objectClassName + "\n" );
+    			attributeNames.clear();
+    			attributeNames.addAll( this.publishedAttributes.get( objectClassName ) );
+    			attributeNames.sort(null);
+    			attributeNames.forEach( (x) -> builder.append( "\t\t" + x + "\n" ) );
+    		}
+		}
+		
+		builder.append( dotRule );
+		builder.append( "Subscribed Attributes:\n" );
+		if(this.subscribedAttributes.isEmpty())
+		{
+			builder.append( "\t...none...\n" );
+		}
+		else
+		{
+    		classNames.clear();
+    		classNames.addAll( this.subscribedAttributes.keySet() );
+    		classNames.sort(null);
+    		for(String objectClassName : classNames)
+    		{
+    			builder.append( "\t" + objectClassName + "\n" );
+    			attributeNames.clear();
+    			attributeNames.addAll( this.subscribedAttributes.get( objectClassName ) );
+    			attributeNames.sort(null);
+    			attributeNames.forEach( (x) -> builder.append( "\t\t" + x + "\n" ) );
+    		}
+		}
+		
+		builder.append( dotRule );
+		builder.append( "Published Interactions:\n" );
+		if(this.publishedInteractions.isEmpty())
+		{
+			builder.append( "\t...none...\n" );
+		}
+		else
+		{
+    		classNames.clear();
+    		classNames.addAll( this.publishedInteractions );
+    		classNames.sort(null);
+    		for(String interactionClassName : classNames)
+    		{
+    			builder.append( "\t" + interactionClassName + "\n" );
+    		}
+		}
+		
+		builder.append( dotRule );
+		builder.append( "Subscribed Interactions:\n" );
+		if(this.subscribedInteractions.isEmpty())
+		{
+			builder.append( "\t...none...\n" );
+		}
+		else
+		{
+    		classNames.clear();
+    		classNames.addAll( this.subscribedInteractions );
+    		classNames.sort(null);
+    		for(String interactionClassName : classNames)
+    		{
+    			builder.append( "\t" + interactionClassName + "\n" );
+    		}
+		}
+		
+		builder.append( dashRule );
+		
+		return builder.toString();
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
@@ -246,6 +353,16 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Determine if the federate is configured to be time stepped
+	 * 
+	 * @return true if the federate is configured to be time stepped, false otherwise
+	 */
+	public boolean isTimeStepped()
+	{
+		return isTimeStepped;
+	}
+	
+	/**
 	 * Obtain the configured FOM modules
 	 * 
 	 * @return the configured FOM modules (not modifiable)
@@ -303,6 +420,11 @@ public class FederateConfiguration
 	public Map<String,Set<String>> getSubscribedAttributes()
 	{
 		return Collections.unmodifiableMap( subscribedAttributes );
+	}
+	
+	public void fromSOM()
+	{
+		
 	}
 
 	/**
@@ -371,6 +493,19 @@ public class FederateConfiguration
 		return this;
 	}
 
+	/**
+	 * Configure whether the federate is configured to be time stepped
+	 * 
+	 * @param isLateJoiner true if the federate to be time stepped, false otherwise
+	 * @return this instance
+	 */
+	public FederateConfiguration setTimeStepped( boolean isTimeStepped )
+	{
+		if(canWrite())
+			this.isTimeStepped = isTimeStepped;
+		return this;
+	}
+	
 	/**
 	 * Add a FOM module to the configuration
 	 * 
@@ -448,43 +583,43 @@ public class FederateConfiguration
 	/**
 	 * Add a published attribute to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attribute belongs
-	 * @param attributeIdentifier the identifier of the attribute on the class to publish
+	 * @param objectClassName the identifier of the class to which the attribute belongs
+	 * @param attributeName the identifier of the attribute on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtribute( String klassIdentifier,
-	                                                   String attributeIdentifier )
+	public FederateConfiguration addPublishedAtribute( String objectClassName,
+	                                                   String attributeName )
 	{
-		return addPublishedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
+		return addPublishedAtributes( objectClassName, new String[]{ attributeName } );
 	}
 
 	/**
 	 * Add published attributes to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attributes belong
-	 * @param attributeIdentifiers the identifiers of the attributes on the class to publish
+	 * @param objectClassName the identifier of the class to which the attributes belong
+	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( String klassIdentifier,
-	                                                    String[] attributeIdentifiers )
+	public FederateConfiguration addPublishedAtributes( String objectClassName,
+	                                                    String[] attributeNames )
 	{
-		return addPublishedAtributes( klassIdentifier, asCollection( attributeIdentifiers ) );
+		return addPublishedAtributes( objectClassName, asCollection( attributeNames ) );
 	}
 
 	/**
 	 * Add published attributes to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attributes belong
-	 * @param attributeIdentifiers the identifiers of the attributes on the class to publish
+	 * @param objectClassName the identifier of the class to which the attributes belong
+	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( String klassIdentifier,
-	                                                    Collection<String> attributeIdentifiers )
+	public FederateConfiguration addPublishedAtributes( String objectClassName,
+	                                                    Collection<String> attributeNames )
 	{
-		if( canWrite( klassIdentifier ) && canWrite( attributeIdentifiers ) )
+		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
-			this.publishedAttributes.computeIfAbsent( klassIdentifier,
-			                                          x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeIdentifiers ) );
+			this.publishedAttributes.computeIfAbsent( objectClassName,
+			                                          x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeNames ) );
 		}
 		return this;
 	}
@@ -509,43 +644,43 @@ public class FederateConfiguration
 	/**
 	 * Add a subscribed attribute to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attribute belongs
+	 * @param objectClassName the identifier of the class to which the attribute belongs
 	 * @param attributeIdentifier the identifier of the attribute on the class to subscribe to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtribute( String klassIdentifier,
+	public FederateConfiguration addSubscribedAtribute( String objectClassName,
 	                                                    String attributeIdentifier )
 	{
-		return addSubscribedAtributes( klassIdentifier, new String[]{ attributeIdentifier } );
+		return addSubscribedAtributes( objectClassName, new String[]{ attributeIdentifier } );
 	}
 
 	/**
 	 * Add subscribed attributes to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attributes belong
-	 * @param attributeIdentifiers the identifiers of the attributes on the class to subscribed to
+	 * @param objectClassName the identifier of the class to which the attributes belong
+	 * @param attributeNames the identifiers of the attributes on the class to subscribed to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtributes( String klassIdentifier,
-	                                                     String[] attributeIdentifiers )
+	public FederateConfiguration addSubscribedAtributes( String objectClassName,
+	                                                     String[] attributeNames )
 	{
-		return addSubscribedAtributes( klassIdentifier, asCollection( attributeIdentifiers ) );
+		return addSubscribedAtributes( objectClassName, asCollection( attributeNames ) );
 	}
 
 	/**
 	 * Add subscribed attributes to the configuration
 	 * 
-	 * @param klassIdentifier the identifier of the class to which the attributes belong
-	 * @param attributeIdentifiers the identifiers of the attributes on the class to subscribe to
+	 * @param objectClassName the identifier of the class to which the attributes belong
+	 * @param attributeNames the identifiers of the attributes on the class to subscribe to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtributes( String klassIdentifier,
-	                                                     Collection<String> attributeIdentifiers )
+	public FederateConfiguration addSubscribedAtributes( String objectClassName,
+	                                                     Collection<String> attributeNames )
 	{
-		if( canWrite( klassIdentifier ) && canWrite( attributeIdentifiers ) )
+		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
-			this.subscribedAttributes.computeIfAbsent( klassIdentifier,
-			                                           x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeIdentifiers ) );
+			this.subscribedAttributes.computeIfAbsent( objectClassName,
+			                                           x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeNames ) );
 		}
 		return this;
 	}

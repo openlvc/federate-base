@@ -28,10 +28,10 @@ import java.util.Random;
 import java.util.function.Consumer;
 
 import gov.nist.ucef.hla.common.FederateBase;
-import gov.nist.ucef.hla.common.FederateConfiguration;
-import gov.nist.ucef.hla.common.InstanceBase;
-import gov.nist.ucef.hla.common.InteractionBase;
+import gov.nist.ucef.hla.common.HLAObject;
+import gov.nist.ucef.hla.common.HLAInteraction;
 import gov.nist.ucef.hla.common.NullFederateImplementation;
+import gov.nist.ucef.hla.common.config.FederateConfiguration;
 import gov.nist.ucef.hla.util.InputUtils;
 import gov.nist.ucef.hla.util.RTIUtils;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -61,7 +61,7 @@ public class TestFederate extends NullFederateImplementation
 	private Map<String, Consumer<String>> attributeSubscriptionHandlers;
 	private Map<String, Consumer<Map<String, String>>> interactionSubscriptionHandlers;
 
-	private InstanceBase instanceBase;
+	private HLAObject instanceBase;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// GENERATED - DON'T TOUCH //////////////////////////////////
@@ -145,7 +145,7 @@ public class TestFederate extends NullFederateImplementation
 		ObjectClassHandle classhandle = rtiUtils.getObjectClassHandle( this.objectClassName );
 		Collection<String> attributeNames = this.attributeSubscriptionHandlers.keySet();
 		AttributeHandleValueMap attributes = rtiUtils.makeAttributeMap(classhandle, attributeNames);
-		this.instanceBase = new InstanceBase( rtiUtils, classhandle, attributes );
+		this.instanceBase = new HLAObject( rtiUtils, classhandle, attributes );
 		this.federateBase.registerInstanceBase( instanceBase);
 		
 		// wait until the user hits enter before proceeding, so there is time for
@@ -206,7 +206,7 @@ public class TestFederate extends NullFederateImplementation
 	/////////////////////////////////////// INTERACTIONS ///////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void handleInteractionReceived( InteractionBase interaction )
+	public void handleInteractionReceived( HLAInteraction interaction )
 	{
 		String interactionID = interaction.getIdentifier();
 		Map<String,String> paramsAndValues = interaction.getParameterNamesAndValues();
@@ -228,7 +228,7 @@ public class TestFederate extends NullFederateImplementation
 	/////////////////////////////////////// REFLECTIONS ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void handleAttributeReflection( InstanceBase instanceBase )
+	public void handleAttributeReflection( HLAObject instanceBase )
 	{
 		System.out.println( "Reflection of type " + instanceBase.getClassIdentifier() + " for " + instanceBase.getInstanceHandle() );
 		Map<String,String> attrsAndValues = instanceBase.getAttributeNamesAndValues();
@@ -345,7 +345,7 @@ public class TestFederate extends NullFederateImplementation
 	{
 		RTIUtils rtiUtils = this.federateBase.getRTIUtils();
         InteractionClassHandle interactionHandle = rtiUtils.getInteractionClassHandle( this.interactionName );
-		InteractionBase interaction = new InteractionBase( rtiUtils, interactionHandle, null, null );
+		HLAInteraction interaction = new HLAInteraction( rtiUtils, interactionHandle, null, null );
 		interaction.send();
 	}
 	

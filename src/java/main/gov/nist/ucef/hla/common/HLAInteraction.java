@@ -41,7 +41,7 @@ import hla.rti1516e.time.HLAfloat64Time;
  * federate interactions in order to minimize the amount of code required in UCEF HLA federate
  * implementations. 
  */
-public class InteractionBase
+public class HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -63,14 +63,14 @@ public class InteractionBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-    public InteractionBase(RTIUtils rtiUtils,
+    public HLAInteraction( RTIUtils rtiUtils,
                            InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters, 
                            byte[] tag)
     {
     	this(rtiUtils, interactionHandle, parameters, tag, null);
     }
     
-	public InteractionBase(RTIUtils rtiUtils,
+	public HLAInteraction( RTIUtils rtiUtils,
 	                       InteractionClassHandle interactionHandle, ParameterHandleValueMap parameters,
 	                       byte[] tag, LogicalTime time)
 	{

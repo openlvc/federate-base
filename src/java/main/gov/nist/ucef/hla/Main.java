@@ -22,9 +22,9 @@ package gov.nist.ucef.hla;
 
 import java.util.Date;
 
-import gov.nist.ucef.hla.common.FederateConfiguration;
 import gov.nist.ucef.hla.common.NullFederateImplementation;
 import gov.nist.ucef.hla.common.UCEFException;
+import gov.nist.ucef.hla.common.config.FederateConfiguration;
 import gov.nist.ucef.hla.util.FileUtils;
 
 public class Main extends NullFederateImplementation
