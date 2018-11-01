@@ -10,6 +10,10 @@
 #include <locale>
 #include <memory>
 #include <string>
+#include <unordered_map>
+
+#include "RTI\Handle.h"
+
 
 namespace ucef
 {
@@ -53,6 +57,15 @@ namespace ucef
 			LevelOff = 6
 		};
 
+		enum SynchPoint
+		{
+			PointReadyToPopulate = 0,
+			PointReadyToRun = 1,
+			PointReadyToResign = 2,
+			PointUnknown = 3
+		};
+
+
 		//----------------------------------------
 		//            Struct Declaration
 		//-----------------------------------------
@@ -66,6 +79,7 @@ namespace ucef
 		{
 			std::wstring name;
 			SharingState sharingState;
+			rti1516e::AttributeHandle handle;
 		};
 
 		/**
@@ -73,11 +87,13 @@ namespace ucef
 		 *
 		 *  @see SOMParser#getObjectClasses(string&)
 		 */
+		typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 		struct ObjectClass
 		{
 			std::wstring name; // fully qualified object class name
 			SharingState sharingState;
-			std::list<std::shared_ptr<ObjectAttribute>> attributes;
+			rti1516e::ObjectClassHandle handle;
+			ObjectAttributes objectAttributes;
 		};
 
 		/**
@@ -133,6 +149,42 @@ namespace ucef
 					}
 
 					return sharingState;
+				}
+
+				static std::string SynchPointToString( SynchPoint point )
+				{
+					std::string synchPointStr = "";
+					if( point == SynchPoint::PointReadyToPopulate )
+					{
+						synchPointStr = "ReadyToPopulate";
+					}
+					else if( point == SynchPoint::PointReadyToRun )
+					{
+						synchPointStr = "ReadyToRun";
+					}
+					else if( point == SynchPoint::PointReadyToResign )
+					{
+						synchPointStr = "ReadyToResign";
+					}
+					return synchPointStr;
+				}
+
+				static SynchPoint StringToSynchPoint( std::string synchPointStr )
+				{
+					SynchPoint synchPointEnum = SynchPoint::PointUnknown;
+					if( synchPointStr == "ReadyToPopulate" )
+					{
+						synchPointEnum =  SynchPoint::PointReadyToPopulate;
+					}
+					else if( synchPointStr == "ReadyToRun" )
+					{
+						synchPointEnum =  SynchPoint::PointReadyToRun;
+					}
+					else if( synchPointStr == "ReadyToResign" )
+					{
+						synchPointEnum =  SynchPoint::PointReadyToResign;
+					}
+					return synchPointEnum;
 				}
 
 				static  std::wstring s2ws( const std::string& str )

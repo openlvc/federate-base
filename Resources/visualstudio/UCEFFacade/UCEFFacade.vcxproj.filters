@@ -38,7 +38,7 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFConfig.cpp">
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.cpp">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClCompile>
   </ItemGroup>
@@ -61,7 +61,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFConfig.h">
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.h">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
   </ItemGroup>

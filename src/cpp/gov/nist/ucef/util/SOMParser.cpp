@@ -11,22 +11,20 @@ namespace ucef
 {
 	namespace util
 	{
-		vector<shared_ptr<ObjectClass>> SOMParser::getObjectClasses( const string& SomFilePath,
-		                                                             const string& SomFileName )
+		vector<shared_ptr<ObjectClass>> SOMParser::getObjectClasses( const string& somFilePath )
 		{
 			Logger &logger = Logger::getInstance();
 
 			vector<shared_ptr<ObjectClass>> SomObjects;
 			vector<shared_ptr<ObjectAttribute>> SomAttributes;
-			string somPath = SomFilePath + SomFileName;
 
-			logger.log( "Trying to load SOM file in " + somPath, LevelInfo );
+			logger.log( "Trying to load SOM file in " + somFilePath, LevelInfo );
 
 			XMLDocument doc;
-			XMLError xmlError = doc.LoadFile( somPath.c_str() );
+			XMLError xmlError = doc.LoadFile( somFilePath.c_str() );
 			if( xmlError == XML_SUCCESS )
 			{
-				logger.log( "SOM loaded succefully " + somPath, LevelInfo );
+				logger.log( "SOM loaded succefully " + somFilePath, LevelInfo );
 	
 				XMLElement* root = doc.FirstChildElement( "objectModel" );
 				if( root )
@@ -41,13 +39,12 @@ namespace ucef
 			}
 			else
 			{
-				logger.log( "Could not Load SOM file in " + somPath, LevelError );
+				logger.log( "Could not Load SOM file in " + somFilePath, LevelError );
 			}
 			return SomObjects;
 		}
 
-		vector<shared_ptr<InteractionClass>> SOMParser::getInteractionClasses( const string& SomFilePath,
-		                                                                       const string& SomFileName )
+		vector<shared_ptr<InteractionClass>> SOMParser::getInteractionClasses( const string& somFilePath )
 		{
 			vector<shared_ptr<InteractionClass>> SomInteractions;
 
@@ -123,13 +120,14 @@ namespace ucef
 					{
 						for( shared_ptr<ObjectAttribute> attribute : attributes )
 						{
-							objectClass->attributes.push_back( attribute );
+							objectClass->objectAttributes.insert(
+								make_pair(ConversionHelper::ws2s(attribute->name), attribute) );
 						}
-						objectClasses.push_back(objectClass);
+						objectClasses.push_back( objectClass );
 					}
 					else
 					{
-						string tmpObjectClassName = ConversionHelper::ws2s(objectClass->name);
+						string tmpObjectClassName = ConversionHelper::ws2s( objectClass->name );
 						Logger::getInstance().log( tmpObjectClassName + " doesn't have any attributes.", LevelWarn );
 					}
 
@@ -170,11 +168,11 @@ namespace ucef
 				}
 
 				// seek all the children of this parent element to do depth first search
-				vector<XMLElement*> childElements = getObjectClassChildElements(parentElement);
+				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement );
 				// start processing child nodes
-				for(XMLElement* childElement : childElements)
+				for( XMLElement* childElement : childElements )
 				{
-					traverseObjectClasses(objectClassName, attributes, childElement, objectClasses);
+					traverseObjectClasses( objectClassName, attributes, childElement, objectClasses );
 				}
 			}
 		}

@@ -1,9 +1,12 @@
 #include "FederateBase.h"
 
+#include <thread>
+#include <chrono>
+
 #include "FederateAmbassador.h"
 #include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/SOMParser.h"
-#include "gov/nist/ucef/util/UCEFConfig.h"
+#include "gov/nist/ucef/util/FederateConfiguration.h"
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 
@@ -14,20 +17,25 @@ using namespace ucef::util;
 namespace ucef
 {
 
-	FederateBase::FederateBase( wstring& federateName ) : m_ucefConfig(new UCEFConfig()),
-	                                                      m_federateAmbassador(nullptr),
-	                                                      m_rtiAmbassador(nullptr)
-
+	FederateBase::FederateBase() : m_ucefConfig( new FederateConfiguration() ),
+	                               m_federateAmbassador( nullptr ),
+	                               m_rtiAmbassador( nullptr )
 	{
-		
-		initialiseRti();
-		initialiseFederation();
-		initialiseHandles();
+
 	}
 
 	FederateBase::~FederateBase()
 	{
 
+	}
+
+	void FederateBase::runFederate()
+	{
+		initialiseRti();
+		createAndJoinFederation();
+		initialiseHandles();
+		announceSynchronizationPoint( PointReadyToRun );
+		achieveSynchronizationPoint( PointReadyToRun );
 	}
 
 	void FederateBase::initialiseRti()
@@ -36,6 +44,7 @@ namespace ucef
 		//            Create Federate Ambassador
 		//-----------------------------------------
 		m_federateAmbassador = make_shared<FederateAmbassador>();
+
 		//----------------------------------------
 		//            Create RTI Ambassador
 		//-----------------------------------------
@@ -49,7 +58,8 @@ namespace ucef
 		logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) + " trying to connect to RTI.", LevelInfo );
 		try
 		{
-			m_rtiAmbassador->connect (*m_federateAmbassador, HLA_IMMEDIATE );
+			CallbackModel callBackModel = m_ucefConfig->isImmediate() ? HLA_IMMEDIATE : HLA_EVOKED;
+			m_rtiAmbassador->connect (*m_federateAmbassador, callBackModel );
 			logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) +
 			            " Successfully connected to the RTI.", LevelInfo );
 		}
@@ -79,8 +89,13 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::initialiseFederation()
+	void FederateBase::createAndJoinFederation()
 	{
+		//----------------------------------------
+		//      Before Create Federation Hook
+		//-----------------------------------------
+		beforeFederationCreate();
+
 		//----------------------------------------
 		//            Create Federation
 		//-----------------------------------------
@@ -101,9 +116,13 @@ namespace ucef
 		}
 
 		//----------------------------------------
+		//      Before Join Federation
+		//-----------------------------------------
+		beforeFederationJoin();
+
+		//----------------------------------------
 		//            Join Federation
 		//-----------------------------------------
-
 		try
 		{
 			m_rtiAmbassador->joinFederationExecution( m_ucefConfig->getFederateName(),
@@ -123,32 +142,56 @@ namespace ucef
 
 	void FederateBase::initialiseHandles()
 	{
-		string name = "RestaurantSOMmodule.xml";
-		string path = "restaurant/";
-
 		//----------------------------------------------------------
 		//            Store object class handlers
 		//----------------------------------------------------------
-		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( path, name );
+		Logger &logger = Logger::getInstance();
 
-		for( const shared_ptr<ObjectClass> &objectClass : objectClasses )
-		{
+		// parse the SOM file and build up the HLA object classes
+		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
+
+		// try to update object classes with correct class and attribute rti handlers
+		for( shared_ptr<ObjectClass>& objectClass : objectClasses )
+		{			
 			ObjectClassHandle classHandle =
 					m_rtiAmbassador->getObjectClassHandle( objectClass->name );
+			if( classHandle.isValid() )
+			{
+				objectClass->handle = classHandle;
+			}
+			else
+			{
+				logger.log( "An invalid class handler returned for " + ConversionHelper::ws2s(objectClass->name),
+				            LevelWarn );
+			}
 
-			list<std::shared_ptr<ObjectAttribute>> &attributes = objectClass->attributes;
-			for( const shared_ptr<ObjectAttribute> &attribute : attributes )
+			ObjectAttributes &attributes = objectClass->objectAttributes;
+			for( auto &attribute : attributes )
 			{
 				AttributeHandle attributeHandle =
-						m_rtiAmbassador->getAttributeHandle( classHandle, attribute->name );
+						m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
+				if( attributeHandle.isValid() )
+				{
+					attribute.second->handle = attributeHandle;
+				}
+				else
+				{
+					logger.log( "An invalid attribute handler returned for " +
+					            ConversionHelper::ws2s(objectClass->name) + "." +
+					            ConversionHelper::ws2s(attribute.second->name), LevelWarn );
+				}
 			}
+
+			// now store the ObjectClass in objectClassMap for later use
+			objectClassMap.insert( make_pair( ConversionHelper::ws2s(objectClass->name), objectClass ) );
 		}
 
 		//----------------------------------------------------------
 		//            Store interaction class handlers
 		//----------------------------------------------------------
-		vector<shared_ptr<InteractionClass>> interactionClasses = SOMParser::getInteractionClasses( name, path );
-		for( const shared_ptr<InteractionClass> &interactionClass : interactionClasses )
+		vector<shared_ptr<InteractionClass>> interactionClasses =
+			SOMParser::getInteractionClasses( m_ucefConfig->getSomPath() );
+		for( const shared_ptr<InteractionClass>& interactionClass : interactionClasses )
 		{
 			InteractionClassHandle interactionHandle =
 					m_rtiAmbassador->getInteractionClassHandle( interactionClass->name );
@@ -158,6 +201,66 @@ namespace ucef
 			{
 				ParameterHandle parameterHandle =
 						m_rtiAmbassador->getParameterHandle( interactionHandle, parameter->name );
+			}
+		}
+	}
+
+	void FederateBase::announceSynchronizationPoint( SynchPoint point )
+	{
+		Logger &logger = Logger::getInstance();
+		VariableLengthData tag( (void*)"", 1 );
+		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString( point ) );
+		m_rtiAmbassador->registerFederationSynchronizationPoint( synchPointStr, tag );
+		while( true )
+		{
+			if( m_federateAmbassador->getAnnouncedSynchPoint() == synchPointStr )
+			{
+				logger.log( "Successfully announced the synchronization Point " +
+				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				break;
+			}
+			else
+			{
+				logger.log( "Waiting for the announcement of synchronization Point " +
+				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+			}
+			if( m_ucefConfig->isImmediate() )
+			{
+				std::this_thread::sleep_for( std::chrono::microseconds(10) );
+			}
+			else
+			{
+				m_rtiAmbassador->evokeMultipleCallbacks( 0.1, 1.0 );
+			}
+		}
+	}
+	void FederateBase::achieveSynchronizationPoint( util::SynchPoint point )
+	{
+		Logger &logger = Logger::getInstance();
+		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString( point ) );
+		m_rtiAmbassador->synchronizationPointAchieved( synchPointStr );
+		logger.log( "Federate achieved synchronization Point " +
+		            ConversionHelper::SynchPointToString( point ), LevelInfo );
+		while( true )
+		{
+			if( m_federateAmbassador->getAchievedSynchPoint() == synchPointStr )
+			{
+				logger.log( "Federation achieved synchronization Point  " +
+				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				break;
+			}
+			else
+			{
+				logger.log( "Waiting for the federation to synchronise to " +
+				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+			}
+			if( m_ucefConfig->isImmediate() )
+			{
+				std::this_thread::sleep_for( std::chrono::microseconds(10) );
+			}
+			else
+			{
+				m_rtiAmbassador->evokeMultipleCallbacks( 0.1, 1.0 );
 			}
 		}
 	}

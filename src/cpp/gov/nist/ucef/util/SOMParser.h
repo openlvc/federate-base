@@ -34,8 +34,7 @@ namespace ucef
 				 *
 				 * @return all the object classes found in the given SOM file
 				 */
-				static vector<shared_ptr<ObjectClass>> getObjectClasses( const string& SomFilePath,
-				                                                         const string& SomFileName);
+				static vector<shared_ptr<ObjectClass>> getObjectClasses( const string& somFilePath );
 
 				/*
 				 * Parse the given SOM file and generate the interaction class list
@@ -45,8 +44,7 @@ namespace ucef
 				 *
 				 * @return all the interaction classes found in the given SOM file
 				 */
-				static vector<shared_ptr<InteractionClass>> getInteractionClasses( const string& SomFilePath,
-				                                                                   const string& SomFileName);
+				static vector<shared_ptr<InteractionClass>> getInteractionClasses( const string& somFilePath );
 			private:
 
 				//----------------------------------------------------------

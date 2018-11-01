@@ -16,30 +16,42 @@ namespace ucef
 
 	namespace util
 	{
-		class UCEFConfig;
+		class FederateConfiguration;
 	}
 
 	class UCEF_API FederateBase
 	{
+		// unordered_map because we do not need any ordering,
+		// what we need is a faster way to get the object class
+		typedef std::unordered_map<std::string, std::shared_ptr<util::ObjectClass>> ObjectClassMap;
 
 		public:
 
 			//----------------------------------------------------------
 			//                     Constructors
 			//----------------------------------------------------------
-			FederateBase(std::wstring& federateName);
+			FederateBase();
 			virtual ~FederateBase();
-			FederateBase(const FederateBase&) = delete;
+			FederateBase( const FederateBase& ) = delete;
+
+			//----------------------------------------------------------
+			//            Lifecycle and Callback Methods
+			//----------------------------------------------------------
+			virtual void runFederate();
+			virtual void beforeFederationCreate() {};
+			virtual void beforeFederationJoin()  {};
+			virtual void beforeReadyToRun() {};
 
 		private:
 
 			//----------------------------------------------------------
-			//            RTI init methods
+			//            RTI methods
 			//----------------------------------------------------------
 			inline void initialiseRti();
-			inline void initialiseFederation();
+			inline void createAndJoinFederation();
 			inline void initialiseHandles();
-
+			void announceSynchronizationPoint( util::SynchPoint point );
+			void achieveSynchronizationPoint( util::SynchPoint point );
 		private:
 
 			//----------------------------------------------------------
@@ -47,7 +59,8 @@ namespace ucef
 			//----------------------------------------------------------
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
-			std::unique_ptr<util::UCEFConfig> m_ucefConfig;
+			std::unique_ptr<util::FederateConfiguration> m_ucefConfig;
+			ObjectClassMap objectClassMap;
 	};
 }
 
