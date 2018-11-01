@@ -20,9 +20,14 @@
  */
 package gov.nist.ucef.hla.base;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
-
-import gov.nist.ucef.hla.base.util.FileUtils;
+import java.util.List;
 
 public class Main
 {
@@ -94,11 +99,11 @@ public class Main
 			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
 			                       fomRootPath+"RestaurantFood.xml", 
 			                       fomRootPath+"RestaurantDrinks.xml"};
-			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
+			config.addModules( urlsFromPaths(moduleFoms) );
 			
 			// join modules
 			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
-			config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
+			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
 		}
 		catch( Exception e )
 		{
@@ -106,5 +111,19 @@ public class Main
 		}	
 		
 		return config;
+	}
+	
+	private static Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
+	{
+		List<URL> result = new ArrayList<>();
+		for(String path : paths)
+		{
+			File file = new File( path );
+			if(file.isFile())
+				result.add( new File( path ).toURI().toURL() );
+			else
+				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
+		}
+		return result;
 	}
 }
