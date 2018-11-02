@@ -35,7 +35,7 @@ namespace ucef
 			FederateBase( const FederateBase& ) = delete;
 
 			//----------------------------------------------------------
-			//            Lifecycle and Callback Methods
+			//            Lifecycle hooks and callback methods
 			//----------------------------------------------------------
 			virtual void runFederate();
 			virtual void beforeFederationCreate() {};
@@ -45,13 +45,22 @@ namespace ucef
 		private:
 
 			//----------------------------------------------------------
-			//            RTI methods
+			//            Federate life-cycle calls
 			//----------------------------------------------------------
-			inline void initialiseRti();
-			inline void createAndJoinFederation();
+			inline void createRtiAmbassador();
+			inline void createFederation();
+			inline void joinFederation();
 			inline void initialiseHandles();
-			void announceSynchronizationPoint( util::SynchPoint point );
-			void achieveSynchronizationPoint( util::SynchPoint point );
+			inline void synchronize( util::SynchPoint point );
+			inline void enableTimePolicy( );
+
+			//----------------------------------------------------------
+			//             Instance Methods
+			//----------------------------------------------------------
+			inline void announceSynchronizationPoint( util::SynchPoint point );
+			inline void achieveSynchronizationPoint( util::SynchPoint point );
+			inline void enableTimeRegulated();
+			inline void enableTimeConstrained();
 		private:
 
 			//----------------------------------------------------------

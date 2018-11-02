@@ -9,6 +9,7 @@
 #include "gov/nist/ucef/util/FederateConfiguration.h"
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
+#include "RTI/time/HLAfloat64Interval.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -31,14 +32,30 @@ namespace ucef
 
 	void FederateBase::runFederate()
 	{
-		initialiseRti();
-		createAndJoinFederation();
+		// initialise rti ambassador
+		createRtiAmbassador();
+
+		// before create federation hook
+		beforeFederationCreate();
+		// create federation
+		createFederation();
+
+		// before federation join hook
+		beforeFederationJoin();
+		// federation join
+		joinFederation();
+
+		// cache object, attribute, interaction, and parameter handles
 		initialiseHandles();
-		announceSynchronizationPoint( PointReadyToRun );
-		achieveSynchronizationPoint( PointReadyToRun );
+
+		// enables time management policy for this federate
+		enableTimePolicy();
+
+		// now we are ready to run the federate
+		synchronize( PointReadyToRun );
 	}
 
-	void FederateBase::initialiseRti()
+	void FederateBase::createRtiAmbassador()
 	{
 		//----------------------------------------
 		//            Create Federate Ambassador
@@ -89,16 +106,8 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::createAndJoinFederation()
+	void FederateBase::createFederation()
 	{
-		//----------------------------------------
-		//      Before Create Federation Hook
-		//-----------------------------------------
-		beforeFederationCreate();
-
-		//----------------------------------------
-		//            Create Federation
-		//-----------------------------------------
 		Logger &logger = Logger::getInstance();
 		try
 		{
@@ -114,15 +123,11 @@ namespace ucef
 		{
 			logger.log( "Generic Error: " + ConversionHelper::ws2s(e.what()),  LevelError );
 		}
+	}
 
-		//----------------------------------------
-		//      Before Join Federation
-		//-----------------------------------------
-		beforeFederationJoin();
-
-		//----------------------------------------
-		//            Join Federation
-		//-----------------------------------------
+	void FederateBase::joinFederation()
+	{
+		Logger &logger = Logger::getInstance();
 		try
 		{
 			m_rtiAmbassador->joinFederationExecution( m_ucefConfig->getFederateName(),
@@ -137,7 +142,6 @@ namespace ucef
 			logger.log( "Could not join the federation : " + ConversionHelper::ws2s(m_ucefConfig->getFederationName()) +
 			            "Error: " + ConversionHelper::ws2s(e.what()), LevelError );
 		}
-
 	}
 
 	void FederateBase::initialiseHandles()
@@ -151,7 +155,7 @@ namespace ucef
 		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
 
 		// try to update object classes with correct class and attribute rti handlers
-		for( shared_ptr<ObjectClass>& objectClass : objectClasses )
+		for( auto& objectClass : objectClasses )
 		{			
 			ObjectClassHandle classHandle =
 					m_rtiAmbassador->getObjectClassHandle( objectClass->name );
@@ -165,8 +169,8 @@ namespace ucef
 				            LevelWarn );
 			}
 
-			ObjectAttributes &attributes = objectClass->objectAttributes;
-			for( auto &attribute : attributes )
+			ObjectAttributes& attributes = objectClass->objectAttributes;
+			for( auto& attribute : attributes )
 			{
 				AttributeHandle attributeHandle =
 						m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
@@ -183,7 +187,7 @@ namespace ucef
 			}
 
 			// now store the ObjectClass in objectClassMap for later use
-			objectClassMap.insert( make_pair( ConversionHelper::ws2s(objectClass->name), objectClass ) );
+			objectClassMap.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
 		}
 
 		//----------------------------------------------------------
@@ -191,7 +195,7 @@ namespace ucef
 		//----------------------------------------------------------
 		vector<shared_ptr<InteractionClass>> interactionClasses =
 			SOMParser::getInteractionClasses( m_ucefConfig->getSomPath() );
-		for( const shared_ptr<InteractionClass>& interactionClass : interactionClasses )
+		for( const auto& interactionClass : interactionClasses )
 		{
 			InteractionClassHandle interactionHandle =
 					m_rtiAmbassador->getInteractionClassHandle( interactionClass->name );
@@ -205,25 +209,48 @@ namespace ucef
 		}
 	}
 
+	void FederateBase::synchronize( SynchPoint point )
+	{
+		announceSynchronizationPoint( point );
+		achieveSynchronizationPoint( point );
+	}
+
+	inline void FederateBase::enableTimePolicy()
+	{
+		if( m_ucefConfig->isTimeRegulated() )
+		{
+			enableTimeRegulated();
+		}
+
+		if( m_ucefConfig->isTimeConstrained() )
+		{
+			enableTimeConstrained();
+		}
+	}
+
+	//----------------------------------------------------------
+	//             Instance Methods
+	//----------------------------------------------------------
 	void FederateBase::announceSynchronizationPoint( SynchPoint point )
 	{
 		Logger &logger = Logger::getInstance();
 		VariableLengthData tag( (void*)"", 1 );
-		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString( point ) );
+		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString(point) );
 		m_rtiAmbassador->registerFederationSynchronizationPoint( synchPointStr, tag );
 		while( true )
 		{
-			if( m_federateAmbassador->getAnnouncedSynchPoint() == synchPointStr )
+			if( m_federateAmbassador->isAnnouncedSynchPoint(synchPointStr) )
 			{
 				logger.log( "Successfully announced the synchronization Point " +
-				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				            ConversionHelper::SynchPointToString(point), LevelInfo );
 				break;
 			}
 			else
 			{
 				logger.log( "Waiting for the announcement of synchronization Point " +
-				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				            ConversionHelper::SynchPointToString(point), LevelInfo );
 			}
+
 			if( m_ucefConfig->isImmediate() )
 			{
 				std::this_thread::sleep_for( std::chrono::microseconds(10) );
@@ -234,26 +261,31 @@ namespace ucef
 			}
 		}
 	}
-	void FederateBase::achieveSynchronizationPoint( util::SynchPoint point )
+
+	void FederateBase::achieveSynchronizationPoint( SynchPoint point )
 	{
 		Logger &logger = Logger::getInstance();
-		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString( point ) );
+		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString(point) );
+		// achieve the given synchronization point
 		m_rtiAmbassador->synchronizationPointAchieved( synchPointStr );
 		logger.log( "Federate achieved synchronization Point " +
-		            ConversionHelper::SynchPointToString( point ), LevelInfo );
+		            ConversionHelper::SynchPointToString(point), LevelInfo );
+
+		// wait for the federation to achieve the given synchronization point
 		while( true )
 		{
-			if( m_federateAmbassador->getAchievedSynchPoint() == synchPointStr )
+			if( m_federateAmbassador->isAchievedSynchPoint(synchPointStr) )
 			{
 				logger.log( "Federation achieved synchronization Point  " +
-				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				            ConversionHelper::SynchPointToString(point), LevelInfo );
 				break;
 			}
 			else
 			{
 				logger.log( "Waiting for the federation to synchronise to " +
-				            ConversionHelper::SynchPointToString( point ), LevelInfo );
+				            ConversionHelper::SynchPointToString(point), LevelInfo );
 			}
+
 			if( m_ucefConfig->isImmediate() )
 			{
 				std::this_thread::sleep_for( std::chrono::microseconds(10) );
@@ -264,5 +296,60 @@ namespace ucef
 			}
 		}
 	}
-}
 
+	void FederateBase::enableTimeRegulated()
+	{
+		HLAfloat64Interval lookAheadInterval( m_ucefConfig->getLookAhead() );
+
+		Logger &logger = Logger::getInstance();
+
+		logger.log( string("Requesting to enable time regulation for this federate."), LevelInfo ) ;
+		m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
+
+		// wait till LRC enable time regulation for this federate
+		while( true )
+		{
+			if( m_ucefConfig->isTimeRegulated() )
+			{
+				break;
+			}
+
+			if( m_ucefConfig->isImmediate() )
+			{
+				std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
+			}
+			else
+			{
+				m_rtiAmbassador->evokeMultipleCallbacks( 0.1, 1.0 );
+			}
+		}
+		logger.log( string("Time regulation enabled."), LevelInfo ) ;
+	}
+
+	void FederateBase::enableTimeConstrained()
+	{
+		Logger &logger = Logger::getInstance();
+
+		logger.log( string("Requesting to enable time constraining for this federate."), LevelInfo ) ;
+		m_rtiAmbassador->enableTimeConstrained();
+
+		// wait till LRC enable time constrain for this federate
+		while( true )
+		{
+			if( m_ucefConfig->isTimeConstrained() )
+			{
+				break;
+			}
+
+			if( m_ucefConfig->isImmediate() )
+			{
+				std::this_thread::sleep_for( std::chrono::microseconds( 10 ) );
+			}
+			else
+			{
+				m_rtiAmbassador->evokeMultipleCallbacks( 0.1, 1.0 );
+			}
+		}
+		logger.log( string("Time constrain enabled."), LevelInfo ) ;
+	}
+}

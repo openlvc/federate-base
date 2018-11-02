@@ -1,6 +1,9 @@
 #include "FederateAmbassador.h"
 
 #include <mutex>
+#include "gov/nist/ucef/util/Logger.h"
+#include "gov/nist/ucef/util/types.h"
+#include "RTI/time/HLAfloat64Time.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -17,34 +20,104 @@ namespace ucef
 
 	}
 
+	//----------------------------------------------------------
+	//            synchronization related methods
+	//----------------------------------------------------------
 	void FederateAmbassador::announceSynchronizationPoint( const wstring& label,
 	                                                       const VariableLengthData& tag )
 	                                                            throw(FederateInternalError)
 	{
-		lock_guard<mutex> lck (synchAnnounceLock);
-		announcedSynchPoint = label;
+		lock_guard<mutex> lck( threadSafeLock );
+		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
+			announcedSynchPoints.insert( label );
 	}
 
 
-	void FederateAmbassador::federationSynchronized( const std::wstring& label,
+	void FederateAmbassador::federationSynchronized( const wstring& label,
 	                                                 const FederateHandleSet& failedSet )
 	                                                             throw( FederateInternalError )
 	{
-		lock_guard<mutex> lck ( synchAchievedLock );
-		synchAchievedPoint = label;
+		lock_guard<mutex> lck( threadSafeLock );
+		if( achievedSynchPoints.find(label) == achievedSynchPoints.end() )
+			achievedSynchPoints.insert(label);
 	}
 
-	wstring FederateAmbassador::getAnnouncedSynchPoint()
+	//----------------------------------------------------------
+	//            Time related methods
+	//----------------------------------------------------------
+	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
+	                                                              throw( FederateInternalError )
 	{
-		lock_guard<mutex> lck (synchAnnounceLock);
-		return announcedSynchPoint;
+			lock_guard<mutex> lck( threadSafeLock );
+			this->m_regulating = true;
+			this->m_federateTime = convertTime( theFederateTime );
 	}
 
-	wstring FederateAmbassador::getAchievedSynchPoint()
+	void FederateAmbassador::timeConstrainedEnabled( const LogicalTime& theFederateTime )
+	                                                              throw( FederateInternalError )
 	{
-		lock_guard<mutex> lck ( synchAchievedLock );
-		return synchAchievedPoint;
+			lock_guard<mutex> lck( threadSafeLock );
+			this->m_constrained = true;
+			this->m_federateTime = convertTime( theFederateTime );
 	}
 
+	void FederateAmbassador::timeAdvanceGrant( const LogicalTime& theFederateTime )
+	                                                              throw( FederateInternalError )
+	{
+			lock_guard<mutex> lck( threadSafeLock );
+			this->m_advancing = true;
+			this->m_federateTime = convertTime( theFederateTime );
+	}
+
+	//----------------------------------------------------------
+	//             Federate Access Methods
+	//----------------------------------------------------------
+	bool FederateAmbassador::isAnnouncedSynchPoint( wstring& announcedPoint )
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
+		return announced;
+	}
+
+
+	bool FederateAmbassador::isAchievedSynchPoint( wstring& achievedPoint )
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;
+		return achieved;
+	}
+
+	bool FederateAmbassador::isRegulating()
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		return m_regulating;
+	}
+
+	bool FederateAmbassador::isConstrained()
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		return m_constrained;
+	}
+
+	bool FederateAmbassador::isAdvancing()
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		return m_advancing;
+	}
+
+	double FederateAmbassador::getFederateTime()
+	{
+		lock_guard<mutex> lck( threadSafeLock );
+		return m_federateTime;
+	}
+	
+	//----------------------------------------------------------
+	//             Instance Methods
+	//----------------------------------------------------------
+	double FederateAmbassador::convertTime( const LogicalTime& theTime )
+	{
+		const HLAfloat64Time& castTime = dynamic_cast<const HLAfloat64Time&>(theTime);
+		return castTime.getTime();
+	}
 }
 
