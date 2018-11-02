@@ -12,15 +12,18 @@
 #include <string>
 #include <unordered_map>
 
-#include "RTI\Handle.h"
-
+namespace rti1516e
+{
+	class ObjectClassHandle;
+	class AttributeHandle;
+}
 
 namespace ucef
 {
 	namespace util
 	{
 		//----------------------------------------
-		//            Enum Declaration
+		//            Enum declaration
 		//-----------------------------------------
 
 		/**
@@ -67,7 +70,7 @@ namespace ucef
 
 
 		//----------------------------------------
-		//            Struct Declaration
+		//            Struct declaration
 		//-----------------------------------------
 
 		/**
@@ -79,7 +82,7 @@ namespace ucef
 		{
 			std::wstring name;
 			SharingState sharingState;
-			rti1516e::AttributeHandle handle;
+			std::shared_ptr<rti1516e::AttributeHandle> handle;
 		};
 
 		/**
@@ -92,7 +95,7 @@ namespace ucef
 		{
 			std::wstring name; // fully qualified object class name
 			SharingState sharingState;
-			rti1516e::ObjectClassHandle handle;
+			std::shared_ptr<rti1516e::ObjectClassHandle> handle;
 			ObjectAttributes objectAttributes;
 		};
 
@@ -121,7 +124,7 @@ namespace ucef
 		};
 
 		//----------------------------------------
-		//           Conversion support class
+		//           Conversion helpers
 		//-----------------------------------------
 		class ConversionHelper
 		{

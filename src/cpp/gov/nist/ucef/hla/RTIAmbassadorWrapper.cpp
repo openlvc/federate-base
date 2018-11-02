@@ -4,9 +4,12 @@
 #include <chrono>
 
 #include "FederateAmbassador.h"
+
 #include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/SOMParser.h"
 #include "gov/nist/ucef/util/FederateConfiguration.h"
+
+#include "RTI/Handle.h"
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
@@ -132,11 +135,11 @@ namespace ucef
 		// try to update object classes with correct class and attribute rti handlers
 		for( auto& objectClass : objectClasses )
 		{			
-			ObjectClassHandle classHandle =
+			rti1516e::ObjectClassHandle classHandle =
 					m_rtiAmbassador->getObjectClassHandle( objectClass->name );
 			if( classHandle.isValid() )
 			{
-				objectClass->handle = classHandle;
+				//objectClass.reset(new rti1516e::ObjectClassHandle(classHandle));
 			}
 			else
 			{
@@ -147,11 +150,11 @@ namespace ucef
 			ObjectAttributes& attributes = objectClass->objectAttributes;
 			for( auto& attribute : attributes )
 			{
-				AttributeHandle attributeHandle =
+				rti1516e::AttributeHandle attributeHandle =
 						m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
 				if( attributeHandle.isValid() )
 				{
-					attribute.second->handle = attributeHandle;
+					attribute.second->handle.reset(new rti1516e::AttributeHandle(attributeHandle));
 				}
 				else
 				{

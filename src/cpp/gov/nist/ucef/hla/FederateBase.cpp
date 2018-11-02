@@ -7,6 +7,7 @@
 #include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/SOMParser.h"
 #include "gov/nist/ucef/util/FederateConfiguration.h"
+
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
