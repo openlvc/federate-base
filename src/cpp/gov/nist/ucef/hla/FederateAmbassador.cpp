@@ -72,7 +72,7 @@ namespace ucef
 	//----------------------------------------------------------
 	//             Federate Access Methods
 	//----------------------------------------------------------
-	bool FederateAmbassador::isAnnouncedSynchPoint( wstring& announcedPoint )
+	bool FederateAmbassador::isAnnounced( wstring& announcedPoint )
 	{
 		lock_guard<mutex> lck( threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
@@ -80,7 +80,7 @@ namespace ucef
 	}
 
 
-	bool FederateAmbassador::isAchievedSynchPoint( wstring& achievedPoint )
+	bool FederateAmbassador::isAchieved( wstring& achievedPoint )
 	{
 		lock_guard<mutex> lck( threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;

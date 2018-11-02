@@ -45,8 +45,8 @@ namespace ucef
 			//----------------------------------------------------------
 			//             Federate Access Methods
 			//----------------------------------------------------------
-			bool isAnnouncedSynchPoint( std::wstring& announcedPoint );
-			bool isAchievedSynchPoint( std::wstring& achievedPoint );
+			bool isAnnounced( std::wstring& announcedPoint );
+			bool isAchieved( std::wstring& achievedPoint );
 			bool isRegulating();
 			bool isConstrained();
 			bool isAdvancing();

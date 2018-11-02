@@ -84,6 +84,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.cpp" />
@@ -91,6 +92,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h" />
