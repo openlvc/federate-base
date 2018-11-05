@@ -16,6 +16,7 @@ namespace rti1516e
 {
 	class ObjectClassHandle;
 	class AttributeHandle;
+	class ObjectInstanceHandle;
 }
 
 namespace ucef
@@ -80,6 +81,12 @@ namespace ucef
 		 */
 		struct ObjectAttribute
 		{
+			ObjectAttribute() : name( L"" ),
+			                    sharingState( StateNone )
+			{
+
+			}
+
 			std::wstring name;
 			SharingState sharingState;
 			std::shared_ptr<rti1516e::AttributeHandle> handle;
@@ -93,10 +100,21 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 		struct ObjectClass
 		{
+			ObjectClass() : name( L"" ),
+			                sharingState( StateNone ),
+			                classHandle( nullptr ),
+			                instanceHandle( nullptr ),
+			                objectAttributes{ },
+			                hasAttrToPubOrSub( false )
+			{
+
+			}
 			std::wstring name; // fully qualified object class name
 			SharingState sharingState;
-			std::shared_ptr<rti1516e::ObjectClassHandle> handle;
+			std::shared_ptr<rti1516e::ObjectClassHandle> classHandle;
+			std::shared_ptr<rti1516e::ObjectInstanceHandle> instanceHandle;
 			ObjectAttributes objectAttributes;
+			bool hasAttrToPubOrSub;
 		};
 
 		/**
@@ -107,6 +125,11 @@ namespace ucef
 		 */
 		struct InteractionParameter
 		{
+			InteractionParameter() : name( L"" ),
+			                         sharingState( StateNone )
+			{
+
+			}
 			std::wstring name;
 			SharingState sharingState;
 		};
@@ -116,11 +139,18 @@ namespace ucef
 		 *
 		 *  @see SOMParser#getInteractionClasses(string&)
 		 */
+		typedef std::unordered_map<std::string, std::shared_ptr<InteractionParameter>> InteractionParameters;
 		struct InteractionClass
 		{
+			InteractionClass() : name( L"" ),
+			                     sharingState( StateNone ),
+			                     parameters{ }
+			{
+
+			}
 			std::wstring name; // fully qualified interaction class name
 			SharingState sharingState;
-			std::list<std::shared_ptr<InteractionParameter>> parameters;
+			InteractionParameters parameters;
 		};
 
 		//----------------------------------------

@@ -143,12 +143,13 @@ namespace ucef
 
 	void RTIAmbassadorWrapper::publishAndSubscribe()
 	{
-		initialiseHandles();
+		initialiseClassHandles();
 		Logger& logger = Logger::getInstance();
 		logger.log( string("Inform RTI about publishing and subscribing attributes") , LevelInfo );
 		publishSubscribeObjectClassAttributes();
 		logger.log( string("Inform RTI about publishing  and subscribing interactions") , LevelInfo );
 		publishSubscribeInteractionClasses();
+		initialiseInstanceHandles();
 	}
 
 	void RTIAmbassadorWrapper::announceSynchronizationPoint( SynchPoint point )
@@ -193,7 +194,7 @@ namespace ucef
 
 			if( m_federateAmbassador->isAchieved(synchPointStr) )
 			{
-				logger.log( "Federation achieved synchronization Point  " +
+				logger.log( "Federation achieved synchronization Point " +
 				            ConversionHelper::SynchPointToString(point), LevelInfo );
 				break;
 			}
@@ -247,7 +248,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::initialiseHandles()
+	void RTIAmbassadorWrapper::initialiseClassHandles()
 	{
 		//----------------------------------------------------------
 		//            Store object class handlers
@@ -259,12 +260,11 @@ namespace ucef
 
 		// try to update object classes with correct class and attribute rti handlers
 		for( auto& objectClass : objectClasses )
-		{			
-			rti1516e::ObjectClassHandle classHandle =
-					m_rtiAmbassador->getObjectClassHandle( objectClass->name );
+		{
+			ObjectClassHandle classHandle = m_rtiAmbassador->getObjectClassHandle( objectClass->name );
 			if( classHandle.isValid() )
 			{
-				objectClass->handle.reset(new rti1516e::ObjectClassHandle(classHandle));
+				objectClass->classHandle.reset( new ObjectClassHandle(classHandle) );
 			}
 			else
 			{
@@ -275,11 +275,11 @@ namespace ucef
 			ObjectAttributes& attributes = objectClass->objectAttributes;
 			for( auto& attribute : attributes )
 			{
-				rti1516e::AttributeHandle attributeHandle =
-						m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
+				AttributeHandle attributeHandle = 
+					m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
 				if( attributeHandle.isValid() )
 				{
-					attribute.second->handle.reset(new rti1516e::AttributeHandle(attributeHandle));
+					attribute.second->handle.reset( new AttributeHandle(attributeHandle) );
 				}
 				else
 				{
@@ -303,11 +303,28 @@ namespace ucef
 			InteractionClassHandle interactionHandle =
 					m_rtiAmbassador->getInteractionClassHandle( interactionClass->name );
 
-			list<std::shared_ptr<InteractionParameter>> &parameters = interactionClass->parameters;
-			for( const shared_ptr<InteractionParameter> &parameter : parameters )
+			InteractionParameters &parameters = interactionClass->parameters;
+			for( auto& parameter : parameters )
 			{
 				ParameterHandle parameterHandle =
-						m_rtiAmbassador->getParameterHandle( interactionHandle, parameter->name );
+						m_rtiAmbassador->getParameterHandle( interactionHandle, parameter.second->name );
+			}
+		}
+	}
+
+	inline void RTIAmbassadorWrapper::initialiseInstanceHandles()
+	{
+		//----------------------------------------------------------
+		//            Store object instance handlers
+		//----------------------------------------------------------
+		for( auto& classPair : objectClassMap )
+		{
+			shared_ptr<ObjectClass> objectClass = classPair.second;
+			ObjectClassHandle classHandle = *objectClass->classHandle;
+			ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance(classHandle);
+			if( instanceHandle.isValid() && objectClass->hasAttrToPubOrSub )
+			{
+				objectClass->instanceHandle.reset( new ObjectInstanceHandle(instanceHandle) );
 			}
 		}
 	}
@@ -319,7 +336,7 @@ namespace ucef
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
-			ObjectClassHandle classHandle = *objectClass->handle;
+			ObjectClassHandle classHandle = *objectClass->classHandle;
 			// attributes we are going to publish
 			AttributeHandleSet pubAttributes;
 			// attributes we are going to subscribe
@@ -350,10 +367,12 @@ namespace ucef
 
 			if( pubAttributes.size() )
 			{
+				objectClass->hasAttrToPubOrSub = true;
 				m_rtiAmbassador->publishObjectClassAttributes( classHandle, pubAttributes );
 			}
 			if( subAttributes.size() )
 			{
+				objectClass->hasAttrToPubOrSub = true;
 				m_rtiAmbassador->subscribeObjectClassAttributes( classHandle, subAttributes );
 			}
 		}

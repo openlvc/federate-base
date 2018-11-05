@@ -50,7 +50,8 @@ namespace ucef
 			inline void achieveSynchronizationPoint( util::SynchPoint point );
 			inline void enableTimeRegulated();
 			inline void enableTimeConstrained();
-			inline void initialiseHandles();
+			inline void initialiseClassHandles();
+			inline void initialiseInstanceHandles();
 			inline void publishSubscribeObjectClassAttributes();
 			inline void publishSubscribeInteractionClasses();
 			inline void tick();
