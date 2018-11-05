@@ -27,7 +27,7 @@ namespace ucef
 	                                                       const VariableLengthData& tag )
 	                                                            throw(FederateInternalError)
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
 			announcedSynchPoints.insert( label );
 	}
@@ -37,7 +37,7 @@ namespace ucef
 	                                                 const FederateHandleSet& failedSet )
 	                                                             throw( FederateInternalError )
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		if( achievedSynchPoints.find(label) == achievedSynchPoints.end() )
 			achievedSynchPoints.insert(label);
 	}
@@ -48,7 +48,7 @@ namespace ucef
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lck( threadSafeLock );
+			lock_guard<mutex> lockGuard( threadSafeLock );
 			this->m_regulating = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -56,7 +56,7 @@ namespace ucef
 	void FederateAmbassador::timeConstrainedEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lck( threadSafeLock );
+			lock_guard<mutex> lockGuard( threadSafeLock );
 			this->m_constrained = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -64,7 +64,7 @@ namespace ucef
 	void FederateAmbassador::timeAdvanceGrant( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lck( threadSafeLock );
+			lock_guard<mutex> lockGuard( threadSafeLock );
 			this->m_advancing = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -74,40 +74,39 @@ namespace ucef
 	//----------------------------------------------------------
 	bool FederateAmbassador::isAnnounced( wstring& announcedPoint )
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
 		return announced;
 	}
 
-
 	bool FederateAmbassador::isAchieved( wstring& achievedPoint )
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;
 		return achieved;
 	}
 
 	bool FederateAmbassador::isRegulating()
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		return m_regulating;
 	}
 
 	bool FederateAmbassador::isConstrained()
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		return m_constrained;
 	}
 
 	bool FederateAmbassador::isAdvancing()
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		return m_advancing;
 	}
 
 	double FederateAmbassador::getFederateTime()
 	{
-		lock_guard<mutex> lck( threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		return m_federateTime;
 	}
 	

@@ -38,9 +38,9 @@ namespace ucef
 			inline void createRtiAmbassador();
 			inline void createFederation();
 			inline void joinFederation();
-			inline void initialiseHandles();
 			inline void synchronize( util::SynchPoint point );
 			inline void enableTimePolicy();
+			inline void publishAndSubscribe();
 
 		private:
 			//----------------------------------------------------------
@@ -50,6 +50,9 @@ namespace ucef
 			inline void achieveSynchronizationPoint( util::SynchPoint point );
 			inline void enableTimeRegulated();
 			inline void enableTimeConstrained();
+			inline void initialiseHandles();
+			inline void publishSubscribeObjectClassAttributes();
+			inline void publishSubscribeInteractionClasses();
 			inline void tick();
 
 		private:

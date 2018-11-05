@@ -24,7 +24,7 @@ namespace ucef
 			try
 			{
 				logger = basic_logger_mt( "ucef_federate", "logs/uceffederate.log", true );
-				logger->set_level( level::level_enum::info );
+				logger->set_level( level::level_enum::trace );
 				logger->info( "Logger initialised and the default log level is set to INFO" );
 			}
 			catch( const spdlog::spdlog_ex &e )

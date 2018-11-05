@@ -32,13 +32,12 @@ namespace ucef
 			//----------------------------------------------------------
 			//            Federate life-cycle calls
 			//----------------------------------------------------------
-			inline void createRtiAmbassador();
-			inline void createFederation();
-			inline void joinFederation();
-			inline void initialiseHandles();
-			inline void synchronize( util::SynchPoint point );
-			inline void enableTimePolicy( );
-
+			void createRtiAmbassador();
+			void createFederation();
+			void joinFederation();
+			void synchronize( util::SynchPoint point );
+			void enableTimePolicy();
+			void publishAndSubscribe();
 		private:
 
 			//----------------------------------------------------------

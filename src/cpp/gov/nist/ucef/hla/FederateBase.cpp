@@ -44,11 +44,11 @@ namespace ucef
 		// federation join
 		joinFederation();
 
-		// cache object, attribute, interaction, and parameter handles
-		initialiseHandles();
-
 		// enables time management policy for this federate
 		enableTimePolicy();
+
+		// inform RTI about the data we are going publish and subscribe
+		publishAndSubscribe();
 
 		// now we are ready to run the federate
 		synchronize( PointReadyToRun );
@@ -69,11 +69,6 @@ namespace ucef
 		m_rtiAmbassadorWrapper->joinFederation();
 	}
 
-	void FederateBase::initialiseHandles()
-	{
-		m_rtiAmbassadorWrapper->initialiseHandles();
-	}
-
 	void FederateBase::synchronize( SynchPoint point )
 	{
 		m_rtiAmbassadorWrapper->synchronize( point );
@@ -82,5 +77,9 @@ namespace ucef
 	inline void FederateBase::enableTimePolicy()
 	{
 		m_rtiAmbassadorWrapper->enableTimePolicy();
+	}
+	void FederateBase::publishAndSubscribe()
+	{
+		m_rtiAmbassadorWrapper->publishAndSubscribe();
 	}
 }
