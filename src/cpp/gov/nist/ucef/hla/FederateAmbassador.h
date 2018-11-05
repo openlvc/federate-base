@@ -47,9 +47,10 @@ namespace ucef
 			//----------------------------------------------------------
 			bool isAnnounced( std::wstring& announcedPoint );
 			bool isAchieved( std::wstring& achievedPoint );
-			bool isRegulating();
+			bool isRegulated();
 			bool isConstrained();
-			bool isAdvancing();
+			bool isTimeAdvanced();
+			void resetTimeAdvanced();
 			double getFederateTime();
 
 			//----------------------------------------------------------
@@ -59,9 +60,9 @@ namespace ucef
 		private:
 			std::set<std::wstring> announcedSynchPoints;
 			std::set<std::wstring> achievedSynchPoints;
-			bool m_regulating;
+			bool m_regulated;
 			bool m_constrained;
-			bool m_advancing;
+			bool m_advanced;
 			double m_federateTime;
 
 			std::mutex threadSafeLock;

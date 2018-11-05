@@ -13,6 +13,7 @@
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
+#include "RTI/time/HLAfloat64Time.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -152,6 +153,66 @@ namespace ucef
 		initialiseInstanceHandles();
 	}
 
+	inline void RTIAmbassadorWrapper::resign()
+	{
+		Logger& logger = Logger::getInstance();
+		//----------------------------------------------------------
+		//            delete object instance handles
+		//----------------------------------------------------------
+		logger.log( string("Federate ") + ConversionHelper::ws2s(m_ucefConfig->getFederateName())
+		            + " resigning from federation " + ConversionHelper::ws2s(m_ucefConfig->getFederationName()),
+		            LevelInfo );
+		for( auto& classPair : objectClassMap )
+		{
+			shared_ptr<ObjectClass> objectClass = classPair.second;
+			ObjectInstanceHandle instanceHandle = *objectClass->instanceHandle;
+			if( objectClass->hasAttrToPubOrSub )
+			{
+				VariableLengthData tag( (void*)"", 1 );
+				m_rtiAmbassador->deleteObjectInstance( instanceHandle, tag );
+			}
+		}
+		m_rtiAmbassador->resignFederationExecution( NO_ACTION );
+		logger.log( string("Federate ") + ConversionHelper::ws2s(m_ucefConfig->getFederateName())
+		            + " resigned from federation " + ConversionHelper::ws2s(m_ucefConfig->getFederationName()),
+		            LevelInfo );
+	}
+
+	inline void RTIAmbassadorWrapper::advanceLogicalTime()
+	{
+		Logger& logger = Logger::getInstance();
+
+		double requestedTime = m_federateAmbassador->getFederateTime() + m_ucefConfig->getTimeStep();
+		unique_ptr<HLAfloat64Time> newTime( new HLAfloat64Time(requestedTime) );
+		try
+		{
+			m_rtiAmbassador->timeAdvanceRequest( *newTime );
+
+			// wait for the rti to acknowledge the synch point
+			while( true )
+			{
+				tick();
+
+				if( m_federateAmbassador->isTimeAdvanced() )
+				{
+					logger.log( "The logical time of this federate advanced to " +
+					            to_string( requestedTime ), LevelInfo );
+					m_federateAmbassador->resetTimeAdvanced();
+					break;
+				}
+				else
+				{
+					logger.log( "Waiting for the logical time of this federate to advance to " +
+					            to_string( requestedTime ), LevelInfo );
+				}
+			}
+		}
+		catch( Exception& e )
+		{
+			logger.log( "Generic Error: " + ConversionHelper::ws2s(e.what()),  LevelError );
+		}
+	}
+
 	void RTIAmbassadorWrapper::announceSynchronizationPoint( SynchPoint point )
 	{
 		Logger& logger = Logger::getInstance();
@@ -251,14 +312,14 @@ namespace ucef
 	void RTIAmbassadorWrapper::initialiseClassHandles()
 	{
 		//----------------------------------------------------------
-		//            Store object class handlers
+		//            Store object class handles
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
 
 		// parse the SOM file and build up the HLA object classes
 		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
 
-		// try to update object classes with correct class and attribute rti handlers
+		// try to update object classes with correct class and attribute rti handles
 		for( auto& objectClass : objectClasses )
 		{
 			ObjectClassHandle classHandle = m_rtiAmbassador->getObjectClassHandle( objectClass->name );
@@ -275,7 +336,7 @@ namespace ucef
 			ObjectAttributes& attributes = objectClass->objectAttributes;
 			for( auto& attribute : attributes )
 			{
-				AttributeHandle attributeHandle = 
+				AttributeHandle attributeHandle =
 					m_rtiAmbassador->getAttributeHandle( classHandle, attribute.second->name );
 				if( attributeHandle.isValid() )
 				{
@@ -294,7 +355,7 @@ namespace ucef
 		}
 
 		//----------------------------------------------------------
-		//            Store interaction class handlers
+		//            Store interaction class handles
 		//----------------------------------------------------------
 		vector<shared_ptr<InteractionClass>> interactionClasses =
 			SOMParser::getInteractionClasses( m_ucefConfig->getSomPath() );
@@ -315,7 +376,7 @@ namespace ucef
 	inline void RTIAmbassadorWrapper::initialiseInstanceHandles()
 	{
 		//----------------------------------------------------------
-		//            Store object instance handlers
+		//            Store object instance handles
 		//----------------------------------------------------------
 		for( auto& classPair : objectClassMap )
 		{

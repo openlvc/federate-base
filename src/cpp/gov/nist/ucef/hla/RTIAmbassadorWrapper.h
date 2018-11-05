@@ -41,7 +41,8 @@ namespace ucef
 			inline void synchronize( util::SynchPoint point );
 			inline void enableTimePolicy();
 			inline void publishAndSubscribe();
-
+			inline void resign();
+			inline void advanceLogicalTime();
 		private:
 			//----------------------------------------------------------
 			//             Private methods

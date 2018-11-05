@@ -19,7 +19,8 @@ using namespace ucef::util;
 namespace ucef
 {
 
-	FederateBase::FederateBase() : m_rtiAmbassadorWrapper( new RTIAmbassadorWrapper() )
+	FederateBase::FederateBase() : m_rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
+	                               m_resign( false )
 	{
 
 	}
@@ -34,24 +35,45 @@ namespace ucef
 		// initialise rti ambassador
 		createRtiAmbassador();
 
-		// before create federation hook
+		// before creating the federation hook
 		beforeFederationCreate();
 		// create federation
 		createFederation();
 
-		// before federation join hook
+		// before joining the federation hook
 		beforeFederationJoin();
-		// federation join
+		// join the federation
 		joinFederation();
 
 		// enables time management policy for this federate
 		enableTimePolicy();
 
+		// now we are ready to populate the federation
+		synchronize( PointReadyToPopulate );
 		// inform RTI about the data we are going publish and subscribe
 		publishAndSubscribe();
 
-		// now we are ready to run the federate
+		// before federate run hook
+		beforeReadyToRun();
+		// now we are ready to run this federate
 		synchronize( PointReadyToRun );
+
+		while( true )
+		{
+			advanceLogicalTime();
+		}
+
+		// before resigning the federation hook
+		beforeReadyToResign();
+		// now we are ready to resign from this federation
+		synchronize( PointReadyToResign );
+		// resign from this federation
+		resign();
+	}
+
+	void FederateBase::setResign( bool resign )
+	{
+		m_resign = resign;
 	}
 
 	void FederateBase::createRtiAmbassador()
@@ -81,5 +103,13 @@ namespace ucef
 	void FederateBase::publishAndSubscribe()
 	{
 		m_rtiAmbassadorWrapper->publishAndSubscribe();
+	}
+	void FederateBase::resign()
+	{
+		m_rtiAmbassadorWrapper->resign();
+	}
+	void FederateBase::advanceLogicalTime()
+	{
+		m_rtiAmbassadorWrapper->advanceLogicalTime();
 	}
 }

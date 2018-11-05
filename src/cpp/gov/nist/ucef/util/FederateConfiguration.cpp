@@ -10,7 +10,8 @@ namespace ucef
 		                                                 m_immediateCallBacks( true ),
 		                                                 m_timeRegulated( true ),
 		                                                 m_timeConstrained( true ),
-		                                                 m_lookAhead( 1.0 )
+		                                                 m_lookAhead( 1.0 ),
+		                                                 m_timeStep( 1.0 )
 		{
 
 		}
@@ -45,6 +46,11 @@ namespace ucef
 		}
 
 		float FederateConfiguration::getLookAhead()
+		{
+			return m_lookAhead;
+		}
+
+		float FederateConfiguration::getTimeStep()
 		{
 			return m_lookAhead;
 		}

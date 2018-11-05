@@ -26,7 +26,8 @@ namespace ucef
 			virtual void beforeFederationCreate() {};
 			virtual void beforeFederationJoin()  {};
 			virtual void beforeReadyToRun() {};
-
+			virtual void beforeReadyToResign() {};
+			void setResign(bool resign);
 		private:
 
 			//----------------------------------------------------------
@@ -38,12 +39,15 @@ namespace ucef
 			void synchronize( util::SynchPoint point );
 			void enableTimePolicy();
 			void publishAndSubscribe();
+			void resign();
+			void advanceLogicalTime();
 		private:
 
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
+			bool m_resign;
 	};
 }
 

@@ -49,7 +49,7 @@ namespace ucef
 	                                                              throw( FederateInternalError )
 	{
 			lock_guard<mutex> lockGuard( threadSafeLock );
-			this->m_regulating = true;
+			this->m_regulated = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
 
@@ -65,7 +65,7 @@ namespace ucef
 	                                                              throw( FederateInternalError )
 	{
 			lock_guard<mutex> lockGuard( threadSafeLock );
-			this->m_advancing = true;
+			this->m_advanced = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
 
@@ -86,10 +86,10 @@ namespace ucef
 		return achieved;
 	}
 
-	bool FederateAmbassador::isRegulating()
+	bool FederateAmbassador::isRegulated()
 	{
 		lock_guard<mutex> lockGuard( threadSafeLock );
-		return m_regulating;
+		return m_regulated;
 	}
 
 	bool FederateAmbassador::isConstrained()
@@ -98,10 +98,16 @@ namespace ucef
 		return m_constrained;
 	}
 
-	bool FederateAmbassador::isAdvancing()
+	bool FederateAmbassador::isTimeAdvanced()
 	{
 		lock_guard<mutex> lockGuard( threadSafeLock );
-		return m_advancing;
+		return m_advanced;
+	}
+
+	void FederateAmbassador::resetTimeAdvanced()
+	{
+		lock_guard<mutex> lockGuard( threadSafeLock );
+		m_advanced = false;
 	}
 
 	double FederateAmbassador::getFederateTime()
