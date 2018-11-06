@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "gov/nist/ucef/version.h"
+#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
 #include "RTIAmbassadorWrapper.h"
 
@@ -24,16 +24,17 @@ namespace ucef
 			//----------------------------------------------------------
 			virtual void runFederate();
 			virtual void beforeFederationCreate() {};
-			virtual void beforeFederationJoin()  {};
+			virtual void beforeFederateJoin()  {};
 			virtual void beforeReadyToRun() {};
 			virtual void beforeReadyToResign() {};
+			virtual bool step() = 0;
 			void setResign(bool resign);
 		private:
 
 			//----------------------------------------------------------
 			//            Federate life-cycle calls
 			//----------------------------------------------------------
-			void createRtiAmbassador();
+			void connectToRti();
 			void createFederation();
 			void joinFederation();
 			void synchronize( util::SynchPoint point );
@@ -42,12 +43,14 @@ namespace ucef
 			void resign();
 			void advanceLogicalTime();
 		private:
-
+			inline void tick();
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
-			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 			bool m_resign;
+			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
+			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
+			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 	};
 }
 

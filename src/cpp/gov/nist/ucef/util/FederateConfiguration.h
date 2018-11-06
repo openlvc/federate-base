@@ -12,11 +12,11 @@ namespace ucef
 			public:
 				FederateConfiguration();
 
-				std::wstring getFederationName();
-				std::wstring getFederateName();
-				std::wstring getFederateType();
+				std::string getFederationName();
+				std::string getFederateName();
+				std::string getFederateType();
 				std::vector<std::wstring> getFomPaths();
-				std::string getSomPath();
+				std::wstring getSomPath();
 				float getLookAhead();
 				float getTimeStep();
 				bool isImmediate();
@@ -24,8 +24,8 @@ namespace ucef
 				bool isTimeConstrained();
 
 			private:
-				std::wstring m_federateName;
-				std::wstring m_federateType;
+				std::string m_federateName;
+				std::string m_federateType;
 				float m_lookAhead;
 				float m_timeStep;
 				bool m_immediateCallBacks;

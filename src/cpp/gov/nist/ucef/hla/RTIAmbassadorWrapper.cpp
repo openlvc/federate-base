@@ -3,11 +3,10 @@
 #include <thread>
 #include <chrono>
 
-#include "FederateAmbassador.h"
-
-#include "gov/nist/ucef/util/Logger.h"
-#include "gov/nist/ucef/util/SOMParser.h"
+#include "gov/nist/ucef/hla/FederateAmbassador.h"
 #include "gov/nist/ucef/util/FederateConfiguration.h"
+#include "gov/nist/ucef/util/Logger.h"
+#include "gov/nist/ucef/util/UCEFException.h"
 
 #include "RTI/Handle.h"
 #include "RTI/RTIambassador.h"
@@ -22,11 +21,10 @@ using namespace ucef::util;
 namespace ucef
 {
 
-	RTIAmbassadorWrapper::RTIAmbassadorWrapper() : m_ucefConfig( new FederateConfiguration() ),
-	                                               m_federateAmbassador( nullptr ),
-	                                               m_rtiAmbassador( nullptr )
+	RTIAmbassadorWrapper::RTIAmbassadorWrapper()
 	{
-
+		RTIambassador* tmpAmbassador = RTIambassadorFactory().createRTIambassador().release();
+		m_rtiAmbassador.reset(tmpAmbassador);
 	}
 
 	RTIAmbassadorWrapper::~RTIAmbassadorWrapper()
@@ -34,92 +32,85 @@ namespace ucef
 
 	}
 
-	void RTIAmbassadorWrapper::createRtiAmbassador()
+	void RTIAmbassadorWrapper::connect( shared_ptr<FederateAmbassador>& federateAmbassador,
+	                                    const shared_ptr<FederateConfiguration>& config )
 	{
-		//----------------------------------------
-		//            Create Federate Ambassador
-		//-----------------------------------------
-		m_federateAmbassador = make_shared<FederateAmbassador>();
-
-		//----------------------------------------
-		//            Create RTI Ambassador
-		//-----------------------------------------
-		RTIambassador* tmpAmbassador = RTIambassadorFactory().createRTIambassador().release();
-		m_rtiAmbassador.reset(tmpAmbassador);
 
 		//----------------------------------------
 		//            Connect to the RTI
 		//-----------------------------------------
-		Logger& logger = Logger::getInstance();
-		logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) + " trying to connect to RTI.", LevelInfo );
 		try
 		{
-			CallbackModel callBackModel = m_ucefConfig->isImmediate() ? HLA_IMMEDIATE : HLA_EVOKED;
-			m_rtiAmbassador->connect (*m_federateAmbassador, callBackModel );
-			logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) +
-			            " Successfully connected to the RTI.", LevelInfo );
+			CallbackModel callBackModel = config->isImmediate() ? HLA_IMMEDIATE : HLA_EVOKED;
+			m_rtiAmbassador->connect( *federateAmbassador, callBackModel );
 		}
-		catch( ConnectionFailed& connectionFailed )
+		catch( AlreadyConnected& )
 		{
-			logger.log( "Connection failed " + ConversionHelper::ws2s(connectionFailed.what()), LevelError );
+			Logger::getInstance().log( config->getFederateName() + " Already connected to the federation " +
+			                           config->getFederationName(), LevelWarn );
 		}
-		catch( InvalidLocalSettingsDesignator& settings )
+		catch( Exception& ex )
 		{
-			logger.log( "Connection failed, InvalidLocalSettingsDesignator: " +
-			            ConversionHelper::ws2s(settings.what()), LevelError );
-		}
-		catch( UnsupportedCallbackModel& callbackModel )
-		{
-			logger.log( "Connection failed, UnsupportedCallbackModel: " +
-			            ConversionHelper::ws2s(callbackModel.what()), LevelError );
-		}
-		catch( AlreadyConnected& connected )
-		{
-			logger.log( "Connection failed, AlreadyConnected: " +
-			            ConversionHelper::ws2s(connected.what()), LevelError );
-		}
-		catch( RTIinternalError& error )
-		{
-			logger.log( "Connection failed, Generic Error: " +
-			            ConversionHelper::ws2s(error.what()), LevelError );
+			throw UCEFException( "Failed to connect to " + config->getFederationName() );
 		}
 	}
 
-	void RTIAmbassadorWrapper::createFederation()
+	void RTIAmbassadorWrapper::createFederation( const shared_ptr<FederateConfiguration>& config )
 	{
 		Logger& logger = Logger::getInstance();
 		try
 		{
-			m_rtiAmbassador->createFederationExecution( m_ucefConfig->getFederationName(),
-			                                            m_ucefConfig->getFomPaths() );
-			logger.log( string("Federation Created."), LevelInfo );
+			m_rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(config->getFederationName()),
+			                                            config->getFomPaths() );
+
 		}
 		catch( FederationExecutionAlreadyExists& )
 		{
-			logger.log( string("Federation creation failed, federation already exist."), LevelWarn );
+			logger.log( string("Federation creation failed, federation "
+			            + config->getFederationName() + " already exist."), LevelWarn );
 		}
 		catch( Exception& e )
 		{
-			logger.log( "Generic Error: " + ConversionHelper::ws2s(e.what()),  LevelError );
+			throw UCEFException( "Failed to create federation " + config->getFederationName() );
 		}
 	}
 
-	void RTIAmbassadorWrapper::joinFederation()
+	void RTIAmbassadorWrapper::joinFederation( const shared_ptr<FederateConfiguration>& config )
 	{
-		Logger& logger = Logger::getInstance();
 		try
 		{
-			m_rtiAmbassador->joinFederationExecution( m_ucefConfig->getFederateName(),
-			                                          m_ucefConfig->getFederateType(),
-			                                          m_ucefConfig->getFederationName() );
-
-			logger.log( ConversionHelper::ws2s(m_ucefConfig->getFederateName()) + " joined the federation " +
-			            ConversionHelper::ws2s(m_ucefConfig->getFederationName()) + ".", LevelInfo );
+			m_rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(config->getFederateName()),
+			                                          ConversionHelper::s2ws(config->getFederateType()),
+			                                          ConversionHelper::s2ws(config->getFederationName()) );
 		}
 		catch( Exception& e )
 		{
-			logger.log( "Could not join the federation : " + ConversionHelper::ws2s(m_ucefConfig->getFederationName()) +
-			            "Error: " + ConversionHelper::ws2s(e.what()), LevelError );
+			throw UCEFException( "Could not join the federation : " + config->getFederationName() );
+		}
+	}
+
+	void RTIAmbassadorWrapper::enableTimeRegulated( const shared_ptr<FederateConfiguration>& config )
+	{
+		HLAfloat64Interval lookAheadInterval( config->getLookAhead() );
+		try
+		{
+			m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::enableTimeConstrained( const shared_ptr<FederateConfiguration>& config )
+	{
+		try
+		{
+			m_rtiAmbassador->enableTimeConstrained();
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
 		}
 	}
 
@@ -127,19 +118,6 @@ namespace ucef
 	{
 		announceSynchronizationPoint( point );
 		achieveSynchronizationPoint( point );
-	}
-
-	inline void RTIAmbassadorWrapper::enableTimePolicy()
-	{
-		if( m_ucefConfig->isTimeRegulated() )
-		{
-			enableTimeRegulated();
-		}
-
-		if( m_ucefConfig->isTimeConstrained() )
-		{
-			enableTimeConstrained();
-		}
 	}
 
 	void RTIAmbassadorWrapper::publishAndSubscribe()
@@ -188,7 +166,7 @@ namespace ucef
 		{
 			m_rtiAmbassador->timeAdvanceRequest( *newTime );
 
-			// wait for the rti to acknowledge the synch point
+			// wait for the rti grant the requested time advancement
 			while( true )
 			{
 				tick();
@@ -211,6 +189,11 @@ namespace ucef
 		{
 			logger.log( "Generic Error: " + ConversionHelper::ws2s(e.what()),  LevelError );
 		}
+	}
+
+	void RTIAmbassadorWrapper::tickForCallBacks( double min, double max )
+	{
+		m_rtiAmbassador->evokeMultipleCallbacks( min, max );
 	}
 
 	void RTIAmbassadorWrapper::announceSynchronizationPoint( SynchPoint point )
@@ -238,6 +221,8 @@ namespace ucef
 			}
 		}
 	}
+
+	
 
 	void RTIAmbassadorWrapper::achieveSynchronizationPoint( SynchPoint point )
 	{
@@ -267,47 +252,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::enableTimeRegulated()
-	{
-		HLAfloat64Interval lookAheadInterval( m_ucefConfig->getLookAhead() );
 
-		Logger& logger = Logger::getInstance();
-
-		logger.log( string("Inform time policy - regulated to RTI."), LevelInfo ) ;
-		m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
-
-		// inform time policy to RTI
-		while( true )
-		{
-			tick();
-			
-			if( m_ucefConfig->isTimeRegulated() )
-			{
-				logger.log( string("RTI acknowledged time policy - regulated of this federate."), LevelInfo );
-				break;
-			}
-		}
-	}
-
-	void RTIAmbassadorWrapper::enableTimeConstrained()
-	{
-		Logger& logger = Logger::getInstance();
-
-		logger.log( string("Inform time policy - constrain to RTI."), LevelInfo ) ;
-		m_rtiAmbassador->enableTimeConstrained();
-
-		// inform time policy to RTI
-		while( true )
-		{
-			tick();
-
-			if( m_ucefConfig->isTimeConstrained() )
-			{
-				logger.log( string("RTI acknowledged time policy - constrain of this federate."), LevelInfo );
-				break;
-			}
-		}
-	}
 
 	void RTIAmbassadorWrapper::initialiseClassHandles()
 	{
@@ -444,17 +389,5 @@ namespace ucef
 		// interactions we are going to send out
 		//InteractionClassHandle interactionClassHandle;
 		//m_rtiAmbassador->publishInteractionClass( interactionClassHandle );
-	}
-
-	void RTIAmbassadorWrapper::tick()
-	{
-		if( m_ucefConfig->isImmediate() )
-		{
-			this_thread::sleep_for( chrono::microseconds( 10 ) );
-		}
-		else
-		{
-			m_rtiAmbassador->evokeMultipleCallbacks( 0.1, 1.0 );
-		}
 	}
 }

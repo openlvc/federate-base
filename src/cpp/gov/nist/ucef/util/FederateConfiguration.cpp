@@ -5,8 +5,8 @@ namespace ucef
 {
 	namespace util
 	{
-		FederateConfiguration::FederateConfiguration() : m_federateName( L"Federate" + to_wstring(rand()) ),
-		                                                 m_federateType( L"FederateType" + to_wstring(rand()) ),
+		FederateConfiguration::FederateConfiguration() : m_federateName( "Federate" + to_string(rand()) ),
+		                                                 m_federateType( "FederateType" + to_string(rand()) ),
 		                                                 m_immediateCallBacks( true ),
 		                                                 m_timeRegulated( true ),
 		                                                 m_timeConstrained( true ),
@@ -16,17 +16,17 @@ namespace ucef
 
 		}
 
-		wstring FederateConfiguration::getFederationName()
+		string FederateConfiguration::getFederationName()
 		{
-			return L"ExampleFederation";
+			return "ExampleFederation";
 		}
 
-		std::wstring FederateConfiguration::getFederateName()
+		string FederateConfiguration::getFederateName()
 		{
 			return m_federateName;
 		}
 
-		std::wstring FederateConfiguration::getFederateType()
+		string FederateConfiguration::getFederateType()
 		{
 			return m_federateType;
 		}
@@ -40,9 +40,9 @@ namespace ucef
 			return foms;
 		}
 
-		string FederateConfiguration::getSomPath()
+		wstring FederateConfiguration::getSomPath()
 		{
-			return "restaurant/RestaurantDrinks.xml";
+			return L"restaurant/RestaurantDrinks.xml";
 		}
 
 		float FederateConfiguration::getLookAhead()

@@ -44,6 +44,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.cpp">
       <Filter>Source Files\gov\nist\ucef\hla</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.cpp">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
@@ -58,9 +61,6 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\version.h">
-      <Filter>Source Files\gov\nist\ucef</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClInclude>
@@ -69,6 +69,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.h">
       <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.h">
+      <Filter>Source Files\gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h">
+      <Filter>Source Files\gov\nist\ucef</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

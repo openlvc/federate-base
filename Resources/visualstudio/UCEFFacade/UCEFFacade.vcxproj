@@ -88,6 +88,7 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h" />
@@ -97,7 +98,8 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\version.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
