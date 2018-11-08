@@ -10,9 +10,9 @@ using namespace std;
 
 namespace ucef
 {
-	FederateAmbassador::FederateAmbassador()
+	FederateAmbassador::FederateAmbassador() : m_regulated( false ), m_constrained( false ),
+	                                           m_advanced( false ), m_federateTime( 0.0 )
 	{
-
 	}
 
 	FederateAmbassador::~FederateAmbassador() throw()

@@ -58,6 +58,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;$(SolutionDir)..\..\..\external\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UCEF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4290;4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <AdditionalDependencies>libfedtime1516e64d.lib;librti1516e64d.lib;tinyxml2d.lib</AdditionalDependencies>
@@ -73,6 +74,7 @@
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\external\cpp\include\tinyxml2;$(SolutionDir)..\..\..\external\cpp\include\ieee1516e;$(SolutionDir)..\..\..\external\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UCEF_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4290;4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

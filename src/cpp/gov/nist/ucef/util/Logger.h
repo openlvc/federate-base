@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "gov/nist/ucef/version.h"
+#include "gov/nist/ucef/config.h"
 
 #include "types.h"
 

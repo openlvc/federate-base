@@ -1,12 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <set>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
 
 namespace rti1516e
 {
+	class AttributeHandle;
+	class InteractionClassHandle;
+	class ObjectClassHandle;
+	class ParameterHandle;
 	class RTIambassador;
 }
 
@@ -18,11 +23,8 @@ namespace ucef
 		class FederateConfiguration;
 	}
 
-	class UCEF_API RTIAmbassadorWrapper
+	class RTIAmbassadorWrapper
 	{
-		// unordered_map because we do not need any ordering,
-		// what we need is a faster way to get the object class
-		typedef std::unordered_map<std::string, std::shared_ptr<util::ObjectClass>> ObjectClassMap;
 		public:
 			//----------------------------------------------------------
 			//                     Constructors
@@ -33,38 +35,39 @@ namespace ucef
 
 		public:
 			//----------------------------------------------------------
-			//            Federate life-cycle calls
+			//             Instance methods
 			//----------------------------------------------------------
 			void connect( std::shared_ptr<FederateAmbassador>& federateAmbassador,
-			               const shared_ptr<FederateConfiguration>& config );
-			void createFederation( const shared_ptr<FederateConfiguration>& config );
-			void joinFederation( const shared_ptr<FederateConfiguration>& config );
-			void enableTimeRegulated( const shared_ptr<FederateConfiguration>& config );
-			void enableTimeConstrained( const shared_ptr<FederateConfiguration>& config );
+			              const std::shared_ptr<util::FederateConfiguration>& config );
+			void createFederation( const std::shared_ptr<util::FederateConfiguration>& config );
+			void joinFederation( const std::shared_ptr<util::FederateConfiguration>& config );
+			void enableTimeRegulated( const std::shared_ptr<util::FederateConfiguration>& config );
+			void enableTimeConstrained( const std::shared_ptr<util::FederateConfiguration>& config );
+			rti1516e::ObjectClassHandle getClassHandle( std::wstring& name );
+			rti1516e::AttributeHandle getAttributeHandle( rti1516e::ObjectClassHandle& classHandle,
+			                                              std::wstring& name );
+			void publishSubscribeObjectClassAttributes( rti1516e::ObjectClassHandle& classHandle,
+			                                            std::set<rti1516e::AttributeHandle>& pubAttributes,
+			                                            std::set<rti1516e::AttributeHandle>& subAttributes );
+			rti1516e::ObjectInstanceHandle getInstanceHandle( rti1516e::ObjectClassHandle& classHandle);
+			rti1516e::InteractionClassHandle getInteractionHandle( std::wstring& name );
+			rti1516e::ParameterHandle getParameterHandle( rti1516e::InteractionClassHandle& interactionHandle,
+			                                              std::wstring& name );
+			void publishSubscribeInteractionClass( rti1516e::InteractionClassHandle& interactionHandle,
+			                                       bool toPublish,
+			                                       bool toSubscribe );
 
-			void synchronize( util::SynchPoint point );
-
-			void publishAndSubscribe();
+			void announceSynchronizationPoint( std::wstring& synchPoint );
+			void achieveSynchronizationPoint( std::wstring& synchPoint );
+			void advanceLogicalTime( double requestedTime );
+			void deleteObjectInstances( rti1516e::ObjectInstanceHandle& instanceHandle );
 			void resign();
-			void advanceLogicalTime();
-			void tickForCallBacks(double min, double max);
-
-		private:
-			//----------------------------------------------------------
-			//             Private methods
-			//----------------------------------------------------------
-			inline void announceSynchronizationPoint( util::SynchPoint point );
-			inline void achieveSynchronizationPoint( util::SynchPoint point );
-			inline void initialiseClassHandles();
-			inline void initialiseInstanceHandles();
-			inline void publishSubscribeObjectClassAttributes();
-			inline void publishSubscribeInteractionClasses();
+			void tickForCallBacks( double min, double max );
 
 	private:
 			//----------------------------------------------------------
 			//             Private members
 			//----------------------------------------------------------
-			ObjectClassMap objectClassMap;
 			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
 	};
 }

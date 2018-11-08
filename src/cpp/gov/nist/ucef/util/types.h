@@ -125,13 +125,11 @@ namespace ucef
 		 */
 		struct InteractionParameter
 		{
-			InteractionParameter() : name( L"" ),
-			                         sharingState( StateNone )
+			InteractionParameter() : name( L"" )
 			{
 
 			}
 			std::wstring name;
-			SharingState sharingState;
 		};
 
 		/**
@@ -152,6 +150,14 @@ namespace ucef
 			SharingState sharingState;
 			InteractionParameters parameters;
 		};
+
+		//----------------------------------------
+		//           Typedefs
+		//-----------------------------------------
+
+		// unordered_map because we do not need any ordering,
+		// what we need is a faster way to get the object class
+		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectClassMap;
 
 		//----------------------------------------
 		//           Conversion helpers

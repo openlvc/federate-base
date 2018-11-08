@@ -37,12 +37,22 @@ namespace ucef
 			void connectToRti();
 			void createFederation();
 			void joinFederation();
-			void synchronize( util::SynchPoint point );
 			void enableTimePolicy();
 			void publishAndSubscribe();
-			void resign();
+			void synchronize( util::SynchPoint point );
 			void advanceLogicalTime();
+			void resign();
+
 		private:
+			//----------------------------------------------------------
+			//                    Business Logic
+			//----------------------------------------------------------
+			inline void registerClassHandles( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
+			inline void pubSubAttributes();
+			inline void getObjectInstanceHandles();
+			inline void registerInteractionHandles
+			                       ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses);
+			inline void pubSubInteractions();
 			inline void tick();
 			//----------------------------------------------------------
 			//                    Private members
@@ -51,6 +61,7 @@ namespace ucef
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
+			util::ObjectClassMap m_objectClassMap;
 	};
 }
 
