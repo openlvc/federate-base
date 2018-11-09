@@ -167,16 +167,22 @@ namespace ucef
 		}
 	}
 
-	ObjectInstanceHandle RTIAmbassadorWrapper::getInstanceHandle( ObjectClassHandle& classHandle )
+	std::shared_ptr<HLAObject> RTIAmbassadorWrapper::registerObject( const string& className,
+	                                                                 ObjectClassHandle& classHandle)
 	{
+		shared_ptr<HLAObject> hlaObject = nullptr;
 		try
 		{
-			return m_rtiAmbassador->registerObjectInstance( classHandle );
+			ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( classHandle );
+			shared_ptr<ObjectInstanceHandle> inst;
+			inst.reset( new ObjectInstanceHandle(instanceHandle) );
+			hlaObject = make_shared<HLAObject>( className, inst );
 		}
 		catch( Exception& e )
 		{
 			throw UCEFException( ConversionHelper::ws2s(e.what()) );
 		}
+		return hlaObject;
 	}
 
 	InteractionClassHandle RTIAmbassadorWrapper::getInteractionHandle( wstring& name )
@@ -273,12 +279,12 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::deleteObjectInstances(ObjectInstanceHandle& instanceHandle)
+	void RTIAmbassadorWrapper::deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject )
 	{
 		try
 		{
 			VariableLengthData tag( (void*)"", 1 );
-			m_rtiAmbassador->deleteObjectInstance( instanceHandle, tag );
+			m_rtiAmbassador->deleteObjectInstance( *hlaObject->getInstanceHandle(), tag );
 		}
 		catch( Exception& e )
 		{

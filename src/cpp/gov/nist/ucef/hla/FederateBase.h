@@ -4,6 +4,7 @@
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
+#include "gov/nist/ucef/hla/HLAObject.h"
 #include "RTIAmbassadorWrapper.h"
 
 namespace ucef
@@ -18,6 +19,7 @@ namespace ucef
 			FederateBase();
 			virtual ~FederateBase();
 			FederateBase( const FederateBase& ) = delete;
+			FederateBase& operator=(const FederateBase&) = delete;
 
 			//----------------------------------------------------------
 			//            Lifecycle hooks and callback methods
@@ -26,9 +28,19 @@ namespace ucef
 			virtual void beforeFederationCreate() {};
 			virtual void beforeFederateJoin()  {};
 			virtual void beforeReadyToRun() {};
+			virtual void afterReadyToRun() {};
 			virtual void beforeReadyToResign() {};
+			virtual void afterDeath() {};
 			virtual bool step() = 0;
-			void setResign(bool resign);
+		protected:
+			virtual void updateObject( std::shared_ptr<HLAObject>& object);
+		protected:
+			//----------------------------------------------------------
+			//                    Protected members
+			//----------------------------------------------------------
+			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
+			util::ObjectClassMap m_objectClassMap;
+			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 		private:
 
 			//----------------------------------------------------------
@@ -41,27 +53,21 @@ namespace ucef
 			void publishAndSubscribe();
 			void synchronize( util::SynchPoint point );
 			void advanceLogicalTime();
-			void resign();
+			void resignAndDestroy();
 
 		private:
 			//----------------------------------------------------------
 			//                    Business Logic
 			//----------------------------------------------------------
-			inline void registerClassHandles( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
+			inline void cacheHandles( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
 			inline void pubSubAttributes();
-			inline void getObjectInstanceHandles();
-			inline void registerInteractionHandles
-			                       ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses);
+			inline void cacheHandles( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses);
 			inline void pubSubInteractions();
-			inline void tick();
+			inline void tickForCallBacks();
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
-			bool m_resign;
-			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
-			util::ObjectClassMap m_objectClassMap;
 	};
 }
 

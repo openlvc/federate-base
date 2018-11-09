@@ -4,6 +4,7 @@
 #include <set>
 
 #include "gov/nist/ucef/config.h"
+#include "gov/nist/ucef/hla/HLAObject.h"
 #include "gov/nist/ucef/util/types.h"
 
 namespace rti1516e
@@ -23,7 +24,7 @@ namespace ucef
 		class FederateConfiguration;
 	}
 
-	class RTIAmbassadorWrapper
+	class UCEF_API RTIAmbassadorWrapper
 	{
 		public:
 			//----------------------------------------------------------
@@ -49,7 +50,8 @@ namespace ucef
 			void publishSubscribeObjectClassAttributes( rti1516e::ObjectClassHandle& classHandle,
 			                                            std::set<rti1516e::AttributeHandle>& pubAttributes,
 			                                            std::set<rti1516e::AttributeHandle>& subAttributes );
-			rti1516e::ObjectInstanceHandle getInstanceHandle( rti1516e::ObjectClassHandle& classHandle);
+			std::shared_ptr<HLAObject> registerObject( const std::string& className,
+			                                           rti1516e::ObjectClassHandle& classHandle);
 			rti1516e::InteractionClassHandle getInteractionHandle( std::wstring& name );
 			rti1516e::ParameterHandle getParameterHandle( rti1516e::InteractionClassHandle& interactionHandle,
 			                                              std::wstring& name );
@@ -60,7 +62,7 @@ namespace ucef
 			void announceSynchronizationPoint( std::wstring& synchPoint );
 			void achieveSynchronizationPoint( std::wstring& synchPoint );
 			void advanceLogicalTime( double requestedTime );
-			void deleteObjectInstances( rti1516e::ObjectInstanceHandle& instanceHandle );
+			void deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject );
 			void resign();
 			void tickForCallBacks( double min, double max );
 

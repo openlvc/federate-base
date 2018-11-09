@@ -82,12 +82,15 @@ namespace ucef
 					// fully qualified object class name
 					objectClass->name = objectClassName + ConversionHelper::s2ws(objectNameElement->GetText());
 
-					// sharing state (pub & sub) of the object
+					// sharing state (pub & sub) of the class
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
 					if( objectSharingElement )
 					{
-						// set the sharing state of the object (not the attribute)
-						objectClass->sharingState = ConversionHelper::toSharingState(objectSharingElement->GetText());
+						// set the sharing state of the class (not attributes)
+						objectClass->publish = 
+							ConversionHelper::isPublish(objectSharingElement->GetText());
+						objectClass->subscribe = 
+							ConversionHelper::isSubscribe(objectSharingElement->GetText());
 					}
 
 					// collect attributes in this object class (traverse only the leaf attributes)
@@ -102,20 +105,21 @@ namespace ucef
 							// get attribute's name as in SOM
 							objectAttribute->name = ConversionHelper::s2ws(attributeNameElement->GetText());
 
-							// get the sharing state of this attribute
+							// get the sharing state of attributes
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
-								// set the sharing state of the attribute (not the object)
-								objectAttribute->sharingState =
-									ConversionHelper::toSharingState( attributeSharingElement->GetText() );
+								objectAttribute->publish = 
+										ConversionHelper::isPublish(attributeSharingElement->GetText());
+								objectAttribute->subscribe = 
+										ConversionHelper::isSubscribe(attributeSharingElement->GetText());
 							}
 							attributes.push_back( objectAttribute );
 						}
 					}
 
-					// if we have attributes in this objectClass then it is a valid class to
-					// register for publishing and subscribing so add it to the vector
+					// if we have attributes in this objectClass then we can
+					// publish and subscribe so add it to the vector
 					if( attributes.size() > 0 )
 					{
 						for( shared_ptr<ObjectAttribute> attribute : attributes )
@@ -157,9 +161,11 @@ namespace ucef
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
-								// set the sharing state of the attribute (not the object)
-								objectAttribute->sharingState =
-										ConversionHelper::toSharingState( attributeSharingElement->GetText() );
+								// set the sharing state of the attribute (not the class)
+								objectAttribute->publish = 
+										ConversionHelper::isPublish(attributeSharingElement->GetText());
+								objectAttribute->subscribe = 
+										ConversionHelper::isSubscribe(attributeSharingElement->GetText());
 							}
 
 							attributes.push_back( objectAttribute );

@@ -60,7 +60,8 @@ namespace ucef
 		beforeReadyToRun();
 		// now we are ready to run this federate
 		synchronize( PointReadyToRun );
-
+		// just before the first update
+		afterReadyToRun();
 		while( true )
 		{
 			if( step() == false )
@@ -73,7 +74,9 @@ namespace ucef
 		// now we are ready to resign from this federation
 		synchronize( PointReadyToResign );
 		// resign from this federation
-		resign();
+		resignAndDestroy();
+		// after death hook for cleanup
+		afterDeath();
 	}
 
 	void FederateBase::connectToRti()
@@ -135,7 +138,7 @@ namespace ucef
 
 			while( !m_federateAmbassador->isRegulated() )
 			{
-				tick();
+				tickForCallBacks();
 			}
 			logger.log( string("RTI acknowledged time policy - regulated"), LevelInfo );
 		}
@@ -155,7 +158,7 @@ namespace ucef
 
 			while( !m_federateAmbassador->isConstrained() )
 			{
-				tick();
+				tickForCallBacks();
 			}
 			logger.log( string("RTI acknowledged time policy - constrain"), LevelInfo );
 		}
@@ -171,9 +174,8 @@ namespace ucef
 		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
 		try
 		{
-			registerClassHandles( objectClasses );
+			cacheHandles( objectClasses );
 			pubSubAttributes();
-			getObjectInstanceHandles();
 		}
 		catch( UCEFException& )
 		{
@@ -187,7 +189,7 @@ namespace ucef
 		logger.log( string("Inform RTI about publishing and subscribing interactions"), LevelInfo );
 		try
 		{
-			registerInteractionHandles( interactionClasses );
+			cacheHandles( interactionClasses );
 			pubSubInteractions();
 		}
 		catch( UCEFException& )
@@ -214,7 +216,7 @@ namespace ucef
 		{
 			logger.log( "Waiting for the announcement of synchronization Point " +
 						ConversionHelper::SynchPointToString(point), LevelInfo );
-			tick();
+			tickForCallBacks();
 		}
 
 		logger.log( "Successfully announced the synchronization Point " +
@@ -234,7 +236,7 @@ namespace ucef
 		{
 			logger.log( "Waiting for the federation to synchronise to " +
 			            ConversionHelper::SynchPointToString(point), LevelInfo );
-			tick();
+			tickForCallBacks();
 		}
 
 		logger.log( "Federation achieved synchronization Point " +
@@ -259,20 +261,20 @@ namespace ucef
 		while( !m_federateAmbassador->isTimeAdvanced() )
 		{
 			logger.log( "Waiting for the logical time of this federate to advance to " +
-				        to_string( requestedTime ), LevelInfo );
+			            to_string( requestedTime ), LevelInfo );
 
-			tick();
+			tickForCallBacks();
 		}
 		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
 		m_federateAmbassador->resetTimeAdvanced();
 	}
 
-	void FederateBase::setResign( bool resign )
+	void FederateBase::updateObject( std::shared_ptr<HLAObject>& object )
 	{
-		m_resign = resign;
+		Logger::getInstance().log( "updating object " + object->getClassName(), LevelInfo );
 	}
 
-	void FederateBase::resign()
+	void FederateBase::resignAndDestroy()
 	{
 		Logger& logger = Logger::getInstance();
 		//----------------------------------------------------------
@@ -280,23 +282,6 @@ namespace ucef
 		//----------------------------------------------------------
 		logger.log( string("Federate ") + m_ucefConfig->getFederateName()  + " resigning from federation " +
 		            m_ucefConfig->getFederationName(), LevelInfo );
-		for( auto& classPair : m_objectClassMap )
-		{
-			shared_ptr<ObjectClass> objectClass = classPair.second;
-			ObjectInstanceHandle instanceHandle = *objectClass->instanceHandle;
-			if( objectClass->hasAttrToPubOrSub )
-			{
-				try
-				{
-					m_rtiAmbassadorWrapper->deleteObjectInstances( instanceHandle );
-				}
-				catch( UCEFException& )
-				{
-					throw;
-				}
-			}
-		}
-
 		try
 		{
 			m_rtiAmbassadorWrapper->resign();
@@ -312,7 +297,7 @@ namespace ucef
 	//----------------------------------------------------------
 	//                    Business Logic
 	//----------------------------------------------------------
-	void FederateBase::registerClassHandles( vector<shared_ptr<ObjectClass>>& objectClasses )
+	void FederateBase::cacheHandles( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -330,7 +315,7 @@ namespace ucef
 			}
 			else
 			{
-				logger.log( "An invalid class handler returned for " + ConversionHelper::ws2s(objectClass->name),
+				logger.log( "An invalid class handle returned for " + ConversionHelper::ws2s(objectClass->name),
 				            LevelWarn );
 			}
 
@@ -345,7 +330,7 @@ namespace ucef
 				}
 				else
 				{
-					logger.log( "An invalid attribute handler returned for " +
+					logger.log( "An invalid attribute handle returned for " +
 					            ConversionHelper::ws2s(objectClass->name) + "." +
 					            ConversionHelper::ws2s(attribute.second->name), LevelWarn );
 				}
@@ -377,28 +362,20 @@ namespace ucef
 			for( auto attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
-				if( attribute->sharingState == StatePublish )
+				if( attribute->publish )
 				{
 					logger.log( ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
 					pubAttributes.insert(*attribute->handle);
 				}
-				else if( attribute->sharingState == StateSubscribe)
+				else if( attribute->subscribe )
 				{
 					logger.log( ConversionHelper::ws2s(attribute->name) + " added for subscribing.", LevelInfo );
-					subAttributes.insert(*attribute->handle);
-				}
-				else if( attribute->sharingState == StatePubSub )
-				{
-					logger.log( ConversionHelper::ws2s(attribute->name) +
-					            " added for both publishing and subscribing.", LevelInfo );
-					pubAttributes.insert(*attribute->handle);
 					subAttributes.insert(*attribute->handle);
 				}
 			}
 
 			if( pubAttributes.size() || subAttributes.size())
 			{
-				objectClass->hasAttrToPubOrSub = true;
 				m_rtiAmbassadorWrapper->publishSubscribeObjectClassAttributes( classHandle,
 				                                                               pubAttributes,
 				                                                               subAttributes );
@@ -406,24 +383,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::getObjectInstanceHandles()
-	{
-		//----------------------------------------------------------
-		//            Store object instance handles
-		//----------------------------------------------------------
-		for( auto& classPair : m_objectClassMap )
-		{
-			shared_ptr<ObjectClass> objectClass = classPair.second;
-			ObjectClassHandle classHandle = *objectClass->classHandle;
-			ObjectInstanceHandle instanceHandle = m_rtiAmbassadorWrapper->getInstanceHandle( classHandle );
-			if( instanceHandle.isValid() && objectClass->hasAttrToPubOrSub )
-			{
-				objectClass->instanceHandle.reset( new ObjectInstanceHandle(instanceHandle) );
-			}
-		}
-	}
-
-	void FederateBase::registerInteractionHandles( vector<shared_ptr<InteractionClass>>& interactionClasses )
+	void FederateBase::cacheHandles( vector<shared_ptr<InteractionClass>>& interactionClasses )
 	{
 		//----------------------------------------------------------
 		//     Store interaction class and parametere handles
@@ -440,7 +400,7 @@ namespace ucef
 		//TO-DO
 	}
 
-	void FederateBase::tick()
+	void FederateBase::tickForCallBacks()
 	{
 		if( m_ucefConfig->isImmediate() )
 		{

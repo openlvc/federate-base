@@ -28,23 +28,6 @@ namespace ucef
 		//-----------------------------------------
 
 		/**
-		 *  Represents the publish and subscribe state of an object, interaction,
-		 *  parameter or attribute
-		 *
-		 *  @see ObjectAttribute
-		 *  @see ObjectClass
-		 *  @see InteractionParameter
-		 *  @see InteractionClass
-		 */
-		enum SharingState
-		{
-			StatePublish,   // publishing
-			StateSubscribe, // subscribe to
-			StatePubSub,    // both publishing and subscribe to
-			StateNone,      // none
-		};
-
-		/**
 		 *  Represents the logging level of the logger
 		 *  parameter or attribute
 		 *
@@ -82,13 +65,14 @@ namespace ucef
 		struct ObjectAttribute
 		{
 			ObjectAttribute() : name( L"" ),
-			                    sharingState( StateNone )
+			                    publish( false ),
+			                    subscribe( false )
 			{
-
 			}
 
 			std::wstring name;
-			SharingState sharingState;
+			bool publish;
+			bool subscribe;
 			std::shared_ptr<rti1516e::AttributeHandle> handle;
 		};
 
@@ -101,20 +85,17 @@ namespace ucef
 		struct ObjectClass
 		{
 			ObjectClass() : name( L"" ),
-			                sharingState( StateNone ),
+			                publish( false ),
+			                subscribe( false ),
 			                classHandle( nullptr ),
-			                instanceHandle( nullptr ),
-			                objectAttributes{ },
-			                hasAttrToPubOrSub( false )
+			                objectAttributes{ }
 			{
-
 			}
 			std::wstring name; // fully qualified object class name
-			SharingState sharingState;
+			bool publish;
+			bool subscribe;
 			std::shared_ptr<rti1516e::ObjectClassHandle> classHandle;
-			std::shared_ptr<rti1516e::ObjectInstanceHandle> instanceHandle;
 			ObjectAttributes objectAttributes;
-			bool hasAttrToPubOrSub;
 		};
 
 		/**
@@ -141,13 +122,15 @@ namespace ucef
 		struct InteractionClass
 		{
 			InteractionClass() : name( L"" ),
-			                     sharingState( StateNone ),
+			                     publish( false ),
+			                     subscribe( false ),
 			                     parameters{ }
 			{
 
 			}
 			std::wstring name; // fully qualified interaction class name
-			SharingState sharingState;
+			bool publish;
+			bool subscribe;
 			InteractionParameters parameters;
 		};
 
@@ -165,29 +148,24 @@ namespace ucef
 		class ConversionHelper
 		{
 			public:
-
-				/**
-				 *  Convert a given string to a SharingState
-				 *
-				 *  @see SharingState
-				 */
-				static SharingState toSharingState( const std::string& sharingStateString )
+				static bool isPublish( const std::string& sharingStateString )
 				{
-					SharingState sharingState = StateNone;
-					if( sharingStateString == "Publish" )
+					bool publish = false;
+					if( sharingStateString == "Publish" || sharingStateString == "PublishSubscribe")
 					{
-						sharingState = StatePublish;
+						publish = true;
 					}
-					else if( sharingStateString == "Subscribe" )
-					{
-						sharingState = StateSubscribe;
-					}
-					else if( sharingStateString == "PublishSubscribe" )
-					{
-						sharingState = StatePubSub;
-					}
+					return publish;
+				}
 
-					return sharingState;
+				static bool isSubscribe( const std::string& sharingStateString )
+				{
+					bool subscribe = false;
+					if( sharingStateString == "Subscribe" || sharingStateString == "PublishSubscribe")
+					{
+						subscribe = true;
+					}
+					return subscribe;
 				}
 
 				static std::string SynchPointToString( SynchPoint point )

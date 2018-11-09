@@ -47,6 +47,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.cpp">
       <Filter>Source Files\gov\nist\ucef\util</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.cpp">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
@@ -75,6 +78,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h">
       <Filter>Source Files\gov\nist\ucef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.h">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
