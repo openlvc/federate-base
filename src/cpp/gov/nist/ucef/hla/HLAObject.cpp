@@ -18,44 +18,49 @@ namespace ucef
 	{
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, bool val )
+	void HLAObject::setAttributeValue( const string& attributeName, bool val )
 	{
 		
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, char val )
+	void HLAObject::setAttributeValue( const string& attributeName, char val )
 	{
 		
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, short val )
+	void HLAObject::setAttributeValue( const string& attributeName, short val )
 	{
 	
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, int val )
+	void HLAObject::setAttributeValue( const string& attributeName, int val )
 	{
 		
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, long val )
+	void HLAObject::setAttributeValue( const string& attributeName, long val )
 	{
 		
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, float val )
+	void HLAObject::setAttributeValue( const string& attributeName, float val )
 	{
 	
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, double val )
+	void HLAObject::setAttributeValue( const string& attributeName, double val )
 	{
 		
 	}
 
-	void HLAObject::setAttributeValue( string& attributeName, string& val )
+	void HLAObject::setAttributeValue( const string& attributeName, const string& val )
 	{
 		pushToMap( attributeName, val );
+	}
+
+	void HLAObject::resetAttributeValues()
+	{
+		attributeData.clear();
 	}
 
 	std::string HLAObject::getClassName()
@@ -63,9 +68,9 @@ namespace ucef
 		return m_className;
 	}
 
-	HLAObjectAttributeMap* HLAObject::getAttributeMap()
+	HLAObjectAttributeMap HLAObject::getAttributeMap()
 	{
-		return &attributeData;
+		return attributeData;
 	}
 
 	shared_ptr<ObjectInstanceHandle> HLAObject::getInstanceHandle()
@@ -73,7 +78,7 @@ namespace ucef
 		return m_instanceHandle;
 	}
 
-	void HLAObject::pushToMap( string& attributeName, string& data )
+	void HLAObject::pushToMap( const string& attributeName, const string& data )
 	{
 		attributeData.insert( pair<string, string>( m_className + "." + attributeName, data ) );
 	}

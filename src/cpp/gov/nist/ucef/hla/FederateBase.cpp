@@ -83,7 +83,7 @@ namespace ucef
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->connect( m_federateAmbassador, m_ucefConfig);
+			m_rtiAmbassadorWrapper->connect( m_federateAmbassador, m_ucefConfig->isImmediate() );
 			Logger::getInstance().log( m_ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
 		} 
 		catch( UCEFException& )
@@ -96,7 +96,7 @@ namespace ucef
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->createFederation( m_ucefConfig );
+			m_rtiAmbassadorWrapper->createFederation( m_ucefConfig->getFederationName(),  m_ucefConfig->getFomPaths() );
 			Logger::getInstance().log( "Federation " + m_ucefConfig->getFederationName() + " created.", LevelInfo );
 		}
 		catch( UCEFException& )
@@ -109,7 +109,9 @@ namespace ucef
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->joinFederation( m_ucefConfig );
+			m_rtiAmbassadorWrapper->joinFederation( m_ucefConfig->getFederateName(),
+			                                        m_ucefConfig->getFederateType(),
+			                                        m_ucefConfig->getFederationName());
 			Logger::getInstance().log( m_ucefConfig->getFederateName() + " joined the federation " +
 			                           m_ucefConfig->getFederationName() + ".", LevelInfo );
 		}
@@ -129,7 +131,7 @@ namespace ucef
 
 			try
 			{
-				m_rtiAmbassadorWrapper->enableTimeRegulated( m_ucefConfig );
+				m_rtiAmbassadorWrapper->enableTimeRegulated( m_ucefConfig->getLookAhead() );
 			}
 			catch( UCEFException& )
 			{
@@ -149,7 +151,7 @@ namespace ucef
 
 			try
 			{
-				m_rtiAmbassadorWrapper->enableTimeConstrained( m_ucefConfig );
+				m_rtiAmbassadorWrapper->enableTimeConstrained();
 			}
 			catch( UCEFException& )
 			{

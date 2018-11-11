@@ -33,8 +33,8 @@ namespace ucef
 
 	}
 
-	void RTIAmbassadorWrapper::connect( shared_ptr<FederateAmbassador>& federateAmbassador,
-	                                    const shared_ptr<FederateConfiguration>& config )
+	void RTIAmbassadorWrapper::connect( const shared_ptr<FederateAmbassador>& federateAmbassador,
+	                                    bool isImmediate )
 	{
 
 		//----------------------------------------
@@ -42,57 +42,59 @@ namespace ucef
 		//-----------------------------------------
 		try
 		{
-			CallbackModel callBackModel = config->isImmediate() ? HLA_IMMEDIATE : HLA_EVOKED;
+			CallbackModel callBackModel = isImmediate ? HLA_IMMEDIATE : HLA_EVOKED;
 			m_rtiAmbassador->connect( *federateAmbassador, callBackModel );
 		}
 		catch( AlreadyConnected& )
 		{
-			Logger::getInstance().log( config->getFederateName() + " Already connected to the federation " +
-			                           config->getFederationName(), LevelWarn );
+			Logger::getInstance().log( string("Federate is already connected to the federation."), LevelWarn );
 		}
-		catch( Exception& )
+		catch( Exception& e)
 		{
-			throw UCEFException( "Failed to connect to " + config->getFederationName() );
+			throw UCEFException( "Failed to connect due to " + ConversionHelper::ws2s(e.what()) );
 		}
 	}
 
-	void RTIAmbassadorWrapper::createFederation( const shared_ptr<FederateConfiguration>& config )
+	void RTIAmbassadorWrapper::createFederation( const string& federationName, const vector<wstring>& fomPaths )
 	{
 		Logger& logger = Logger::getInstance();
 		try
 		{
-			m_rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(config->getFederationName()),
-			                                            config->getFomPaths() );
+			m_rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(federationName),
+			                                            fomPaths );
 
 		}
 		catch( FederationExecutionAlreadyExists& )
 		{
 			logger.log( string("Federation creation failed, federation "
-			            + config->getFederationName() + " already exist."), LevelWarn );
+			            + federationName + " already exist."), LevelWarn );
 		}
-		catch( Exception& )
+		catch( Exception& e)
 		{
-			throw UCEFException( "Failed to create federation " + config->getFederationName() );
+			throw UCEFException( "Failed to create federation due to :" + ConversionHelper::ws2s(e.what()) );
 		}
 	}
 
-	void RTIAmbassadorWrapper::joinFederation( const shared_ptr<FederateConfiguration>& config )
+	void RTIAmbassadorWrapper::joinFederation( const string& federateName,
+	                                           const string& federateType,
+	                                           const string& federationName )
 	{
 		try
 		{
-			m_rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(config->getFederateName()),
-			                                          ConversionHelper::s2ws(config->getFederateType()),
-			                                          ConversionHelper::s2ws(config->getFederationName()) );
+			m_rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(federateName),
+			                                          ConversionHelper::s2ws(federateType),
+			                                          ConversionHelper::s2ws(federationName) );
 		}
-		catch( Exception& )
+		catch( Exception& e)
 		{
-			throw UCEFException( "Could not join the federation : " + config->getFederationName() );
+			throw UCEFException( federateName + " failed to join the federation : " + federationName +
+			                     "due to :" + ConversionHelper::ws2s(e.what()) );
 		}
 	}
 
-	void RTIAmbassadorWrapper::enableTimeRegulated( const shared_ptr<FederateConfiguration>& config )
+	void RTIAmbassadorWrapper::enableTimeRegulated( const float lookAhead )
 	{
-		HLAfloat64Interval lookAheadInterval( config->getLookAhead() );
+		HLAfloat64Interval lookAheadInterval( lookAhead );
 		try
 		{
 			m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
@@ -103,7 +105,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::enableTimeConstrained( const shared_ptr<FederateConfiguration>& config )
+	void RTIAmbassadorWrapper::enableTimeConstrained()
 	{
 		try
 		{
@@ -115,7 +117,7 @@ namespace ucef
 		}
 	}
 
-	ObjectClassHandle RTIAmbassadorWrapper::getClassHandle( wstring& name )
+	ObjectClassHandle RTIAmbassadorWrapper::getClassHandle( const wstring& name )
 	{
 		try
 		{
@@ -127,7 +129,7 @@ namespace ucef
 		}
 	}
 
-	AttributeHandle RTIAmbassadorWrapper::getAttributeHandle( ObjectClassHandle& classHandle, wstring& name )
+	AttributeHandle RTIAmbassadorWrapper::getAttributeHandle( ObjectClassHandle& classHandle, const wstring& name )
 	{
 		try
 		{
@@ -139,7 +141,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::publishSubscribeObjectClassAttributes( ObjectClassHandle & classHandle,
+	void RTIAmbassadorWrapper::publishSubscribeObjectClassAttributes( ObjectClassHandle& classHandle,
 	                                                                  set<AttributeHandle>& pubAttributes,
 	                                                                  set<AttributeHandle>& subAttributes )
 	{
@@ -185,7 +187,7 @@ namespace ucef
 		return hlaObject;
 	}
 
-	InteractionClassHandle RTIAmbassadorWrapper::getInteractionHandle( wstring& name )
+	InteractionClassHandle RTIAmbassadorWrapper::getInteractionHandle( const wstring& name )
 	{
 		try
 		{
@@ -198,7 +200,7 @@ namespace ucef
 	}
 
 	ParameterHandle RTIAmbassadorWrapper::getParameterHandle( InteractionClassHandle& interactionHandle,
-	                                                          wstring& name )
+	                                                          const wstring& name )
 	{
 		try
 		{
@@ -211,10 +213,10 @@ namespace ucef
 	}
 
 	void RTIAmbassadorWrapper::publishSubscribeInteractionClass( InteractionClassHandle& interactionHandle,
-	                                                             bool toPublish,
-	                                                             bool toSubscribe )
+	                                                             const bool publish,
+	                                                             const bool subscribe )
 	{
-		if( toPublish )
+		if( publish )
 		{
 			try
 			{
@@ -225,7 +227,7 @@ namespace ucef
 				throw UCEFException( ConversionHelper::ws2s(e.what()) );
 			}
 		}
-		if( toSubscribe )
+		if( subscribe )
 		{
 			try
 			{
@@ -238,11 +240,11 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::announceSynchronizationPoint( wstring& synchPoint )
+	void RTIAmbassadorWrapper::announceSynchronizationPoint( const wstring& synchPoint )
 	{
 		try
 		{
-			VariableLengthData tag( (void*)"", 1 );
+			const VariableLengthData tag( (void*)"", 1 );
 			m_rtiAmbassador->registerFederationSynchronizationPoint( synchPoint, tag );
 		}
 		catch( Exception& e )
@@ -251,7 +253,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::achieveSynchronizationPoint( wstring& synchPoint )
+	void RTIAmbassadorWrapper::achieveSynchronizationPoint( const wstring& synchPoint )
 	{
 		try
 		{
@@ -263,7 +265,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::advanceLogicalTime( double requestedTime )
+	void RTIAmbassadorWrapper::advanceLogicalTime( const double requestedTime )
 	{
 		unique_ptr<HLAfloat64Time> newTime( new HLAfloat64Time(requestedTime) );
 		try

@@ -30,23 +30,23 @@ namespace ucef
 			//----------------------------------------------------------
 			//                     Instance Methods
 			//----------------------------------------------------------
-			void setAttributeValue( std::string& attributeName, bool val );
-			void setAttributeValue( std::string& attributeName, char val );
-			void setAttributeValue( std::string& attributeName, short val );
-			void setAttributeValue( std::string& attributeName, int val );
-			void setAttributeValue( std::string& attributeName, long val );
-			void setAttributeValue( std::string& attributeName, float val );
-			void setAttributeValue( std::string& attributeName, double val );
-			void setAttributeValue( std::string& attributeName, std::string& val );
-
+			void setAttributeValue( const std::string& attributeName, bool val );
+			void setAttributeValue( const std::string& attributeName, char val );
+			void setAttributeValue( const std::string& attributeName, short val );
+			void setAttributeValue( const std::string& attributeName, int val );
+			void setAttributeValue( const std::string& attributeName, long val );
+			void setAttributeValue( const std::string& attributeName, float val );
+			void setAttributeValue( const std::string& attributeName, double val );
+			void setAttributeValue( const std::string& attributeName, const std::string& val );
+			void resetAttributeValues();
 			std::string getClassName();
-			HLAObjectAttributeMap* getAttributeMap();
+			HLAObjectAttributeMap getAttributeMap();
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> getInstanceHandle();
 		private:
 			//----------------------------------------------------------
 			//                    Business Logic
 			//----------------------------------------------------------
-			void pushToMap( std::string& attributeName, std::string& data );
+			void pushToMap( const std::string& attributeName, const std::string& data );
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
