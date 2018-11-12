@@ -281,12 +281,84 @@ namespace ucef
 		}
 	}
 
+	void RTIAmbassadorWrapper::updateObjectInstances( shared_ptr<HLAObject>& hlaObject,
+	                                                  const ObjectCacheStore& cacheStore )
+	{
+		Logger& logger = Logger::getInstance();
+
+		auto classIt = cacheStore.find( hlaObject->getClassName() );
+		if( classIt != cacheStore.end() )
+		{
+			AttributeHandleValueMap rtiAttributeMap;
+
+			ObjectAttributes cachedAttributes = classIt->second->objectAttributes;
+
+			HLAObjectAttributes atributeData = hlaObject->getAttributeData();
+			for( auto attribute : atributeData )
+			{
+				auto it = cachedAttributes.find( attribute.first );
+				if( it != cachedAttributes.end() )
+				{
+					shared_ptr<ObjectAttribute> cacheAttribute = it->second;
+					if( cacheAttribute->publish )
+					{
+						if( cacheAttribute->handle->isValid() )
+						{
+							const char* val = attribute.second.c_str();
+							VariableLengthData data( (void*)val, strlen( val ) + 1 );
+							rtiAttributeMap[*(cacheAttribute->handle)] = data;
+							logger.log( "The new value of " + attribute.first + " is ready to publish.", LevelDebug );
+						}
+						else
+						{
+							logger.log( "Attribute handler is not valid for " + attribute.first, LevelError );
+						}
+					}
+					else
+					{
+						logger.log( attribute.first + " is not mentioned as a publishable item in SOM."
+						            + ". hence ignore this attribute update request.", LevelError );
+					}
+				}
+				else
+				{
+					logger.log( "Can't find " + attribute.first + " in " + hlaObject->getClassName()
+					            + ". hence ignore this attribute update request.", LevelError );
+				}
+			}
+			
+			if( rtiAttributeMap.size() )
+			{
+				VariableLengthData tag( (void*)"", 4 );
+				try
+				{
+					m_rtiAmbassador->updateAttributeValues( *(hlaObject->getInstanceHandle()), rtiAttributeMap, tag );
+					logger.log( "Suucesfully published the updated attributes of " + hlaObject->getClassName()
+					            + ".", LevelDebug );
+				}
+				catch( Exception& e )
+				{
+					throw UCEFException( ConversionHelper::ws2s(e.what()) );
+				}
+			}
+			else
+			{
+				logger.log( "Can't find any attributes to publish in " + hlaObject->getClassName() + ".", LevelError );
+			}
+		}
+		else
+		{
+			logger.log( "Can't find " + hlaObject->getClassName() + " in system's cache."
+			            + ". Ignore this update request.", LevelError );
+		}
+	}
+
 	void RTIAmbassadorWrapper::deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject )
 	{
 		try
 		{
 			VariableLengthData tag( (void*)"", 1 );
-			m_rtiAmbassador->deleteObjectInstance( *hlaObject->getInstanceHandle(), tag );
+			m_rtiAmbassador->deleteObjectInstance( *(hlaObject->getInstanceHandle()), tag );
 		}
 		catch( Exception& e )
 		{

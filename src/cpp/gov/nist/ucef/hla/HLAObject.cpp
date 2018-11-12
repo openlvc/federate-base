@@ -68,7 +68,7 @@ namespace ucef
 		return m_className;
 	}
 
-	HLAObjectAttributeMap HLAObject::getAttributeMap()
+	HLAObjectAttributes HLAObject::getAttributeData()
 	{
 		return attributeData;
 	}
@@ -80,6 +80,6 @@ namespace ucef
 
 	void HLAObject::pushToMap( const string& attributeName, const string& data )
 	{
-		attributeData.insert( pair<string, string>( m_className + "." + attributeName, data ) );
+		attributeData.insert( pair<string, string>( attributeName, data ) );
 	}
 }

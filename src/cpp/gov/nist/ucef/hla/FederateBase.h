@@ -39,7 +39,7 @@ namespace ucef
 			//                    Protected members
 			//----------------------------------------------------------
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			util::ObjectClassMap m_objectClassMap;
+			util::ObjectCacheStore m_objectCacheStore;
 			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 		private:
 

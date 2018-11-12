@@ -11,7 +11,7 @@
 
 namespace ucef
 {
-	typedef std::map<std::string, std::string> HLAObjectAttributeMap;
+	typedef std::map<std::string, std::string> HLAObjectAttributes;
 	/**
 	 * @file HLAObject.h
 	 *
@@ -40,7 +40,7 @@ namespace ucef
 			void setAttributeValue( const std::string& attributeName, const std::string& val );
 			void resetAttributeValues();
 			std::string getClassName();
-			HLAObjectAttributeMap getAttributeMap();
+			HLAObjectAttributes getAttributeData();
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> getInstanceHandle();
 		private:
 			//----------------------------------------------------------
@@ -50,7 +50,7 @@ namespace ucef
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
-			HLAObjectAttributeMap attributeData;
+			HLAObjectAttributes attributeData;
 			std::string m_className;
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> m_instanceHandle;
 	};

@@ -339,7 +339,7 @@ namespace ucef
 			}
 
 			// now store the ObjectClass in objectClassMap for later use
-			m_objectClassMap.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
+			m_objectCacheStore.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
 		}
 	}
 
@@ -350,7 +350,7 @@ namespace ucef
 		// are published and subscribed by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
-		for( auto classPair : m_objectClassMap )
+		for( auto classPair : m_objectCacheStore )
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
@@ -366,7 +366,8 @@ namespace ucef
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
 				if( attribute->publish )
 				{
-					logger.log( ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
+					logger.log( ConversionHelper::ws2s(attribute->name) + " in " +
+								ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
 					pubAttributes.insert(*attribute->handle);
 				}
 				else if( attribute->subscribe )

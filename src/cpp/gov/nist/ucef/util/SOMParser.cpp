@@ -137,7 +137,7 @@ namespace ucef
 
 				}
 			}
-			else
+			else // collect non-leaf attributes or attributes in parent classes
 			{
 				// get the name element of this parentElement that represents an objectClass
 				XMLElement* objectNameElement = parentElement->FirstChildElement( "name" );
