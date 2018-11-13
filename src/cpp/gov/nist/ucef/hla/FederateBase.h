@@ -21,28 +21,36 @@ namespace ucef
 			FederateBase( const FederateBase& ) = delete;
 			FederateBase& operator=(const FederateBase&) = delete;
 
+			virtual void receiveObjectRegistration( std::shared_ptr<HLAObject>& hlaObject,
+			                                        double federateTime );
+			virtual void receiveAttributeReflection( std::shared_ptr<HLAObject>& hlaObject,
+			                                         double federateTime );
+			std::shared_ptr<util::ObjectClass> getObjectClass( long hash );
+			std::shared_ptr<util::ObjectClass> getObjectClass( std::string name );
+			std::shared_ptr<HLAObject> findIncomingObject( long hash );
+			virtual void runFederate();
+
+		protected:
 			//----------------------------------------------------------
 			//            Lifecycle hooks and callback methods
-			//----------------------------------------------------------
-			virtual void runFederate();
+			//----------------------------------------------------------			
 			virtual void beforeFederationCreate() {};
 			virtual void beforeFederateJoin()  {};
 			virtual void beforeReadyToRun() {};
 			virtual void afterReadyToRun() {};
 			virtual void beforeReadyToResign() {};
 			virtual void afterDeath() {};
-			virtual bool step() = 0;
-		protected:
-			virtual void updateObject( std::shared_ptr<HLAObject>& object);
+			virtual bool step(double federateTime) = 0;
 		protected:
 			//----------------------------------------------------------
 			//                    Protected members
 			//----------------------------------------------------------
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			util::ObjectCacheStore m_objectCacheStore;
-			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
+			util::ObjectCacheStoreByName m_objectCacheStoreByName;
 		private:
-
+			util::ObjectCacheStoreByHash m_objectCacheStoreByHash;
+			util::IncomingStore m_incomingStore;
+			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 			//----------------------------------------------------------
 			//            Federate life-cycle calls
 			//----------------------------------------------------------

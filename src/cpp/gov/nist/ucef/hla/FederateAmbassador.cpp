@@ -1,17 +1,23 @@
 #include "FederateAmbassador.h"
 
 #include <mutex>
+
+#include "FederateBase.h"
+
 #include "gov/nist/ucef/util/Logger.h"
 #include "gov/nist/ucef/util/types.h"
 #include "RTI/time/HLAfloat64Time.h"
 
 using namespace rti1516e;
 using namespace std;
-
+using namespace ucef::util;
 namespace ucef
 {
-	FederateAmbassador::FederateAmbassador() : m_regulated( false ), m_constrained( false ),
-	                                           m_advanced( false ), m_federateTime( 0.0 )
+	FederateAmbassador::FederateAmbassador( FederateBase* federateBase ) : m_regulated( false ),
+	                                                                       m_constrained( false ),
+	                                                                       m_advanced( false ),
+	                                                                       m_federateTime( 0.0 ),
+	                                                                       m_federateBase( federateBase )
 	{
 	}
 
@@ -67,6 +73,101 @@ namespace ucef
 			lock_guard<mutex> lockGuard( threadSafeLock );
 			this->m_advanced = true;
 			this->m_federateTime = convertTime( theFederateTime );
+	}
+
+	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
+	                                                 ObjectClassHandle theObjectClass,
+	                                                 const wstring& theObjectName )
+	                                                              throw(FederateInternalError)
+	{
+		Logger& logger = Logger::getInstance();
+		shared_ptr<ObjectInstanceHandle> instanceHandle = make_shared<ObjectInstanceHandle>( theObject );
+		shared_ptr<ObjectClass> objectClass = m_federateBase->getObjectClass( theObjectClass.hash() );
+		if( objectClass )
+		{
+			shared_ptr<HLAObject> object =
+				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), instanceHandle );
+			m_federateBase->receiveObjectRegistration( object, m_federateTime );
+		}
+		else
+		{
+			logger.log( "Discovered an unknown object with name " +
+			             ConversionHelper::ws2s( theObjectName ), LevelError );
+		}
+	}
+
+	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
+	                                                 ObjectClassHandle theObjectClass,
+	                                                 const wstring& theObjectName,
+	                                                 FederateHandle producingFederate )
+	                                                              throw(FederateInternalError)
+	{
+		discoverObjectInstance( theObject, theObjectClass, theObjectName );
+	}
+
+	void FederateAmbassador::reflectAttributeValues( ObjectInstanceHandle theObject,
+	                                                 AttributeHandleValueMap const& theAttributeValues,
+	                                                 VariableLengthData const& theUserSuppliedTag,
+	                                                 OrderType sentOrder,
+	                                                 TransportationType theType,
+	                                                 SupplementalReflectInfo theReflectInfo )
+	                                                              throw(FederateInternalError)
+	{
+		Logger& logger = Logger::getInstance();
+		shared_ptr<HLAObject> object = m_federateBase->findIncomingObject( theObject.hash() );
+		if( object )
+		{
+			shared_ptr<ObjectClass> objectClass = m_federateBase->getObjectClass( object->getClassName() );
+
+			for( auto& incomingAttributeValue : theAttributeValues )
+			{
+				ObjectAttributes& attributes = objectClass->objectAttributes;
+				for( auto& attribute : attributes )
+				{
+					if( attribute.second->handle->hash() == incomingAttributeValue.first.hash())
+					{
+						string strValue( (const char*)incomingAttributeValue.second.data() );
+						object->setAttributeValue( ConversionHelper::ws2s(attribute.second->name),
+						                           strValue );
+						logger.log( "Received Attribute update " + ConversionHelper::ws2s( attribute.second->name ) +
+									"xxxxxxxxxxx" + strValue, LevelCritical );
+						break;
+					}
+				}
+			}
+			m_federateBase->receiveAttributeReflection( object, m_federateTime );
+		}
+		else
+		{
+			logger.log( string("Received attribute update of an unknown object."), LevelError );
+		}
+	}
+
+	void FederateAmbassador::reflectAttributeValues( ObjectInstanceHandle theObject,
+	                                                 AttributeHandleValueMap const& theAttributeValues,
+	                                                 VariableLengthData const& theUserSuppliedTag,
+	                                                 OrderType sentOrder,
+	                                                 TransportationType theType,
+	                                                 LogicalTime const& theTime,
+	                                                 OrderType receivedOrder,
+	                                                 SupplementalReflectInfo theReflectInfo )
+	                                                              throw(FederateInternalError)
+	{
+		reflectAttributeValues( theObject, theAttributeValues, theUserSuppliedTag, sentOrder, theType, theReflectInfo );
+	}
+
+	void FederateAmbassador::reflectAttributeValues( ObjectInstanceHandle theObject,
+	                                                 AttributeHandleValueMap const& theAttributeValues,
+	                                                 VariableLengthData const& theUserSuppliedTag,
+	                                                 OrderType sentOrder,
+	                                                 TransportationType theType,
+	                                                 LogicalTime const & theTime,
+	                                                 OrderType receivedOrder,
+	                                                 MessageRetractionHandle theHandle,
+	                                                 SupplementalReflectInfo theReflectInfo )
+	                                                              throw(FederateInternalError)
+	{
+		reflectAttributeValues( theObject, theAttributeValues, theUserSuppliedTag, sentOrder, theType, theReflectInfo );
 	}
 
 	//----------------------------------------------------------

@@ -80,6 +80,9 @@ namespace ucef
 
 	void HLAObject::pushToMap( const string& attributeName, const string& data )
 	{
-		attributeData.insert( pair<string, string>( attributeName, data ) );
+		if( attributeData.find( attributeName ) != attributeData.end() )
+			attributeData[attributeName] = data;
+		else
+			attributeData.insert( pair<string, string>( attributeName, data ) );
 	}
 }

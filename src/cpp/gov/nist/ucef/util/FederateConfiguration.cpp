@@ -1,4 +1,7 @@
 #include "FederateConfiguration.h"
+
+#include <ctime>
+
 using namespace std;
 
 namespace ucef
@@ -14,6 +17,7 @@ namespace ucef
 		                                                 m_timeStep( 1.0 )
 		{
 
+			m_federateName = ( "Federate" + to_string(std::time(0)));
 		}
 
 		string FederateConfiguration::getFederationName()

@@ -21,6 +21,7 @@ namespace rti1516e
 
 namespace ucef
 {
+	class HLAObject;
 	namespace util
 	{
 		//----------------------------------------
@@ -140,8 +141,9 @@ namespace ucef
 
 		// unordered_map because we do not need any ordering,
 		// what we need is a faster way to get the object class
-		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStore;
-
+		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStoreByName;
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectCacheStoreByHash;
+		typedef std::unordered_map<long, std::shared_ptr<HLAObject>> IncomingStore;
 		//----------------------------------------
 		//           Conversion helpers
 		//-----------------------------------------

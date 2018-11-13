@@ -2,6 +2,7 @@
 
 #include <thread>
 #include <chrono>
+#include <iostream>
 
 #include "gov/nist/ucef/hla/FederateAmbassador.h"
 #include "gov/nist/ucef/util/Logger.h"
@@ -22,7 +23,7 @@ namespace ucef
 {
 
 	FederateBase::FederateBase() : m_rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
-	                               m_federateAmbassador( make_shared<FederateAmbassador>() ),
+	                               m_federateAmbassador( make_shared<FederateAmbassador>(this) ),
 	                               m_ucefConfig( make_shared<FederateConfiguration>() )
 	{
 
@@ -52,19 +53,21 @@ namespace ucef
 		enableTimePolicy();
 
 		// now we are ready to populate the federation
-		synchronize( PointReadyToPopulate );
+		//synchronize( PointReadyToPopulate );
 		// inform RTI about the data we are going publish and subscribe
 		publishAndSubscribe();
 
 		// before federate run hook
 		beforeReadyToRun();
 		// now we are ready to run this federate
-		synchronize( PointReadyToRun );
+		//synchronize( PointReadyToRun );
 		// just before the first update
 		afterReadyToRun();
+		string s;
+		cin >> s;
 		while( true )
 		{
-			if( step() == false )
+			if( step( m_federateAmbassador->getFederateTime() ) == false )
 				break;
 			advanceLogicalTime();
 		}
@@ -271,9 +274,44 @@ namespace ucef
 		m_federateAmbassador->resetTimeAdvanced();
 	}
 
-	void FederateBase::updateObject( std::shared_ptr<HLAObject>& object )
+	void FederateBase::receiveObjectRegistration( shared_ptr<HLAObject>& hlaObject, double federateTime )
 	{
-		Logger::getInstance().log( "updating object " + object->getClassName(), LevelInfo );
+		Logger& logger = Logger::getInstance();
+		logger.log( "Discvoered new object named " + hlaObject->getClassName(), LevelCritical );
+		m_incomingStore[hlaObject->getInstanceHandle()->hash()] = hlaObject;
+	}
+
+	void FederateBase::receiveAttributeReflection( shared_ptr<HLAObject>& hlaObject, double federateTime )
+	{
+		Logger& logger = Logger::getInstance();
+		logger.log( "Received attribute update for " + hlaObject->getClassName(), LevelCritical );
+	}
+
+	shared_ptr<ObjectClass> FederateBase::getObjectClass( long hash )
+	{
+		if( m_objectCacheStoreByHash.find( hash ) != m_objectCacheStoreByHash.end() )
+		{
+			return m_objectCacheStoreByHash[hash];
+		}
+		return nullptr;
+	}
+
+	shared_ptr<ObjectClass> FederateBase::getObjectClass( string name )
+	{
+		if( m_objectCacheStoreByName.find( name ) != m_objectCacheStoreByName.end() )
+		{
+			return m_objectCacheStoreByName[name];
+		}
+		return nullptr;
+	}
+
+	shared_ptr<HLAObject> FederateBase::findIncomingObject( long hash )
+	{
+		if( m_incomingStore.find( hash ) != m_incomingStore.end() )
+		{
+			return m_incomingStore[hash];
+		}
+		return nullptr;
 	}
 
 	void FederateBase::resignAndDestroy()
@@ -313,7 +351,7 @@ namespace ucef
 			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( classHandle.isValid() )
 			{
-				objectClass->classHandle.reset( new ObjectClassHandle(classHandle) );
+				objectClass->classHandle = make_shared<ObjectClassHandle>( classHandle );
 			}
 			else
 			{
@@ -328,7 +366,7 @@ namespace ucef
 					m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute.second->name );
 				if( attributeHandle.isValid() )
 				{
-					attribute.second->handle.reset( new AttributeHandle(attributeHandle) );
+					attribute.second->handle = make_shared<AttributeHandle>( attributeHandle );
 				}
 				else
 				{
@@ -338,8 +376,10 @@ namespace ucef
 				}
 			}
 
-			// now store the ObjectClass in objectClassMap for later use
-			m_objectCacheStore.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
+			// now store the ObjectClass in m_objectCacheStoreByName for later use
+			m_objectCacheStoreByName.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
+			// now store the ObjectClass in m_objectCacheStoreByHash for later use
+			m_objectCacheStoreByHash.insert( make_pair(objectClass->classHandle->hash(), objectClass) );
 		}
 	}
 
@@ -350,7 +390,7 @@ namespace ucef
 		// are published and subscribed by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
-		for( auto classPair : m_objectCacheStore )
+		for( auto classPair : m_objectCacheStoreByName )
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
@@ -367,12 +407,13 @@ namespace ucef
 				if( attribute->publish )
 				{
 					logger.log( ConversionHelper::ws2s(attribute->name) + " in " +
-								ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
+					            ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
 					pubAttributes.insert(*attribute->handle);
 				}
-				else if( attribute->subscribe )
+				if( attribute->subscribe )
 				{
-					logger.log( ConversionHelper::ws2s(attribute->name) + " added for subscribing.", LevelInfo );
+					logger.log( ConversionHelper::ws2s(attribute->name) + " in " +
+					            ConversionHelper::ws2s(attribute->name) + " added for subscribing.", LevelInfo );
 					subAttributes.insert(*attribute->handle);
 				}
 			}

@@ -176,9 +176,9 @@ namespace ucef
 		try
 		{
 			ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( classHandle );
-			shared_ptr<ObjectInstanceHandle> inst;
-			inst.reset( new ObjectInstanceHandle(instanceHandle) );
-			hlaObject = make_shared<HLAObject>( className, inst );
+			shared_ptr<ObjectInstanceHandle> instance;
+			instance.reset( new ObjectInstanceHandle(instanceHandle) );
+			hlaObject = make_shared<HLAObject>( className, instance );
 		}
 		catch( Exception& e )
 		{
@@ -282,7 +282,7 @@ namespace ucef
 	}
 
 	void RTIAmbassadorWrapper::updateObjectInstances( shared_ptr<HLAObject>& hlaObject,
-	                                                  const ObjectCacheStore& cacheStore )
+	                                                  const ObjectCacheStoreByName& cacheStore )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -307,7 +307,8 @@ namespace ucef
 							const char* val = attribute.second.c_str();
 							VariableLengthData data( (void*)val, strlen( val ) + 1 );
 							rtiAttributeMap[*(cacheAttribute->handle)] = data;
-							logger.log( "The new value of " + attribute.first + " is ready to publish.", LevelDebug );
+							logger.log( "The new value of " + attribute.first + " in " + hlaObject->getClassName()
+							            + " is ready to publish.", LevelDebug );
 						}
 						else
 						{

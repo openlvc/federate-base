@@ -65,7 +65,7 @@ namespace ucef
 			void achieveSynchronizationPoint( const std::wstring& synchPoint );
 			void advanceLogicalTime( const double requestedTime );
 			void updateObjectInstances( std::shared_ptr<HLAObject>& hlaObject,
-			                            const util::ObjectCacheStore& cacheStore );
+			                            const util::ObjectCacheStoreByName& cacheStore );
 			void deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject );
 			void resign();
 			void tickForCallBacks( double min, double max );
