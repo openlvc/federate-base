@@ -115,6 +115,17 @@ namespace ucef
 		};
 
 		/**
+		 *  Represents attribute and interaction data passed from/to user
+		 *
+		 *  @see HLAObject
+		 */
+		struct VariableData
+		{
+			std::shared_ptr<void> data;
+			size_t size;
+		};
+
+		/**
 		 *  Represents an interaction class in a given Simulation Object Model
 		 *
 		 *  @see SOMParser#getInteractionClasses(string&)

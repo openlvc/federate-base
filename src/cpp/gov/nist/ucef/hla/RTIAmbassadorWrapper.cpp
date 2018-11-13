@@ -293,8 +293,8 @@ namespace ucef
 
 			ObjectAttributes cachedAttributes = classIt->second->objectAttributes;
 
-			HLAObjectAttributes atributeData = hlaObject->getAttributeData();
-			for( auto attribute : atributeData )
+			shared_ptr<HLAObjectAttributes> atributeData = hlaObject->getAttributeDataStore();
+			for( auto attribute : (*atributeData) )
 			{
 				auto it = cachedAttributes.find( attribute.first );
 				if( it != cachedAttributes.end() )
@@ -304,8 +304,8 @@ namespace ucef
 					{
 						if( cacheAttribute->handle->isValid() )
 						{
-							const char* val = attribute.second.c_str();
-							VariableLengthData data( (void*)val, strlen( val ) + 1 );
+							VariableData &val = attribute.second;
+							VariableLengthData data( val.data.get(), val.size );
 							rtiAttributeMap[*(cacheAttribute->handle)] = data;
 							logger.log( "The new value of " + attribute.first + " in " + hlaObject->getClassName()
 							            + " is ready to publish.", LevelDebug );

@@ -53,18 +53,17 @@ namespace ucef
 		enableTimePolicy();
 
 		// now we are ready to populate the federation
-		//synchronize( PointReadyToPopulate );
+		synchronize( PointReadyToPopulate );
 		// inform RTI about the data we are going publish and subscribe
 		publishAndSubscribe();
 
 		// before federate run hook
 		beforeReadyToRun();
 		// now we are ready to run this federate
-		//synchronize( PointReadyToRun );
+		synchronize( PointReadyToRun );
 		// just before the first update
 		afterReadyToRun();
-		string s;
-		cin >> s;
+
 		while( true )
 		{
 			if( step( m_federateAmbassador->getFederateTime() ) == false )
