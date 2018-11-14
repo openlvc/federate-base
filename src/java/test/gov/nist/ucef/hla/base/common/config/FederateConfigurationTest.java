@@ -18,7 +18,7 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.common;
+package gov.nist.ucef.hla.base.common.config;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import gov.nist.ucef.hla.common.config.FederateConfiguration;
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -85,7 +85,8 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals(5, config.getMaxReconnectAttempts());
 		assertEquals(5000, config.getReconnectWaitTime());
 		assertEquals(false, config.isLateJoiner());
-		assertEquals(false, config.isTimeStepped());
+		assertEquals(true, config.isTimeStepped());
+		assertEquals(false, config.callbacksAreEvoked());
 		assertEquals(1.0, config.getLookAhead());
 		assertEquals(0.1, config.getStepSize());
 
@@ -157,8 +158,9 @@ public class FederateConfigurationTest extends TestCase
 		int expectedReconnectWaitTime = 54321;
 		double expectedStepSize = 1.234;
 		double expectedLookAhead = 0.1234;
-		boolean expectedIsLateJoiner = true;
 		boolean expectedIsTimeStepped = true;
+		boolean expectedIsLateJoiner = true;
+		boolean expectedCallbacksAreEvoked = true;
 		
 		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType);
 		config.addModules( expectedModules )
@@ -172,6 +174,7 @@ public class FederateConfigurationTest extends TestCase
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
 			  .setLateJoiner( expectedIsLateJoiner )
+			  .setCallbacksAreEvoked( expectedCallbacksAreEvoked )
 			  .setTimeStepped( expectedIsTimeStepped );
 		
 		// configuration should be writeable at this point
@@ -184,6 +187,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts() );
 		assertEquals( expectedReconnectWaitTime, config.getReconnectWaitTime() );
 		assertEquals( expectedIsLateJoiner, config.isLateJoiner() );
+		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked() );
 		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
 		assertEquals( expectedLookAhead, config.getLookAhead() );
 		assertEquals( expectedStepSize, config.getStepSize() );
@@ -311,6 +315,28 @@ public class FederateConfigurationTest extends TestCase
 	}
 	
 	/**
+	 * This tests setting whether callbacks are evoked or not 
+	 */
+	public void testCallbacksAreEvoked()
+	{
+		String federationName = "federationName";
+		String federateName = "federateName";
+		String federateType = "federateType";
+		boolean expectedCallbacksAreEvoked = true;
+		
+		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		// sanity check that the default value is not our test value, otherwise this test is pointless
+		assertTrue( expectedCallbacksAreEvoked != config.callbacksAreEvoked());
+		// try changing the value
+		config.setCallbacksAreEvoked( expectedCallbacksAreEvoked );
+		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked());
+		// freeze the config and try to change the value - should not change
+		config.freeze();
+		config.setCallbacksAreEvoked( !expectedCallbacksAreEvoked );
+		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked());
+	}
+	
+	/**
 	 * This tests setting the is time stepped value 
 	 */
 	public void testTimeStepped()
@@ -318,7 +344,7 @@ public class FederateConfigurationTest extends TestCase
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		boolean expectedTimeStepped = true;
+		boolean expectedTimeStepped = false;
 		
 		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
 		// sanity check that the default value is not our test value, otherwise this test is pointless

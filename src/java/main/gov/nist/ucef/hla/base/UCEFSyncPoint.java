@@ -18,7 +18,7 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.common;
+package gov.nist.ucef.hla.base;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +29,7 @@ import java.util.Collections;
  * least notionally acknowledge, and preferably adhere to in order to interact sensibly with the
  * federate manager.
  */
-public enum SyncPoint
+public enum UCEFSyncPoint
 {
     //----------------------------------------------------------
     //                        VALUES
@@ -41,19 +41,19 @@ public enum SyncPoint
 	READY_TO_RESIGN("readyToResign", "Ready to Resign");
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//                   STATIC VARIABLES
 	//----------------------------------------------------------
 	// a map for finding a Synchronization point for a string key - this is to provide
 	// quick lookups and avoid iterating over all SynchronizationPoints (though admittedly
 	// there are only three of them)
-	private static final Map<String,SyncPoint> keyToSynchronizationPointLookup =
+	private static final Map<String,UCEFSyncPoint> SYNC_POINT_LOOKUP =
 	    Collections.unmodifiableMap( initializeMapping() );
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	// the string identifier for the synchronization point
-	private String id;
+	private String label;
 	// the "human readable" text name for the synchronization point, primarily used for
 	// logging/debugging purposes
 	private String name;
@@ -61,9 +61,9 @@ public enum SyncPoint
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private SyncPoint( String id, String name )
+	private UCEFSyncPoint( String label, String name )
 	{
-		this.id = id;
+		this.label = label;
 		this.name = name;
 	}
 
@@ -71,7 +71,7 @@ public enum SyncPoint
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
-	 * Returns the human readable text describing this {@link SyncPoint}
+	 * Returns the human readable text describing this {@link UCEFSyncPoint}
 	 */
 	@Override
 	public String toString()
@@ -84,9 +84,9 @@ public enum SyncPoint
 	 * 
 	 * @return the text identifier uniquely identifying this synchronization point (internal use)
 	 */
-	public String getID()
+	public String getLabel()
 	{
-		return this.id;
+		return this.label;
 	}
 
 	/**
@@ -96,7 +96,7 @@ public enum SyncPoint
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
-	public boolean isBefore( SyncPoint other )
+	public boolean isBefore( UCEFSyncPoint other )
 	{
 		// NOTE: relies on the enumerated values being defined in the expected 
 		//       chronological order
@@ -110,7 +110,7 @@ public enum SyncPoint
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
-	public boolean isAfter( SyncPoint other )
+	public boolean isAfter( UCEFSyncPoint other )
 	{
 		// NOTE: relies on the enumerated values being defined in the expected 
 		//       chronological order
@@ -128,7 +128,7 @@ public enum SyncPoint
 	 * @return true if this synchronization point not the same as the provided synchronization
 	 *         point, false otherwise
 	 */
-	public boolean isNot( SyncPoint other )
+	public boolean isNot( UCEFSyncPoint other )
 	{
 		return !this.equals(other);
 	}
@@ -137,33 +137,57 @@ public enum SyncPoint
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
+	 * Determine if a label identifies a standard UCEF synchronization point
+	 * 
+	 * @param label the text identifier uniquely identifying a synchronization point
+	 * @return true if the label is for a known UCEF synchronization point, false otherwise
+	 *         text identifier for a {@link UCEFSyncPoint}.
+	 */
+	public static boolean isKnown( String label )
+	{
+		return !UCEFSyncPoint.isUnknown( label );
+	}
+	
+	/**
+	 * Determine if a label does not identify a standard UCEF synchronization point
+	 * 
+	 * @param label the text identifier uniquely identifying a synchronization point
+	 * @return true if the label is not a known UCEF synchronization point, false otherwise
+	 *         text identifier for a {@link UCEFSyncPoint}.
+	 */
+	public static boolean isUnknown( String label )
+	{
+		return UCEFSyncPoint.fromLabel( label ) == null;
+	}
+	
+	/**
 	 * Converts a text identifier uniquely identifying a synchronization point to a
-	 * {@link SyncPoint} instance.
+	 * {@link UCEFSyncPoint} instance.
 	 * 
 	 * NOTE: if the key is not a valid text identifier for a synchronization point, null will be
 	 * returned
 	 * 
-	 * @param id the text identifier uniquely identifying a synchronization point
-	 * @return the corresponding {@link SyncPoint}, or null if the key is not a valid
-	 *         text identifier for a {@link SyncPoint}.
+	 * @param label the text identifier uniquely identifying a synchronization point
+	 * @return the corresponding {@link UCEFSyncPoint}, or null if the key is not a valid
+	 *         text identifier for a {@link UCEFSyncPoint}.
 	 */
-	public static SyncPoint fromID( String id )
+	public static UCEFSyncPoint fromLabel( String label )
 	{
-		return keyToSynchronizationPointLookup.get( id );
+		return SYNC_POINT_LOOKUP.get( label );
 	}
 
 	/**
-	 * Private initializer method for the key-to-{@link SyncPoint} lookup map
+	 * Private initializer method for the key-to-{@link UCEFSyncPoint} lookup map
 	 * 
 	 * @return a lookup map which pairs text identifiers and the corresponding
 	 *         SyncronizationPoints
 	 */
-	private static Map<String,SyncPoint> initializeMapping()
+	private static Map<String,UCEFSyncPoint> initializeMapping()
 	{
-		Map<String,SyncPoint> lookupMap = new HashMap<String,SyncPoint>();
-		for( SyncPoint s : SyncPoint.values() )
+		Map<String,UCEFSyncPoint> lookupMap = new HashMap<String,UCEFSyncPoint>();
+		for( UCEFSyncPoint s : UCEFSyncPoint.values() )
 		{
-			lookupMap.put( s.id, s );
+			lookupMap.put( s.label, s );
 		}
 		return lookupMap;
 	}

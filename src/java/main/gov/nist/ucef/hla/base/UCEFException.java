@@ -18,16 +18,14 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.util;
+package gov.nist.ucef.hla.base;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
-public class InputUtils
+public class UCEFException extends RuntimeException
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final long serialVersionUID = -3642541500621823260L;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -36,37 +34,63 @@ public class InputUtils
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * Just create an empty exception
+	 */
+	public UCEFException()
+	{
+		super();
+	}
+
+	/**
+	 * @param message The message to create the exception with
+	 */
+	public UCEFException( String message )
+	{
+		super( message );
+	}
+
+	/**
+	 * @param cause The cause of the exception
+	 */
+	public UCEFException( Throwable cause )
+	{
+		super( cause );
+	}
+
+	/**
+	 * @param message The message to create the exception with
+	 * @param cause The cause of the exception
+	 */
+	public UCEFException( String message, Throwable cause )
+	{
+		super( message, cause );
+	}
+
+	/**
+	 * @param formatString A format string to use with the arguments to construct the message
+	 * @param args The arguments to use with the format string
+	 */
+	public UCEFException( String formatString, Object... args )
+	{
+		super( String.format( formatString, args ) );
+	}
+
+	/**
+	 * @param cause The cause of the exception
+	 * @param formatString A format string to use with the arguments to construct the message
+	 * @param args The arguments to use with the format string
+	 */
+	public UCEFException( Throwable cause, String formatString, Object... args )
+	{
+		super( String.format( formatString, args ), cause );
+	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	/**
-	 * This method will block until the user presses enter
-	 */
-	public static void waitForUser( String msg )
-	{
-		if( !StringUtils.isNullOrEmpty( msg ) )
-		{
-			System.out.println( msg );
-		}
-
-		BufferedReader reader = new BufferedReader( new InputStreamReader( System.in ) );
-		try
-		{
-			reader.readLine();
-		}
-		catch( Exception e )
-		{
-			System.err.println( "Error while waiting for user input: " + e.getMessage() );
-			e.printStackTrace();
-		}
-	}
 }
