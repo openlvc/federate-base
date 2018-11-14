@@ -85,7 +85,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals(5, config.getMaxReconnectAttempts());
 		assertEquals(5000, config.getReconnectWaitTime());
 		assertEquals(false, config.isLateJoiner());
-		assertEquals(false, config.isTimeStepped());
+		assertEquals(true, config.isTimeStepped());
 		assertEquals(false, config.callbacksAreEvoked());
 		assertEquals(1.0, config.getLookAhead());
 		assertEquals(0.1, config.getStepSize());
@@ -344,7 +344,7 @@ public class FederateConfigurationTest extends TestCase
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		boolean expectedTimeStepped = true;
+		boolean expectedTimeStepped = false;
 		
 		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
 		// sanity check that the default value is not our test value, otherwise this test is pointless

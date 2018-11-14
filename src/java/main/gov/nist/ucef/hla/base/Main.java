@@ -21,7 +21,6 @@
 package gov.nist.ucef.hla.base;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,28 +28,11 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+/**
+ * A simple class with a main method for testing federates.
+ */
 public class Main
 {
-	//----------------------------------------------------------
-	//                    STATIC VARIABLES
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                    INSTANCE METHODS
-	//----------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -60,8 +42,7 @@ public class Main
 		
 		try
 		{
-			FederateConfiguration config = makeConfig();
-			new MyFederate().runFederate( config );
+			new MyFederate().runFederate( makeConfig() );
 		}
 		catch(Exception e)
 		{
@@ -71,15 +52,24 @@ public class Main
 			System.exit( 1 );
 		}
 
-		System.out.println( "Shutting down." );
+		System.out.println( "Completed - shutting down now." );
 		System.exit( 0 );
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////// PRIVATE METHODS ONLY BEYOND THIS POINT //////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Utility function to set up some useful configuration
+	 * 
+	 * @return a usefully populated {@link FederateConfiguration} instance
+	 */
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
-			                                                        "Federate-" + new Date().getTime(), 
-																	"TestFederate" );
+			                                                      "Federate-" + new Date().getTime(), 
+																  "TestFederate" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String drinkBase = "HLAobjectRoot.Food.Drink.";
@@ -90,7 +80,7 @@ public class Main
 		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
 		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
 		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
-		
+
 		// somebody set us up the FOM...
 		try
 		{
@@ -113,17 +103,35 @@ public class Main
 		return config;
 	}
 	
-	private static Collection<URL> urlsFromPaths(String[] paths) throws MalformedURLException, FileNotFoundException
+	/**
+	 * Utility function to set create a bunch of URLs from file paths
+	 * 
+	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system, 
+	 *       a {@link UCEFException} will be thrown.
+	 * 
+	 * @return a list of URLs corresponding to the paths provided
+	 */
+	private static Collection<URL> urlsFromPaths(String[] paths)
 	{
 		List<URL> result = new ArrayList<>();
-		for(String path : paths)
+		
+		try
 		{
-			File file = new File( path );
-			if(file.isFile())
-				result.add( new File( path ).toURI().toURL() );
-			else
-				throw new FileNotFoundException(String.format( "The file '%s' does not exist. Please check the file path.", path));
+    		for(String path : paths)
+    		{
+    			File file = new File( path );
+    			if(file.isFile())
+    					result.add( new File( path ).toURI().toURL() );
+    			else
+    				throw new UCEFException("The file '%s' does not exist. " +
+    										"Please check the file path.", path);
+    		}
 		}
+		catch( MalformedURLException e )
+		{
+			throw new UCEFException(e);
+		}
+		
 		return result;
 	}
 }

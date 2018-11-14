@@ -23,6 +23,8 @@ package gov.nist.ucef.hla.base;
 import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
@@ -40,16 +42,14 @@ import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.exceptions.AlreadyConnected;
-import hla.rti1516e.exceptions.CallNotAllowedFromWithinCallback;
-import hla.rti1516e.exceptions.ConnectionFailed;
 import hla.rti1516e.exceptions.DeletePrivilegeNotHeld;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
-import hla.rti1516e.exceptions.InvalidLocalSettingsDesignator;
-import hla.rti1516e.exceptions.RTIexception;
-import hla.rti1516e.exceptions.RTIinternalError;
-import hla.rti1516e.exceptions.UnsupportedCallbackModel;
+import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
+import hla.rti1516e.exceptions.TimeConstrainedIsNotEnabled;
+import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
+import hla.rti1516e.exceptions.TimeRegulationIsNotEnabled;
 import hla.rti1516e.time.HLAfloat64Interval;
 import hla.rti1516e.time.HLAfloat64Time;
 import hla.rti1516e.time.HLAfloat64TimeFactory;
@@ -70,7 +70,7 @@ public class RTIAmbassadorWrapper
 	//----------------------------------------------------------
 	private static RTIAmbassadorWrapper instance;
 	
-	private RTIambassador rtiamb;
+	private RTIambassador rtiAmbassador;
 
 	private HLAfloat64TimeFactory timeFactory;
 	private ParameterHandleValueMapFactory parameterMapFactory;
@@ -86,8 +86,8 @@ public class RTIAmbassadorWrapper
 		{
 			try
 			{
-				instance =
-				    new RTIAmbassadorWrapper( RtiFactoryFactory.getRtiFactory().getRtiAmbassador() );
+				RTIambassador rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
+				instance = new RTIAmbassadorWrapper( rtiAmbassador );
 			}
 			catch( Exception e )
 			{
@@ -102,14 +102,14 @@ public class RTIAmbassadorWrapper
 	//----------------------------------------------------------
 	private RTIAmbassadorWrapper(RTIambassador rtiAmbassador)
 	{
-		this.rtiamb = rtiAmbassador;
+		this.rtiAmbassador = rtiAmbassador;
 		try
 		{
 			// cache the commonly used factories
-			this.timeFactory = (HLAfloat64TimeFactory)rtiamb.getTimeFactory();
-			this.parameterMapFactory = rtiamb.getParameterHandleValueMapFactory();
-			this.attributeMapFactory = rtiamb.getAttributeHandleValueMapFactory();
-			this.attributeHandleSetFactory = rtiamb.getAttributeHandleSetFactory();
+			this.timeFactory = (HLAfloat64TimeFactory)rtiAmbassador.getTimeFactory();
+			this.parameterMapFactory = rtiAmbassador.getParameterHandleValueMapFactory();
+			this.attributeMapFactory = rtiAmbassador.getAttributeHandleValueMapFactory();
+			this.attributeHandleSetFactory = rtiAmbassador.getAttributeHandleSetFactory();
 		}
 		catch( Exception e )
 		{
@@ -122,14 +122,14 @@ public class RTIAmbassadorWrapper
 	//----------------------------------------------------------
 	public RTIambassador getRtiAmbassador()
 	{
-		return this.rtiamb;
+		return this.rtiAmbassador;
 	}
 	
 	public void connect( FederateAmbassador federateAmbassador )
 	{
 		try
 		{
-			this.rtiamb.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
+			this.rtiAmbassador.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
 		}
 		catch( AlreadyConnected e )
 		{
@@ -151,7 +151,7 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// We attempt to create a new federation with the configured FOM modules
-			this.rtiamb.createFederationExecution( federationName, modules );
+			this.rtiAmbassador.createFederationExecution( federationName, modules );
 		}
 		catch( FederationExecutionAlreadyExists exists )
 		{
@@ -166,7 +166,7 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void joinFederation( FederateConfiguration configuration ) throws UCEFException
+	public void joinFederation( FederateConfiguration configuration )
 	{
 		String federationName = configuration.getFederationName();
 		String federateName = configuration.getFederateName();
@@ -176,7 +176,7 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// join the federation with the configured join FOM modules
-			rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
+			rtiAmbassador.joinFederationExecution( federateName, federateType, federationName, joinModules );
 		}
 		catch(Exception e)
 		{
@@ -191,7 +191,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiamb.evokeCallback(seconds);
+			rtiAmbassador.evokeCallback(seconds);
 		}
 		catch( Exception e )
 		{
@@ -203,7 +203,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiamb.evokeMultipleCallbacks( minimumTime, maximumTime );
+			rtiAmbassador.evokeMultipleCallbacks( minimumTime, maximumTime );
 		}
 		catch( Exception e )
 		{
@@ -220,7 +220,7 @@ public class RTIAmbassadorWrapper
 		// failed, but as long as *someone* registered it everything is fine
 		try
 		{
-			rtiamb.registerFederationSynchronizationPoint( label, safeByteArray( tag ) );
+			rtiAmbassador.registerFederationSynchronizationPoint( label, safeByteArray( tag ) );
 		}
 		catch( Exception e )
 		{
@@ -232,7 +232,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiamb.synchronizationPointAchieved( label );
+			rtiAmbassador.synchronizationPointAchieved( label );
 		}
 		catch( Exception e )
 		{
@@ -244,7 +244,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiamb.resignFederationExecution( resignAction );
+			rtiAmbassador.resignFederationExecution( resignAction );
 		}
 		catch( Exception e )
 		{
@@ -252,11 +252,11 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void destroyFederationExecution(FederateConfiguration configuration) throws RTIexception
+	public void destroyFederationExecution(FederateConfiguration configuration)
 	{
 		try
 		{
-			rtiamb.destroyFederationExecution( configuration.getFederateName() );
+			rtiAmbassador.destroyFederationExecution( configuration.getFederateName() );
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{
@@ -287,7 +287,7 @@ public class RTIAmbassadorWrapper
 		{
 			try
 			{
-				rtiamb.deleteObjectInstance( handle, EMPTY_BYTE_ARRAY );
+				rtiAmbassador.deleteObjectInstance( handle, EMPTY_BYTE_ARRAY );
 			}
 			catch( DeletePrivilegeNotHeld e )
 			{
@@ -306,11 +306,11 @@ public class RTIAmbassadorWrapper
 	 * This method will attempt to delete the object instance with the given handle. We can only
 	 * delete objects we created, or for which we own the privilegeToDelete attribute.
 	 */
-	public void deleteObjectInstances( ObjectInstanceHandle handle, byte[] tag )
+	public void deleteObjectInstance( ObjectInstanceHandle handle, byte[] tag )
 	{
 		try
 		{
-			rtiamb.deleteObjectInstance( handle, safeByteArray( tag ) );
+			rtiAmbassador.deleteObjectInstance( handle, safeByteArray( tag ) );
 		}
 		catch( DeletePrivilegeNotHeld e )
 		{
@@ -329,11 +329,19 @@ public class RTIAmbassadorWrapper
 	////////////////////////////////////////////////////////////////////////////////////////////
 	public HLAfloat64Time makeHLATime( double time )
 	{
+		// NOTE: LogicalTime create code is Portico specific. 
+		//       You will have to alter this if you move to a different RTI implementation. 
+		//       As such, it is isolated into a single method so that any changes required
+		//       should be fairly isolated.
 		return this.timeFactory.makeTime( time );
 	}
 	
 	public HLAfloat64Interval makeHLAInterval( double interval )
 	{
+		// NOTE: LogicalTimeInterval create code is Portico specific. 
+		//       You will have to alter this if you move to a different RTI implementation. 
+		//       As such, it is isolated into a single method so that any changes required
+		//       should be fairly isolated.
 		return timeFactory.makeInterval( interval );		
 	}
 	
@@ -341,7 +349,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiamb.timeAdvanceRequest( makeHLATime( newTime ) );
+			rtiAmbassador.timeAdvanceRequest( makeHLATime( newTime ) );
 		}
 		catch( Exception e )
 		{
@@ -353,7 +361,13 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			this.rtiamb.enableTimeRegulation( makeHLAInterval( lookAhead ) );
+			this.rtiAmbassador.enableTimeRegulation( makeHLAInterval( lookAhead ) );
+		}
+		catch( TimeRegulationAlreadyEnabled e )
+		{
+			// We catch and deliberately ignore this exception - this is not an error 
+			// condition as such, it just means that time regulation is already enabled
+			// so we don't need to do it again.
 		}
 		catch( Exception e )
 		{
@@ -365,7 +379,13 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			this.rtiamb.disableTimeRegulation();
+			this.rtiAmbassador.disableTimeRegulation();
+		}
+		catch( TimeRegulationIsNotEnabled e )
+		{
+			// We catch and deliberately ignore this exception - this is not an error 
+			// condition as such, it just means that time regulation is not enabled
+			// so we don't need to disable it.
 		}
 		catch( Exception e )
 		{
@@ -377,7 +397,13 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			this.rtiamb.enableTimeConstrained();
+			this.rtiAmbassador.enableTimeConstrained();
+		}
+		catch( TimeConstrainedAlreadyEnabled e )
+		{
+			// We catch and deliberately ignore this exception - this is not an error 
+			// condition as such, it just means that time constrained is already enabled
+			// so we don't need to do it again.
 		}
 		catch( Exception e )
 		{
@@ -389,7 +415,13 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			this.rtiamb.disableTimeConstrained();
+			this.rtiAmbassador.disableTimeConstrained();
+		}
+		catch( TimeConstrainedIsNotEnabled e )
+		{
+			// We catch and deliberately ignore this exception - this is not an error 
+			// condition as such, it just means that time constrained is not enabled
+			// so we don't need to disable it.
 		}
 		catch( Exception e )
 		{
@@ -490,7 +522,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getObjectClassName( handle );
+			return this.rtiAmbassador.getObjectClassName( handle );
 		}
 		catch( Exception e )
 		{
@@ -509,7 +541,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getObjectClassHandle( name );
+			return this.rtiAmbassador.getObjectClassHandle( name );
 		}
 		catch( Exception e )
 		{
@@ -528,7 +560,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return rtiamb.getKnownObjectClassHandle( handle );
+			return rtiAmbassador.getKnownObjectClassHandle( handle );
 		}
 		catch( Exception e )
 		{
@@ -549,7 +581,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getAttributeName( objectClassHandle, attributeHandle );
+			return this.rtiAmbassador.getAttributeName( objectClassHandle, attributeHandle );
 		}
 		catch( Exception e )
 		{
@@ -569,7 +601,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getAttributeHandle( handle, attributeName );
+			return this.rtiAmbassador.getAttributeHandle( handle, attributeName );
 		}
 		catch( Exception e )
 		{
@@ -588,7 +620,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getInteractionClassName( handle );
+			return this.rtiAmbassador.getInteractionClassName( handle );
 		}
 		catch( Exception e )
 		{
@@ -607,7 +639,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getInteractionClassHandle( name );
+			return this.rtiAmbassador.getInteractionClassHandle( name );
 		}
 		catch( Exception e )
 		{
@@ -627,7 +659,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getParameterHandle( handle, parameterName );
+			return this.rtiAmbassador.getParameterHandle( handle, parameterName );
 		}
 		catch( Exception e )
 		{
@@ -648,7 +680,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getParameterName( interactionClassHandle, parameterHandle );
+			return this.rtiAmbassador.getParameterName( interactionClassHandle, parameterHandle );
 		}
 		catch( Exception e )
 		{
@@ -667,7 +699,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getObjectInstanceName( handle );
+			return this.rtiAmbassador.getObjectInstanceName( handle );
 		}
 		catch( Exception e )
 		{
@@ -686,7 +718,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			return this.rtiamb.getObjectInstanceHandle( name );
+			return this.rtiAmbassador.getObjectInstanceHandle( name );
 		}
 		catch( Exception e )
 		{
@@ -721,9 +753,9 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			if( instanceIdentifier == null )
-				instanceHandle = rtiamb.registerObjectInstance( handle );
+				instanceHandle = rtiAmbassador.registerObjectInstance( handle );
 			else
-				instanceHandle = rtiamb.registerObjectInstance( handle, instanceIdentifier );
+				instanceHandle = rtiAmbassador.registerObjectInstance( handle, instanceIdentifier );
 		}
 		catch( Exception e )
 		{
@@ -763,7 +795,7 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
-			rtiamb.publishInteractionClass( handle );
+			rtiAmbassador.publishInteractionClass( handle );
 		}
 		catch( Exception e )
 		{
@@ -790,7 +822,7 @@ public class RTIAmbassadorWrapper
 			
 		try
 		{
-			rtiamb.publishObjectClassAttributes( handle, attributes );
+			rtiAmbassador.publishObjectClassAttributes( handle, attributes );
 		}
 		catch( Exception e )
 		{
@@ -812,7 +844,7 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
-			rtiamb.subscribeInteractionClass( handle );
+			rtiAmbassador.subscribeInteractionClass( handle );
 		}
 		catch( Exception e )
 		{
@@ -843,7 +875,7 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
-			rtiamb.subscribeObjectClassAttributes( handle, attributes );
+			rtiAmbassador.subscribeObjectClassAttributes( handle, attributes );
 		}
 		catch( Exception e )
 		{
@@ -863,39 +895,45 @@ public class RTIAmbassadorWrapper
 	 * Federates which are subscribed to a matching combination of class type and attributes will receive
 	 * a notification the next time they tick().
 	 * 
-	 * @param handle the instance handle of the object to which the attributes belong 
+	 * @param objectInstanceHandle the instance handle of the object to which the attributes belong 
 	 * @param attributes the attributes and their associated values
 	 * @param tag the tag of the interaction - may be null
 	 * @param time the timestamp for the interaction - may be null
-	 * @throws RTIexception
 	 * 
 	 */
-	public void updateAttributeValues( ObjectInstanceHandle handle,
-	                                   AttributeHandleValueMap attributes,
-	                                   byte[] tag, HLAfloat64Time time)
+	public void updateAttributeValues( ObjectInstanceHandle objectInstanceHandle,
+	                                   Map<String, byte[]> attributes,
+	                                   byte[] tag, Double time)
 	{
-		if( handle == null )
+		// basic sanity checks on provided arguments
+		if( objectInstanceHandle == null )
 			throw new UCEFException( "NULL object instance handle. Cannot update attribute values." );
 		
 		if( attributes == null )
-			throw new UCEFException( "NULL attribute handle value map. Cannot update attributes for object instance %s.",
-			                         assembleObjectInstanceDetails( handle ) );
-		
+			throw new UCEFException( "NULL attribute value map. Cannot update attributes for object instance %s.",
+			                         assembleObjectInstanceDetails( objectInstanceHandle ) );
+
 		try
 		{
+			// we need to build up an AttributeHandleValueMap from the provided attributes map  
+			AttributeHandleValueMap ahvm = convert(objectInstanceHandle, attributes);
+			
+			// now we have the information we need to do the update   
 			if( time == null )
-				rtiamb.updateAttributeValues( handle, attributes, safeByteArray( tag ) );
+				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, safeByteArray( tag ) );
 			else
-				rtiamb.updateAttributeValues( handle, attributes, safeByteArray( tag ), time );
+				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, 
+				                                    safeByteArray( tag ), makeHLATime( time ) );
 		}
 		catch( Exception e )
 		{
 			throw new UCEFException( e,
 			                         "Failed to update attribute values for object instance %s",
-			                         assembleObjectInstanceDetails( handle ) );
+			                         assembleObjectInstanceDetails( objectInstanceHandle ) );
 		}
 	}
 	
+
 	/**
 	 * This method will send out an interaction of the specified type, with parameters and a timestamp.
 	 * 
@@ -906,36 +944,85 @@ public class RTIAmbassadorWrapper
 	 * @param parameters the parameters of the interaction
 	 * @param tag the tag of the interaction
 	 * @param time the timestamp for the interaction
-	 * @throws RTIexception
 	 */
-	public void sendInteraction( InteractionClassHandle handle, ParameterHandleValueMap parameters,
-	                             byte[] tag, HLAfloat64Time time )
+	public void sendInteraction( InteractionClassHandle interactionClassHandle, 
+	                             Map<String, byte[]> parameters,
+	                             byte[] tag, Double time )
 	{
-		if( handle == null )
+		// basic sanity checks on provided arguments
+		if( interactionClassHandle == null )
 			throw new UCEFException( "NULL interaction class handle. Cannot send interaction." );
 		
 		if( parameters == null )
-			throw new UCEFException( "NULL attribute handle value map. Cannot send interaction %s.",
-			                         assembleInteractionClassDetails( handle ) );
+			throw new UCEFException( "NULL parameter value map. Cannot send interaction %s.",
+			                         assembleInteractionClassDetails( interactionClassHandle ) );
 
-		// sanity check the tag for null
 		try
 		{
+			// we need to build up a ParameterHandleValueMap from the provided parameters map  
+			ParameterHandleValueMap phvm = convert(interactionClassHandle, parameters);
+			
+			// now we have the information we need to do the send
 			if(time == null)
-				rtiamb.sendInteraction( handle, parameters, safeByteArray( tag ) );
+				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, safeByteArray( tag ) );
 			else
-				rtiamb.sendInteraction( handle, parameters, safeByteArray( tag ), time );
+				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, 
+				                              safeByteArray( tag ), makeHLATime( time ) );
 		}
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to send interaction %s",
-			                         assembleInteractionClassDetails( handle ) );
+			                         assembleInteractionClassDetails( interactionClassHandle ) );
 		}
 	}
+	
+	/**
+	 * A utility method to encapsulate the code needed to convert a map containing parameter names
+	 * and their associated byte values into a populated {@link ParameterHandleValueMap}
+	 * 
+	 * @param ich the interaction class handle with which the parameters are associated
+	 * @param source the map containing parameter names and their associated byte values
+	 * @return a populated {@link ParameterHandleValueMap}
+	 */
+	private ParameterHandleValueMap convert( InteractionClassHandle ich, Map<String,byte[]> source )
+	{
+		ParameterHandleValueMap result = makeParameterMap( source.size() );
+		for( Entry<String,byte[]> entry : source.entrySet() )
+		{
+			ParameterHandle parameterHandle = getParameterHandle( ich, entry.getKey() );
+			if( parameterHandle == null )
+				throw new UCEFException( "Unknown parameter '%s'. Create parameter value map.",
+				                         entry.getKey() );
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
+			result.put( parameterHandle, entry.getValue() );
+		}
+		return result;
+	}
+
+	/**
+	 * A utility method to encapsulate the code needed to convert a map containing attribute names
+	 * and their associated byte values into a populated {@link AttributeHandleValueMap}
+	 * 
+	 * @param oih the object instance handle with which the attributes are associated
+	 * @param source the map containing attribute names and their associated byte values
+	 * @return a populated {@link AttributeHandleValueMap}
+	 */
+	private AttributeHandleValueMap convert( ObjectInstanceHandle oih, Map<String,byte[]> source )
+	{
+		ObjectClassHandle och = getKnownObjectClassHandle( oih );
+		AttributeHandleValueMap result = makeAttributeMap( source.size() );
+		for( Entry<String,byte[]> entry : source.entrySet() )
+		{
+			AttributeHandle attributeHandle = getAttributeHandle( och, entry.getKey() );
+			if( attributeHandle == null )
+				throw new UCEFException( "Unknown attribute '%s'. Cannot create attribute value map.",
+				                         entry.getKey() );
+
+			result.put( getAttributeHandle( och, entry.getKey() ), entry.getValue() );
+		}
+		return result;
+	}
+	
 	/**
 	 * A utility method to provide an zero-length byte array in place of a null as required
 	 * 
@@ -954,13 +1041,13 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object instance handle
 	 * @return the details of the associated object instance
 	 */
-	private String assembleObjectInstanceDetails(ObjectInstanceHandle handle)
+	public String assembleObjectInstanceDetails(ObjectInstanceHandle handle)
 	{
 		String instanceName = getObjectInstanceName( handle );
 		ObjectClassHandle classHandle = getKnownObjectClassHandle( handle );
 		
 		StringBuilder details = new StringBuilder( "'" + (instanceName==null?"NULL":instanceName) + "' " );
-		details.append( " (handle '" + (handle==null?"NULL":handle) + "') of object class " );
+		details.append( "(handle '" + (handle==null?"NULL":handle) + "') of object class " );
 		details.append( assembleObjectClassDetails( classHandle ) );
 		
 		return details.toString();
@@ -973,12 +1060,12 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object class handle
 	 * @return the details of the associated object class
 	 */
-	private String assembleObjectClassDetails(ObjectClassHandle handle)
+	public String assembleObjectClassDetails(ObjectClassHandle handle)
 	{
 		String className = getObjectClassName( handle );
 		
-		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "'" );
-		details.append( " (handle'" + (handle==null?"NULL":handle) + "')" );
+		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "' " );
+		details.append( "(handle '" + (handle==null?"NULL":handle) + "')" );
 		
 		return details.toString();
 	}
@@ -990,12 +1077,12 @@ public class RTIAmbassadorWrapper
 	 * @param handle the interaction class handle
 	 * @return the details of the associated interaction class
 	 */
-	private String assembleInteractionClassDetails(InteractionClassHandle handle)
+	public String assembleInteractionClassDetails(InteractionClassHandle handle)
 	{
 		String className = getInteractionClassName( handle );
 		
-		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "'" );
-		details.append( " (handle'" + (handle==null?"NULL":handle) + "')" );
+		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "' " );
+		details.append( "(handle '" + (handle==null?"NULL":handle) + "')" );
 		
 		return details.toString();
 	}

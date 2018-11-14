@@ -33,12 +33,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
-import old.util.StringUtils;
-
-
 /**
  * The purpose of this class is to encapsulate all data required to configure a federate. The main
  * usage pattern is something like:
@@ -65,12 +59,10 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final Logger logger = LogManager.getFormatterLogger( FederateConfiguration.class );
-	
 	private static final int DEFAULT_MAX_RECONNECT_ATTEMPTS = 5;
 	private static final long DEFAULT_RECONNECT_WAIT_MS = 5000; // 5 seconds
 	private static final boolean DEFAULT_IS_LATE_JOINER = false;
-	private static final boolean DEFAULT_IS_TIME_STEPPED = false;
+	private static final boolean DEFAULT_IS_TIME_STEPPED = true;
 	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED = false;
 	private static final double DEFAULT_LOOK_AHEAD = 1.0;
 	private static final double DEFAULT_STEP_SIZE = 0.1;
@@ -104,6 +96,21 @@ public class FederateConfiguration
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
+	 * Constructor - the federation name and federate name are supplied.
+	 * 
+	 * The federate type is taken to be the same as the federate name, and all other properties are 
+	 * left as defaults and or empty
+	 * 
+	 * @param federationName
+	 * @param federateName
+	 */
+	public FederateConfiguration( String federationName, String federateName )
+	{
+		// use federate name as federate type parameter
+		this( federationName, federateName, federateName );
+	}
+	
+	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
 	 * 
@@ -116,7 +123,7 @@ public class FederateConfiguration
 		this.federationName = federationName;
 
 		this.federateName = federateName;
-		this.federateType = federateType;
+		this.federateType = federateType == null ? federateName : federateType;
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
@@ -141,8 +148,8 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	public String summary()
 	{
-		String dashRule = StringUtils.repeat( '-', 60 ) + "\n";
-		String dotRule = StringUtils.repeat( '.', 60 ) + "\n";
+		String dashRule = "------------------------------------------------------------\n";
+		String dotRule = "............................................................\n";
 		
 		List<String> classNames = new ArrayList<>();
 		List<String> attributeNames = new ArrayList<>();
@@ -838,7 +845,7 @@ public class FederateConfiguration
 	 */
 	public Collection<String> collectNonEmptyStrings( Collection<String> values )
 	{
-		return values.stream().filter( ( str ) -> StringUtils.isNotNullOrEmpty( str ) ).collect( Collectors.toList() );
+		return values.stream().filter( ( str ) -> notNullOrEmpty( str ) ).collect( Collectors.toList() );
 	}
 
 	/**
@@ -887,10 +894,6 @@ public class FederateConfiguration
 		if( isFrozen() )
 		{
 			// can't modify values
-			logger.warn( String.format( "Configuration for federate '%s' of type '%s' in federation '%s' is frozen and so cannot be modified.",
-			                             this.federateName,
-			                             this.federateType,
-			                             this.federationName ) );
 			return false;
 		}
 		return true;

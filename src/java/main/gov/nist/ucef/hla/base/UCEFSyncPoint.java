@@ -41,12 +41,12 @@ public enum UCEFSyncPoint
 	READY_TO_RESIGN("readyToResign", "Ready to Resign");
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//                   STATIC VARIABLES
 	//----------------------------------------------------------
 	// a map for finding a Synchronization point for a string key - this is to provide
 	// quick lookups and avoid iterating over all SynchronizationPoints (though admittedly
 	// there are only three of them)
-	private static final Map<String,UCEFSyncPoint> keyToSynchronizationPointLookup =
+	private static final Map<String,UCEFSyncPoint> SYNC_POINT_LOOKUP =
 	    Collections.unmodifiableMap( initializeMapping() );
 
 	//----------------------------------------------------------
@@ -173,7 +173,7 @@ public enum UCEFSyncPoint
 	 */
 	public static UCEFSyncPoint fromLabel( String label )
 	{
-		return keyToSynchronizationPointLookup.get( label );
+		return SYNC_POINT_LOOKUP.get( label );
 	}
 
 	/**
