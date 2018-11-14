@@ -5,6 +5,7 @@
 #endif
 
 #include <map>
+#include <mutex>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
@@ -31,40 +32,39 @@ namespace ucef
 			//                     Instance Methods
 			//----------------------------------------------------------
 			void setAttributeValue( const std::string& attributeName, bool val );
-			void setAttributeValue( const std::string& attributeName, char val );
+			void setAttributeValue( const std::string& attributeName, const char val );
 			void setAttributeValue( const std::string& attributeName, short val );
 			void setAttributeValue( const std::string& attributeName, int val );
 			void setAttributeValue( const std::string& attributeName, long val );
 			void setAttributeValue( const std::string& attributeName, float val );
 			void setAttributeValue( const std::string& attributeName, double val );
 			void setAttributeValue( const std::string& attributeName, const std::string& val );
+			void setAttributeValue( const std::string& attributeName,
+			                        std::shared_ptr<void> data,
+			                        const size_t size );
 
-			bool getAttributeAsBool( const std::string& attributeName );
-			char getAttributeAsChar( const std::string& attributeName );
-			short getAttributeAsShort( const std::string& attributeName );
-			int getAttributeAsInt( const std::string& attributeName );
-			long getAttributeAsLong( const std::string& attributeName );
-			float getAttributeAsFloat( const std::string& attributeName );
-			double getAttributeAsDouble( const std::string& attributeName );
-			std::string getAttributeAsString( const std::string& attributeName );
+			bool getAttributeValuAsBool( const std::string& attributeName );
+			char getAttributeValuAsChar( const std::string& attributeName );
+			short getAttributeValuAsShort( const std::string& attributeName );
+			int getAttributeValuAsInt( const std::string& attributeName );
+			long getAttributeValuAsLong( const std::string& attributeName );
+			float getAttributeValuAsFloat( const std::string& attributeName );
+			double getAttributeValuAsDouble( const std::string& attributeName );
+			std::string getAttributeValuAsString( const std::string& attributeName );
 
-			std::shared_ptr<HLAObjectAttributes> getAttributeDataStore();
+			util::VariableData getAttributeValue( const std::string& attributeName );
 			void clearAttributeDataStore();
 			std::string getClassName();
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> getInstanceHandle();
 		private:
-			//----------------------------------------------------------
-			//                    Business Logic
-			//----------------------------------------------------------
-			void pushToAttributeStore( const std::string& attributeName,
-			                           std::shared_ptr<void> data,
-			                           const size_t size );
+
 			//----------------------------------------------------------
 			//                    Private members
 			//----------------------------------------------------------
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
 			std::string m_className;
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> m_instanceHandle;
+			std::mutex m_threadSafeLock;
 	};
 }
 

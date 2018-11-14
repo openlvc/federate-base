@@ -86,6 +86,29 @@ namespace ucef
 			                                     rti1516e::SupplementalReflectInfo theReflectInfo )
 			                                                            throw( rti1516e::FederateInternalError );
 
+			virtual void removeObjectInstance( rti1516e::ObjectInstanceHandle theObject,
+			                                   rti1516e::VariableLengthData const & theUserSuppliedTag,
+			                                   rti1516e::OrderType sentOrder,
+			                                   rti1516e::SupplementalRemoveInfo theRemoveInfo)
+			                                                            throw (rti1516e:: FederateInternalError);
+
+			virtual void removeObjectInstance( rti1516e::ObjectInstanceHandle theObject,
+			                                   rti1516e::VariableLengthData const & theUserSuppliedTag,
+			                                   rti1516e::OrderType sentOrder,
+			                                   rti1516e::LogicalTime const & theTime,
+			                                   rti1516e::OrderType receivedOrder,
+			                                   rti1516e::SupplementalRemoveInfo theRemoveInfo)
+			                                                            throw (rti1516e:: FederateInternalError);
+
+			virtual void removeObjectInstance( rti1516e::ObjectInstanceHandle theObject,
+			                                   rti1516e::VariableLengthData const & theUserSuppliedTag,
+			                                   rti1516e::OrderType sentOrder,
+			                                   rti1516e::LogicalTime const & theTime,
+			                                   rti1516e::OrderType receivedOrder,
+			                                   rti1516e::MessageRetractionHandle theHandle,
+			                                   rti1516e::SupplementalRemoveInfo theRemoveInfo)
+			                                                            throw (rti1516e:: FederateInternalError);
+
 			//----------------------------------------------------------
 			//             Federate Access Methods
 			//----------------------------------------------------------
@@ -109,6 +132,6 @@ namespace ucef
 			bool m_constrained;
 			bool m_advanced;
 			double m_federateTime;
-			std::mutex threadSafeLock;
+			std::mutex m_threadSafeLock;
 	};
 }

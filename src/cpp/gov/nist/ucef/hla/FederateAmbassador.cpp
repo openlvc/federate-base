@@ -1,5 +1,5 @@
 #include "FederateAmbassador.h"
-
+#include <string>
 #include <mutex>
 
 #include "FederateBase.h"
@@ -33,7 +33,7 @@ namespace ucef
 	                                                       const VariableLengthData& tag )
 	                                                            throw(FederateInternalError)
 	{
-		lock_guard<mutex> lock( threadSafeLock );
+		lock_guard<mutex> lock( m_threadSafeLock );
 		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
 			announcedSynchPoints.insert( label );
 	}
@@ -43,7 +43,7 @@ namespace ucef
 	                                                 const FederateHandleSet& failedSet )
 	                                                             throw( FederateInternalError )
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		if( achievedSynchPoints.find(label) == achievedSynchPoints.end() )
 			achievedSynchPoints.insert(label);
 	}
@@ -54,7 +54,7 @@ namespace ucef
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( threadSafeLock );
+			lock_guard<mutex> lockGuard( m_threadSafeLock );
 			this->m_regulated = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -62,7 +62,7 @@ namespace ucef
 	void FederateAmbassador::timeConstrainedEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( threadSafeLock );
+			lock_guard<mutex> lockGuard( m_threadSafeLock );
 			this->m_constrained = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -70,7 +70,7 @@ namespace ucef
 	void FederateAmbassador::timeAdvanceGrant( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( threadSafeLock );
+			lock_guard<mutex> lockGuard( m_threadSafeLock );
 			this->m_advanced = true;
 			this->m_federateTime = convertTime( theFederateTime );
 	}
@@ -126,12 +126,12 @@ namespace ucef
 				{
 					if( attribute.second->handle->hash() == incomingAttributeValue.first.hash())
 					{
-						string strValue( (const char*)incomingAttributeValue.second.data() );
-						object->setAttributeValue( ConversionHelper::ws2s(attribute.second->name),
-						                           strValue );
-						logger.log( "Received Attribute update " + ConversionHelper::ws2s( attribute.second->name ) +
-									"xxxxxxxxxxx" + strValue, LevelCritical );
-						break;
+						size_t size = incomingAttributeValue.second.size();
+						const void* data = incomingAttributeValue.second.data();
+						shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
+						memcpy_s(arr.get(), size, data, size);
+						object->setAttributeValue
+						            ( ConversionHelper::ws2s(attribute.second->name), arr, size );
 					}
 				}
 			}
@@ -170,50 +170,92 @@ namespace ucef
 		reflectAttributeValues( theObject, theAttributeValues, theUserSuppliedTag, sentOrder, theType, theReflectInfo );
 	}
 
+	void FederateAmbassador::removeObjectInstance( ObjectInstanceHandle theObject,
+	                                               VariableLengthData const& theUserSuppliedTag,
+	                                               OrderType sentOrder,
+	                                               SupplementalRemoveInfo theRemoveInfo )
+	                                                              throw(FederateInternalError)
+	{
+		if( theObject.isValid() )
+		{
+			shared_ptr<ObjectInstanceHandle> instanceHandle = make_shared<ObjectInstanceHandle>( theObject );
+
+			shared_ptr<HLAObject> object = make_shared<HLAObject>( "", instanceHandle );
+			m_federateBase->removeObjectInstance( object );
+		}
+		else
+		{
+			Logger::getInstance().log( string("Received object remove notification with invalid handler."),
+			                           LevelError );
+		}
+	}
+
+	void FederateAmbassador::removeObjectInstance( ObjectInstanceHandle theObject,
+	                                               VariableLengthData const& theUserSuppliedTag,
+	                                               OrderType sentOrder,
+	                                               LogicalTime const & theTime,
+	                                               OrderType receivedOrder,
+	                                               SupplementalRemoveInfo theRemoveInfo )
+	                                                              throw(FederateInternalError)
+	{
+		removeObjectInstance( theObject, theUserSuppliedTag, sentOrder, theRemoveInfo );
+	}
+
+	void FederateAmbassador::removeObjectInstance( ObjectInstanceHandle theObject,
+	                                               VariableLengthData const& theUserSuppliedTag,
+	                                               OrderType sentOrder,
+	                                               LogicalTime const & theTime,
+	                                               OrderType receivedOrder,
+	                                               MessageRetractionHandle theHandle,
+	                                               SupplementalRemoveInfo theRemoveInfo )
+	                                                              throw(FederateInternalError)
+	{
+		removeObjectInstance( theObject, theUserSuppliedTag, sentOrder, theRemoveInfo );
+	}
 	//----------------------------------------------------------
 	//             Federate Access Methods
 	//----------------------------------------------------------
 	bool FederateAmbassador::isAnnounced( wstring& announcedPoint )
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
 		return announced;
 	}
 
 	bool FederateAmbassador::isAchieved( wstring& achievedPoint )
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;
 		return achieved;
 	}
 
 	bool FederateAmbassador::isRegulated()
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_regulated;
 	}
 
 	bool FederateAmbassador::isConstrained()
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_constrained;
 	}
 
 	bool FederateAmbassador::isTimeAdvanced()
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_advanced;
 	}
 
 	void FederateAmbassador::resetTimeAdvanced()
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		m_advanced = false;
 	}
 
 	double FederateAmbassador::getFederateTime()
 	{
-		lock_guard<mutex> lockGuard( threadSafeLock );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_federateTime;
 	}
 	

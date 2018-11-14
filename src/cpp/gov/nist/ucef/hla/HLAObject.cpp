@@ -1,5 +1,7 @@
 #include "HLAObject.h"
 
+#include <string>
+#include "gov/nist/ucef/util/Logger.h"
 #include "RTI/Handle.h"
 
 using namespace rti1516e;
@@ -21,108 +23,51 @@ namespace ucef
 
 	void HLAObject::setAttributeValue( const string& attributeName, bool val )
 	{
-		pushToAttributeStore( attributeName, make_shared<bool>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<bool>(val), sizeof(bool) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, char val )
+	void HLAObject::setAttributeValue( const string& attributeName, const char val )
 	{
-		pushToAttributeStore( attributeName, make_shared<char>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<char>(val), sizeof(char) );
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, short val )
 	{
-		pushToAttributeStore( attributeName, make_shared<short>(val), sizeof(val));
+		setAttributeValue( attributeName, make_shared<short>(val), sizeof(short));
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, int val )
 	{
-		pushToAttributeStore( attributeName, make_shared<int>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<int>(val), sizeof(int) );
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, long val )
 	{
-		pushToAttributeStore( attributeName, make_shared<long>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<long>(val), sizeof(long) );
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, float val )
 	{
-		pushToAttributeStore( attributeName, make_shared<float>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<float>(val), sizeof(float) );
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, double val )
 	{
-		pushToAttributeStore( attributeName, make_shared<double>(val), sizeof(val) );
+		setAttributeValue( attributeName, make_shared<double>(val), sizeof(double) );
 	}
 
 	void HLAObject::setAttributeValue( const string& attributeName, const string& val )
 	{
-		pushToAttributeStore( attributeName, make_shared<string>(val), sizeof(val) );
+		shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
+		strcpy_s(arr.get(), val.length() + 1, val.c_str());
+		setAttributeValue( attributeName, arr, val.length() + 1 );
 	}
 
-	bool HLAObject::getAttributeAsBool( const std::string & attributeName )
+	void HLAObject::setAttributeValue( const string& attributeName,
+	                                   shared_ptr<void> data,
+	                                   const size_t size )
 	{
-		return false;
-	}
-
-	char HLAObject::getAttributeAsChar( const std::string & attributeName )
-	{
-		return 0;
-	}
-
-	short HLAObject::getAttributeAsShort( const std::string & attributeName )
-	{
-		return 0;
-	}
-
-	int HLAObject::getAttributeAsInt( const std::string & attributeName )
-	{
-		return 0;
-	}
-
-	long HLAObject::getAttributeAsLong( const std::string & attributeName )
-	{
-		return 0;
-	}
-
-	float HLAObject::getAttributeAsFloat( const std::string & attributeName )
-	{
-		return 0.0f;
-	}
-
-	double HLAObject::getAttributeAsDouble( const std::string & attributeName )
-	{
-		return 0.0;
-	}
-
-	string HLAObject::getAttributeAsString( const std::string & attributeName )
-	{
-		return string();
-	}
-
-	shared_ptr<HLAObjectAttributes> HLAObject::getAttributeDataStore()
-	{
-		return m_attributeDataStore;
-	}
-
-	void HLAObject::clearAttributeDataStore()
-	{
-		m_attributeDataStore->clear();
-	}
-
-	std::string HLAObject::getClassName()
-	{
-		return m_className;
-	}
-
-	shared_ptr<ObjectInstanceHandle> HLAObject::getInstanceHandle()
-	{
-		return m_instanceHandle;
-	}
-
-	void HLAObject::pushToAttributeStore( const string& attributeName,
-	                                      shared_ptr<void> data,
-	                                      const size_t size )
-	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		if( m_attributeDataStore->find( attributeName ) != m_attributeDataStore->end() )
 		{
 			(*m_attributeDataStore)[attributeName].data = data;
@@ -135,5 +80,97 @@ namespace ucef
 			variableData.size = size;
 			m_attributeDataStore->insert( pair<string, VariableData>( attributeName, variableData) );
 		}
+	}
+
+	bool HLAObject::getAttributeValuAsBool( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (bool *)data.data.get() );
+		return 0;
+	}
+
+	char HLAObject::getAttributeValuAsChar( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (char *)data.data.get() );
+		return 0;
+	}
+
+	short HLAObject::getAttributeValuAsShort( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (short *)data.data.get() );
+		return 0;
+	}
+
+	int HLAObject::getAttributeValuAsInt( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (int *)data.data.get() );
+		return 0;
+	}
+
+	long HLAObject::getAttributeValuAsLong( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (long *)data.data.get() );
+		return 0;
+	}
+
+	float HLAObject::getAttributeValuAsFloat( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (float *)data.data.get() );
+		return 0.0f;
+	}
+
+	double HLAObject::getAttributeValuAsDouble( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return *( (double *)data.data.get() );
+		return 0.0;
+	}
+
+	string HLAObject::getAttributeValuAsString( const string& attributeName )
+	{
+		VariableData data = getAttributeValue( attributeName );
+		if(data.data)
+			return string( (char *)data.data.get() );
+		return "";
+	}
+
+	VariableData HLAObject::getAttributeValue( const string& attributeName )
+	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		VariableData data;
+		auto it = m_attributeDataStore->find( attributeName );
+		if( it != m_attributeDataStore->end() )
+		{
+			data = it->second;
+		}
+		return data;
+	}
+
+	void HLAObject::clearAttributeDataStore()
+	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		m_attributeDataStore->clear();
+	}
+
+	std::string HLAObject::getClassName()
+	{
+		return m_className;
+	}
+
+	shared_ptr<ObjectInstanceHandle> HLAObject::getInstanceHandle()
+	{
+		return m_instanceHandle;
 	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <mutex>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
@@ -25,6 +26,7 @@ namespace ucef
 			                                        double federateTime );
 			virtual void receiveAttributeReflection( std::shared_ptr<HLAObject>& hlaObject,
 			                                         double federateTime );
+			void removeObjectInstance( std::shared_ptr<HLAObject>& hlaObject );
 			std::shared_ptr<util::ObjectClass> getObjectClass( long hash );
 			std::shared_ptr<util::ObjectClass> getObjectClass( std::string name );
 			std::shared_ptr<HLAObject> findIncomingObject( long hash );
@@ -76,6 +78,7 @@ namespace ucef
 			//                    Private members
 			//----------------------------------------------------------
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
+			std::mutex m_threadSafeLock;
 	};
 }
 

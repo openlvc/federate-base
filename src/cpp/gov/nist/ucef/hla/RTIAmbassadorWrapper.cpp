@@ -293,38 +293,29 @@ namespace ucef
 
 			ObjectAttributes cachedAttributes = classIt->second->objectAttributes;
 
-			shared_ptr<HLAObjectAttributes> atributeData = hlaObject->getAttributeDataStore();
-			for( auto attribute : (*atributeData) )
+			for( const auto& cachedAttributePair : cachedAttributes )
 			{
-				auto it = cachedAttributes.find( attribute.first );
-				if( it != cachedAttributes.end() )
+				shared_ptr<ObjectAttribute> cacheAttribute = cachedAttributePair.second;
+				if( cacheAttribute->publish )
 				{
-					shared_ptr<ObjectAttribute> cacheAttribute = it->second;
-					if( cacheAttribute->publish )
+					if( cacheAttribute->handle->isValid() )
 					{
-						if( cacheAttribute->handle->isValid() )
-						{
-							VariableData &val = attribute.second;
-							VariableLengthData data( val.data.get(), val.size );
-							rtiAttributeMap[*(cacheAttribute->handle)] = data;
-							logger.log( "The new value of " + attribute.first + " in " + hlaObject->getClassName()
-							            + " is ready to publish.", LevelDebug );
-						}
-						else
-						{
-							logger.log( "Attribute handler is not valid for " + attribute.first, LevelError );
-						}
+						VariableData val =
+							hlaObject->getAttributeValue(cachedAttributePair.first);
+						VariableLengthData data( val.data.get(), val.size );
+						rtiAttributeMap[*(cacheAttribute->handle)] = data;
+						logger.log( "The new value of " + cachedAttributePair.first + " in " + hlaObject->getClassName()
+						            + " is ready to publish.", LevelDebug );
 					}
 					else
 					{
-						logger.log( attribute.first + " is not mentioned as a publishable item in SOM."
-						            + ". hence ignore this attribute update request.", LevelError );
+						logger.log( "Attribute handler is not valid for " + cachedAttributePair.first, LevelError );
 					}
 				}
 				else
 				{
-					logger.log( "Can't find " + attribute.first + " in " + hlaObject->getClassName()
-					            + ". hence ignore this attribute update request.", LevelError );
+					logger.log( cachedAttributePair.first + " is not mentioned as a publishable item in SOM."
+						        + ". hence ignore this attribute update request.", LevelError );
 				}
 			}
 			

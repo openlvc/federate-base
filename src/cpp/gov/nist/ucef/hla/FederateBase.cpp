@@ -219,7 +219,7 @@ namespace ucef
 		while( !m_federateAmbassador->isAnnounced(synchPointStr) )
 		{
 			logger.log( "Waiting for the announcement of synchronization Point " +
-						ConversionHelper::SynchPointToString(point), LevelInfo );
+			            ConversionHelper::SynchPointToString(point), LevelInfo );
 			tickForCallBacks();
 		}
 
@@ -275,6 +275,8 @@ namespace ucef
 
 	void FederateBase::receiveObjectRegistration( shared_ptr<HLAObject>& hlaObject, double federateTime )
 	{
+		lock_guard<mutex> lock( m_threadSafeLock );
+
 		Logger& logger = Logger::getInstance();
 		logger.log( "Discvoered new object named " + hlaObject->getClassName(), LevelCritical );
 		m_incomingStore[hlaObject->getInstanceHandle()->hash()] = hlaObject;
@@ -283,9 +285,30 @@ namespace ucef
 	void FederateBase::receiveAttributeReflection( shared_ptr<HLAObject>& hlaObject, double federateTime )
 	{
 		Logger& logger = Logger::getInstance();
-		logger.log( "Received attribute update for " + hlaObject->getClassName(), LevelCritical );
+		logger.log( "Received attribute update for " + hlaObject->getClassName()
+		            + to_string(hlaObject->getAttributeValuAsDouble("Flavor")), LevelCritical );
+		logger.log( "Received attribute update for " + hlaObject->getClassName()
+		            + to_string(hlaObject->getAttributeValuAsDouble("NumberCups")), LevelCritical );
 	}
 
+	void FederateBase::removeObjectInstance( std::shared_ptr<HLAObject>& hlaObject )
+	{
+		lock_guard<mutex> lock( m_threadSafeLock );
+
+		Logger& logger = Logger::getInstance();
+		logger.log( "Received object removed notification for HLAObject with id :" +
+		             to_string(hlaObject->getInstanceHandle()->hash()), LevelInfo );
+
+		size_t deletedCount =  m_incomingStore.erase( hlaObject->getInstanceHandle()->hash() );
+
+		if( deletedCount )
+			logger.log( "HLAObject with id :" + to_string(hlaObject->getInstanceHandle()->hash()) +
+			            " successsfully removed from the incoming map.", LevelInfo );
+		else
+			logger.log( "HLAObject with id :" + to_string(hlaObject->getInstanceHandle()->hash()) +
+			            " could not found for deletion.", LevelInfo );
+	}
+	
 	shared_ptr<ObjectClass> FederateBase::getObjectClass( long hash )
 	{
 		if( m_objectCacheStoreByHash.find( hash ) != m_objectCacheStoreByHash.end() )
@@ -306,6 +329,8 @@ namespace ucef
 
 	shared_ptr<HLAObject> FederateBase::findIncomingObject( long hash )
 	{
+		lock_guard<mutex> lock( m_threadSafeLock );
+
 		if( m_incomingStore.find( hash ) != m_incomingStore.end() )
 		{
 			return m_incomingStore[hash];
