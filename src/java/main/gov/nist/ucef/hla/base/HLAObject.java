@@ -70,6 +70,10 @@ public class HLAObject
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Obtain the underlying HLA handle associated with this instance
+	 * @return the underlying HLA handle associated with this instance
+	 */
 	public ObjectInstanceHandle getInstanceHandle()
 	{
 		return this.objectInstanceHandle;
@@ -161,7 +165,12 @@ public class HLAObject
 	 */
 	public byte[] getRawValue( String attributeName )
 	{
-		return this.attributes.get( attributeName );
+		byte[] result;
+		synchronized( this.attributes )
+		{
+			result = this.attributes.get( attributeName );
+		}
+		return result;
     }
     
 	/**
@@ -256,13 +265,16 @@ public class HLAObject
 	 */
 	public void setRawValue( String attributeName, byte[] value )
 	{
-		if( value == null )
+		synchronized( this.attributes )
 		{
-			this.attributes.remove( attributeName );
-		}
-		else
-		{
-			this.attributes.put( attributeName, value );
+    		if( value == null )
+    		{
+    			this.attributes.remove( attributeName );
+    		}
+    		else
+    		{
+    			this.attributes.put( attributeName, value );
+    		}
 		}
 	}
 	
@@ -287,7 +299,10 @@ public class HLAObject
 	{
 		// TODO should we sanity check that we are updating from 
 		//      a compatible set of attributes...?
-		this.attributes.putAll( attributes );
+		synchronized( this.attributes )
+		{
+			this.attributes.putAll( attributes );
+		}
 		return this;
 	}
     

@@ -409,8 +409,8 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private Map<String, byte[]> convert(ObjectInstanceHandle oih, AttributeHandleValueMap phvm)
 	{
 		ObjectClassHandle och = this.federate.rtiamb.getKnownObjectClassHandle( oih );
-		HashMap<String, byte[]> result = new HashMap<>();
-		for(Entry<AttributeHandle, byte[]> entry : phvm.entrySet())
+		HashMap<String,byte[]> result = new HashMap<>();
+		for( Entry<AttributeHandle,byte[]> entry : phvm.entrySet() )
 		{
 			String name = this.federate.rtiamb.getAttributeName( och, entry.getKey() );
 			result.put( name, entry.getValue() );
@@ -428,8 +428,8 @@ public class FederateAmbassador extends NullFederateAmbassador
 	 */
 	private Map<String, byte[]> convert(InteractionClassHandle ich, ParameterHandleValueMap phvm)
 	{
-		HashMap<String, byte[]> result = new HashMap<>();
-		for(Entry<ParameterHandle, byte[]> entry : phvm.entrySet())
+		HashMap<String,byte[]> result = new HashMap<>();
+		for( Entry<ParameterHandle,byte[]> entry : phvm.entrySet() )
 		{
 			String name = this.federate.rtiamb.getParameterName( ich, entry.getKey() );
 			result.put( name, entry.getValue() );

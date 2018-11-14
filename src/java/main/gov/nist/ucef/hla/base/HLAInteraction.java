@@ -74,6 +74,10 @@ public class HLAInteraction
     ////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Obtain the underlying HLA handle associated with this interaction
+	 * @return the underlying HLA handle associated with this interaction
+	 */
 	public InteractionClassHandle getInteractionClassHandle()
 	{
 		return this.interactionClassHandle;
@@ -165,7 +169,12 @@ public class HLAInteraction
 	 */
 	public byte[] getRawValue( String parameterName )
 	{
-		return parameters.get( parameterName );
+		byte[] result;
+		synchronized( this.parameters )
+		{
+			result = parameters.get( parameterName );
+		}
+		return result;
 	}
     
 	/**
@@ -260,13 +269,16 @@ public class HLAInteraction
 	 */
 	public void setRawValue( String parameterName, byte[] value )
 	{
-		if( value == null )
+		synchronized( this.parameters )
 		{
-			this.parameters.remove( parameterName );
-		}
-		else
-		{
-			this.parameters.put( parameterName, value );
+			if( value == null )
+    		{
+    			this.parameters.remove( parameterName );
+    		}
+    		else
+    		{
+    			this.parameters.put( parameterName, value );
+    		}
 		}
 	}
 	
@@ -291,7 +303,10 @@ public class HLAInteraction
 	{
 		// TODO should we sanity check that we are updating from 
 		//      a compatible set of attributes...?
-		this.parameters.putAll( parameters );
+		synchronized( this.parameters )
+		{
+			this.parameters.putAll( parameters );
+		}
 		return this;
 	}
     

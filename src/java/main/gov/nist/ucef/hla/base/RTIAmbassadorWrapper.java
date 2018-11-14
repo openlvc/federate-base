@@ -22,7 +22,6 @@ package gov.nist.ucef.hla.base;
 
 import java.net.URL;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -155,7 +154,8 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// join the federation with the configured join FOM modules
-			rtiAmbassador.joinFederationExecution( federateName, federateType, federationName, joinModules );
+			rtiAmbassador.joinFederationExecution( federateName, federateType, 
+			                                       federationName, joinModules );
 		}
 		catch(Exception e)
 		{
@@ -412,28 +412,6 @@ public class RTIAmbassadorWrapper
 	/////////////////////////////////////// HANDLE MAPS ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Utility method to create an empty parameter handle value map (this will grow as required)
-	 * 
-	 * @return an empty parameter handle value map
-	 */
-	public ParameterHandleValueMap makeParameterMap()
-	{
-		return makeParameterMap(0);
-	}
-	
-	/**
-	 * Utility method to create a parameter handle value map with an initial capacity (this will 
-	 * grow as required)
-	 * 
-	 * @param paramCount the initial capacity of the map
-	 * @return a parameter handle value map with the specified initial capacity
-	 */
-	public ParameterHandleValueMap makeParameterMap(int paramCount)
-	{
-		return this.parameterMapFactory.create( paramCount );
-	}
-
-	/**
 	 * Utility method to create an empty attribute handle set (this will grow as required)
 	 * 
 	 * @return an empty attribute handle set
@@ -441,50 +419,6 @@ public class RTIAmbassadorWrapper
 	public AttributeHandleSet makeAttributeHandleSet()
 	{
 		return this.attributeHandleSetFactory.create();
-	}
-	
-	/**
-	 * Utility method to create an empty attribute handle value map (this will grow as required)
-	 * 
-	 * @return an empty attribute handle value map
-	 */
-	public AttributeHandleValueMap makeAttributeMap()
-	{
-		return makeAttributeMap(0);
-	}
-	
-	/**
-	 * Utility method to create a attribute handle value map with an initial capacity (this will 
-	 * grow as required)
-	 * 
-	 * @param paramCount the initial capacity of the map
-	 * @return a attribute handle value map with the specified initial capacity
-	 */
-	public AttributeHandleValueMap makeAttributeMap(int attrCount)
-	{
-		// create a new map with an initial capacity - this will grow as required
-		return attributeMapFactory.create( attrCount );
-	}
-	
-	/**
-	 * Utility method to create a attribute handle value map populated with the specified attributes
-	 * 
-	 * @param objectClassHandle the object class handle associated with the attributes
-	 * @param attributes the attribute names to populate the map with
-	 * @return a populated attribute handle value map
-	 */
-	public AttributeHandleValueMap makeAttributeMap( ObjectClassHandle objectClassHandle,
-	                                                 Collection<String> attributes )
-	{
-		// sanity check for null
-		attributes = attributes == null ? Collections.emptyList() : attributes;
-		
-		AttributeHandleValueMap attributeMap = makeAttributeMap( attributes.size() );
-		for( String attributeID : attributes )
-		{
-			setAttribute( objectClassHandle, attributeID, EMPTY_BYTE_ARRAY, attributeMap );
-		}
-		return attributeMap;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -878,8 +812,7 @@ public class RTIAmbassadorWrapper
 	 * @param tag the tag of the interaction (can be null)
 	 * @param time the timestamp for the interaction (can be null)
 	 */
-	public void updateAttributeValues( HLAObject instance,
-	                                   byte[] tag, Double time)
+	public void updateAttributeValues( HLAObject instance, byte[] tag, Double time)
 	{
 		// basic sanity checks on provided arguments
 		if( instance == null )
@@ -942,9 +875,12 @@ public class RTIAmbassadorWrapper
 		}
 	}
 	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////// Internal Utility Methods ///////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * A utility method to encapsulate the code needed to convert a map containing parameter names
-	 * and their associated byte values into a populated {@link ParameterHandleValueMap}
+	 * A utility method to convert a map containing parameter names and their associated byte
+	 * values into a populated {@link ParameterHandleValueMap}
 	 * 
 	 * @param ich the interaction class handle with which the parameters are associated
 	 * @param source the map containing parameter names and their associated byte values
@@ -952,7 +888,7 @@ public class RTIAmbassadorWrapper
 	 */
 	private ParameterHandleValueMap convert( InteractionClassHandle ich, Map<String,byte[]> source )
 	{
-		ParameterHandleValueMap result = makeParameterMap( source.size() );
+		ParameterHandleValueMap result = parameterMapFactory.create( source.size() );
 		for( Entry<String,byte[]> entry : source.entrySet() )
 		{
 			ParameterHandle parameterHandle = getParameterHandle( ich, entry.getKey() );
@@ -966,8 +902,8 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A utility method to encapsulate the code needed to convert a map containing attribute names
-	 * and their associated byte values into a populated {@link AttributeHandleValueMap}
+	 * A utility method to convert a map containing attribute names and their associated byte
+	 * values into a populated {@link AttributeHandleValueMap}
 	 * 
 	 * @param oih the object instance handle with which the attributes are associated
 	 * @param source the map containing attribute names and their associated byte values
@@ -976,7 +912,7 @@ public class RTIAmbassadorWrapper
 	private AttributeHandleValueMap convert( ObjectInstanceHandle oih, Map<String,byte[]> source )
 	{
 		ObjectClassHandle och = getKnownObjectClassHandle( oih );
-		AttributeHandleValueMap result = makeAttributeMap( source.size() );
+		AttributeHandleValueMap result = attributeMapFactory.create( source.size() );
 		for( Entry<String,byte[]> entry : source.entrySet() )
 		{
 			AttributeHandle attributeHandle = getAttributeHandle( och, entry.getKey() );
