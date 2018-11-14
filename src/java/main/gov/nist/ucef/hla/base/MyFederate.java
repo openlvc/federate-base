@@ -22,9 +22,8 @@ package gov.nist.ucef.hla.base;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
-
-import hla.rti1516e.InteractionClassHandle;
 
 public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
@@ -83,9 +82,9 @@ public class MyFederate extends FederateBase {
 	public boolean step( double currentTime )
 	{
 		System.out.println( "sending interaction(s) at time " + currentTime + "..." );
-		InteractionClassHandle interactionHandle =
-		    rtiamb.getInteractionClassHandle( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed" );
-		new HLAInteraction( interactionHandle, null ).send( null );
+		HLAInteraction interaction = makeInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed",
+		                                              null );
+		send( interaction, null );
 
 		System.out.println( "sending attribute reflection(s) at time " + currentTime + "..." );
 		for( HLAObject hlaObject : this.registeredObjects )
@@ -94,7 +93,7 @@ public class MyFederate extends FederateBase {
 			{
 				hlaObject.set( attrName, randomFruit() );
 			}
-			hlaObject.update( null );
+			update( hlaObject, null );
 		}
 
 		return (currentTime < 10.0);
@@ -119,14 +118,14 @@ public class MyFederate extends FederateBase {
 	public void receiveObjectRegistration( HLAObject hlaObject )
 	{
 		System.out.println( "receiveObjectRegistration():" );
-		System.out.println( hlaObject.toString() );
+		System.out.println( makeSummary(hlaObject) );
 	}
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject )
 	{
 		System.out.println( "receiveAttributeReflection():" );
-		System.out.println( hlaObject.toString() );
+		System.out.println( makeSummary(hlaObject) );
 	}
 
 	@Override
@@ -134,25 +133,25 @@ public class MyFederate extends FederateBase {
 	{
 		receiveAttributeReflection( hlaObject );
 	}
-	
+
 	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction)
+	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		System.out.println("receiveInteraction()");
-		System.out.println( hlaInteraction.toString() );
+		System.out.println( "receiveInteraction()" );
+		System.out.println( makeSummary(hlaInteraction) );
 	}
-	
+
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
 	{
-		receiveInteraction(hlaInteraction);
+		receiveInteraction( hlaInteraction );
 	}
-	
+
 	@Override
 	public void receiveObjectDeleted( HLAObject hlaObject )
 	{
 		System.out.println( "receiveObjectDeleted():" );
-		System.out.println( hlaObject.toString() );
+		System.out.println( makeSummary(hlaObject) );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +188,54 @@ public class MyFederate extends FederateBase {
 	private String randomFruit()
 	{
 		return FRUITS[ThreadLocalRandom.current().nextInt(FRUITS.length)];
+	}
+	
+	/**
+	 * Provide a string representation of an HLAInteraction instance, suitable for logging and
+	 * debugging purposes
+	 */
+	private String makeSummary( HLAInteraction instance )
+	{
+		HLACodecUtils hlaCodec = HLACodecUtils.instance();
+		StringBuilder builder = new StringBuilder();
+		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
+		builder.append( "\n" );
+		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
+		{
+			builder.append( "\t" );
+			builder.append( entry.getKey() );
+			builder.append( " = '" );
+			// TODO at the moment this assumes that all values are strings, but going forward there
+			// 		will need to be some sort of mapping of parameter names/handles to primitive
+			//      types for parsing
+			builder.append( hlaCodec.asString( entry.getValue() ) );
+			builder.append( "'\n" );
+		}
+		return builder.toString();
+	}
+	
+	/**
+	 * Provide a string representation of an HLAObject instance, suitable for logging and
+	 * debugging purposes
+	 */
+	private String makeSummary( HLAObject instance )
+	{
+		HLACodecUtils hlaCodec = HLACodecUtils.instance();
+		StringBuilder builder = new StringBuilder();
+		builder.append( rtiamb.makeSummary( instance.getInstanceHandle() ) );
+		builder.append( "\n" );
+		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
+		{
+			builder.append( "\t" );
+			builder.append( entry.getKey() );
+			builder.append( " = '" );
+			// TODO at the moment this assumes that all values are strings, but going forward there
+			// 		will need to be some sort of mapping of attribute names/handles to primitive
+			//      types for parsing
+			builder.append( hlaCodec.asString( entry.getValue() ) );
+			builder.append( "'\n" );
+		}
+		return builder.toString();
 	}
 	
 	//----------------------------------------------------------

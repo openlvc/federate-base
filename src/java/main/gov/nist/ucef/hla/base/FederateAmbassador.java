@@ -56,7 +56,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private Set<String> achievedPoints;
 	
 	private FederateBase federate;
-	private RTIAmbassadorWrapper rtiamb;
 	
 	private String currentSyncPoint;
 	private String announcedSyncPoint;
@@ -73,8 +72,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 	public FederateAmbassador(FederateBase federate)
 	{
 		this.federate = federate;
-		
-		this.rtiamb = RTIAmbassadorWrapper.instance();
 		
 		announcedPoints = new HashSet<>();;
 		achievedPoints = new HashSet<>();
@@ -147,7 +144,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	
 	public void deleteObjectInstances()
 	{
-		rtiamb.deleteObjectInstances( hlaObjects.keySet() );	
+		this.federate.rtiamb.deleteObjectInstances( hlaObjects.keySet() );	
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -182,7 +179,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		if( UCEFSyncPoint.isUnknown( label ) )
 		{
 			// non-UCEF synchronization point - should probably just achieve it immediately
-			rtiamb.synchronizationPointAchieved( label );
+			this.federate.rtiamb.synchronizationPointAchieved( label );
 		}
 	}
 
@@ -251,7 +248,13 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    FederateHandle federateHandle)
     	throws FederateInternalError
 	{
-		// 
+		HLAObject hlaObjectInstance = this.hlaObjects.get( objectInstanceHandle );
+		if( hlaObjectInstance == null )
+		{
+			hlaObjectInstance = new HLAObject( objectInstanceHandle, null );
+			this.hlaObjects.put( objectInstanceHandle, hlaObjectInstance );
+		}
+		this.federate.receiveObjectRegistration( hlaObjectInstance );
 	}
 
 	/**
@@ -293,21 +296,17 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		// convert AttributeHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> attributes = convert( objectInstanceHandle, attributeMap );
-
 		// create and populate/update existing instance
 		HLAObject hlaObjectInstance = this.hlaObjects.get( objectInstanceHandle );
 		if( hlaObjectInstance == null )
 		{
-			// remote instance
-			hlaObjectInstance = new HLAObject( objectInstanceHandle, attributes );
-			this.hlaObjects.put( objectInstanceHandle, hlaObjectInstance );
+			throw new UCEFException("Attribute value reflection received for undiscovered object " +
+									"instance with handle '%s'", objectInstanceHandle);
 		}
-		else
-		{
-			hlaObjectInstance.setState( attributes );
-		}
+
+		// convert AttributeHandleValueMap to Map<String, byte[]> 
+		Map<String,byte[]> attributes = convert( objectInstanceHandle, attributeMap );
+		hlaObjectInstance.setState( attributes );
 
 		// do the appropriate callback on the federate
 		if( time == null )
@@ -373,7 +372,14 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                  SupplementalRemoveInfo removeInfo )
 	    throws FederateInternalError
 	{
-		this.hlaObjects.remove( objectInstanceHandle );
+		HLAObject hlaObjectInstance = this.hlaObjects.remove( objectInstanceHandle ); 
+		if( hlaObjectInstance == null )
+		{
+			throw new UCEFException("Deletion notification received for undiscovered object " +
+									"instance with handle '%s'", objectInstanceHandle);
+		}
+		
+		this.federate.receiveObjectDeleted( hlaObjectInstance );
 	}
 	
 	/**
@@ -402,11 +408,11 @@ public class FederateAmbassador extends NullFederateAmbassador
 	 */
 	private Map<String, byte[]> convert(ObjectInstanceHandle oih, AttributeHandleValueMap phvm)
 	{
-		ObjectClassHandle och = rtiamb.getKnownObjectClassHandle( oih );
+		ObjectClassHandle och = this.federate.rtiamb.getKnownObjectClassHandle( oih );
 		HashMap<String, byte[]> result = new HashMap<>();
 		for(Entry<AttributeHandle, byte[]> entry : phvm.entrySet())
 		{
-			String name = rtiamb.getAttributeName( och, entry.getKey() );
+			String name = this.federate.rtiamb.getAttributeName( och, entry.getKey() );
 			result.put( name, entry.getValue() );
 		}
 		return result;
@@ -425,7 +431,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		HashMap<String, byte[]> result = new HashMap<>();
 		for(Entry<ParameterHandle, byte[]> entry : phvm.entrySet())
 		{
-			String name = rtiamb.getParameterName( ich, entry.getKey() );
+			String name = this.federate.rtiamb.getParameterName( ich, entry.getKey() );
 			result.put( name, entry.getValue() );
 		}
 		return result;

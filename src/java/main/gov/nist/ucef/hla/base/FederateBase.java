@@ -21,7 +21,6 @@
 package gov.nist.ucef.hla.base;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -52,7 +51,7 @@ public abstract class FederateBase
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
 	
-	protected Collection<HLAObject> registeredObjects;
+	protected Set<HLAObject> registeredObjects;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -101,7 +100,7 @@ public abstract class FederateBase
 	{
 		this.configuration = configuration;
 
-		this.rtiamb = RTIAmbassadorWrapper.instance();
+		this.rtiamb = new RTIAmbassadorWrapper();
 		this.fedamb = new FederateAmbassador( this );
 
 		createAndJoinFederation();
@@ -149,10 +148,53 @@ public abstract class FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
-	public Collection<HLAObject> getRegisteredObjects()
+	protected HLAInteraction makeInteraction( String name, HashMap<String,byte[]> parameters )
 	{
-		return Collections.unmodifiableCollection( this.registeredObjects );
+		return new HLAInteraction( rtiamb.getInteractionClassHandle( name ), parameters );
+	}
+
+	/**
+	 * Publish the provided interaction to the federation with a tag (which can be null).
+	 * 
+	 * @param tag the tag (can be null)
+	 */
+	protected void send( HLAInteraction interaction, byte[] tag )
+	{
+		rtiamb.sendInteraction( interaction, tag, null );
+	}
+
+	/**
+	 * Publish the provided interaction to the federation with a tag (which can be null) and
+	 * time-stamp.
+	 * 
+	 * @param tag the tag (can be null)
+	 * @param time the time-stamp
+	 */
+	protected void send( HLAInteraction interaction, byte[] tag, double time )
+	{
+		rtiamb.sendInteraction( interaction, tag, time );
+	}
+
+	/**
+	 * Update the provided instance out to the federation with a tag (which can be null).
+	 * 
+	 * @param tag the tag (can be null)
+	 */
+	protected void update( HLAObject instance, byte[] tag )
+	{
+		rtiamb.updateAttributeValues( instance, tag, null );
+	}
+
+	/**
+	 * Update the provided instance out to the federation with a tag (which can be null) and
+	 * time-stamp.
+	 * 
+	 * @param tag the tag (can be null)
+	 * @param time the time-stamp
+	 */
+	protected void update( HLAObject instance, byte[] tag, double time )
+	{
+		rtiamb.updateAttributeValues( instance, tag, time );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -310,10 +352,15 @@ public abstract class FederateBase
 	
 	private void deregisterObjects()
 	{
-		// TODO
-		fedamb.deleteObjectInstances();
+		Set<HLAObject> deleted = new HashSet<>();
+		for( HLAObject obj : this.registeredObjects )
+		{
+			rtiamb.deleteObjectInstance( obj.getInstanceHandle(), null );
+			deleted.add( obj );
+		}
+		this.registeredObjects.removeAll( deleted );
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
@@ -557,7 +604,7 @@ public abstract class FederateBase
 			                         assembleObjectClassDetails( handle ) );
 		}
 	}
-
+	
 	/**
 	 * This is a utility method simply to construct a human readable description of an object
 	 * class's details for the purposes populating exception text

@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import hla.rti1516e.InteractionClassHandle;
 
@@ -43,12 +42,8 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private RTIAmbassadorWrapper rtiamb;
-	
 	private InteractionClassHandle interactionClassHandle;
 	private Map<String, byte[]> parameters;
-
-	private String interactionClassName;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -56,38 +51,13 @@ public class HLAInteraction
 	public HLAInteraction( InteractionClassHandle interactionClassHandle,
 	                       Map<String, byte[]> parameters )
 	{
-		this.rtiamb = RTIAmbassadorWrapper.instance();
-		
 		this.interactionClassHandle = interactionClassHandle;
 		this.parameters = parameters == null ? new HashMap<>() : parameters;
-		
-		this.interactionClassName = rtiamb.getInteractionClassName( this.interactionClassHandle );
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	/**
-	 * Publish this interaction to the federation with a tag (which can be null).
-	 * 
-	 * @param tag the tag (can be null)
-	 */
-	public void send(byte[] tag)
-	{
-		rtiamb.sendInteraction( this.interactionClassHandle, this.parameters, tag, null );
-	}
-	
-    /**
-     * Publish this interaction to the federation with a tag (which can be null) and time-stamp.
-     * 
-     * @param tag the tag (can be null)
-     * @param time the time-stamp
-     */
-    public void send(byte[] tag, double time)
-    {
-    	rtiamb.sendInteraction( this.interactionClassHandle, this.parameters, tag, time );
-    }
-	
 	/**
 	 * Provide a hash code, suitable for indexing in a map
 	 * 
@@ -101,43 +71,14 @@ public class HLAInteraction
 		return this.interactionClassHandle.hashCode();
 	}
 	
-	/**
-	 * Provide a string representation of this instance, suitable for logging and debugging
-	 * purposes
-	 */
-	@Override
-	public String toString()
-	{
-		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.assembleInteractionClassDetails( this.interactionClassHandle ) );
-		builder.append( "\n" );
-		for( Entry<String,byte[]> entry : this.parameters.entrySet() )
-		{
-			builder.append( "\t" );
-			builder.append( entry.getKey() );
-			builder.append( " = '" );
-			// TODO at the moment this assumes that all values are strings, but going forward there
-			// 		will need to be some sort of mapping of parameter names/handles to primitive
-			//      types for parsing
-			builder.append( hlaCodec.asString( entry.getValue() ) );
-			builder.append( "'\n" );
-		}
-		return builder.toString();
-	}
-	
     ////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Get the name of this kind of interaction.
-	 *
-	 * @return the name of this kind of interaction.
-	 */
-	public String getInteractionName()
+	public InteractionClassHandle getInteractionClassHandle()
 	{
-		return this.interactionClassName;
+		return this.interactionClassHandle;
 	}
-
+	
 	/**
 	 * Obtain the value for the named parameter as a short
 	 * 

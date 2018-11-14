@@ -68,8 +68,6 @@ public class RTIAmbassadorWrapper
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private static RTIAmbassadorWrapper instance;
-	
 	private RTIambassador rtiAmbassador;
 
 	private HLAfloat64TimeFactory timeFactory;
@@ -78,34 +76,15 @@ public class RTIAmbassadorWrapper
 	private AttributeHandleSetFactory attributeHandleSetFactory;
 
 	//----------------------------------------------------------
-	//                    STATIC METHODS
-	//----------------------------------------------------------
-	public static RTIAmbassadorWrapper instance()
-	{
-		if( instance == null )
-		{
-			try
-			{
-				RTIambassador rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-				instance = new RTIAmbassadorWrapper( rtiAmbassador );
-			}
-			catch( Exception e )
-			{
-				throw new UCEFException( "Failed to initialize RTI ambassador wrapper.", e );
-			}
-		}
-		return instance;
-	}
-	
-	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private RTIAmbassadorWrapper(RTIambassador rtiAmbassador)
+	public RTIAmbassadorWrapper()
 	{
-		this.rtiAmbassador = rtiAmbassador;
 		try
 		{
-			// cache the commonly used factories
+			this.rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
+			
+			// cache the commonly used factories from the RTI Ambassador
 			this.timeFactory = (HLAfloat64TimeFactory)rtiAmbassador.getTimeFactory();
 			this.parameterMapFactory = rtiAmbassador.getParameterHandleValueMapFactory();
 			this.attributeMapFactory = rtiAmbassador.getAttributeHandleValueMapFactory();
@@ -297,7 +276,7 @@ public class RTIAmbassadorWrapper
 			}
 			catch( Exception e)
 			{
-				throw new UCEFException(e, "Unable to delete object instance %s", assembleObjectInstanceDetails( handle ));
+				throw new UCEFException(e, "Unable to delete object instance %s", makeSummary( handle ));
 			}
 		}
 	}	
@@ -320,7 +299,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e)
 		{
-			throw new UCEFException(e, "Unable to delete object instance %s", assembleObjectInstanceDetails( handle ));
+			throw new UCEFException(e, "Unable to delete object instance %s", makeSummary( handle ));
 		}
 	}	
 	
@@ -760,7 +739,7 @@ public class RTIAmbassadorWrapper
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to register object instance for object class %s", 
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 		return instanceHandle;
 	}	
@@ -800,7 +779,7 @@ public class RTIAmbassadorWrapper
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to publish interaction class with handle %s", 
-			                         assembleInteractionClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -818,7 +797,7 @@ public class RTIAmbassadorWrapper
 
 		if( attributes == null )
 			throw new UCEFException( "NULL attribute handle set. Cannot publish attributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 			
 		try
 		{
@@ -828,7 +807,7 @@ public class RTIAmbassadorWrapper
 		{
 			throw new UCEFException( e,
 			                         "Failed to publish object class atributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -850,7 +829,7 @@ public class RTIAmbassadorWrapper
 		{
 			throw new UCEFException( e,
 			                         "Failed to subscribe to interaction class %s",
-			                         assembleInteractionClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -871,7 +850,7 @@ public class RTIAmbassadorWrapper
 
 		if( attributes == null )
 			throw new UCEFException( "NULL attribute handle set . Cannot subscribe to attributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 
 		try
 		{
@@ -881,7 +860,7 @@ public class RTIAmbassadorWrapper
 		{
 			throw new UCEFException( e,
 			                         "Failed to subscribe to object class attributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}	
 	
@@ -889,90 +868,77 @@ public class RTIAmbassadorWrapper
 	////////////////////////////////////// PUBLICATION /////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * This method will send out an attribute update for the specified object instance with the given
-	 * attributes/values, timestamp and tag information.
+	 * This method will send out an attribute update for the specified object instance with the
+	 * given timestamp and tag information.
 	 * 
-	 * Federates which are subscribed to a matching combination of class type and attributes will receive
-	 * a notification the next time they tick().
+	 * Federates which are subscribed to a matching combination of class type and attributes will
+	 * receive a notification the next time they tick().
 	 * 
-	 * @param objectInstanceHandle the instance handle of the object to which the attributes belong 
-	 * @param attributes the attributes and their associated values
-	 * @param tag the tag of the interaction - may be null
-	 * @param time the timestamp for the interaction - may be null
-	 * 
+	 * @param instance the instance
+	 * @param tag the tag of the interaction (can be null)
+	 * @param time the timestamp for the interaction (can be null)
 	 */
-	public void updateAttributeValues( ObjectInstanceHandle objectInstanceHandle,
-	                                   Map<String, byte[]> attributes,
+	public void updateAttributeValues( HLAObject instance,
 	                                   byte[] tag, Double time)
 	{
 		// basic sanity checks on provided arguments
-		if( objectInstanceHandle == null )
-			throw new UCEFException( "NULL object instance handle. Cannot update attribute values." );
+		if( instance == null )
+			throw new UCEFException( "NULL object instance. Cannot update attribute values." );
 		
-		if( attributes == null )
-			throw new UCEFException( "NULL attribute value map. Cannot update attributes for object instance %s.",
-			                         assembleObjectInstanceDetails( objectInstanceHandle ) );
-
+		ObjectInstanceHandle objectInstanceHandle = instance.getInstanceHandle();
 		try
 		{
-			// we need to build up an AttributeHandleValueMap from the provided attributes map  
-			AttributeHandleValueMap ahvm = convert(objectInstanceHandle, attributes);
+			// we need to build up an AttributeHandleValueMap from the object state
+			AttributeHandleValueMap ahvm = convert( objectInstanceHandle, instance.getState() );
 			
 			// now we have the information we need to do the update   
 			if( time == null )
 				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, safeByteArray( tag ) );
 			else
 				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, 
-				                                    safeByteArray( tag ), makeHLATime( time ) );
+				                                     safeByteArray( tag ), makeHLATime( time ) );
 		}
 		catch( Exception e )
 		{
 			throw new UCEFException( e,
 			                         "Failed to update attribute values for object instance %s",
-			                         assembleObjectInstanceDetails( objectInstanceHandle ) );
+			                         makeSummary( objectInstanceHandle ) );
 		}
 	}
-	
 
 	/**
-	 * This method will send out an interaction of the specified type, with parameters and a timestamp.
+	 * This method will send out an interaction with a tag and timestamp.
 	 * 
 	 * Federates which are subscribed to this type of interaction will receive a notification the next
 	 * time they tick().
 	 *
-	 * @param interactionIdentifier the identifier of the interaction
-	 * @param parameters the parameters of the interaction
-	 * @param tag the tag of the interaction
-	 * @param time the timestamp for the interaction
+	 * @param interaction the interaction
+	 * @param tag the tag of the interaction (can be null)
+	 * @param time the timestamp for the interaction (can be null)
 	 */
-	public void sendInteraction( InteractionClassHandle interactionClassHandle, 
-	                             Map<String, byte[]> parameters,
-	                             byte[] tag, Double time )
+	public void sendInteraction( HLAInteraction interaction, byte[] tag, Double time )
 	{
 		// basic sanity checks on provided arguments
-		if( interactionClassHandle == null )
-			throw new UCEFException( "NULL interaction class handle. Cannot send interaction." );
+		if( interaction == null )
+			throw new UCEFException( "NULL interaction. Cannot send interaction." );
 		
-		if( parameters == null )
-			throw new UCEFException( "NULL parameter value map. Cannot send interaction %s.",
-			                         assembleInteractionClassDetails( interactionClassHandle ) );
-
+		InteractionClassHandle interactionClassHandle = interaction.getInteractionClassHandle();
 		try
 		{
-			// we need to build up a ParameterHandleValueMap from the provided parameters map  
-			ParameterHandleValueMap phvm = convert(interactionClassHandle, parameters);
+			// we need to build up a ParameterHandleValueMap from the interaction parameters  
+			ParameterHandleValueMap phvm = convert( interactionClassHandle, interaction.getState() );
 			
 			// now we have the information we need to do the send
 			if(time == null)
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, safeByteArray( tag ) );
 			else
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, 
-				                              safeByteArray( tag ), makeHLATime( time ) );
+				                               safeByteArray( tag ), makeHLATime( time ) );
 		}
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to send interaction %s",
-			                         assembleInteractionClassDetails( interactionClassHandle ) );
+			                         makeSummary( interactionClassHandle ) );
 		}
 	}
 	
@@ -1041,14 +1007,14 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object instance handle
 	 * @return the details of the associated object instance
 	 */
-	public String assembleObjectInstanceDetails(ObjectInstanceHandle handle)
+	public String makeSummary(ObjectInstanceHandle handle)
 	{
 		String instanceName = getObjectInstanceName( handle );
 		ObjectClassHandle classHandle = getKnownObjectClassHandle( handle );
 		
 		StringBuilder details = new StringBuilder( "'" + (instanceName==null?"NULL":instanceName) + "' " );
 		details.append( "(handle '" + (handle==null?"NULL":handle) + "') of object class " );
-		details.append( assembleObjectClassDetails( classHandle ) );
+		details.append( makeSummary( classHandle ) );
 		
 		return details.toString();
 	}
@@ -1060,7 +1026,7 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object class handle
 	 * @return the details of the associated object class
 	 */
-	public String assembleObjectClassDetails(ObjectClassHandle handle)
+	public String makeSummary(ObjectClassHandle handle)
 	{
 		String className = getObjectClassName( handle );
 		
@@ -1077,7 +1043,7 @@ public class RTIAmbassadorWrapper
 	 * @param handle the interaction class handle
 	 * @return the details of the associated interaction class
 	 */
-	public String assembleInteractionClassDetails(InteractionClassHandle handle)
+	public String makeSummary(InteractionClassHandle handle)
 	{
 		String className = getInteractionClassName( handle );
 		

@@ -24,9 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 
 /**
@@ -44,53 +42,21 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private RTIAmbassadorWrapper rtiamb;
-	
 	private ObjectInstanceHandle objectInstanceHandle;
 	private Map<String, byte[]> attributes;
-
-	private String objectClassName;
-	private String objectInstanceName;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public HLAObject( ObjectInstanceHandle objectInstanceHandle, Map<String, byte[]> attributes)
+	public HLAObject( ObjectInstanceHandle objectInstanceHandle, Map<String,byte[]> attributes )
 	{
 		this.objectInstanceHandle = objectInstanceHandle;
 		this.attributes = attributes == null ? new HashMap<>() : attributes;
-		
-		this.rtiamb = RTIAmbassadorWrapper.instance();
-		
-		this.objectInstanceName = rtiamb.getObjectInstanceName( this.objectInstanceHandle );
-		ObjectClassHandle objectClassHandle = rtiamb.getKnownObjectClassHandle( objectInstanceHandle );
-		this.objectClassName = rtiamb.getObjectClassName( objectClassHandle );
 	}
 	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	/**
-	 * Update this instance out to the federation with a tag (which can be null).
-	 * 
-	 * @param tag the tag (can be null)
-	 */
-	public void update( byte[] tag )
-	{
-		rtiamb.updateAttributeValues( this.objectInstanceHandle, this.attributes, tag, null );
-	}
-	
-	/**
-	 * Update this instance out to the federation with a tag (which can be null) and time-stamp.
-	 * 
-	 * @param tag the tag (can be null)
-	 * @param time the time-stamp
-	 */
-	public void update( byte[] tag, double time )
-	{
-		rtiamb.updateAttributeValues( this.objectInstanceHandle, this.attributes, tag, time );
-	}
-	
 	/**
 	 * Provide a hash code, suitable for indexing instances in a map
 	 */
@@ -101,52 +67,12 @@ public class HLAObject
 		return this.objectInstanceHandle.hashCode();
 	}
 	
-	/**
-	 * Provide a string representation of this instance, suitable for logging and debugging
-	 * purposes
-	 */
-	@Override
-	public String toString()
-	{
-		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.assembleObjectInstanceDetails( this.objectInstanceHandle ) );
-		builder.append( "\n" );
-		for( Entry<String,byte[]> entry : this.attributes.entrySet() )
-		{
-			builder.append( "\t" );
-			builder.append( entry.getKey() );
-			builder.append( " = '" );
-			// TODO at the moment this assumes that all values are strings, but going forward there
-			// 		will need to be some sort of mapping of attribute names/handles to primitive
-			//      types for parsing
-			builder.append( hlaCodec.asString( entry.getValue() ) );
-			builder.append( "'\n" );
-		}
-		return builder.toString();
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * Get the name of this kind of object.
-	 *
-	 * @return the name of this kind of object.
-	 */
-	public String getClassName()
+	public ObjectInstanceHandle getInstanceHandle()
 	{
-		return this.objectClassName;
-	}
-
-	/**
-	 * Get the name of this object instance.
-	 *
-	 * @return the name of this object instance.
-	 */
-	public String getInstanceName()
-	{
-		return this.objectInstanceName;
+		return this.objectInstanceHandle;
 	}
 	
 	/**

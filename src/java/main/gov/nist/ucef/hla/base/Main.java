@@ -38,7 +38,15 @@ public class Main
 	//----------------------------------------------------------
 	public static void main( String[] args )
 	{
-		System.out.println( "UCEF!" );
+		System.out.println( "      ___" );
+		System.out.println( "    _/   \\_     _     _" );
+		System.out.println( "   / \\   / \\   / \\   / \\" );
+		System.out.println( "  ( U )-( C )-( E )-( F )" );
+		System.out.println( "   \\_/   \\_/   \\_/   \\_/" );
+		System.out.println( "  <-+-> <-+-----+-----+->" );
+		System.out.println( " Universal CPS Environment" );
+		System.out.println( "       for Federation" );
+		System.out.println();
 		
 		try
 		{
