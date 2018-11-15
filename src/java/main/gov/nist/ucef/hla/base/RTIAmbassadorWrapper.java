@@ -31,6 +31,7 @@ import hla.rti1516e.AttributeHandleSetFactory;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.AttributeHandleValueMapFactory;
 import hla.rti1516e.CallbackModel;
+import hla.rti1516e.FederateHandle;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -146,7 +147,7 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void joinFederation( FederateConfiguration configuration )
+	public FederateHandle joinFederation( FederateConfiguration configuration )
 	{
 		String federationName = configuration.getFederationName();
 		String federateName = configuration.getFederateName();
@@ -156,8 +157,8 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// join the federation with the configured join FOM modules
-			rtiAmbassador.joinFederationExecution( federateName, federateType, 
-			                                       federationName, joinModules );
+			return rtiAmbassador.joinFederationExecution( federateName, federateType, 
+			                                              federationName, joinModules );
 		}
 		catch(Exception e)
 		{

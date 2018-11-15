@@ -22,9 +22,11 @@ package gov.nist.ucef.hla.example;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Map.Entry;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
@@ -107,12 +109,18 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
+		subscribeInteractionClass( JOINED_FEDERATION_INTERACTION );
+		subscribeInteractionClass( RESIGNED_FEDERATION_INTERACTION );
+		
 		// pre-announce all UCEF synchronization points
 		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
 		{
 			registerSyncPointAndWaitForAnnounce( syncPoint, null );
 		}
+		
 		// allow the user to control when we are ready to populate
+		// TODO what we actually want to do here is be listening out somehow 
+		//      for federates joining the federation and what types they are
 		waitForUser("beforeReadyToPopulate()\nWaiting for federates to join.\n(press ENTER to continue)");
 	}
 
@@ -185,13 +193,14 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		// federate manager does not care about this
+		System.out.println( "receiveInteraction()" );
+		System.out.println( makeSummary(hlaInteraction) );
 	}
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
 	{
-		// federate manager does not care about this
+		receiveInteraction( hlaInteraction );
 	}
 
 	@Override
@@ -242,6 +251,46 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
+	/**
+	 * Provide a string representation of an HLAInteraction instance, suitable for logging and
+	 * debugging purposes
+	 */
+	private String makeSummary( HLAInteraction instance )
+	{
+		HLACodecUtils hlaCodec = HLACodecUtils.instance();
+		StringBuilder builder = new StringBuilder();
+		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
+		builder.append( "\n" );
+		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
+		{
+			String parameterName = entry.getKey();
+			builder.append( "\t" );
+			builder.append( parameterName );
+			builder.append( " = " );
+			// TODO at the moment this assumes that all values are strings, but going forward there
+			// 		will need to be some sort of mapping of parameter names/handles to primitive
+			//      types for parsing
+			byte[] rawValue = entry.getValue();
+			if( rawValue == null || rawValue.length == 0 )
+			{
+				builder.append( "UNDEFINED" );
+			}
+			else
+			{
+				if("FederateHandle".equals( parameterName) )
+				{
+					builder.append("'").append( hlaCodec.asInt( rawValue ) ).append("'");
+				}
+				else
+				{
+					builder.append("'").append( hlaCodec.asString( rawValue ) ).append("'");
+				}
+			}
+			builder.append( "\n" );
+		}
+		return builder.toString();
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -265,7 +314,8 @@ public class FederateManager extends FederateBase {
 			// modules
 			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
 			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml"};
+			                       fomRootPath+"RestaurantDrinks.xml",
+								   fomRootPath+"FedMan.xml"};
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
