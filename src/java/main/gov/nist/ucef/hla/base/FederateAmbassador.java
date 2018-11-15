@@ -23,10 +23,8 @@ package gov.nist.ucef.hla.base;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
-import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.FederateHandle;
 import hla.rti1516e.FederateHandleSet;
@@ -36,7 +34,6 @@ import hla.rti1516e.NullFederateAmbassador;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.OrderType;
-import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.SynchronizationPointFailureReason;
 import hla.rti1516e.TransportationTypeHandle;
@@ -64,7 +61,8 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private boolean isTimeRegulating;
 	private boolean isTimeConstrained;
 	
-	private Map<ObjectInstanceHandle,HLAObject> hlaObjects;
+	// discovered (remote) objects
+	private Map<ObjectInstanceHandle,HLAObject> remoteHlaObjects;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -73,14 +71,14 @@ public class FederateAmbassador extends NullFederateAmbassador
 	{
 		this.federate = federate;
 		
-		announcedPoints = new HashSet<>();;
+		announcedPoints = new HashSet<>();
 		achievedPoints = new HashSet<>();
 		// initialize to null here so that it can be seen to be 
 		// intentional rather than just "forgotten about"
 		currentSyncPoint = null;
 		announcedSyncPoint = null;
 		
-		hlaObjects = new HashMap<>();
+		remoteHlaObjects = new HashMap<>();
 	}
 	
 	//----------------------------------------------------------
@@ -144,7 +142,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	
 	public void deleteObjectInstances()
 	{
-		this.federate.rtiamb.deleteObjectInstances( hlaObjects.keySet() );	
+		this.federate.rtiamb.deleteObjectInstances( remoteHlaObjects.keySet() );	
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -248,11 +246,14 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    FederateHandle federateHandle)
     	throws FederateInternalError
 	{
-		HLAObject hlaObjectInstance = this.hlaObjects.get( objectInstanceHandle );
+		HLAObject hlaObjectInstance = this.remoteHlaObjects.get( objectInstanceHandle );
 		if( hlaObjectInstance == null )
 		{
-			hlaObjectInstance = new HLAObject( objectInstanceHandle, null );
-			this.hlaObjects.put( objectInstanceHandle, hlaObjectInstance );
+			// this is what *should* be happening - since it's a discovery, it 
+			// shouldn't be in the cache yet
+			Set<String> attributeNames = federate.subscribedObjectClassAttributeNames.get(objectClassHandle);
+			hlaObjectInstance = new HLAObject( objectInstanceHandle, attributeNames );
+			this.remoteHlaObjects.put( objectInstanceHandle, hlaObjectInstance );
 		}
 		this.federate.receiveObjectRegistration( hlaObjectInstance );
 	}
@@ -297,7 +298,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	    throws FederateInternalError
 	{
 		// create and populate/update existing instance
-		HLAObject hlaObjectInstance = this.hlaObjects.get( objectInstanceHandle );
+		HLAObject hlaObjectInstance = this.remoteHlaObjects.get( objectInstanceHandle );
 		if( hlaObjectInstance == null )
 		{
 			throw new UCEFException("Attribute value reflection received for undiscovered object " +
@@ -305,7 +306,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		}
 
 		// convert AttributeHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> attributes = convert( objectInstanceHandle, attributeMap );
+		Map<String,byte[]> attributes = this.federate.convert( objectInstanceHandle, attributeMap );
 		hlaObjectInstance.setState( attributes );
 
 		// do the appropriate callback on the federate
@@ -350,7 +351,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	    throws FederateInternalError
 	{
 		// convert ParameterHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> parameters = convert( interactionClassHandle, parameterMap );
+		Map<String,byte[]> parameters = this.federate.convert( interactionClassHandle, parameterMap );
 
 		// create the (transient) interaction
 		HLAInteraction interaction = new HLAInteraction( interactionClassHandle, parameters );
@@ -372,7 +373,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                  SupplementalRemoveInfo removeInfo )
 	    throws FederateInternalError
 	{
-		HLAObject hlaObjectInstance = this.hlaObjects.remove( objectInstanceHandle ); 
+		HLAObject hlaObjectInstance = this.remoteHlaObjects.remove( objectInstanceHandle ); 
 		if( hlaObjectInstance == null )
 		{
 			throw new UCEFException("Deletion notification received for undiscovered object " +
@@ -397,45 +398,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Utility Methods //////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
-	/**
-	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
-	 * a populated map containing attribute names and their associated byte values 
-	 * 
-	 * @param oih the object instance handle with which the attributes are associated
-	 * @param source the map containing attribute names and their associated byte values
-	 * @return a populated {@link Map}
-	 */
-	private Map<String, byte[]> convert(ObjectInstanceHandle oih, AttributeHandleValueMap phvm)
-	{
-		ObjectClassHandle och = this.federate.rtiamb.getKnownObjectClassHandle( oih );
-		HashMap<String,byte[]> result = new HashMap<>();
-		for( Entry<AttributeHandle,byte[]> entry : phvm.entrySet() )
-		{
-			String name = this.federate.rtiamb.getAttributeName( och, entry.getKey() );
-			result.put( name, entry.getValue() );
-		}
-		return result;
-	}
-	
-	/**
-	 * A utility method to encapsulate the code needed to convert a {@link ParameterHandleValueMap} into
-	 * a populated map containing parameter names and their associated byte values 
-	 * 
-	 * @param ich the interaction class handle with which the parameters are associated
-	 * @param source the map containing parameter names and their associated byte values
-	 * @return a populated {@link Map}
-	 */
-	private Map<String, byte[]> convert(InteractionClassHandle ich, ParameterHandleValueMap phvm)
-	{
-		HashMap<String,byte[]> result = new HashMap<>();
-		for( Entry<ParameterHandle,byte[]> entry : phvm.entrySet() )
-		{
-			String name = this.federate.rtiamb.getParameterName( ich, entry.getKey() );
-			result.put( name, entry.getValue() );
-		}
-		return result;
-	}
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
