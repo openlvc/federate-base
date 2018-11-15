@@ -37,6 +37,7 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final byte[] EMPTY_BYTE_ARRAY = {};
 	private static final HLACodecUtils hlaCodec = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
@@ -48,10 +49,25 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public HLAObject( ObjectInstanceHandle objectInstanceHandle, Map<String,byte[]> attributes )
+	public HLAObject( ObjectInstanceHandle objectInstanceHandle, Collection<String> attributeNames )
 	{
 		this.objectInstanceHandle = objectInstanceHandle;
-		this.attributes = attributes == null ? new HashMap<>() : attributes;
+		this.attributes = new HashMap<>();
+		// sanity check for null attribute names - since an object instance with no attributes wouldn't
+		// be very useful, possibly we should throw an exception here...? There's nothing inherently
+		// "illegal" about it though, it's just pointless.
+		if(attributeNames != null)
+		{
+			// TODO Here we initialise each attribute with an empty/zero-length byte array - this 
+			//      essentially means that the attributes are all "uninitialised", since even an 
+			//      empty string would require a single byte '\0' (null terminator) character. Any
+			//      attempt to retrieve a "typed" value at this stage will result in an HLA 
+			//      decoding error (see the isInitialised() method). 
+			//      In future we should probably initialise each attribute with at least a sensible 
+			//      default value for primitive types at least (e.g., 0 for integers, 0.0 for floats,
+			//      false for booleans, etc) but for now this is sufficient.
+			attributeNames.forEach( (attrName) -> this.attributes.put( attrName, EMPTY_BYTE_ARRAY) );
+		}
 	}
 	
 	//----------------------------------------------------------
@@ -77,6 +93,34 @@ public class HLAObject
 	public ObjectInstanceHandle getInstanceHandle()
 	{
 		return this.objectInstanceHandle;
+	}
+	
+	/**
+	 * Determine if this instance has the named attribute 
+	 * 
+	 * @param attributeName the name of the attribute
+	 * @return true if the attribute is known by this instance, false otherwise
+	 */
+	public boolean isAttribute( String attributeName )
+	{
+		return this.attributes.containsKey( attributeName );
+	}
+	
+	/**
+	 * Determine if the named attribute has been initialised (i.e. has a value)
+	 * 
+	 * In practice, this means that the byte array value associated with the 
+	 * named attribute is: 
+	 *  - non null, and
+	 *  - not empty (i.e., is not zero bytes in length)
+	 * 
+	 * @param attributeName the name of the attribute
+	 * @return true if the attribute as a value defined for it, false otherwise
+	 */
+	public boolean isInitialised( String attributeName )
+	{
+		byte[] rawValue = getRawValue( attributeName );
+		return rawValue != null && rawValue.length != 0;
 	}
 	
 	/**

@@ -208,7 +208,15 @@ public class MyFederate extends FederateBase {
 			// TODO at the moment this assumes that all values are strings, but going forward there
 			// 		will need to be some sort of mapping of parameter names/handles to primitive
 			//      types for parsing
-			builder.append( hlaCodec.asString( entry.getValue() ) );
+			byte[] rawValue = entry.getValue();
+			if( rawValue == null || rawValue.length == 0 )
+			{
+				builder.append( "UNDEFINED" );
+			}
+			else
+			{
+				builder.append("'").append( hlaCodec.asString( entry.getValue() ) ).append("'");
+			}
 			builder.append( "'\n" );
 		}
 		return builder.toString();
@@ -228,11 +236,19 @@ public class MyFederate extends FederateBase {
 		{
 			builder.append( "\t" );
 			builder.append( entry.getKey() );
-			builder.append( " = '" );
+			builder.append( " = " );
 			// TODO at the moment this assumes that all values are strings, but going forward there
 			// 		will need to be some sort of mapping of attribute names/handles to primitive
 			//      types for parsing
-			builder.append( hlaCodec.asString( entry.getValue() ) );
+			byte[] rawValue = entry.getValue();
+			if( rawValue == null || rawValue.length == 0 )
+			{
+				builder.append( "UNDEFINED" );
+			}
+			else
+			{
+				builder.append("'").append( hlaCodec.asString( entry.getValue() ) ).append("'");
+			}
 			builder.append( "'\n" );
 		}
 		return builder.toString();

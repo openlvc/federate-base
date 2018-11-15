@@ -29,9 +29,12 @@ import java.util.Set;
 
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.ParameterHandle;
+import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.ResignAction;
 
 public abstract class FederateBase
@@ -41,7 +44,7 @@ public abstract class FederateBase
 	//----------------------------------------------------------
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
-	private static final byte[] EMPTY_BYTE_ARRAY = {};
+	private static final String NULL_TEXT = "NULL"; 
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -51,7 +54,11 @@ public abstract class FederateBase
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
 	
+	// cache of object instances which we have registered with the RTI
 	protected Set<HLAObject> registeredObjects;
+	// a map allowing lookup of attribute names associated with object class handles
+	// as per the configured object class subscriptions
+	protected Map<ObjectClassHandle, Set<String>> subscribedObjectClassAttributeNames;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -59,6 +66,7 @@ public abstract class FederateBase
 	protected FederateBase()
 	{
 		registeredObjects = new HashSet<>();
+		subscribedObjectClassAttributeNames = new HashMap<>();
 	}
 	
 	//----------------------------------------------------------
@@ -98,6 +106,10 @@ public abstract class FederateBase
 	 */
 	public void runFederate( FederateConfiguration configuration )
 	{
+		// sanity check
+		if(configuration == null)
+			throw new UCEFException("Federate configuration cannot be null.");
+			
 		this.configuration = configuration;
 
 		this.rtiamb = new RTIAmbassadorWrapper();
@@ -108,12 +120,12 @@ public abstract class FederateBase
 		publishAndSubscribe();
 
 		beforeReadyToPopulate();
-		synchronize( UCEFSyncPoint.READY_TO_POPULATE.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
 
 		registerObjects();
 
 		beforeReadyToRun();
-		synchronize( UCEFSyncPoint.READY_TO_RUN.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_RUN );
 		
 		beforeFirstStep();
 
@@ -138,7 +150,7 @@ public abstract class FederateBase
 
 		// time to run away
 		beforeReadyToResign();
-		synchronize( UCEFSyncPoint.READY_TO_RESIGN.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
 		beforeExit();
 
 		deregisterObjects();
@@ -148,11 +160,6 @@ public abstract class FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	protected HLAInteraction makeInteraction( String name, HashMap<String,byte[]> parameters )
-	{
-		return new HLAInteraction( rtiamb.getInteractionClassHandle( name ), parameters );
-	}
-
 	/**
 	 * Publish the provided interaction to the federation with a tag (which can be null).
 	 * 
@@ -197,6 +204,58 @@ public abstract class FederateBase
 		rtiamb.updateAttributeValues( instance, tag, time );
 	}
 
+	/**
+	 * A utility method to allow simple instantiation of an interaction based off an interaction
+	 * name and some parameters
+	 * 
+	 * @param name the interaction class name
+	 * @param parameters the parameters (can be null)
+	 * @return the interaction
+	 */
+	protected HLAInteraction makeInteraction( String name, HashMap<String,byte[]> parameters )
+	{
+		return new HLAInteraction( rtiamb.getInteractionClassHandle( name ), parameters );
+	}
+	
+	/**
+	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
+	 * a populated map containing attribute names and their associated byte values 
+	 * 
+	 * @param oih the object instance handle with which the attributes are associated
+	 * @param source the map containing attribute names and their associated byte values
+	 * @return a populated {@link Map}
+	 */
+	protected Map<String, byte[]> convert(ObjectInstanceHandle oih, AttributeHandleValueMap phvm)
+	{
+		ObjectClassHandle och = this.rtiamb.getKnownObjectClassHandle( oih );
+		HashMap<String,byte[]> result = new HashMap<>();
+		for( Entry<AttributeHandle,byte[]> entry : phvm.entrySet() )
+		{
+			String name = this.rtiamb.getAttributeName( och, entry.getKey() );
+			result.put( name, entry.getValue() );
+		}
+		return result;
+	}
+	
+	/**
+	 * A utility method to encapsulate the code needed to convert a {@link ParameterHandleValueMap} into
+	 * a populated map containing parameter names and their associated byte values 
+	 * 
+	 * @param ich the interaction class handle with which the parameters are associated
+	 * @param source the map containing parameter names and their associated byte values
+	 * @return a populated {@link Map}
+	 */
+	protected Map<String, byte[]> convert(InteractionClassHandle ich, ParameterHandleValueMap phvm)
+	{
+		HashMap<String,byte[]> result = new HashMap<>();
+		for( Entry<ParameterHandle,byte[]> entry : phvm.entrySet() )
+		{
+			String name = this.rtiamb.getParameterName( ich, entry.getKey() );
+			result.put( name, entry.getValue() );
+		}
+		return result;
+	}	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -218,6 +277,17 @@ public abstract class FederateBase
 	 * Registers the specified synchronization point, and then waits for the federation to reach
 	 * the same synchronization point
 	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 */
+	private void synchronize( UCEFSyncPoint syncPoint )
+	{
+		synchronize( syncPoint.getLabel() );
+	}
+	
+	/**
+	 * Registers the specified synchronization point, and then waits for the federation to reach
+	 * the same synchronization point
+	 * 
 	 * @param label the identifier of the synchronization point to synchronize to
 	 */
 	private void synchronize( String label )
@@ -228,6 +298,18 @@ public abstract class FederateBase
 		achieveSyncPointAndWaitForFederation( label );
 	}
 
+	/**
+	 * Registers a synchronization point and waits for the announcement of that synchronization
+	 * point
+	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 * @param tag a tag to go along with the synchronization point registration (may be null)
+	 */
+	protected void registerSyncPointAndWaitForAnnounce( UCEFSyncPoint syncPoint, byte[] tag )
+	{
+		registerSyncPointAndWaitForAnnounce(syncPoint.getLabel(), tag);
+	}
+	
 	/**
 	 * Registers a synchronization point and waits for the announcement of that synchronization
 	 * point
@@ -246,6 +328,17 @@ public abstract class FederateBase
 		}
 	}
 
+	/**
+	 * Achieves a synchronization point and waits for the federation to achieve that
+	 * synchronization point
+	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 */
+	private void achieveSyncPointAndWaitForFederation( UCEFSyncPoint syncPoint )
+	{
+		achieveSyncPointAndWaitForFederation(syncPoint.getLabel());
+	}
+	
 	/**
 	 * Achieves a synchronization point and waits for the federation to achieve that
 	 * synchronization point
@@ -339,14 +432,7 @@ public abstract class FederateBase
 		{
 			ObjectClassHandle classhandle = rtiamb.getObjectClassHandle( x.getKey() );
 			ObjectInstanceHandle instanceHandle = rtiamb.registerObjectInstance( classhandle );
-			
-			Map<String, byte[]> attributes = new HashMap<>();
-			for(String attributeName : x.getValue())
-			{
-				attributes.put(attributeName, EMPTY_BYTE_ARRAY);
-			}
-			
-			registeredObjects.add( new HLAObject( instanceHandle, attributes ) );
+			registeredObjects.add( new HLAObject( instanceHandle, x.getValue() ) );
 		}
 	}
 	
@@ -400,7 +486,7 @@ public abstract class FederateBase
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to publish interaction class with handle %s", 
-			                         assembleInteractionClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -434,7 +520,7 @@ public abstract class FederateBase
 				{
 					throw new UCEFException( "Unknown attribute name '%s'. Cannot publish attributes " +
 											 "for object class %s.",
-					                         attributeName , assembleObjectClassDetails( classHandle ) );
+					                         attributeName , makeSummary( classHandle ) );
 				}
 				attributeHandleSet.add( attributeHandle );
 			}
@@ -458,7 +544,7 @@ public abstract class FederateBase
 		if( attributes == null )
 			throw new UCEFException( "NULL attribute handle set. Cannot publish attributes for object " +
 									 "class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 			
 		try
 		{
@@ -468,7 +554,7 @@ public abstract class FederateBase
 		{
 			throw new UCEFException( e,
 			                         "Failed to publish object class atributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -525,7 +611,7 @@ public abstract class FederateBase
 		{
 			throw new UCEFException( e,
 			                         "Failed to subscribe to interaction class %s",
-			                         assembleInteractionClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
@@ -563,10 +649,11 @@ public abstract class FederateBase
 				{
 					throw new UCEFException( "Unknown attribute name '%s'. Cannot subscribe to " +
 											 "attributes for object class %s.",
-					                         attributeName , assembleObjectClassDetails( classHandle ));
+					                         attributeName , makeSummary( classHandle ));
 				}
 				attributeHandleSet.add( attributeHandle );
 			}
+			subscribedObjectClassAttributeNames.put( classHandle, subscription.getValue() );
 			
 			// do the actual subscription
 			subscribeObjectClassAttributes( classHandle, attributeHandleSet );
@@ -591,7 +678,7 @@ public abstract class FederateBase
 		if( attributes == null )
 			throw new UCEFException( "NULL attribute handle set . Cannot subscribe to attributes for " +
 									 "object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 
 		try
 		{
@@ -601,40 +688,56 @@ public abstract class FederateBase
 		{
 			throw new UCEFException( e,
 			                         "Failed to subscribe to object class attributes for object class %s.",
-			                         assembleObjectClassDetails( handle ) );
+			                         makeSummary( handle ) );
 		}
 	}
 	
 	/**
-	 * This is a utility method simply to construct a human readable description of an object
-	 * class's details for the purposes populating exception text
+	 * This is a utility method simply to construct a human readable summary of an object
+	 * class's salient details for the purposes of populating exception text
 	 * 
 	 * @param handle the object class handle
 	 * @return the descriptive text
 	 */
-	private String assembleObjectClassDetails(ObjectClassHandle handle)
+	private String makeSummary(ObjectClassHandle handle)
 	{
-		String className = rtiamb.getObjectClassName( handle );
+		String className = NULL_TEXT;
+		try
+		{
+			className = rtiamb.getObjectClassName( handle );
+		}
+		catch(Exception e)
+		{
+			// ignore any problems here
+		}
 		
 		StringBuilder details = new StringBuilder( "'" + className + "'" );
-		details.append( " (handle'" + className + "')" );
+		details.append( " (handle'" + (handle==null?NULL_TEXT:handle) + "')" );
 		
 		return details.toString();
 	}
 	
 	/**
-	 * This is a utility method simply to construct a human readable description of an interaction
-	 * class's details for the purposes populating exception text
+	 * This is a utility method simply to construct a human readable summary of an interaction
+	 * class's salient details for the purposes of populating exception text
 	 * 
 	 * @param handle the interaction class handle
 	 * @return the descriptive text
 	 */
-	private String assembleInteractionClassDetails(InteractionClassHandle handle)
+	private String makeSummary(InteractionClassHandle handle)
 	{
-		String className = rtiamb.getInteractionClassName( handle );
+		String className = NULL_TEXT;
+		try
+		{
+			className = rtiamb.getInteractionClassName( handle );
+		}
+		catch(Exception e)
+		{
+			// ignore any problems here
+		}
 		
 		StringBuilder details = new StringBuilder( "'" + className + "'" );
-		details.append( " (handle'" + className + "')" );
+		details.append( " (handle'" + (handle==null?NULL_TEXT:handle) + "')" );
 		
 		return details.toString();
 	}

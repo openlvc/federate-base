@@ -45,6 +45,7 @@ import hla.rti1516e.exceptions.DeletePrivilegeNotHeld;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
+import hla.rti1516e.exceptions.InteractionClassNotPublished;
 import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
 import hla.rti1516e.exceptions.TimeConstrainedIsNotEnabled;
 import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
@@ -63,6 +64,7 @@ public class RTIAmbassadorWrapper
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+	private static final String NULL_TEXT = "NULL"; 
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -439,7 +441,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Object class handle '%s' is unknown, " +
+			                         "so no object class name could be retrieved.",
+			                         handle );
 		}
 	}
 
@@ -458,7 +463,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Object class name '%s' is unknown, " +
+			                         "so no object class handle could be retrieved.",
+			                         name );
 		}
 	}
 
@@ -477,7 +485,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Object instance handle '%s' is unknown," +
+			                         "so no object class handle could be retrieved.",
+			                         handle );
 		}
 	}
 
@@ -498,7 +509,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Attribute handle '%s' is unknown for object class %s, " +
+			                         "so no attribute class name could be retrieved.",
+			                         attributeHandle, makeSummary(objectClassHandle) );
 		}
 	}
 
@@ -518,7 +532,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Attribute name '%s' is unknown for object class %s, " +
+			                         "so no attribute handle could be retrieved.",
+			                         attributeName, makeSummary(handle) );
 		}
 	}
 
@@ -537,7 +554,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Interaction handle '%s' is unknown, " +
+			                         "so no interaction class name could be retrieved.",
+			                         handle );
 		}
 	}
 
@@ -556,7 +576,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Interaction name '%s' is unknown, " +
+			                         "so no interaction class handle could be retrieved.",
+			                         name );
 		}
 	}
 
@@ -576,7 +599,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Parameter name '%s' is unknown for interaction class %s, " +
+			                         "so no parameter handle could be retrieved.",
+			                         parameterName, makeSummary(handle) );
 		}
 	}
 	
@@ -597,7 +623,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Parameter handle '%s' is unknown for interaction class %s, " +
+			                         "so no parameter name could be retrieved.",
+			                         parameterHandle, makeSummary(interactionClassHandle) );
 		}
 	}
 	
@@ -616,7 +645,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Object instance handle '%s' is unknown, " +
+			                         "so no object instance name could be retrieved.",
+			                         handle );
 		}
 	}
 
@@ -635,7 +667,10 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			return null;
+			throw new UCEFException( e,
+			                         "Object instance name '%s' is unknown," +
+			                         "so no object instance handle could be retrieved.",
+			                         name );
 		}
 	}
 	
@@ -868,6 +903,11 @@ public class RTIAmbassadorWrapper
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, 
 				                               safeByteArray( tag ), makeHLATime( time ) );
 		}
+		catch( InteractionClassNotPublished e )
+		{
+			throw new UCEFException( e, "Failed to send interaction %s because it has not been published.",
+			                         makeSummary( interactionClassHandle ) );
+		}
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Failed to send interaction %s",
@@ -945,11 +985,29 @@ public class RTIAmbassadorWrapper
 	 */
 	public String makeSummary(ObjectInstanceHandle handle)
 	{
-		String instanceName = getObjectInstanceName( handle );
-		ObjectClassHandle classHandle = getKnownObjectClassHandle( handle );
+		String instanceName = NULL_TEXT;
+		ObjectClassHandle classHandle = null;
+	
+		try
+		{
+			instanceName = getObjectInstanceName( handle );
+		}
+		catch( Exception e )
+		{
+			// ignore - null is OK as a result here
+		}
+
+		try
+		{
+			classHandle = getKnownObjectClassHandle( handle );
+		}
+		catch( Exception e )
+		{
+			// ignore - null is OK as a result here
+		}
 		
-		StringBuilder details = new StringBuilder( "'" + (instanceName==null?"NULL":instanceName) + "' " );
-		details.append( "(handle '" + (handle==null?"NULL":handle) + "') of object class " );
+		StringBuilder details = new StringBuilder( "'" + (instanceName==null?NULL_TEXT:instanceName) + "' " );
+		details.append( "(handle '" + (handle==null?NULL_TEXT:handle) + "') of object class " );
 		details.append( makeSummary( classHandle ) );
 		
 		return details.toString();
@@ -964,10 +1022,18 @@ public class RTIAmbassadorWrapper
 	 */
 	public String makeSummary(ObjectClassHandle handle)
 	{
-		String className = getObjectClassName( handle );
+		String className = NULL_TEXT;
+		try
+		{
+			className = getObjectClassName( handle );
+		}
+		catch( Exception e )
+		{
+			// ignore - null is OK as a result here
+		}
 		
-		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "' " );
-		details.append( "(handle '" + (handle==null?"NULL":handle) + "')" );
+		StringBuilder details = new StringBuilder( "'" + (className==null?NULL_TEXT:className) + "' " );
+		details.append( "(handle '" + (handle==null?NULL_TEXT:handle) + "')" );
 		
 		return details.toString();
 	}
@@ -981,10 +1047,18 @@ public class RTIAmbassadorWrapper
 	 */
 	public String makeSummary(InteractionClassHandle handle)
 	{
-		String className = getInteractionClassName( handle );
+		String className = NULL_TEXT;
+		try
+		{
+			className = getInteractionClassName( handle );
+		}
+		catch( Exception e )
+		{
+			// ignore - null is OK as a result here
+		}
 		
-		StringBuilder details = new StringBuilder( "'" + (className==null?"NULL":className) + "' " );
-		details.append( "(handle '" + (handle==null?"NULL":handle) + "')" );
+		StringBuilder details = new StringBuilder( "'" + (className==null?NULL_TEXT:className) + "' " );
+		details.append( "(handle '" + (handle==null?NULL_TEXT:handle) + "')" );
 		
 		return details.toString();
 	}
