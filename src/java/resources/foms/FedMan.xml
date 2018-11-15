@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<objectModel xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd" xmlns="http://standards.ieee.org/IEEE1516-2010" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelIdentification>
+        <name>FedMan</name>
+        <type>FOM</type>
+        <version>1.0</version>
+        <modificationDate>2010-09-09</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+    </modelIdentification>
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <interactionClass>
+                <name>ManagedFederation</name>
+                <sharing>PublishSubscribe</sharing>
+                <dimensions/>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <semantics>The base class of management interactions in a managed federation</semantics>
+	            <interactionClass>
+	                <name>Federate</name>
+	                <sharing>PublishSubscribe</sharing>
+	                <dimensions/>
+	                <transportation>HLAreliable</transportation>
+	                <order>TimeStamp</order>
+	                <semantics>The base class management interactions for federates</semantics>
+	                <interactionClass>
+	                    <name>Joined</name>
+	                    <sharing>PublishSubscribe</sharing>
+	                    <dimensions/>
+	                    <transportation>HLAreliable</transportation>
+	                    <order>TimeStamp</order>
+	                    <semantics>Federate has joined the federation</semantics>
+						<parameter>
+							<name>FederateType</name>
+							<dataType>HLAunicodeString</dataType>
+						</parameter>
+						<parameter>
+							<name>FederateHandle</name>
+							<dataType>HLAinteger32BE</dataType>
+						</parameter>
+	                </interactionClass>
+	                <interactionClass>
+	                    <name>Resigned</name>
+	                    <sharing>PublishSubscribe</sharing>
+	                    <dimensions/>
+	                    <transportation>HLAreliable</transportation>
+	                    <order>TimeStamp</order>
+	                    <semantics>Federate has resigned from the federation</semantics>
+						<parameter>
+							<name>FederateHandle</name>
+							<dataType>HLAinteger32BE</dataType>
+						</parameter>
+	                </interactionClass>
+	            </interactionClass>
+	        </interactionClass>
+        </interactionClass>
+    </interactions>
+</objectModel>
