@@ -106,6 +106,10 @@ public abstract class FederateBase
 	 */
 	public void runFederate( FederateConfiguration configuration )
 	{
+		// sanity check
+		if(configuration == null)
+			throw new UCEFException("Federate configuration cannot be null.");
+			
 		this.configuration = configuration;
 
 		this.rtiamb = new RTIAmbassadorWrapper();
@@ -116,12 +120,12 @@ public abstract class FederateBase
 		publishAndSubscribe();
 
 		beforeReadyToPopulate();
-		synchronize( UCEFSyncPoint.READY_TO_POPULATE.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
 
 		registerObjects();
 
 		beforeReadyToRun();
-		synchronize( UCEFSyncPoint.READY_TO_RUN.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_RUN );
 		
 		beforeFirstStep();
 
@@ -146,7 +150,7 @@ public abstract class FederateBase
 
 		// time to run away
 		beforeReadyToResign();
-		synchronize( UCEFSyncPoint.READY_TO_RESIGN.getLabel() );
+		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
 		beforeExit();
 
 		deregisterObjects();
@@ -273,6 +277,17 @@ public abstract class FederateBase
 	 * Registers the specified synchronization point, and then waits for the federation to reach
 	 * the same synchronization point
 	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 */
+	private void synchronize( UCEFSyncPoint syncPoint )
+	{
+		synchronize( syncPoint.getLabel() );
+	}
+	
+	/**
+	 * Registers the specified synchronization point, and then waits for the federation to reach
+	 * the same synchronization point
+	 * 
 	 * @param label the identifier of the synchronization point to synchronize to
 	 */
 	private void synchronize( String label )
@@ -283,6 +298,18 @@ public abstract class FederateBase
 		achieveSyncPointAndWaitForFederation( label );
 	}
 
+	/**
+	 * Registers a synchronization point and waits for the announcement of that synchronization
+	 * point
+	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 * @param tag a tag to go along with the synchronization point registration (may be null)
+	 */
+	protected void registerSyncPointAndWaitForAnnounce( UCEFSyncPoint syncPoint, byte[] tag )
+	{
+		registerSyncPointAndWaitForAnnounce(syncPoint.getLabel(), tag);
+	}
+	
 	/**
 	 * Registers a synchronization point and waits for the announcement of that synchronization
 	 * point
@@ -301,6 +328,17 @@ public abstract class FederateBase
 		}
 	}
 
+	/**
+	 * Achieves a synchronization point and waits for the federation to achieve that
+	 * synchronization point
+	 * 
+	 * @param syncPoint the UCEF standard synchronization point
+	 */
+	private void achieveSyncPointAndWaitForFederation( UCEFSyncPoint syncPoint )
+	{
+		achieveSyncPointAndWaitForFederation(syncPoint.getLabel());
+	}
+	
 	/**
 	 * Achieves a synchronization point and waits for the federation to achieve that
 	 * synchronization point

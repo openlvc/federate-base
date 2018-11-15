@@ -60,8 +60,9 @@ public class HLAObject
 		{
 			// TODO Here we initialise each attribute with an empty/zero-length byte array - this 
 			//      essentially means that the attributes are all "uninitialised", since even an 
-			//      empty string is a single byte null terminator character. Any attempt to retrieve
-			//      a "typed" value at this stage will result in an HLA decoding error. 
+			//      empty string would require a single byte '\0' (null terminator) character. Any
+			//      attempt to retrieve a "typed" value at this stage will result in an HLA 
+			//      decoding error (see the isInitialised() method). 
 			//      In future we should probably initialise each attribute with at least a sensible 
 			//      default value for primitive types at least (e.g., 0 for integers, 0.0 for floats,
 			//      false for booleans, etc) but for now this is sufficient.
@@ -108,13 +109,18 @@ public class HLAObject
 	/**
 	 * Determine if the named attribute has been initialised (i.e. has a value)
 	 * 
+	 * In practice, this means that the byte array value associated with the 
+	 * named attribute is: 
+	 *  - non null, and
+	 *  - not empty (i.e., is not zero bytes in length)
+	 * 
 	 * @param attributeName the name of the attribute
 	 * @return true if the attribute as a value defined for it, false otherwise
 	 */
 	public boolean isInitialised( String attributeName )
 	{
 		byte[] rawValue = getRawValue( attributeName );
-		return !(rawValue == null || rawValue.length == 0);
+		return rawValue != null && rawValue.length != 0;
 	}
 	
 	/**

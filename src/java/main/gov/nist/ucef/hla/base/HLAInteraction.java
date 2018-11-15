@@ -84,6 +84,35 @@ public class HLAInteraction
 	}
 	
 	/**
+	 * Determine if this instance has the named parameter 
+	 * 
+	 * @param parameterName the name of the parameter
+	 * @return true if the parameter is known by this instance, false otherwise
+	 */
+	public boolean isParameter( String parameterName )
+	{
+		return this.parameters.containsKey( parameterName );
+	}
+	
+	/**
+	 * Determine if the named parameter has been initialised (i.e. has a value)
+	 * 
+	 * In practice, this means that the byte array value associated with the 
+	 * named parameter is: 
+	 *  - non null, and
+	 *  - not empty (i.e., is not zero bytes in length)
+	 * 
+	 * @param parameterName the name of the attribute
+	 * @return true if the parameter as a value defined for it, false otherwise
+	 */
+	public boolean isInitialised( String parameterName )
+	{
+		byte[] rawValue = getRawValue( parameterName );
+		return rawValue != null && rawValue.length != 0;
+	}
+	
+	
+	/**
 	 * Obtain the value for the named parameter as a short
 	 * 
 	 * @param parameterName the name of the parameter
