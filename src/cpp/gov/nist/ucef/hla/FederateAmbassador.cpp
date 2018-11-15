@@ -31,8 +31,14 @@ namespace ucef
 	//----------------------------------------------------------
 	void FederateAmbassador::announceSynchronizationPoint( const wstring& label,
 	                                                       const VariableLengthData& tag )
-	                                                            throw(FederateInternalError)
+	                                                            throw( FederateInternalError )
 	{
+		SynchPoint synPoint = ConversionHelper::StringToSynchPoint( label );
+		if( synPoint == PointUnknown )
+		{
+			// may be we can achieve this immediately
+			return;
+		}
 		lock_guard<mutex> lock( m_threadSafeLock );
 		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
 			announcedSynchPoints.insert( label );
@@ -135,7 +141,7 @@ namespace ucef
 					}
 				}
 			}
-			m_federateBase->receiveAttributeReflection( object, m_federateTime );
+			m_federateBase->objectUpdate( std::const_pointer_cast<const HLAObject>(object), m_federateTime );
 		}
 		else
 		{
@@ -181,11 +187,11 @@ namespace ucef
 			shared_ptr<ObjectInstanceHandle> instanceHandle = make_shared<ObjectInstanceHandle>( theObject );
 
 			shared_ptr<HLAObject> object = make_shared<HLAObject>( "", instanceHandle );
-			m_federateBase->removeObjectInstance( object );
+			m_federateBase->objectDelete( object );
 		}
 		else
 		{
-			Logger::getInstance().log( string("Received object remove notification with invalid handler."),
+			Logger::getInstance().log( string("Received object delete notification with an invalid handler."),
 			                           LevelError );
 		}
 	}

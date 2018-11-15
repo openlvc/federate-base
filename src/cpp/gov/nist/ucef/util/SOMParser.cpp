@@ -46,17 +46,46 @@ namespace ucef
 
 		vector<shared_ptr<InteractionClass>> SOMParser::getInteractionClasses( const string& somFilePath )
 		{
+			Logger &logger = Logger::getInstance();
+
 			vector<shared_ptr<InteractionClass>> SomInteractions;
+			vector<shared_ptr<InteractionParameter>> SomInteractionParams;
+
+			logger.log( "Trying to load SOM file in " + somFilePath, LevelInfo );
+
+			XMLDocument doc;
+			XMLError xmlError = doc.LoadFile( somFilePath.c_str() );
+			if( xmlError == XML_SUCCESS )
+			{
+				logger.log( "SOM loaded succefully " + somFilePath, LevelInfo );
+	
+				XMLElement* root = doc.FirstChildElement( "objectModel" );
+				if( root )
+				{
+					XMLElement* interactionsElement = root->FirstChildElement( "interactions" );
+					SOMParser::traverseInteractionClasses
+					               ( L"", SomInteractionParams, interactionsElement, SomInteractions );
+				}
+				else
+				{
+					logger.log( string("Could not locate objectModel in given SOM file"), LevelError );
+				}
+			}
+			else
+			{
+				logger.log( "Could not Load SOM file in " + somFilePath, LevelError );
+			}
 
 			return SomInteractions;
 		}
 
-		vector<XMLElement*> SOMParser::getObjectClassChildElements( XMLElement* parentElement )
+		vector<XMLElement*> SOMParser::getObjectClassChildElements( XMLElement* parentElement,
+		                                                            const string& rootText)
 		{
 			vector<XMLElement*> childElements;
 
-			for( XMLElement* child = parentElement->FirstChildElement( "objectClass" );
-				 child != NULL; child = child->NextSiblingElement( "objectClass" ))
+			for( XMLElement* child = parentElement->FirstChildElement( rootText.c_str() );
+				 child != NULL; child = child->NextSiblingElement( rootText.c_str() ))
 			{
 				childElements.emplace_back( child );
 			}
@@ -86,7 +115,7 @@ namespace ucef
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
 					if( objectSharingElement )
 					{
-						// set the sharing state of the class (not attributes)
+						// set the sharing state of the class (not the sharing state of the attributes)
 						objectClass->publish = 
 							ConversionHelper::isPublish(objectSharingElement->GetText());
 						objectClass->subscribe = 
@@ -161,7 +190,7 @@ namespace ucef
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
-								// set the sharing state of the attribute (not the class)
+								// set the sharing state of the attribute (not the sharinf state of the class)
 								objectAttribute->publish = 
 										ConversionHelper::isPublish(attributeSharingElement->GetText());
 								objectAttribute->subscribe = 
@@ -174,11 +203,97 @@ namespace ucef
 				}
 
 				// seek all the children of this parent element to do depth first search
-				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement );
+				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement, "objectClass" );
 				// start processing child nodes
 				for( XMLElement* childElement : childElements )
 				{
 					traverseObjectClasses( objectClassName, attributes, childElement, objectClasses );
+				}
+			}
+		}
+		void SOMParser::traverseInteractionClasses( wstring interactionClassName,
+		                                            vector<shared_ptr<InteractionParameter>> params,
+		                                            tinyxml2::XMLElement * parentElement, 
+		                                            vector<shared_ptr<InteractionClass>> intClasses )
+		{
+			// this is a leaf interaction class
+			if( parentElement->FirstChildElement( "interactionClass" ) == nullptr )
+			{
+				// get the name of the leaf interaction class
+				XMLElement* interactionNameElement = parentElement->FirstChildElement( "name" );
+				if( interactionNameElement )
+				{
+					shared_ptr<InteractionClass> interactionClass = make_shared<InteractionClass>();
+
+					// fully qualified interaction class name
+					interactionClass->name = interactionClassName +
+					                            ConversionHelper::s2ws(interactionNameElement->GetText());
+
+					// sharing state (pub & sub) of the interaction class
+					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
+					if( objectSharingElement )
+					{
+						// set the sharing state of the interaction class (not the sharing state of params)
+						interactionClass->publish = 
+							ConversionHelper::isPublish(objectSharingElement->GetText());
+						interactionClass->subscribe = 
+							ConversionHelper::isSubscribe(objectSharingElement->GetText());
+					}
+
+					// collect params in this interaction class (traverse only the leaf params)
+					for( XMLElement* paramElement = parentElement->FirstChildElement( "parameter" );
+						 paramElement != NULL; paramElement = paramElement->NextSiblingElement( "parameter" ))
+					{
+						// try to get the name tag in a param
+						XMLElement* attributeNameElement = paramElement->FirstChildElement( "name" );
+						if( attributeNameElement )
+						{
+							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
+							// get param's name as in SOM
+							interactionParam->name = ConversionHelper::s2ws(attributeNameElement->GetText());
+							params.push_back( interactionParam );
+						}
+					}
+	
+					for( shared_ptr<InteractionParameter> param : params )
+					{
+						interactionClass->parameters.insert( make_pair(ConversionHelper::ws2s(param->name), param) );
+					}
+					intClasses.push_back( interactionClass );
+				}
+			}
+			else // collect non-leaf params a.k.a params in parent classes
+			{
+				// get the name element of this parentElement that represents an interaction class
+				XMLElement* interactionNameElement = parentElement->FirstChildElement( "name" );
+				if( interactionNameElement )
+				{
+					// build up the fully qualified interaction class name
+					interactionClassName +=
+							ConversionHelper::s2ws( interactionNameElement->GetText() ) + L".";
+
+					// collect params in this interaction class (traverse non-leaf params)
+					for( XMLElement* paramElement = parentElement->FirstChildElement( "parameter" );
+						 paramElement != NULL; paramElement = paramElement->NextSiblingElement( "parameter" ))
+					{
+						// try to get the name tag in a param
+						XMLElement* paramNameElement = paramElement->FirstChildElement( "name" );
+						if( paramNameElement )
+						{
+							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
+							// get attribute's name as in SOM
+							interactionParam->name = ConversionHelper::s2ws( paramNameElement->GetText() );
+							params.push_back( interactionParam );
+						}
+					}
+				}
+
+				// seek all the children of this parent element to do depth first search
+				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement, "objectClass" );
+				// start processing child nodes
+				for( XMLElement* childElement : childElements )
+				{
+					traverseInteractionClasses( interactionClassName, params, childElement, intClasses );
 				}
 			}
 		}

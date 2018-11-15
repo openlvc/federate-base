@@ -17,6 +17,7 @@ namespace rti1516e
 	class ObjectClassHandle;
 	class AttributeHandle;
 	class ObjectInstanceHandle;
+	class ParameterHandle;
 }
 
 namespace ucef
@@ -112,17 +113,7 @@ namespace ucef
 
 			}
 			std::wstring name;
-		};
-
-		/**
-		 *  Represents attribute and interaction data passed from/to user
-		 *
-		 *  @see HLAObject
-		 */
-		struct VariableData
-		{
-			std::shared_ptr<void> data;
-			size_t size;
+			std::shared_ptr<rti1516e::ParameterHandle> handle;
 		};
 
 		/**
@@ -144,6 +135,16 @@ namespace ucef
 			bool publish;
 			bool subscribe;
 			InteractionParameters parameters;
+		};
+		/**
+		 *  Represents attribute and interaction data passed from/to user
+		 *
+		 *  @see HLAObject
+		 */
+		struct VariableData
+		{
+			std::shared_ptr<void> data;
+			size_t size;
 		};
 
 		//----------------------------------------
@@ -199,18 +200,36 @@ namespace ucef
 					return synchPointStr;
 				}
 
-				static SynchPoint StringToSynchPoint( std::string synchPointStr )
+				static std::wstring SynchPointToWstring( SynchPoint point )
+				{
+					std::wstring synchPointStr = L"";
+					if( point == SynchPoint::PointReadyToPopulate )
+					{
+						synchPointStr = L"ReadyToPopulate";
+					}
+					else if( point == SynchPoint::PointReadyToRun )
+					{
+						synchPointStr = L"ReadyToRun";
+					}
+					else if( point == SynchPoint::PointReadyToResign )
+					{
+						synchPointStr = L"ReadyToResign";
+					}
+					return synchPointStr;
+				}
+
+				static SynchPoint StringToSynchPoint( std::wstring synchPointStr )
 				{
 					SynchPoint synchPointEnum = SynchPoint::PointUnknown;
-					if( synchPointStr == "ReadyToPopulate" )
+					if( synchPointStr == L"ReadyToPopulate" )
 					{
 						synchPointEnum =  SynchPoint::PointReadyToPopulate;
 					}
-					else if( synchPointStr == "ReadyToRun" )
+					else if( synchPointStr == L"ReadyToRun" )
 					{
 						synchPointEnum =  SynchPoint::PointReadyToRun;
 					}
-					else if( synchPointStr == "ReadyToResign" )
+					else if( synchPointStr == L"ReadyToResign" )
 					{
 						synchPointEnum =  SynchPoint::PointReadyToResign;
 					}

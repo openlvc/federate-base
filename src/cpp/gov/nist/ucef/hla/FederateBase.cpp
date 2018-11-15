@@ -51,7 +51,8 @@ namespace ucef
 
 		// enables time management policy for this federate
 		enableTimePolicy();
-
+		string s;
+		cin >> s;
 		// now we are ready to populate the federation
 		synchronize( PointReadyToPopulate );
 		// inform RTI about the data we are going publish and subscribe
@@ -205,7 +206,7 @@ namespace ucef
 	void FederateBase::synchronize( SynchPoint point )
 	{
 		Logger& logger = Logger::getInstance();
-		wstring synchPointStr = ConversionHelper::s2ws( ConversionHelper::SynchPointToString(point) );
+		wstring synchPointStr = ConversionHelper::SynchPointToWstring( point );
 		// announce synch point
 		try
 		{
@@ -278,11 +279,11 @@ namespace ucef
 		lock_guard<mutex> lock( m_threadSafeLock );
 
 		Logger& logger = Logger::getInstance();
-		logger.log( "Discvoered new object named " + hlaObject->getClassName(), LevelCritical );
+		logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
 		m_incomingStore[hlaObject->getInstanceHandle()->hash()] = hlaObject;
 	}
 
-	void FederateBase::receiveAttributeReflection( shared_ptr<HLAObject>& hlaObject, double federateTime )
+	void FederateBase::objectUpdate( shared_ptr<const HLAObject>& hlaObject, double federateTime )
 	{
 		Logger& logger = Logger::getInstance();
 		logger.log( "Received attribute update for " + hlaObject->getClassName()
@@ -291,7 +292,7 @@ namespace ucef
 		            + to_string(hlaObject->getAttributeValuAsDouble("NumberCups")), LevelCritical );
 	}
 
-	void FederateBase::removeObjectInstance( std::shared_ptr<HLAObject>& hlaObject )
+	void FederateBase::objectDelete( std::shared_ptr<HLAObject>& hlaObject )
 	{
 		lock_guard<mutex> lock( m_threadSafeLock );
 
@@ -430,13 +431,13 @@ namespace ucef
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
 				if( attribute->publish )
 				{
-					logger.log( ConversionHelper::ws2s(attribute->name) + " in " +
+					logger.log( ConversionHelper::ws2s(objectClass->name) + " in " +
 					            ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
 					pubAttributes.insert(*attribute->handle);
 				}
 				if( attribute->subscribe )
 				{
-					logger.log( ConversionHelper::ws2s(attribute->name) + " in " +
+					logger.log( ConversionHelper::ws2s(objectClass->name) + " in " +
 					            ConversionHelper::ws2s(attribute->name) + " added for subscribing.", LevelInfo );
 					subAttributes.insert(*attribute->handle);
 				}

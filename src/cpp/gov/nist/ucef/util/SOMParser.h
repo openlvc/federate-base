@@ -5,8 +5,6 @@
 #include "gov/nist/ucef/util/types.h"
 #include "tinyxml2.h"
 
-using namespace std;
-
 namespace ucef
 {
 	namespace util
@@ -34,7 +32,7 @@ namespace ucef
 				 *
 				 * @return all the object classes found in the given SOM file
 				 */
-				static vector<shared_ptr<ObjectClass>> getObjectClasses( const string& somFilePath );
+				static std::vector<std::shared_ptr<ObjectClass>> getObjectClasses( const std::string& somFilePath );
 
 				/*
 				 * Parse the given SOM file and generate the interaction class list
@@ -44,7 +42,8 @@ namespace ucef
 				 *
 				 * @return all the interaction classes found in the given SOM file
 				 */
-				static vector<shared_ptr<InteractionClass>> getInteractionClasses( const string& somFilePath );
+				static std::vector<std::shared_ptr<InteractionClass>>
+				                          getInteractionClasses( const std::string& somFilePath );
 			private:
 
 				//----------------------------------------------------------
@@ -59,13 +58,14 @@ namespace ucef
 				 *
 				 * @return all the child XMLElements of a given parent XMLElement
 				 */
-				static vector<tinyxml2::XMLElement*> getObjectClassChildElements( tinyxml2::XMLElement* parentElement );
+				static vector<tinyxml2::XMLElement*> getObjectClassChildElements( tinyxml2::XMLElement* parentElement,
+				                                                                  const std::string& rootText);
 
 				/*
 				 * Traverse and collect fully qualified class names, object's sharing status,
 				 * attribute names and their sharing statuses
 				 *
-				 * @param objectClassName is the fully qualified class name that get built up recursively
+				 * @param objectClassName is the fully qualified class name that get built recursively
 				 * @param attributes collect all the attributes found in each class during the
 				 *        recursion
 				 * @param parentElement the next XML element that is going to get explored
@@ -76,6 +76,21 @@ namespace ucef
 				                                   std::vector<std::shared_ptr<ObjectAttribute>> attributes,
 				                                   tinyxml2::XMLElement* parentElement,
 				                                   std::vector<std::shared_ptr<ObjectClass>> &objectClasses);
+				/*
+				 * Traverse and collect fully qualified interaction class names, and parameter names.
+				 *
+				 * @param interactionClassName is the fully qualified interaction class
+				 *        name that get built recursively
+				 * @param params collect all the parameters found in each interaction class during the
+				 *        recursion
+				 * @param parentElement the next XML element that is going to get explored
+				 * @param intClasses collects valid paramterClasses in the passed SOM
+				 *
+				 */
+				static void traverseInteractionClasses( std::wstring interactionClassName,
+				                                        std::vector<std::shared_ptr<InteractionParameter>> params,
+				                                        tinyxml2::XMLElement* parentElement,
+				                                        std::vector<std::shared_ptr<InteractionClass>> intClasses);
 		};
 
 	}

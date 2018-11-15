@@ -82,7 +82,7 @@ namespace ucef
 		}
 	}
 
-	bool HLAObject::getAttributeValuAsBool( const string& attributeName )
+	bool HLAObject::getAttributeValuAsBool( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -90,7 +90,7 @@ namespace ucef
 		return 0;
 	}
 
-	char HLAObject::getAttributeValuAsChar( const string& attributeName )
+	char HLAObject::getAttributeValuAsChar( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -98,7 +98,7 @@ namespace ucef
 		return 0;
 	}
 
-	short HLAObject::getAttributeValuAsShort( const string& attributeName )
+	short HLAObject::getAttributeValuAsShort( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -106,7 +106,7 @@ namespace ucef
 		return 0;
 	}
 
-	int HLAObject::getAttributeValuAsInt( const string& attributeName )
+	int HLAObject::getAttributeValuAsInt( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -114,7 +114,7 @@ namespace ucef
 		return 0;
 	}
 
-	long HLAObject::getAttributeValuAsLong( const string& attributeName )
+	long HLAObject::getAttributeValuAsLong( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -122,7 +122,7 @@ namespace ucef
 		return 0;
 	}
 
-	float HLAObject::getAttributeValuAsFloat( const string& attributeName )
+	float HLAObject::getAttributeValuAsFloat( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -130,7 +130,7 @@ namespace ucef
 		return 0.0f;
 	}
 
-	double HLAObject::getAttributeValuAsDouble( const string& attributeName )
+	double HLAObject::getAttributeValuAsDouble( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -138,7 +138,7 @@ namespace ucef
 		return 0.0;
 	}
 
-	string HLAObject::getAttributeValuAsString( const string& attributeName )
+	string HLAObject::getAttributeValuAsString( const string& attributeName ) const
 	{
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
@@ -146,7 +146,7 @@ namespace ucef
 		return "";
 	}
 
-	VariableData HLAObject::getAttributeValue( const string& attributeName )
+	VariableData HLAObject::getAttributeValue( const string& attributeName ) const
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		VariableData data;
@@ -164,7 +164,7 @@ namespace ucef
 		m_attributeDataStore->clear();
 	}
 
-	std::string HLAObject::getClassName()
+	std::string HLAObject::getClassName() const
 	{
 		return m_className;
 	}

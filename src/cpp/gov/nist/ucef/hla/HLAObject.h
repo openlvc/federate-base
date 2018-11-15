@@ -43,18 +43,18 @@ namespace ucef
 			                        std::shared_ptr<void> data,
 			                        const size_t size );
 
-			bool getAttributeValuAsBool( const std::string& attributeName );
-			char getAttributeValuAsChar( const std::string& attributeName );
-			short getAttributeValuAsShort( const std::string& attributeName );
-			int getAttributeValuAsInt( const std::string& attributeName );
-			long getAttributeValuAsLong( const std::string& attributeName );
-			float getAttributeValuAsFloat( const std::string& attributeName );
-			double getAttributeValuAsDouble( const std::string& attributeName );
-			std::string getAttributeValuAsString( const std::string& attributeName );
+			bool getAttributeValuAsBool( const std::string& attributeName ) const;
+			char getAttributeValuAsChar( const std::string& attributeName ) const;
+			short getAttributeValuAsShort( const std::string& attributeName ) const;
+			int getAttributeValuAsInt( const std::string& attributeName ) const;
+			long getAttributeValuAsLong( const std::string& attributeName ) const;
+			float getAttributeValuAsFloat( const std::string& attributeName ) const;
+			double getAttributeValuAsDouble( const std::string& attributeName ) const;
+			std::string getAttributeValuAsString( const std::string& attributeName ) const;
 
-			util::VariableData getAttributeValue( const std::string& attributeName );
+			util::VariableData getAttributeValue( const std::string& attributeName ) const;
 			void clearAttributeDataStore();
-			std::string getClassName();
+			std::string getClassName() const;
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> getInstanceHandle();
 		private:
 
@@ -64,7 +64,7 @@ namespace ucef
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
 			std::string m_className;
 			std::shared_ptr<rti1516e::ObjectInstanceHandle> m_instanceHandle;
-			std::mutex m_threadSafeLock;
+			mutable std::mutex m_threadSafeLock;
 	};
 }
 
