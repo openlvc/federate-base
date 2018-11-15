@@ -18,12 +18,17 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.base;
+package gov.nist.ucef.hla.example;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
+
+import gov.nist.ucef.hla.base.FederateBase;
+import gov.nist.ucef.hla.base.HLACodecUtils;
+import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.HLAObject;
 
 public class MyFederate extends FederateBase {
 	//----------------------------------------------------------

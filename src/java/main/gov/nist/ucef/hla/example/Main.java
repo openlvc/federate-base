@@ -18,7 +18,7 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.base;
+package gov.nist.ucef.hla.example;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.UCEFException;
 
 /**
  * A simple class with a main method for testing federates.
