@@ -41,28 +41,11 @@ import gov.nist.ucef.hla.base.UCEFException;
 
 public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
-	//                    STATIC VARIABLES
-	//----------------------------------------------------------
-	private static String[] FRUITS = {"Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Grape",
-	                                  "Honeydew", "iFruit", "Jackfruit", "Kiwi", "Lemon", "Mango", 
-	                                  "Nectarine", "Orange", "Pear", "Quaggleberry", "Raspberry", 
-	                                  "Strawberry", "Tangerine", "Ugli Fruit", "Voavanga", "Watermelon",
-	                                  "Xigua", "Yangmei", "Zuchinni"};
-	
-	//----------------------------------------------------------
 	//                    STATIC METHODS
 	//----------------------------------------------------------
 	public static void main( String[] args )
 	{
-		System.out.println( "      ___" );
-		System.out.println( "    _/   \\_     _     _" );
-		System.out.println( "   / \\   / \\   / \\   / \\" );
-		System.out.println( "  ( U )-( C )-( E )-( F )" );
-		System.out.println( "   \\_/   \\_/   \\_/   \\_/" );
-		System.out.println( "  <-+-> <-+-----+-----+->" );
-		System.out.println( " Universal CPS Environment" );
-		System.out.println( "       for Federation" );
-		System.out.println();
+		System.out.println( UCEF_LOGO );
 		
 		try
 		{
@@ -204,6 +187,68 @@ public class MyFederate extends FederateBase {
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Utility function to set up some useful configuration
+	 * 
+	 * @return a usefully populated {@link FederateConfiguration} instance
+	 */
+	private static FederateConfiguration makeConfig()
+	{
+		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+			                                                      "Federate-" + new Date().getTime(), 
+																  "TestFederate" );
+		// set up maps with classes and corresponding lists of attributes to 
+		// be published and subscribed to
+		String drinkBase = "HLAobjectRoot.Food.Drink.";
+		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		
+		// set up lists of interactions to be published and subscribed to
+		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
+		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
+
+		// somebody set us up the FOM...
+		try
+		{
+			String fomRootPath = "resources/foms/";
+			// modules
+			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
+			                       fomRootPath+"RestaurantFood.xml", 
+			                       fomRootPath+"RestaurantDrinks.xml"};
+			config.addModules( urlsFromPaths(moduleFoms) );
+			
+			// join modules
+			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
+		}	
+		
+		return config;
+	}
+	
+	//----------------------------------------------------------
+	//                    STATIC VARIABLES
+	//----------------------------------------------------------
+	private static final String UCEF_LOGO =
+		"            ___\n" +
+		"          _/   \\_     _     _\n" +
+		"         / \\   / \\   / \\   / \\\n" +
+		"        ( U )-( C )-( E )-( F )\n" +
+		"         \\_/   \\_/   \\_/   \\_/\n" +
+		"        <-+-> <-+-----+-----+->\n" +
+		"       Universal CPS Environment\n" +
+		"             for Federation\n";
+	
+	private static String[] FRUITS = {"Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Grape",
+	                                  "Honeydew", "iFruit", "Jackfruit", "Kiwi", "Lemon", "Mango", 
+	                                  "Nectarine", "Orange", "Pear", "Quaggleberry", "Raspberry", 
+	                                  "Strawberry", "Tangerine", "Ugli Fruit", "Voavanga", "Watermelon",
+	                                  "Xigua", "Yangmei", "Zuchinni"};
+	
+	/**
 	 * This method simply blocks until the user presses ENTER, allowing for a pause in
 	 * proceedings.
 	 */
@@ -298,49 +343,6 @@ public class MyFederate extends FederateBase {
 			builder.append( "'\n" );
 		}
 		return builder.toString();
-	}
-	
-	/**
-	 * Utility function to set up some useful configuration
-	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
-	 */
-	private static FederateConfiguration makeConfig()
-	{
-		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
-			                                                      "Federate-" + new Date().getTime(), 
-																  "TestFederate" );
-		// set up maps with classes and corresponding lists of attributes to 
-		// be published and subscribed to
-		String drinkBase = "HLAobjectRoot.Food.Drink.";
-		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		
-		// set up lists of interactions to be published and subscribed to
-		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
-		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
-		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
-
-		// somebody set us up the FOM...
-		try
-		{
-			String fomRootPath = "resources/foms/";
-			// modules
-			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
-			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml"};
-			config.addModules( urlsFromPaths(moduleFoms) );
-			
-			// join modules
-			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
-			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
-		}
-		catch( Exception e )
-		{
-			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
-		}	
-		
-		return config;
 	}
 	
 	/**

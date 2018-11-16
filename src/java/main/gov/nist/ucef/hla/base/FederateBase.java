@@ -148,7 +148,8 @@ public abstract class FederateBase
 				;
 		}
 
-		// time to run away
+		disableTimePolicy();
+
 		beforeReadyToResign();
 		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
 		beforeExit();
@@ -414,6 +415,12 @@ public abstract class FederateBase
 		}
 	}
 
+	private void disableTimePolicy()
+	{
+		rtiamb.disableTimeConstrained();
+		rtiamb.disableTimeRegulation();
+	}
+	
 	private void publishAndSubscribe()
 	{
 		publishObjectClassAttributes( configuration.getPublishedAttributes() );
