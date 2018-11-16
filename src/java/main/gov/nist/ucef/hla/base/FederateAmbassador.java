@@ -58,8 +58,8 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private String announcedSyncPoint;
 	
 	private double federateTime;
-	private boolean isTimeRegulating;
-	private boolean isTimeConstrained;
+	protected boolean isTimeRegulating;
+	protected boolean isTimeConstrained;
 	
 	// discovered (remote) objects
 	private Map<ObjectInstanceHandle,HLAObject> remoteHlaObjects;
@@ -128,16 +128,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 	public double getFederateTime()
 	{
 		return this.federateTime;
-	}
-	
-	public boolean isTimeRegulating()
-	{
-		return this.isTimeRegulating;
-	}
-	
-	public boolean isTimeConstrained()
-	{
-		return this.isTimeConstrained;
 	}
 	
 	public void deleteObjectInstances()

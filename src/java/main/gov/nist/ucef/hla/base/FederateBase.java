@@ -402,23 +402,28 @@ public abstract class FederateBase
 	{
 		// enable time regulation based on configuration
 		rtiamb.enableTimeRegulation( configuration.getLookAhead() );
-		while( fedamb.isTimeRegulating() == false )
+		while( fedamb.isTimeRegulating == false )
 		{
+			// waiting for callback to confirm it's enabled
 			evokeMultipleCallbacks();
 		}
 
 		// enable time constrained
 		rtiamb.enableTimeConstrained();
-		while( fedamb.isTimeConstrained() == false )
+		while( fedamb.isTimeConstrained == false )
 		{
+			// waiting for callback to confirm it's enabled
 			evokeMultipleCallbacks();
 		}
 	}
 
 	private void disableTimePolicy()
 	{
+		// no waiting for callbacks when disabling time policies
 		rtiamb.disableTimeConstrained();
+		fedamb.isTimeConstrained = false;
 		rtiamb.disableTimeRegulation();
+		fedamb.isTimeRegulating = false;
 	}
 	
 	private void publishAndSubscribe()
