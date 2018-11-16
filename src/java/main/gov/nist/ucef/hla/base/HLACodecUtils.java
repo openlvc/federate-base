@@ -86,7 +86,7 @@ public class HLACodecUtils
 	 */
 	public short asShort( byte[] bytes )
 	{
-		HLAinteger16BE value = encode((short)0);
+		HLAinteger16BE value = makeHLAType((short)0);
 		try
 		{
 			value.decode( bytes );
@@ -106,7 +106,7 @@ public class HLACodecUtils
 	 */
 	public int asInt( byte[] bytes )
 	{
-		HLAinteger32BE value = encode((int)0);
+		HLAinteger32BE value = makeHLAType((int)0);
 		try
 		{
 			value.decode( bytes );
@@ -126,7 +126,7 @@ public class HLACodecUtils
 	 */
 	public long asLong( byte[] bytes )
 	{
-		HLAinteger64BE value = encode((long)0);
+		HLAinteger64BE value = makeHLAType((long)0);
 		try
 		{
 			value.decode( bytes );
@@ -146,7 +146,7 @@ public class HLACodecUtils
 	 */
 	public float asFloat( byte[] bytes )
 	{
-		HLAfloat32BE value = encode((float)0);
+		HLAfloat32BE value = makeHLAType((float)0);
 		try
 		{
 			value.decode( bytes );
@@ -166,7 +166,7 @@ public class HLACodecUtils
 	 */
 	public double asDouble( byte[] bytes )
 	{
-		HLAfloat64BE value = encode((double)0);
+		HLAfloat64BE value = makeHLAType((double)0);
 		try
 		{
 			value.decode( bytes );
@@ -186,7 +186,7 @@ public class HLACodecUtils
 	 */
 	public boolean asBoolean( byte[] bytes )
 	{
-		HLAboolean value = encode(false);
+		HLAboolean value = makeHLAType(false);
 		try
 		{
 			value.decode( bytes );
@@ -206,7 +206,7 @@ public class HLACodecUtils
 	 */
 	public String asString( byte[] bytes )
 	{
-		HLAunicodeString value = encode("");
+		HLAunicodeString value = makeHLAType("");
 		try
 		{
 			value.decode( bytes );
@@ -231,9 +231,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAinteger16BE encode(short value)
+	public byte[] encode(short value)
 	{
-		return encoderFactory.createHLAinteger16BE(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -242,9 +242,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAinteger32BE encode(int value)
+	public byte[] encode(int value)
 	{
-		return encoderFactory.createHLAinteger32BE(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -253,9 +253,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAinteger64BE encode(long value)
+	public byte[] encode(long value)
 	{
-		return encoderFactory.createHLAinteger64BE(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -264,9 +264,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAfloat64BE encode(double value)
+	public byte[] encode(double value)
 	{
-		return encoderFactory.createHLAfloat64BE(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -275,9 +275,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAfloat32BE encode(float value)
+	public byte[] encode(float value)
 	{
-		return encoderFactory.createHLAfloat32BE(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -286,9 +286,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAboolean encode(boolean value)
+	public byte[] encode(boolean value)
 	{
-		return encoderFactory.createHLAboolean(value);
+		return makeHLAType(value).toByteArray();
 	}
 	
 	/**
@@ -297,11 +297,87 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public HLAunicodeString encode(String value)
+	public byte[] encode(String value)
+	{
+		return makeHLAType(value).toByteArray();
+	}
+	
+	/**
+	 * Encode a short to an {@link HLAinteger16BE} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAinteger16BE}
+	 */
+	private HLAinteger16BE makeHLAType(short value)
+	{
+		return encoderFactory.createHLAinteger16BE(value);
+	}
+	
+	/**
+	 * Encode an integer to an {@link HLAinteger32BE} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAinteger32BE}
+	 */
+	private HLAinteger32BE makeHLAType(int value)
+	{
+		return encoderFactory.createHLAinteger32BE(value);
+	}
+	
+	/**
+	 * Encode a long to an {@link HLAinteger64BE} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the HLA byte array
+	 */
+	private HLAinteger64BE makeHLAType(long value)
+	{
+		return encoderFactory.createHLAinteger64BE(value);
+	}
+	
+	/**
+	 * Encode a double to an {@link HLAfloat64BE} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAfloat64BE}
+	 */
+	private HLAfloat64BE makeHLAType(double value)
+	{
+		return encoderFactory.createHLAfloat64BE(value);
+	}
+	
+	/**
+	 * Encode a float to an {@link HLAfloat32BE} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAfloat32BE}
+	 */
+	private HLAfloat32BE makeHLAType(float value)
+	{
+		return encoderFactory.createHLAfloat32BE(value);
+	}
+	
+	/**
+	 * Encode a boolean to an {@link HLAboolean} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAboolean}
+	 */
+	private HLAboolean makeHLAType(boolean value)
+	{
+		return encoderFactory.createHLAboolean(value);
+	}
+	
+	/**
+	 * Encode a string to an {@link HLAunicodeString} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAunicodeString}
+	 */
+	private HLAunicodeString makeHLAType(String value)
 	{
 		return encoderFactory.createHLAunicodeString(value == null ? "" : value);
 	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////

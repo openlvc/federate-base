@@ -226,7 +226,7 @@ public class HLAObject
 	public void set( String attributeName, short value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -238,7 +238,7 @@ public class HLAObject
 	public void set( String attributeName, int value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -250,7 +250,7 @@ public class HLAObject
 	public void set( String attributeName, long value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -262,7 +262,7 @@ public class HLAObject
 	public void set( String attributeName, float value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -274,7 +274,7 @@ public class HLAObject
 	public void set( String attributeName, double value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -286,7 +286,7 @@ public class HLAObject
 	public void set( String attributeName, boolean value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -298,7 +298,7 @@ public class HLAObject
 	public void set( String attributeName, String value )
 	{
 		setRawValue( attributeName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**

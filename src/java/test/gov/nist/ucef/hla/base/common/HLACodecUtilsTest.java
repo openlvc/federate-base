@@ -68,7 +68,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(short expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			short actual = codecUtils.asShort( codecUtils.encode( expected ).toByteArray() );
+			short actual = codecUtils.asShort( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -82,7 +82,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(int expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			int actual = codecUtils.asInt( codecUtils.encode( expected ).toByteArray() );
+			int actual = codecUtils.asInt( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -96,7 +96,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(long expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			long actual = codecUtils.asLong( codecUtils.encode( expected ).toByteArray() );
+			long actual = codecUtils.asLong( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -110,7 +110,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(float expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			float actual = codecUtils.asFloat( codecUtils.encode( expected ).toByteArray() );
+			float actual = codecUtils.asFloat( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -124,7 +124,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(double expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			double actual = codecUtils.asDouble( codecUtils.encode( expected ).toByteArray() );
+			double actual = codecUtils.asDouble( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -138,7 +138,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(boolean expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			boolean actual = codecUtils.asBoolean( codecUtils.encode( expected ).toByteArray() );
+			boolean actual = codecUtils.asBoolean( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -152,7 +152,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(String expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			String actual = codecUtils.asString( codecUtils.encode( expected ).toByteArray() );
+			String actual = codecUtils.asString( codecUtils.encode( expected ) );
 			assertEquals( expected, actual );
 		}
 	}

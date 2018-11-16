@@ -215,7 +215,7 @@ public class HLAInteraction
 	public void set( String parameterName, short value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -227,7 +227,7 @@ public class HLAInteraction
 	public void set( String parameterName, int value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -239,7 +239,7 @@ public class HLAInteraction
 	public void set( String parameterName, long value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -251,7 +251,7 @@ public class HLAInteraction
 	public void set( String parameterName, float value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -263,7 +263,7 @@ public class HLAInteraction
 	public void set( String parameterName, double value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -275,7 +275,7 @@ public class HLAInteraction
 	public void set( String parameterName, boolean value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
@@ -287,7 +287,7 @@ public class HLAInteraction
 	public void set( String parameterName, String value )
 	{
 		setRawValue( parameterName, 
-		             hlaCodec.encode( value ).toByteArray() );
+		             hlaCodec.encode( value ) );
 	}
 	
 	/**
