@@ -79,8 +79,8 @@ namespace ucef
 			return SomInteractions;
 		}
 
-		vector<XMLElement*> SOMParser::getObjectClassChildElements( XMLElement* parentElement,
-		                                                            const string& rootText)
+		vector<XMLElement*> SOMParser::getClassChildElements( XMLElement* parentElement,
+		                                                      const string& rootText)
 		{
 			vector<XMLElement*> childElements;
 
@@ -203,7 +203,7 @@ namespace ucef
 				}
 
 				// seek all the children of this parent element to do depth first search
-				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement, "objectClass" );
+				vector<XMLElement*> childElements = getClassChildElements( parentElement, "objectClass" );
 				// start processing child nodes
 				for( XMLElement* childElement : childElements )
 				{
@@ -214,7 +214,7 @@ namespace ucef
 		void SOMParser::traverseInteractionClasses( wstring interactionClassName,
 		                                            vector<shared_ptr<InteractionParameter>> params,
 		                                            tinyxml2::XMLElement * parentElement, 
-		                                            vector<shared_ptr<InteractionClass>> intClasses )
+		                                            vector<shared_ptr<InteractionClass>>& intClasses )
 		{
 			// this is a leaf interaction class
 			if( parentElement->FirstChildElement( "interactionClass" ) == nullptr )
@@ -227,7 +227,7 @@ namespace ucef
 
 					// fully qualified interaction class name
 					interactionClass->name = interactionClassName +
-					                            ConversionHelper::s2ws(interactionNameElement->GetText());
+					                         ConversionHelper::s2ws(interactionNameElement->GetText());
 
 					// sharing state (pub & sub) of the interaction class
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
@@ -289,7 +289,7 @@ namespace ucef
 				}
 
 				// seek all the children of this parent element to do depth first search
-				vector<XMLElement*> childElements = getObjectClassChildElements( parentElement, "objectClass" );
+				vector<XMLElement*> childElements = getClassChildElements( parentElement, "interactionClass" );
 				// start processing child nodes
 				for( XMLElement* childElement : childElements )
 				{
@@ -299,4 +299,3 @@ namespace ucef
 		}
 	}
 }
-

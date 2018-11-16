@@ -109,6 +109,35 @@ namespace ucef
 			                                   rti1516e::SupplementalRemoveInfo theRemoveInfo)
 			                                                            throw (rti1516e:: FederateInternalError);
 
+			virtual void receiveInteraction( rti1516e::InteractionClassHandle theInteraction,
+			                                 const rti1516e::ParameterHandleValueMap& theParameters,
+			                                 const rti1516e::VariableLengthData& tag,
+			                                 rti1516e::OrderType sentOrder,
+			                                 rti1516e::TransportationType theType,
+			                                 rti1516e::SupplementalReceiveInfo theReceiveInfo )
+			                                                            throw( rti1516e::FederateInternalError );
+
+			virtual void receiveInteraction( rti1516e::InteractionClassHandle theInteraction,
+			                                 const rti1516e::ParameterHandleValueMap& theParameters,
+			                                 const rti1516e::VariableLengthData& tag,
+			                                 rti1516e::OrderType sentOrder,
+			                                 rti1516e::TransportationType theType,
+			                                 const rti1516e::LogicalTime& theTime,
+			                                 rti1516e::OrderType receivedOrder,
+			                                 rti1516e::SupplementalReceiveInfo theReceiveInfo )
+			                                                            throw( rti1516e::FederateInternalError );
+
+			virtual void receiveInteraction( rti1516e::InteractionClassHandle theInteraction,
+			                                 const rti1516e::ParameterHandleValueMap& theParameters,
+			                                 const rti1516e::VariableLengthData& tag,
+			                                 rti1516e::OrderType sentOrder,
+			                                 rti1516e::TransportationType theType,
+			                                 const rti1516e::LogicalTime& theTime,
+			                                 rti1516e::OrderType receivedOrder,
+			                                 rti1516e::MessageRetractionHandle theHandle,
+			                                 rti1516e::SupplementalReceiveInfo theReceiveInfo )
+			                                                            throw( rti1516e::FederateInternalError );
+
 			//----------------------------------------------------------
 			//             Federate Access Methods
 			//----------------------------------------------------------

@@ -23,7 +23,8 @@ namespace ucef
 			//----------------------------------------------------------
 			//                     Constructors
 			//----------------------------------------------------------
-			HLAObject( const std::string& className, std::shared_ptr<rti1516e::ObjectInstanceHandle>& instanceHandle );
+			HLAObject( const std::string& objectClassName,
+			           std::shared_ptr<rti1516e::ObjectInstanceHandle>& instanceHandle );
 			virtual ~HLAObject();
 			HLAObject( const HLAObject& ) = delete;
 			HLAObject& operator=( const HLAObject& ) = delete;
@@ -43,14 +44,15 @@ namespace ucef
 			                        std::shared_ptr<void> data,
 			                        const size_t size );
 
-			bool getAttributeValuAsBool( const std::string& attributeName ) const;
-			char getAttributeValuAsChar( const std::string& attributeName ) const;
-			short getAttributeValuAsShort( const std::string& attributeName ) const;
-			int getAttributeValuAsInt( const std::string& attributeName ) const;
-			long getAttributeValuAsLong( const std::string& attributeName ) const;
-			float getAttributeValuAsFloat( const std::string& attributeName ) const;
-			double getAttributeValuAsDouble( const std::string& attributeName ) const;
-			std::string getAttributeValuAsString( const std::string& attributeName ) const;
+			bool getAttributeValueAsBool( const std::string& attributeName ) const;
+			char getAttributeValueAsChar( const std::string& attributeName ) const;
+			short getAttributeValueAsShort( const std::string& attributeName ) const;
+			int getAttributeValueAsInt( const std::string& attributeName ) const;
+			long getAttributeValueAsLong( const std::string& attributeName ) const;
+			float getAttributeValueAsFloat( const std::string& attributeName ) const;
+			double getAttributeValueAsDouble( const std::string& attributeName ) const;
+			std::string getAttributeValueAsString( const std::string& attributeName ) const;
+			std::vector<std::string> getAttributeNameList() const;
 
 			util::VariableData getAttributeValue( const std::string& attributeName ) const;
 			void clearAttributeDataStore();

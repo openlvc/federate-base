@@ -58,8 +58,9 @@ namespace ucef
 				 *
 				 * @return all the child XMLElements of a given parent XMLElement
 				 */
-				static vector<tinyxml2::XMLElement*> getObjectClassChildElements( tinyxml2::XMLElement* parentElement,
-				                                                                  const std::string& rootText);
+				static std::vector<tinyxml2::XMLElement*>
+				             getClassChildElements( tinyxml2::XMLElement* parentElement,
+				                                    const std::string& rootText);
 
 				/*
 				 * Traverse and collect fully qualified class names, object's sharing status,
@@ -90,7 +91,7 @@ namespace ucef
 				static void traverseInteractionClasses( std::wstring interactionClassName,
 				                                        std::vector<std::shared_ptr<InteractionParameter>> params,
 				                                        tinyxml2::XMLElement* parentElement,
-				                                        std::vector<std::shared_ptr<InteractionClass>> intClasses);
+				                                        std::vector<std::shared_ptr<InteractionClass>>& intClasses);
 		};
 
 	}

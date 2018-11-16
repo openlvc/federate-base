@@ -46,7 +46,7 @@ namespace ucef
 
 		wstring FederateConfiguration::getSomPath()
 		{
-			return L"restaurant/RestaurantDrinks.xml";
+			return L"restaurant/RestaurantProcesses.xml";
 		}
 
 		float FederateConfiguration::getLookAhead()

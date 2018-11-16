@@ -283,13 +283,19 @@ namespace ucef
 		m_incomingStore[hlaObject->getInstanceHandle()->hash()] = hlaObject;
 	}
 
-	void FederateBase::objectUpdate( shared_ptr<const HLAObject>& hlaObject, double federateTime )
+	void FederateBase::receiveAttributeReflection( shared_ptr<const HLAObject>& hlaObject, double federateTime )
 	{
 		Logger& logger = Logger::getInstance();
 		logger.log( "Received attribute update for " + hlaObject->getClassName()
-		            + to_string(hlaObject->getAttributeValuAsDouble("Flavor")), LevelCritical );
+		            + to_string(hlaObject->getAttributeValueAsDouble("Flavor")), LevelCritical );
 		logger.log( "Received attribute update for " + hlaObject->getClassName()
-		            + to_string(hlaObject->getAttributeValuAsDouble("NumberCups")), LevelCritical );
+		            + to_string(hlaObject->getAttributeValueAsDouble("NumberCups")), LevelCritical );
+	}
+
+	void FederateBase::receiveInteraction( shared_ptr<const HLAInteraction>& hlaInteraction,
+	                                       double federateTime )
+	{
+
 	}
 
 	void FederateBase::objectDelete( std::shared_ptr<HLAObject>& hlaObject )
@@ -335,6 +341,15 @@ namespace ucef
 		if( m_incomingStore.find( hash ) != m_incomingStore.end() )
 		{
 			return m_incomingStore[hash];
+		}
+		return nullptr;
+	}
+
+	std::shared_ptr<util::InteractionClass> FederateBase::getInteractionClass( long hash )
+	{
+		if( m_interactionCacheStoreByHash.find( hash ) != m_interactionCacheStoreByHash.end() )
+		{
+			return m_interactionCacheStoreByHash[hash];
 		}
 		return nullptr;
 	}
@@ -419,26 +434,26 @@ namespace ucef
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
-			ObjectClassHandle classHandle = *objectClass->classHandle;
+			ObjectClassHandle& classHandle = *objectClass->classHandle;
 			// attributes we are going to publish
 			AttributeHandleSet pubAttributes;
 			// attributes we are going to subscribe
 			AttributeHandleSet subAttributes;
 
 			ObjectAttributes &objectAtributes = objectClass->objectAttributes;
-			for( auto attributePair : objectAtributes )
+			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
 				if( attribute->publish )
 				{
-					logger.log( ConversionHelper::ws2s(objectClass->name) + " in " +
-					            ConversionHelper::ws2s(attribute->name) + " added for publishing.", LevelInfo );
+					logger.log( "Federate publishes attribute " + ConversionHelper::ws2s(attribute->name) +
+					            " in " + ConversionHelper::ws2s(objectClass->name), LevelInfo );
 					pubAttributes.insert(*attribute->handle);
 				}
 				if( attribute->subscribe )
 				{
-					logger.log( ConversionHelper::ws2s(objectClass->name) + " in " +
-					            ConversionHelper::ws2s(attribute->name) + " added for subscribing.", LevelInfo );
+					logger.log( "Federate subscribed to attribute " + ConversionHelper::ws2s(attribute->name) +
+					            " in " + ConversionHelper::ws2s(objectClass->name), LevelInfo );
 					subAttributes.insert(*attribute->handle);
 				}
 			}
@@ -457,7 +472,46 @@ namespace ucef
 		//----------------------------------------------------------
 		//     Store interaction class and parametere handles
 		//----------------------------------------------------------
-		//TO-DO
+		Logger& logger = Logger::getInstance();
+
+		// try to update interaction classes with correct interaction and parameter rti handles
+		for( auto& interactionClass : interactionClasses )
+		{
+			InteractionClassHandle interactionHandle =
+			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+			if( interactionHandle.isValid() )
+			{
+				interactionClass->interactionHandle = make_shared<InteractionClassHandle>( interactionHandle );
+			}
+			else
+			{
+				logger.log( "An invalid interaction handle returned for " +
+				            ConversionHelper::ws2s(interactionClass->name), LevelWarn );
+			}
+
+			InteractionParameters& params = interactionClass->parameters;
+			for( auto& param : params )
+			{
+				ParameterHandle paramHandle =
+					m_rtiAmbassadorWrapper->getParameterHandle( interactionHandle, param.second->name );
+				if( paramHandle.isValid() )
+				{
+					param.second->handle = make_shared<ParameterHandle>( paramHandle );
+				}
+				else
+				{
+					logger.log( "An invalid parameter handle returned for " +
+					            ConversionHelper::ws2s(interactionClass->name) + "." +
+					            ConversionHelper::ws2s(param.second->name), LevelWarn );
+				}
+			}
+			// now store the interactionClass in m_interactionCacheStoreByName for later use
+			m_interactionCacheStoreByName.insert(
+			                  make_pair(ConversionHelper::ws2s(interactionClass->name), interactionClass) );
+			// now store the ObjectClass in m_objectCacheStoreByHash for later use
+			m_interactionCacheStoreByHash.insert(
+			                  make_pair(interactionClass->interactionHandle->hash(), interactionClass) );
+		}
 	}
 
 	void FederateBase::pubSubInteractions()
@@ -466,7 +520,29 @@ namespace ucef
 		// Inform RTI about interaction that are published
 		// and subscribed by this federate
 		//----------------------------------------------------------
-		//TO-DO
+
+		Logger& logger = Logger::getInstance();
+		for( auto& interactionPair : m_interactionCacheStoreByName )
+		{
+			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
+
+			InteractionClassHandle& interactionHandle = *interactionClass->interactionHandle;
+			if( interactionClass->publish )
+			{
+				logger.log( "Federate publishes interaction class " +
+				            ConversionHelper::ws2s(interactionClass->name), LevelInfo);
+			}
+			if( interactionClass->subscribe )
+			{
+				logger.log( "Federate subscribed to Interaction class " +
+				            ConversionHelper::ws2s(interactionClass->name), LevelInfo);
+			}
+
+			m_rtiAmbassadorWrapper->publishSubscribeInteractionClassParams( interactionHandle,
+			                                                                interactionClass->publish,
+			                                                                interactionClass->subscribe);
+
+		}
 	}
 
 	void FederateBase::tickForCallBacks()

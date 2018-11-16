@@ -5,6 +5,7 @@
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/HLAObject.h"
+#include "gov/nist/ucef/hla/HLAInteraction.h"
 #include "gov/nist/ucef/util/types.h"
 
 namespace rti1516e
@@ -52,6 +53,9 @@ namespace ucef
 			void publishSubscribeObjectClassAttributes( rti1516e::ObjectClassHandle& classHandle,
 			                                            std::set<rti1516e::AttributeHandle>& pubAttributes,
 			                                            std::set<rti1516e::AttributeHandle>& subAttributes );
+			void publishSubscribeInteractionClassParams( rti1516e::InteractionClassHandle& interactionHandle,
+			                                             bool publish,
+			                                             bool subScribe);
 			std::shared_ptr<HLAObject> registerObject( const std::string& className,
 			                                           rti1516e::ObjectClassHandle& classHandle);
 			rti1516e::InteractionClassHandle getInteractionHandle( const std::wstring& name );
@@ -66,6 +70,8 @@ namespace ucef
 			void advanceLogicalTime( const double requestedTime );
 			void updateObjectInstances( std::shared_ptr<HLAObject>& hlaObject,
 			                            const util::ObjectCacheStoreByName& cacheStore );
+			void sendInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction,
+			                      const util::InteractionCacheStoreByName& cacheStore );
 			void deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject );
 			void resign();
 			void tickForCallBacks( double min, double max );

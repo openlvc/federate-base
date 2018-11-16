@@ -50,6 +50,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.cpp">
       <Filter>Source Files\gov\nist\ucef\hla</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.cpp">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
@@ -80,6 +83,9 @@
       <Filter>Source Files\gov\nist\ucef</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.h">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.h">
       <Filter>Source Files\gov\nist\ucef\hla</Filter>
     </ClInclude>
   </ItemGroup>

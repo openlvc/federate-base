@@ -169,6 +169,36 @@ namespace ucef
 		}
 	}
 
+	void RTIAmbassadorWrapper::
+		publishSubscribeInteractionClassParams( InteractionClassHandle & interactionHandle,
+		                                        bool publish,
+		                                        bool subScribe)
+	{
+		if( publish )
+		{
+			try
+			{
+				m_rtiAmbassador->publishInteractionClass( interactionHandle );
+			}
+			catch( Exception& e )
+			{
+				throw UCEFException( ConversionHelper::ws2s( e.what() ) );
+			}
+		}
+
+		if( subScribe )
+		{
+			try
+			{
+				m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
+			}
+			catch( Exception& e )
+			{
+				throw UCEFException( ConversionHelper::ws2s( e.what() ) );
+			}
+		}
+	}
+
 	std::shared_ptr<HLAObject> RTIAmbassadorWrapper::registerObject( const string& className,
 	                                                                 ObjectClassHandle& classHandle)
 	{
@@ -302,10 +332,13 @@ namespace ucef
 					{
 						VariableData val =
 							hlaObject->getAttributeValue(cachedAttributePair.first);
-						VariableLengthData data( val.data.get(), val.size );
-						rtiAttributeMap[*(cacheAttribute->handle)] = data;
-						logger.log( "The new value of " + cachedAttributePair.first + " in " + hlaObject->getClassName()
-						            + " is ready to publish.", LevelDebug );
+						if( val.data != nullptr )
+						{
+							VariableLengthData data( val.data.get(), val.size );
+							rtiAttributeMap[*(cacheAttribute->handle)] = data;
+							logger.log( "The attribute value of " + cachedAttributePair.first + " in " +
+							             hlaObject->getClassName() + " is ready to publish.", LevelDebug );
+						}
 					}
 					else
 					{
@@ -314,19 +347,20 @@ namespace ucef
 				}
 				else
 				{
-					logger.log( cachedAttributePair.first + " is not mentioned as a publishable item in SOM."
-						        + ". hence ignore this attribute update request.", LevelError );
+					logger.log( cachedAttributePair.first + " is not mentioned as a publishable item in SOM." +
+					            ". hence ignore this attribute update request.", LevelError );
 				}
 			}
 			
 			if( rtiAttributeMap.size() )
 			{
-				VariableLengthData tag( (void*)"", 4 );
+				VariableLengthData tag( (void*)"", 1 );
 				try
 				{
-					m_rtiAmbassador->updateAttributeValues( *(hlaObject->getInstanceHandle()), rtiAttributeMap, tag );
-					logger.log( "Suucesfully published the updated attributes of " + hlaObject->getClassName()
-					            + ".", LevelDebug );
+					m_rtiAmbassador->updateAttributeValues
+					                    ( *(hlaObject->getInstanceHandle()), rtiAttributeMap, tag );
+					logger.log( "Successfully published the updated attributes of " + hlaObject->getClassName() +
+					            ".", LevelDebug );
 				}
 				catch( Exception& e )
 				{
@@ -335,13 +369,69 @@ namespace ucef
 			}
 			else
 			{
-				logger.log( "Can't find any attributes to publish in " + hlaObject->getClassName() + ".", LevelError );
+				logger.log( "Can't find any attributes to publish in " + hlaObject->getClassName() + ".",
+				            LevelError );
 			}
 		}
 		else
 		{
-			logger.log( "Can't find " + hlaObject->getClassName() + " in system's cache."
-			            + ". Ignore this update request.", LevelError );
+			logger.log( "Can't find " + hlaObject->getClassName() + " in system's cache." +
+			            ". Ignore this update request.", LevelError );
+		}
+	}
+
+	void RTIAmbassadorWrapper::sendInteraction( shared_ptr<HLAInteraction>& hlaInteraction,
+	                                            const InteractionCacheStoreByName& cacheStore )
+	{
+		Logger& logger = Logger::getInstance();
+
+		auto classIt = cacheStore.find( hlaInteraction->getInteractionClassName() );
+		if( classIt != cacheStore.end() )
+		{
+			ParameterHandleValueMap rtiParameterMap;
+
+			InteractionParameters cachedParameters = classIt->second->parameters;
+
+			for( const auto& cachedParameterPair : cachedParameters )
+			{
+				shared_ptr<InteractionParameter> cacheParameter = cachedParameterPair.second;
+
+				if( cacheParameter->handle->isValid() )
+				{
+					VariableData val =
+						hlaInteraction->getParameterValue(cachedParameterPair.first);
+					if( val.data != nullptr )
+					{
+						VariableLengthData data( val.data.get(), val.size );
+						rtiParameterMap[*(cacheParameter->handle)] = data;
+						logger.log( "The parameter value of " + cachedParameterPair.first + " in " +
+						            hlaInteraction->getInteractionClassName() + " is ready to publish.",
+						            LevelDebug );
+					}
+				}
+				else
+				{
+					logger.log( "Parameter handler is not valid for " + cachedParameterPair.first, LevelError );
+				}
+			}
+
+			VariableLengthData tag( (void*)"", 4 );
+			try
+			{
+				m_rtiAmbassador->sendInteraction
+					                ( *(classIt->second->interactionHandle), rtiParameterMap, tag );
+				logger.log( "Successfully published an interaction named " +
+				            hlaInteraction->getInteractionClassName() + ".", LevelDebug );
+			}
+			catch( Exception& e )
+			{
+				throw UCEFException( ConversionHelper::ws2s(e.what()) );
+			}
+		}
+		else
+		{
+			logger.log( "Can't find " + hlaInteraction->getInteractionClassName() + " in system's cache." +
+			            ". Ignore this update request.", LevelError );
 		}
 	}
 

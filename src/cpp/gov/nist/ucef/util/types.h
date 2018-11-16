@@ -14,8 +14,9 @@
 
 namespace rti1516e
 {
-	class ObjectClassHandle;
 	class AttributeHandle;
+	class InteractionClassHandle;
+	class ObjectClassHandle;
 	class ObjectInstanceHandle;
 	class ParameterHandle;
 }
@@ -134,6 +135,7 @@ namespace ucef
 			std::wstring name; // fully qualified interaction class name
 			bool publish;
 			bool subscribe;
+			std::shared_ptr<rti1516e::InteractionClassHandle> interactionHandle;
 			InteractionParameters parameters;
 		};
 		/**
@@ -156,6 +158,9 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStoreByName;
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectCacheStoreByHash;
 		typedef std::unordered_map<long, std::shared_ptr<HLAObject>> IncomingStore;
+
+		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionCacheStoreByName;
+		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionClassStoreByHash;
 		//----------------------------------------
 		//           Conversion helpers
 		//-----------------------------------------
