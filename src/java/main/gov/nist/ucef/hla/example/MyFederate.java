@@ -21,14 +21,23 @@
 package gov.nist.ucef.hla.example;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 
 import gov.nist.ucef.hla.base.FederateBase;
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.UCEFException;
 
 public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
@@ -38,7 +47,39 @@ public class MyFederate extends FederateBase {
 	                                  "Honeydew", "iFruit", "Jackfruit", "Kiwi", "Lemon", "Mango", 
 	                                  "Nectarine", "Orange", "Pear", "Quaggleberry", "Raspberry", 
 	                                  "Strawberry", "Tangerine", "Ugli Fruit", "Voavanga", "Watermelon",
-	                                  "Xigua", "Yangmei", "Zuchinni"}; 
+	                                  "Xigua", "Yangmei", "Zuchinni"};
+	
+	//----------------------------------------------------------
+	//                    STATIC METHODS
+	//----------------------------------------------------------
+	public static void main( String[] args )
+	{
+		System.out.println( "      ___" );
+		System.out.println( "    _/   \\_     _     _" );
+		System.out.println( "   / \\   / \\   / \\   / \\" );
+		System.out.println( "  ( U )-( C )-( E )-( F )" );
+		System.out.println( "   \\_/   \\_/   \\_/   \\_/" );
+		System.out.println( "  <-+-> <-+-----+-----+->" );
+		System.out.println( " Universal CPS Environment" );
+		System.out.println( "       for Federation" );
+		System.out.println();
+		
+		try
+		{
+			new MyFederate().runFederate( makeConfig() );
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			System.err.println( e.getMessage() );
+			System.err.println( "Cannot proceed - shutting down now." );
+			System.exit( 1 );
+		}
+
+		System.out.println( "Completed - shutting down now." );
+		System.exit( 0 );
+	}
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -257,6 +298,81 @@ public class MyFederate extends FederateBase {
 			builder.append( "'\n" );
 		}
 		return builder.toString();
+	}
+	
+	/**
+	 * Utility function to set up some useful configuration
+	 * 
+	 * @return a usefully populated {@link FederateConfiguration} instance
+	 */
+	private static FederateConfiguration makeConfig()
+	{
+		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+			                                                      "Federate-" + new Date().getTime(), 
+																  "TestFederate" );
+		// set up maps with classes and corresponding lists of attributes to 
+		// be published and subscribed to
+		String drinkBase = "HLAobjectRoot.Food.Drink.";
+		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
+		
+		// set up lists of interactions to be published and subscribed to
+		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
+		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
+
+		// somebody set us up the FOM...
+		try
+		{
+			String fomRootPath = "resources/foms/";
+			// modules
+			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
+			                       fomRootPath+"RestaurantFood.xml", 
+			                       fomRootPath+"RestaurantDrinks.xml"};
+			config.addModules( urlsFromPaths(moduleFoms) );
+			
+			// join modules
+			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
+		}	
+		
+		return config;
+	}
+	
+	/**
+	 * Utility function to set create a bunch of URLs from file paths
+	 * 
+	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system, 
+	 *       a {@link UCEFException} will be thrown.
+	 * 
+	 * @return a list of URLs corresponding to the paths provided
+	 */
+	private static Collection<URL> urlsFromPaths(String[] paths)
+	{
+		List<URL> result = new ArrayList<>();
+		
+		try
+		{
+    		for(String path : paths)
+    		{
+    			File file = new File( path );
+    			if(file.isFile())
+    					result.add( new File( path ).toURI().toURL() );
+    			else
+    				throw new UCEFException("The file '%s' does not exist. " +
+    										"Please check the file path.", path);
+    		}
+		}
+		catch( MalformedURLException e )
+		{
+			throw new UCEFException(e);
+		}
+		
+		return result;
 	}
 	
 	//----------------------------------------------------------
