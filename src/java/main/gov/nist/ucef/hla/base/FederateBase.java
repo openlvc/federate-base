@@ -36,6 +36,7 @@ import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.ResignAction;
+import hla.rti1516e.encoding.HLAfixedRecord;
 
 public abstract class FederateBase
 {
@@ -213,7 +214,7 @@ public abstract class FederateBase
 	 * @param parameters the parameters (can be null)
 	 * @return the interaction
 	 */
-	protected HLAInteraction makeInteraction( String name, HashMap<String,byte[]> parameters )
+	protected HLAInteraction makeInteraction( String name, Map<String,byte[]> parameters )
 	{
 		return new HLAInteraction( rtiamb.getInteractionClassHandle( name ), parameters );
 	}

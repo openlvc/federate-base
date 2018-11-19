@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hla.rti1516e.InteractionClassHandle;
+import hla.rti1516e.encoding.EncoderFactory;
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
@@ -37,13 +38,15 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final HLACodecUtils hlaCodec = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private InteractionClassHandle interactionClassHandle;
 	private Map<String, byte[]> parameters;
+	
+	// used for encoding/decoding byte array representations of interaction parameters
+	private EncoderFactory encoder;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -53,6 +56,8 @@ public class HLAInteraction
 	{
 		this.interactionClassHandle = interactionClassHandle;
 		this.parameters = parameters == null ? new HashMap<>() : parameters;
+		
+		this.encoder = HLACodecUtils.getEncoder();
 	}
 
 	//----------------------------------------------------------
@@ -120,7 +125,7 @@ public class HLAInteraction
 	 */
 	public short getAsShort( String parameterName )
 	{
-		return hlaCodec.asShort( getRawValue( parameterName ) );
+		return HLACodecUtils.asShort( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -131,7 +136,7 @@ public class HLAInteraction
 	 */
 	public int getAsInt( String parameterName )
 	{
-		return hlaCodec.asInt( getRawValue( parameterName ) );
+		return HLACodecUtils.asInt( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -142,7 +147,7 @@ public class HLAInteraction
 	 */
 	public long getAsLong( String parameterName )
 	{
-		return hlaCodec.asLong( getRawValue( parameterName ) );
+		return HLACodecUtils.asLong( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -153,7 +158,7 @@ public class HLAInteraction
 	 */
 	public float getAsFloat( String parameterName )
 	{
-		return hlaCodec.asFloat( getRawValue( parameterName ) );
+		return HLACodecUtils.asFloat( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -164,7 +169,7 @@ public class HLAInteraction
 	 */
 	public double getAsDouble( String parameterName )
 	{
-		return hlaCodec.asDouble( getRawValue( parameterName ) );
+		return HLACodecUtils.asDouble( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -175,7 +180,7 @@ public class HLAInteraction
 	 */
 	public boolean getAsBoolean( String parameterName )
 	{
-		return hlaCodec.asBoolean( getRawValue( parameterName ) );
+		return HLACodecUtils.asBoolean( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -186,7 +191,7 @@ public class HLAInteraction
 	 */
 	public String getAsString( String parameterName )
 	{
-		return hlaCodec.asString( getRawValue( parameterName ) );
+		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
@@ -214,8 +219,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, short value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -226,8 +230,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, int value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -238,8 +241,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, long value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -250,8 +252,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, float value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -262,8 +263,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, double value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -274,8 +274,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, boolean value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -286,8 +285,7 @@ public class HLAInteraction
 	 */
 	public void set( String parameterName, String value )
 	{
-		setRawValue( parameterName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**

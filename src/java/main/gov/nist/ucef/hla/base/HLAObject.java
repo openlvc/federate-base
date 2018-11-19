@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import hla.rti1516e.ObjectInstanceHandle;
+import hla.rti1516e.encoding.EncoderFactory;
 
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
@@ -38,13 +39,15 @@ public class HLAObject
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final byte[] EMPTY_BYTE_ARRAY = {};
-	private static final HLACodecUtils hlaCodec = HLACodecUtils.instance();
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private ObjectInstanceHandle objectInstanceHandle;
 	private Map<String, byte[]> attributes;
+	
+	// used for encoding/decoding byte array representations of attributes
+	private EncoderFactory encoder;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -68,6 +71,8 @@ public class HLAObject
 			//      false for booleans, etc) but for now this is sufficient.
 			attributeNames.forEach( (attrName) -> this.attributes.put( attrName, EMPTY_BYTE_ARRAY) );
 		}
+		
+		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
 	//----------------------------------------------------------
@@ -131,7 +136,7 @@ public class HLAObject
 	 */
 	public short getAsShort( String attributeName )
 	{
-		return hlaCodec.asShort( getRawValue( attributeName ) );
+		return HLACodecUtils.asShort( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -142,7 +147,7 @@ public class HLAObject
 	 */
 	public int getAsInt( String attributeName )
 	{
-		return hlaCodec.asInt( getRawValue( attributeName ) );
+		return HLACodecUtils.asInt( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -153,7 +158,7 @@ public class HLAObject
 	 */
 	public long getAsLong( String attributeName )
 	{
-		return hlaCodec.asLong( getRawValue( attributeName ) );
+		return HLACodecUtils.asLong( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -164,7 +169,7 @@ public class HLAObject
 	 */
 	public float getAsFloat( String attributeName )
 	{
-		return hlaCodec.asFloat( getRawValue( attributeName ) );
+		return HLACodecUtils.asFloat( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -175,7 +180,7 @@ public class HLAObject
 	 */
 	public double getAsDouble( String attributeName )
 	{
-		return hlaCodec.asDouble( getRawValue( attributeName ) );
+		return HLACodecUtils.asDouble( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -186,7 +191,7 @@ public class HLAObject
 	 */
 	public boolean getAsBoolean( String attributeName )
 	{
-		return hlaCodec.asBoolean( getRawValue( attributeName ) );
+		return HLACodecUtils.asBoolean( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -197,7 +202,7 @@ public class HLAObject
 	 */
 	public String getAsString( String attributeName )
 	{
-		return hlaCodec.asString( getRawValue( attributeName ) );
+		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**
@@ -225,8 +230,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, short value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -237,8 +241,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, int value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -249,8 +252,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, long value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -261,8 +263,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, float value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -273,8 +274,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, double value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -285,8 +285,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, boolean value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
@@ -297,8 +296,7 @@ public class HLAObject
 	 */
 	public void set( String attributeName, String value )
 	{
-		setRawValue( attributeName, 
-		             hlaCodec.encode( value ) );
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**

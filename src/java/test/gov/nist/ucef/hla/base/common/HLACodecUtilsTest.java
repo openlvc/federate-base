@@ -21,6 +21,7 @@
 package gov.nist.ucef.hla.base.common;
 
 import gov.nist.ucef.hla.base.HLACodecUtils;
+import hla.rti1516e.encoding.EncoderFactory;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -34,7 +35,7 @@ public class HLACodecUtilsTest extends TestCase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private HLACodecUtils codecUtils;
+	private EncoderFactory encoder;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -56,7 +57,7 @@ public class HLACodecUtilsTest extends TestCase
 	@Override
 	public void setUp()
 	{
-		this.codecUtils = HLACodecUtils.instance();
+		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
 	/**
@@ -68,7 +69,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(short expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			short actual = codecUtils.asShort( codecUtils.encode( expected ) );
+			short actual = HLACodecUtils.asShort( this.encoder, 
+			                                      HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -82,7 +84,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(int expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			int actual = codecUtils.asInt( codecUtils.encode( expected ) );
+			int actual = HLACodecUtils.asInt( this.encoder, 
+			                                  HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -96,7 +99,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(long expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			long actual = codecUtils.asLong( codecUtils.encode( expected ) );
+			long actual = HLACodecUtils.asLong( this.encoder, 
+			                                    HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -110,7 +114,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(float expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			float actual = codecUtils.asFloat( codecUtils.encode( expected ) );
+			float actual = HLACodecUtils.asFloat( this.encoder, 
+			                                      HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -124,7 +129,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(double expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			double actual = codecUtils.asDouble( codecUtils.encode( expected ) );
+			double actual = HLACodecUtils.asDouble( this.encoder, 
+			                                        HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -138,7 +144,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(boolean expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			boolean actual = codecUtils.asBoolean( codecUtils.encode( expected ) );
+			boolean actual = HLACodecUtils.asBoolean( this.encoder, 
+			                                          HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
@@ -152,7 +159,8 @@ public class HLACodecUtilsTest extends TestCase
 		for(String expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			String actual = codecUtils.asString( codecUtils.encode( expected ) );
+			String actual = HLACodecUtils.asUnicodeString( this.encoder, 
+			                                               HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
