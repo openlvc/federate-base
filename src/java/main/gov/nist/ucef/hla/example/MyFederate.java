@@ -204,6 +204,18 @@ public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final String DRINK_BASE = "HLAobjectRoot.Food.Drink.";
+	private static final String SODA_OBJECT_ID = DRINK_BASE + "Soda";
+	private static final String NUMBER_CUPS_ATTR_ID = "NumberCups";
+	private static final String FLAVOR_ATTR_ID = "Flavor";
+
+	private static final String FOOD_SERVED_BASE = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+	private static final String DRINK_SERVED_INTERACTION_ID = FOOD_SERVED_BASE + "DrinkServed";
+	private static final String MAIN_COURSE_SERVED_INTERACTION_ID = FOOD_SERVED_BASE + "MainCourseServed";
+	private static final String TIMELINESS_OK_PARAM = "TimlinessOk";
+	private static final String ACCURACY_OK_PARAM = "AccuracyOk";
+	private static final String TEMPERATURE_OK_PARAM = "TemperatureOk";
+	
 	private static String[] FRUITS = {"Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Grape",
 	                                  "Honeydew", "iFruit", "Jackfruit", "Kiwi", "Lemon", "Mango", 
 	                                  "Nectarine", "Orange", "Pear", "Quaggleberry", "Raspberry", 
@@ -222,16 +234,15 @@ public class MyFederate extends FederateBase {
 																  "TestFederate" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
-		String drinkBase = "HLAobjectRoot.Food.Drink.";
-		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		
+		String[] attributes = new String[]{ NUMBER_CUPS_ATTR_ID, FLAVOR_ATTR_ID };
+		config.addPublishedAtributes( SODA_OBJECT_ID, attributes );
+		config.addSubscribedAtributes( SODA_OBJECT_ID, attributes );
+
 		// set up lists of interactions to be published and subscribed to
-		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
-		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
-		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
-		config.addPublishedInteraction( foodServedBase+"MainCourseServed" );
-		config.addSubscribedInteraction( foodServedBase+"MainCourseServed" );
+		config.addPublishedInteraction( DRINK_SERVED_INTERACTION_ID );
+		config.addSubscribedInteraction( DRINK_SERVED_INTERACTION_ID );
+		config.addPublishedInteraction( MAIN_COURSE_SERVED_INTERACTION_ID );
+		config.addSubscribedInteraction( MAIN_COURSE_SERVED_INTERACTION_ID );
 
 		// somebody set us up the FOM...
 		try
@@ -306,7 +317,7 @@ public class MyFederate extends FederateBase {
 	protected HLAInteraction makeDrinkServedInteraction()
 	{
 		// no parameters, so this is easy
-		return makeInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", null );
+		return makeInteraction( DRINK_SERVED_INTERACTION_ID, null );
 	}
 	
 	/**
@@ -341,16 +352,16 @@ public class MyFederate extends FederateBase {
 	{
 		Map<String, byte[]> interactionParameters = new HashMap<>();
 		
-		interactionParameters.put( "TimlinessOk",
+		interactionParameters.put( TIMELINESS_OK_PARAM,
 		                           HLACodecUtils.encode( encoder, timelinessOK ) );
 		
 		byte[] accuracyOK = makeServiceStatParameter(entreeAccuracy, vege1Accuracy, vege2Accuracy);
 		byte[] temperatureOK = makeServiceStatParameter(entreeTemp, vege1Temp, vege2Temp);
 
-		interactionParameters.put( "TemperatureOk", temperatureOK );
-		interactionParameters.put( "AccuracyOk", accuracyOK );
+		interactionParameters.put( TEMPERATURE_OK_PARAM, temperatureOK );
+		interactionParameters.put( ACCURACY_OK_PARAM, accuracyOK );
 		
-		return makeInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
+		return makeInteraction( MAIN_COURSE_SERVED_INTERACTION_ID,
 		                        interactionParameters );
 	}
 	
@@ -443,13 +454,13 @@ public class MyFederate extends FederateBase {
 				{
     				String value = "";
     				// decode using parameter name to detect data type
-    				if( "TimlinessOk".equals( parameterName ) )
+    				if( TIMELINESS_OK_PARAM.equals( parameterName ) )
     				{
 						// boolean types
     					value = Boolean.toString( HLACodecUtils.asBoolean( encoder, rawValue ) );
     				}
-					else if( "TemperatureOk".equals( parameterName ) || 
-						     "AccuracyOk".equals( parameterName ) )
+					else if( TEMPERATURE_OK_PARAM.equals( parameterName ) || 
+						     ACCURACY_OK_PARAM.equals( parameterName ) )
 					{
 						// fixed record types
 						value = summarizeServiceStatParameter( rawValue );
