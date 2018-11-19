@@ -23,6 +23,7 @@ package gov.nist.ucef.hla.base;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
+import hla.rti1516e.encoding.HLAASCIIstring;
 import hla.rti1516e.encoding.HLAboolean;
 import hla.rti1516e.encoding.HLAfloat32BE;
 import hla.rti1516e.encoding.HLAfloat64BE;
@@ -39,54 +40,29 @@ import hla.rti1516e.exceptions.RTIinternalError;
 public class HLACodecUtils
 {
 	//----------------------------------------------------------
-	//                    STATIC VARIABLES
+	//                    STATIC METHODS
 	//----------------------------------------------------------
-	private static HLACodecUtils instance;
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	public static HLACodecUtils instance()
-	{
-		if(instance == null)
-		{
-			instance = new HLACodecUtils(); 
-		}
-		return instance;
-	}
-	
-	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
-	//----------------------------------------------------------
-	private EncoderFactory encoderFactory;
-
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-	private HLACodecUtils()
+	public static EncoderFactory getEncoder()
 	{
 		try
 		{
-			this.encoderFactory = RtiFactoryFactory.getRtiFactory().getEncoderFactory();
+			return RtiFactoryFactory.getRtiFactory().getEncoderFactory();
 		}
 		catch( RTIinternalError e )
 		{
 			throw new UCEFException("Failed to initialize HLA encode/decode utilities.", e);
 		}
 	}
-
-	//----------------------------------------------------------
-	//                    INSTANCE METHODS
-	//----------------------------------------------------------
+	
 	/**
 	 * Decode HLA byte array representation of a short
 	 * 
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public short asShort( byte[] bytes )
+	public static short asShort( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAinteger16BE value = makeHLAType((short)0);
+		HLAinteger16BE value = makeHLAType(encoderFactory, (short)0);
 		try
 		{
 			value.decode( bytes );
@@ -94,7 +70,9 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a short.",
+			                         bytes.length );
 		}
 	}
 	
@@ -104,9 +82,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public int asInt( byte[] bytes )
+	public static int asInt( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAinteger32BE value = makeHLAType((int)0);
+		HLAinteger32BE value = makeHLAType(encoderFactory, (int)0);
 		try
 		{
 			value.decode( bytes );
@@ -114,7 +92,9 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a integer.",
+			                         bytes.length );
 		}
 	}
 	
@@ -124,9 +104,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public long asLong( byte[] bytes )
+	public static long asLong( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAinteger64BE value = makeHLAType((long)0);
+		HLAinteger64BE value = makeHLAType(encoderFactory, (long)0);
 		try
 		{
 			value.decode( bytes );
@@ -134,7 +114,9 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a long.",
+			                         bytes.length );
 		}
 	}
 	
@@ -144,9 +126,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public float asFloat( byte[] bytes )
+	public static float asFloat( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAfloat32BE value = makeHLAType((float)0);
+		HLAfloat32BE value = makeHLAType(encoderFactory, (float)0);
 		try
 		{
 			value.decode( bytes );
@@ -154,7 +136,9 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a float.",
+			                         bytes.length );
 		}
 	}
 	
@@ -164,9 +148,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public double asDouble( byte[] bytes )
+	public static double asDouble( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAfloat64BE value = makeHLAType((double)0);
+		HLAfloat64BE value = makeHLAType(encoderFactory, (double)0);
 		try
 		{
 			value.decode( bytes );
@@ -174,7 +158,9 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a double.",
+			                         bytes.length );
 		}
 	}
 	
@@ -184,9 +170,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public boolean asBoolean( byte[] bytes )
+	public static boolean asBoolean( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAboolean value = makeHLAType(false);
+		HLAboolean value = makeHLAType(encoderFactory, false);
 		try
 		{
 			value.decode( bytes );
@@ -194,19 +180,21 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a boolean.",
+			                         bytes.length );
 		}
 	}
 
 	/**
-	 * Decode HLA byte array representation of a string
+	 * Decode HLA byte array representation of a unicode string
 	 * 
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public String asString( byte[] bytes )
+	public static String asUnicodeString( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAunicodeString value = makeHLAType("");
+		HLAunicodeString value = makeHLAUnicodeString(encoderFactory, "");
 		try
 		{
 			value.decode( bytes );
@@ -221,19 +209,50 @@ public class HLACodecUtils
 		}
 		catch( DecoderException de )
 		{
-			throw new UCEFException(de);
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a unicode string.",
+			                         bytes.length );
 		}
 	}
 
+	/**
+	 * Decode HLA byte array representation of a unicode string
+	 * 
+	 * @param bytes the HLA byte array
+	 * @return the decoded value
+	 */
+	public static String asASCIIString( EncoderFactory encoderFactory, byte[] bytes )
+	{
+		HLAASCIIstring value = makeHLAASCIIString(encoderFactory,  "" );
+		try
+		{
+			value.decode( bytes );
+			String result = value.getValue();
+			
+			// check for null terminator at end of string and remove as necessary
+			int length = result.length();
+			if( length > 0 && result.charAt( length - 1 ) == 0 )
+				result = result.substring( 0, length - 1  );
+			
+			return result;
+		}
+		catch( DecoderException de )
+		{
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a ASCII string.",
+			                         bytes.length );
+		}
+	}
+	
 	/**
 	 * Encode a short to an HLA byte array representation 
 	 * 
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(short value)
+	public static byte[] encode(EncoderFactory encoderFactory, short value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -242,9 +261,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(int value)
+	public static byte[] encode(EncoderFactory encoderFactory, int value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -253,9 +272,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(long value)
+	public static byte[] encode(EncoderFactory encoderFactory, long value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -264,9 +283,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(double value)
+	public static byte[] encode(EncoderFactory encoderFactory, double value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -275,9 +294,9 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(float value)
+	public static byte[] encode(EncoderFactory encoderFactory, float value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -286,20 +305,36 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(boolean value)
+	public static byte[] encode(EncoderFactory encoderFactory, boolean value)
 	{
-		return makeHLAType(value).toByteArray();
+		return makeHLAType(encoderFactory, value).toByteArray();
 	}
 	
 	/**
-	 * Encode a string to an HLA byte array representation 
+	 * Encode a string to an HLA byte array representation of a unicode string
 	 * 
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	public byte[] encode(String value)
+	public static byte[] encode(EncoderFactory encoderFactory, String value)
 	{
-		return makeHLAType(value).toByteArray();
+		return encode( encoderFactory, value, true );
+	}
+	
+	/**
+	 * Encode a string to an HLA byte array representation of an ASCII or unicode string
+	 * 
+	 * @param value the value to encode
+	 * @param isUnicode if true, encode as an HLA Unicode String, otherwise encode as an HLA ASCII
+	 *            String
+	 * @return the HLA byte array
+	 */
+	public static byte[] encode(EncoderFactory encoderFactory, String value, boolean isUnicode)
+	{
+		if(isUnicode)
+			return makeHLAUnicodeString(encoderFactory, value).toByteArray();
+		
+		return makeHLAASCIIString(encoderFactory, value).toByteArray();
 	}
 	
 	/**
@@ -308,7 +343,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAinteger16BE}
 	 */
-	private HLAinteger16BE makeHLAType(short value)
+	private static HLAinteger16BE makeHLAType(EncoderFactory encoderFactory, short value)
 	{
 		return encoderFactory.createHLAinteger16BE(value);
 	}
@@ -319,7 +354,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAinteger32BE}
 	 */
-	private HLAinteger32BE makeHLAType(int value)
+	private static HLAinteger32BE makeHLAType(EncoderFactory encoderFactory, int value)
 	{
 		return encoderFactory.createHLAinteger32BE(value);
 	}
@@ -330,7 +365,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
-	private HLAinteger64BE makeHLAType(long value)
+	private static HLAinteger64BE makeHLAType(EncoderFactory encoderFactory, long value)
 	{
 		return encoderFactory.createHLAinteger64BE(value);
 	}
@@ -341,7 +376,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAfloat64BE}
 	 */
-	private HLAfloat64BE makeHLAType(double value)
+	private static HLAfloat64BE makeHLAType(EncoderFactory encoderFactory, double value)
 	{
 		return encoderFactory.createHLAfloat64BE(value);
 	}
@@ -352,7 +387,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAfloat32BE}
 	 */
-	private HLAfloat32BE makeHLAType(float value)
+	private static HLAfloat32BE makeHLAType(EncoderFactory encoderFactory, float value)
 	{
 		return encoderFactory.createHLAfloat32BE(value);
 	}
@@ -363,7 +398,7 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAboolean}
 	 */
-	private HLAboolean makeHLAType(boolean value)
+	private static HLAboolean makeHLAType(EncoderFactory encoderFactory, boolean value)
 	{
 		return encoderFactory.createHLAboolean(value);
 	}
@@ -374,11 +409,19 @@ public class HLACodecUtils
 	 * @param value the value to encode 
 	 * @return the {@link HLAunicodeString}
 	 */
-	private HLAunicodeString makeHLAType(String value)
+	private static HLAunicodeString makeHLAUnicodeString(EncoderFactory encoderFactory, String value)
 	{
 		return encoderFactory.createHLAunicodeString(value == null ? "" : value);
 	}
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	/**
+	 * Encode a string to an {@link HLAunicodeString} representation 
+	 * 
+	 * @param value the value to encode 
+	 * @return the {@link HLAunicodeString}
+	 */
+	private static HLAASCIIstring makeHLAASCIIString(EncoderFactory encoderFactory, String value)
+	{
+		return encoderFactory.createHLAASCIIstring( value == null ? "" : value);
+	}
 }
