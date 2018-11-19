@@ -30,13 +30,14 @@ import java.util.Set;
 import hla.rti1516e.AttributeHandle;
 import hla.rti1516e.AttributeHandleSet;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.FederateHandle;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ParameterHandle;
 import hla.rti1516e.ParameterHandleValueMap;
 import hla.rti1516e.ResignAction;
-import hla.rti1516e.encoding.HLAfixedRecord;
+import hla.rti1516e.encoding.EncoderFactory;
 
 public abstract class FederateBase
 {
@@ -45,7 +46,10 @@ public abstract class FederateBase
 	//----------------------------------------------------------
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
-	private static final String NULL_TEXT = "NULL"; 
+	private static final String NULL_TEXT = "NULL";
+	
+	protected static final String JOINED_FEDERATION_INTERACTION = "HLAinteractionRoot.ManagedFederation.Federate.Joined";
+	protected static final String RESIGNED_FEDERATION_INTERACTION = "HLAinteractionRoot.ManagedFederation.Federate.Resigned";	
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -54,6 +58,9 @@ public abstract class FederateBase
 	
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
+	
+	protected EncoderFactory encoder;
+	private FederateHandle federateHandle;
 	
 	// cache of object instances which we have registered with the RTI
 	protected Set<HLAObject> registeredObjects;
@@ -68,6 +75,8 @@ public abstract class FederateBase
 	{
 		registeredObjects = new HashSet<>();
 		subscribedObjectClassAttributeNames = new HashMap<>();
+		
+		encoder = HLACodecUtils.getEncoder();
 	}
 	
 	//----------------------------------------------------------
@@ -220,6 +229,37 @@ public abstract class FederateBase
 	}
 	
 	/**
+	 * A utility method to allow simple instantiation of an interaction based off an interaction
+	 * name and some parameters
+	 * 
+	 * @param name the interaction class name
+	 * @param parameters the parameters (can be null)
+	 * @return the interaction
+	 */
+	protected HLAInteraction makeFederationJoinedInteraction()
+	{
+		Map<String, byte[]> parameters = new HashMap<>();
+		parameters.put( "FederateType", HLACodecUtils.encode( encoder, configuration.getFederateType() ));
+		parameters.put( "FederateHandle", HLACodecUtils.encode( encoder, federateHandle.hashCode() ));
+		return makeInteraction( JOINED_FEDERATION_INTERACTION, parameters );
+	}
+	
+	/**
+	 * A utility method to allow simple instantiation of an interaction based off an interaction
+	 * name and some parameters
+	 * 
+	 * @param name the interaction class name
+	 * @param parameters the parameters (can be null)
+	 * @return the interaction
+	 */
+	protected HLAInteraction makeFederationResignedInteraction()
+	{
+		Map<String, byte[]> parameters = new HashMap<>();
+		parameters.put( "FederateHandle", HLACodecUtils.encode( encoder, federateHandle.hashCode() ));
+		return makeInteraction( RESIGNED_FEDERATION_INTERACTION, parameters );
+	}	
+	
+	/**
 	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
 	 * a populated map containing attribute names and their associated byte values 
 	 * 
@@ -272,7 +312,7 @@ public abstract class FederateBase
 		rtiamb.createFederation( configuration );
 
 		beforeFederationJoin();
-		rtiamb.joinFederation( configuration );
+		federateHandle = rtiamb.joinFederation( configuration );
 	}
 
 	/**
@@ -477,7 +517,7 @@ public abstract class FederateBase
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
-	private void publishInteractionClass( String className )
+	protected void publishInteractionClass( String className )
 	{
 		InteractionClassHandle handle = rtiamb.getInteractionClassHandle( className );
 		publishInteractionClass( handle );
@@ -591,7 +631,7 @@ public abstract class FederateBase
 	 * 
 	 * @param className the name of the interaction class to subscribe to
 	 */
-	private void subscribeInteractionClass( String className )
+	protected void subscribeInteractionClass( String className )
 	{
 		InteractionClassHandle handle = rtiamb.getInteractionClassHandle( className );
 
@@ -610,7 +650,7 @@ public abstract class FederateBase
 	 * 
 	 * @param handle the handle of the interaction class to subscribe to
 	 */
-	private void subscribeInteractionClass( InteractionClassHandle handle )
+	protected void subscribeInteractionClass( InteractionClassHandle handle )
 	{
 		if( handle == null )
 			throw new UCEFException( "NULL interaction class handle. Cannot subscribe to " +

@@ -33,6 +33,7 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import hla.rti1516e.encoding.EncoderFactory;
 
 public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
@@ -79,6 +80,7 @@ public class FederateManager extends FederateBase {
 	private double maxTime;
 	
 	private long wallClockStepDelay;
+	private EncoderFactory encoder;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -92,6 +94,8 @@ public class FederateManager extends FederateBase {
 		this.maxTime = 15.0;
 		
 		this.wallClockStepDelay = (long)(1000.0 / this.timeAdvanceFrequency);
+		
+		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
 	//----------------------------------------------------------
@@ -257,7 +261,6 @@ public class FederateManager extends FederateBase {
 	 */
 	private String makeSummary( HLAInteraction instance )
 	{
-		HLACodecUtils hlaCodec = HLACodecUtils.instance();
 		StringBuilder builder = new StringBuilder();
 		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
 		builder.append( "\n" );
@@ -279,11 +282,11 @@ public class FederateManager extends FederateBase {
 			{
 				if("FederateHandle".equals( parameterName) )
 				{
-					builder.append("'").append( hlaCodec.asInt( rawValue ) ).append("'");
+					builder.append("'").append( HLACodecUtils.asInt( encoder, rawValue ) ).append("'");
 				}
 				else
 				{
-					builder.append("'").append( hlaCodec.asString( rawValue ) ).append("'");
+					builder.append("'").append( HLACodecUtils.asUnicodeString( encoder, rawValue ) ).append("'");
 				}
 			}
 			builder.append( "\n" );

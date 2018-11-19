@@ -97,6 +97,12 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
+		publishInteractionClass( JOINED_FEDERATION_INTERACTION );
+		publishInteractionClass( RESIGNED_FEDERATION_INTERACTION );
+		
+		// notify the federation that we have joined
+		send(makeFederationJoinedInteraction(), null);
+		
 		// allow the user to control when we are ready to populate
 		waitForUser("beforeReadyToPopulate() - press ENTER to continue");
 	}
@@ -152,7 +158,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeExit()
 	{
-		// no cleanup required before exit
+		// notify the federation that we are resigning
+		send(makeFederationResignedInteraction(), null);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -240,7 +247,8 @@ public class MyFederate extends FederateBase {
 			// modules
 			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
 			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml"};
+			                       fomRootPath+"RestaurantDrinks.xml",
+								   fomRootPath+"FedMan.xml"};
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
