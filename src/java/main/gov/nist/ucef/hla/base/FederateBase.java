@@ -337,9 +337,9 @@ public abstract class FederateBase
 	 */
 	private void achieveSyncPointAndWaitForFederation( UCEFSyncPoint syncPoint )
 	{
-		achieveSyncPointAndWaitForFederation(syncPoint.getLabel());
+		achieveSyncPointAndWaitForFederation( syncPoint.getLabel() );
 	}
-	
+
 	/**
 	 * Achieves a synchronization point and waits for the federation to achieve that
 	 * synchronization point
