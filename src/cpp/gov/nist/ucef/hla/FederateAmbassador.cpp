@@ -81,25 +81,16 @@ namespace ucef
 			this->m_federateTime = convertTime( theFederateTime );
 	}
 
+	//----------------------------------------------------------
+	//            Object Management Methods
+	//----------------------------------------------------------
+
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
 	                                                 ObjectClassHandle theObjectClass,
 	                                                 const wstring& theObjectName )
 	                                                              throw(FederateInternalError)
 	{
-		Logger& logger = Logger::getInstance();
-		shared_ptr<ObjectInstanceHandle> instanceHandle = make_shared<ObjectInstanceHandle>( theObject );
-		shared_ptr<ObjectClass> objectClass = m_federateBase->getObjectClass( theObjectClass.hash() );
-		if( objectClass )
-		{
-			shared_ptr<HLAObject> object =
-				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), instanceHandle );
-			m_federateBase->receiveObjectRegistration( object, getFederateTime() );
-		}
-		else
-		{
-			logger.log( "Discovered an unknown object with name " +
-			             ConversionHelper::ws2s( theObjectName ), LevelWarn );
-		}
+		m_federateBase->incomingObjectRegistration( theObject.hash(), theObjectClass.hash() );
 	}
 
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
@@ -119,35 +110,7 @@ namespace ucef
 	                                                 SupplementalReflectInfo theReflectInfo )
 	                                                              throw(FederateInternalError)
 	{
-		Logger& logger = Logger::getInstance();
-		shared_ptr<HLAObject> object = m_federateBase->findIncomingObject( theObject.hash() );
-		if( object )
-		{
-			shared_ptr<ObjectClass> objectClass = m_federateBase->getObjectClass( object->getClassName() );
-
-			for( auto& incomingAttributeValue : theAttributeValues )
-			{
-				ObjectAttributes& attributes = objectClass->objectAttributes;
-				for( auto& attribute : attributes )
-				{
-					if( attribute.second->handle->hash() == incomingAttributeValue.first.hash())
-					{
-						size_t size = incomingAttributeValue.second.size();
-						const void* data = incomingAttributeValue.second.data();
-						shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-						memcpy_s(arr.get(), size, data, size);
-						object->setAttributeValue
-						            ( ConversionHelper::ws2s(attribute.second->name), arr, size );
-					}
-				}
-			}
-			m_federateBase->receiveAttributeReflection( const_pointer_cast<const HLAObject>(object),
-			                                            getFederateTime() );
-		}
-		else
-		{
-			logger.log( string("Received attribute update of an unknown object."), LevelWarn );
-		}
+		m_federateBase->incomingAttributeReflection( theObject.hash(), theAttributeValues );
 	}
 
 	void FederateAmbassador::reflectAttributeValues( ObjectInstanceHandle theObject,
@@ -185,10 +148,7 @@ namespace ucef
 	{
 		if( theObject.isValid() )
 		{
-			shared_ptr<ObjectInstanceHandle> instanceHandle = make_shared<ObjectInstanceHandle>( theObject );
-
-			shared_ptr<HLAObject> object = make_shared<HLAObject>( "", instanceHandle );
-			m_federateBase->objectDelete( object );
+			m_federateBase->incomingObjectDeletion( theObject.hash() );
 		}
 		else
 		{
@@ -228,38 +188,7 @@ namespace ucef
 	                                             SupplementalReceiveInfo theReceiveInfo )
 	                                                               throw( FederateInternalError )
 	{
-		Logger& logger = Logger::getInstance();
-		shared_ptr<InteractionClass> interactionClass =
-		                 m_federateBase->getInteractionClass( theInteraction.hash() );
-		if( interactionClass )
-		{
-			shared_ptr<HLAInteraction> interaction =
-				make_shared<HLAInteraction>( ConversionHelper::ws2s( interactionClass->name ) );
-			for( auto& incomingParameterValue : theParameters )
-			{
-				InteractionParameters& parameters = interactionClass->parameters;
-				for( auto& parameter : parameters )
-				{
-					if( parameter.second->handle->hash() == incomingParameterValue.first.hash())
-					{
-						size_t size = incomingParameterValue.second.size();
-						const void* data = incomingParameterValue.second.data();
-						shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-						memcpy_s(arr.get(), size, data, size);
-						interaction->setParameterValue
-						            ( ConversionHelper::ws2s(parameter.second->name), arr, size );
-					}
-				}
-			}
-			m_federateBase->receiveInteraction( const_pointer_cast<const HLAInteraction>(interaction),
-			                                    getFederateTime() );
-
-		}
-		else
-		{
-			logger.log( "Received an unknown interation with name " +
-			             ConversionHelper::ws2s( interactionClass->name ), LevelWarn );
-		}
+		m_federateBase->incomingInteraction( theInteraction.hash(), theParameters );
 	}
 
 	void FederateAmbassador::receiveInteraction( InteractionClassHandle theInteraction,

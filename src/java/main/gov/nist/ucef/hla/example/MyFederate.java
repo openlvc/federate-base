@@ -24,8 +24,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import gov.nist.ucef.hla.base.FederateBase;
@@ -36,6 +38,7 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedRecord;
@@ -70,6 +73,8 @@ public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	// cache of object instances which we have registered with the RTI
+	protected Set<HLAObject> registeredObjects;
 	private EncoderFactory encoder;
 
 	//----------------------------------------------------------
@@ -79,6 +84,7 @@ public class MyFederate extends FederateBase {
 	{
 		super();
 		
+		registeredObjects = new HashSet<>();
 		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
@@ -110,8 +116,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToRun()
 	{
-		// allow the user to control when we are ready to run
-		// waitForUser("beforeReadyToRun() - press ENTER to continue");
+		// we register the objects we will be handling here 
+		registerObjects();
 	}
 
 	@Override
@@ -134,14 +140,12 @@ public class MyFederate extends FederateBase {
 		                                               randomBool(), randomBool(), randomBool() );
 		send( interaction, null );
 
-		// here we end out attribute reflections for all attributes of all registered pbjects:
+		// here we end out attribute reflections for all attributes of all registered objects:
 		System.out.println( "sending attribute reflection(s) at time " + currentTime + "..." );
 		for( HLAObject hlaObject : this.registeredObjects )
 		{
-			for( String attrName : hlaObject.getAttributeNames() )
-			{
-				hlaObject.set( attrName, randomFruit() );
-			}
+			hlaObject.set( FLAVOR_ATTR_ID, randomFruit() );
+			hlaObject.set( NUMBER_CUPS_ATTR_ID, randomInt( 1, 5 ) );
 			update( hlaObject, null );
 		}
 
@@ -158,6 +162,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeExit()
 	{
+		// we de-register our objects instances here before exiting  
+		deregisterObjects();
 		// notify the federation that we are resigning
 		send(makeFederationResignedInteraction(), null);
 	}
@@ -211,6 +217,18 @@ public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final String DRINK_BASE = "HLAobjectRoot.Food.Drink.";
+	private static final String SODA_OBJECT_ID = DRINK_BASE + "Soda";
+	private static final String NUMBER_CUPS_ATTR_ID = "NumberCups";
+	private static final String FLAVOR_ATTR_ID = "Flavor";
+
+	private static final String FOOD_SERVED_BASE = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
+	private static final String DRINK_SERVED_INTERACTION_ID = FOOD_SERVED_BASE + "DrinkServed";
+	private static final String MAIN_COURSE_SERVED_INTERACTION_ID = FOOD_SERVED_BASE + "MainCourseServed";
+	private static final String TIMELINESS_OK_PARAM = "TimlinessOk";
+	private static final String ACCURACY_OK_PARAM = "AccuracyOk";
+	private static final String TEMPERATURE_OK_PARAM = "TemperatureOk";
+	
 	private static String[] FRUITS = {"Apple", "Banana", "Cherry", "Durian", "Elderberry", "Fig", "Grape",
 	                                  "Honeydew", "iFruit", "Jackfruit", "Kiwi", "Lemon", "Mango", 
 	                                  "Nectarine", "Orange", "Pear", "Quaggleberry", "Raspberry", 
@@ -229,16 +247,15 @@ public class MyFederate extends FederateBase {
 																  "TestFederate" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
-		String drinkBase = "HLAobjectRoot.Food.Drink.";
-		config.addPublishedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		config.addSubscribedAtributes( drinkBase+"Soda", new String[] {"NumberCups", "Flavor"} );
-		
+		String[] attributes = new String[]{ NUMBER_CUPS_ATTR_ID, FLAVOR_ATTR_ID };
+		config.addPublishedAtributes( SODA_OBJECT_ID, attributes );
+		config.addSubscribedAtributes( SODA_OBJECT_ID, attributes );
+
 		// set up lists of interactions to be published and subscribed to
-		String foodServedBase = "HLAinteractionRoot.CustomerTransactions.FoodServed.";
-		config.addPublishedInteraction( foodServedBase+"DrinkServed" );
-		config.addSubscribedInteraction( foodServedBase+"DrinkServed" );
-		config.addPublishedInteraction( foodServedBase+"MainCourseServed" );
-		config.addSubscribedInteraction( foodServedBase+"MainCourseServed" );
+		config.addPublishedInteraction( DRINK_SERVED_INTERACTION_ID );
+		config.addSubscribedInteraction( DRINK_SERVED_INTERACTION_ID );
+		config.addPublishedInteraction( MAIN_COURSE_SERVED_INTERACTION_ID );
+		config.addSubscribedInteraction( MAIN_COURSE_SERVED_INTERACTION_ID );
 
 		// somebody set us up the FOM...
 		try
@@ -261,6 +278,34 @@ public class MyFederate extends FederateBase {
 		}	
 		
 		return config;
+	}
+	
+	/**
+	 * Registers any object instances that we are handling
+	 */
+	private void registerObjects()
+	{
+		// TODO this is just test code which simply registers an instance for every 
+		//      published attribute entry in the configuration. It's possible that the
+		//      implementation might require single or multiple instances (or none, though
+		//      that would be pointless) on a per entry basis.
+		for(String className: configuration.getPublishedAttributes().keySet())
+		{
+			this.registeredObjects.add( makeObjectInstance( className ) );
+		}
+	}
+	
+	/**
+	 * De-registers any object instances that we were handling once things have finished up
+	 */
+	private void deregisterObjects()
+	{
+		Set<HLAObject> deleted = new HashSet<>();
+		for( HLAObject obj : this.registeredObjects )
+		{
+			deleted.add( deleteObjectInstance( obj ) );
+		}
+		this.registeredObjects.removeAll( deleted );
 	}
 	
 	/**
@@ -297,6 +342,19 @@ public class MyFederate extends FederateBase {
 	}
 	
 	/**
+	 * This just generates a random integer within the min/max range 
+	 * 
+	 * @param min the minimum allowed value (inclusive)
+	 * @param max the maximum allowed value (inclusive)
+	 * @return a random integer within the min/max range
+	 */
+	private int randomInt(int min, int max)
+	{
+		int range = max - min;
+		return min + ThreadLocalRandom.current().nextInt(range + 1);
+	}
+	
+	/**
 	 * This just generates a random boolean
 	 * 
 	 * @return a random boolean
@@ -314,7 +372,7 @@ public class MyFederate extends FederateBase {
 	protected HLAInteraction makeDrinkServedInteraction()
 	{
 		// no parameters, so this is easy
-		return makeInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.DrinkServed", null );
+		return makeInteraction( DRINK_SERVED_INTERACTION_ID, null );
 	}
 	
 	/**
@@ -349,17 +407,16 @@ public class MyFederate extends FederateBase {
 	{
 		Map<String, byte[]> interactionParameters = new HashMap<>();
 		
-		interactionParameters.put( "TimlinessOk",
+		interactionParameters.put( TIMELINESS_OK_PARAM,
 		                           HLACodecUtils.encode( encoder, timelinessOK ) );
 		
-		byte[] accuracyOK = makeServiceStatParameter(entreeAccuracy, vege1Accuracy, vege2Accuracy);
-		byte[] temperatureOK = makeServiceStatParameter(entreeTemp, vege1Temp, vege2Temp);
+		byte[] accuracyOK = makeServiceStatParameter( entreeAccuracy, vege1Accuracy, vege2Accuracy );
+		byte[] temperatureOK = makeServiceStatParameter( entreeTemp, vege1Temp, vege2Temp );
 
-		interactionParameters.put( "TemperatureOk", temperatureOK );
-		interactionParameters.put( "AccuracyOk", accuracyOK );
+		interactionParameters.put( TEMPERATURE_OK_PARAM, temperatureOK );
+		interactionParameters.put( ACCURACY_OK_PARAM, accuracyOK );
 		
-		return makeInteraction( "HLAinteractionRoot.CustomerTransactions.FoodServed.MainCourseServed",
-		                        interactionParameters );
+		return makeInteraction( MAIN_COURSE_SERVED_INTERACTION_ID, interactionParameters );
 	}
 	
 	/**
@@ -431,7 +488,7 @@ public class MyFederate extends FederateBase {
 	private String makeSummary( HLAInteraction instance )
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
+		builder.append( rtiamb.makeSummary( instance ) );
 		builder.append( "\n" );
 		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
 		{
@@ -450,14 +507,14 @@ public class MyFederate extends FederateBase {
 				try 
 				{
     				String value = "";
-    				// decode using parameter name to detect data type
-    				if( "TimlinessOk".equals( parameterName ) )
+    				// decode using parameter name to determine data type
+    				if( TIMELINESS_OK_PARAM.equals( parameterName ) )
     				{
 						// boolean types
     					value = Boolean.toString( HLACodecUtils.asBoolean( encoder, rawValue ) );
     				}
-					else if( "TemperatureOk".equals( parameterName ) || 
-						     "AccuracyOk".equals( parameterName ) )
+					else if( TEMPERATURE_OK_PARAM.equals( parameterName ) || 
+						     ACCURACY_OK_PARAM.equals( parameterName ) )
 					{
 						// fixed record types
 						value = summarizeServiceStatParameter( rawValue );
@@ -490,16 +547,15 @@ public class MyFederate extends FederateBase {
 	private String makeSummary( HLAObject instance )
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance.getInstanceHandle() ) );
+		builder.append( rtiamb.makeSummary( instance ) );
 		builder.append( "\n" );
 		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
 		{
+			String attributeName = entry.getKey();
 			builder.append( "\t" );
-			builder.append( entry.getKey() );
+			builder.append( attributeName );
 			builder.append( " = " );
-			// TODO at the moment this assumes that all values are strings, but going forward there
-			// 		will need to be some sort of mapping of attribute names/handles to primitive
-			//      types for parsing
+
 			byte[] rawValue = entry.getValue();
 			if( rawValue == null || rawValue.length == 0 )
 			{
@@ -507,9 +563,27 @@ public class MyFederate extends FederateBase {
 			}
 			else
 			{
-				builder.append("'");
-				builder.append( HLACodecUtils.asUnicodeString( encoder, rawValue ) );
-				builder.append("'");
+				try
+				{
+					String value = "";
+					// decode using attribute name to determine data type
+					if( NUMBER_CUPS_ATTR_ID.equals( attributeName ) )
+					{
+						// boolean types
+						value = Integer.toString( HLACodecUtils.asInt( encoder, rawValue ) );
+					}
+					else
+					{
+						// anything else is a unicode String
+						value = '"' + HLACodecUtils.asUnicodeString( encoder, rawValue ) + '"';
+					}
+					builder.append( value );
+				}
+				catch( Exception e )
+				{
+					builder.append( "Unable to decode value: " + e.getMessage() );
+				}
+
 			}
 			builder.append( "\n" );
 		}

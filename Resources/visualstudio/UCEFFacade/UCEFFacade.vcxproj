@@ -99,6 +99,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\IFederateBase.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />

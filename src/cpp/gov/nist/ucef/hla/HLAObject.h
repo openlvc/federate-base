@@ -24,7 +24,7 @@ namespace ucef
 			//                     Constructors
 			//----------------------------------------------------------
 			HLAObject( const std::string& objectClassName,
-			           std::shared_ptr<rti1516e::ObjectInstanceHandle>& instanceHandle );
+			           long instanceHandle );
 			virtual ~HLAObject();
 			HLAObject( const HLAObject& ) = delete;
 			HLAObject& operator=( const HLAObject& ) = delete;
@@ -52,12 +52,12 @@ namespace ucef
 			float getAttributeValueAsFloat( const std::string& attributeName ) const;
 			double getAttributeValueAsDouble( const std::string& attributeName ) const;
 			std::string getAttributeValueAsString( const std::string& attributeName ) const;
-			std::vector<std::string> getAttributeNameList() const;
-
 			util::VariableData getAttributeValue( const std::string& attributeName ) const;
+
+			std::vector<std::string> getAttributeNames() const;
 			void clearAttributeDataStore();
 			std::string getClassName() const;
-			std::shared_ptr<rti1516e::ObjectInstanceHandle> getInstanceHandle();
+			long getInstanceHandle();
 		private:
 
 			//----------------------------------------------------------
@@ -65,7 +65,7 @@ namespace ucef
 			//----------------------------------------------------------
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
 			std::string m_className;
-			std::shared_ptr<rti1516e::ObjectInstanceHandle> m_instanceHandle;
+			long m_instanceHandle;
 			mutable std::mutex m_threadSafeLock;
 	};
 }

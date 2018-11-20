@@ -57,6 +57,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a short
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -79,6 +80,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of an integer
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -101,6 +103,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a long
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -123,6 +126,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a float
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -145,6 +149,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a double
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -167,6 +172,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a boolean
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -189,6 +195,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a unicode string
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -218,6 +225,7 @@ public class HLACodecUtils
 	/**
 	 * Decode HLA byte array representation of a unicode string
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
@@ -247,6 +255,7 @@ public class HLACodecUtils
 	/**
 	 * Encode a short to an HLA byte array representation 
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
@@ -258,6 +267,7 @@ public class HLACodecUtils
 	/**
 	 * Encode an integer to an HLA byte array representation 
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
@@ -269,6 +279,7 @@ public class HLACodecUtils
 	/**
 	 * Encode a long to an HLA byte array representation 
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
@@ -280,6 +291,7 @@ public class HLACodecUtils
 	/**
 	 * Encode a double to an HLA byte array representation 
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
@@ -291,6 +303,7 @@ public class HLACodecUtils
 	/**
 	 * Encode a float to an HLA byte array representation 
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode 
 	 * @return the HLA byte array
 	 */
@@ -302,7 +315,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a boolean to an HLA byte array representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the HLA byte array
 	 */
 	public static byte[] encode(EncoderFactory encoderFactory, boolean value)
@@ -313,7 +327,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a string to an HLA byte array representation of a unicode string
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the HLA byte array
 	 */
 	public static byte[] encode(EncoderFactory encoderFactory, String value)
@@ -324,6 +339,7 @@ public class HLACodecUtils
 	/**
 	 * Encode a string to an HLA byte array representation of an ASCII or unicode string
 	 * 
+	 * @param encoderFactory the encoder instance to use
 	 * @param value the value to encode
 	 * @param isUnicode if true, encode as an HLA Unicode String, otherwise encode as an HLA ASCII
 	 *            String
@@ -340,7 +356,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a short to an {@link HLAinteger16BE} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAinteger16BE}
 	 */
 	private static HLAinteger16BE makeHLAType(EncoderFactory encoderFactory, short value)
@@ -351,7 +368,8 @@ public class HLACodecUtils
 	/**
 	 * Encode an integer to an {@link HLAinteger32BE} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAinteger32BE}
 	 */
 	private static HLAinteger32BE makeHLAType(EncoderFactory encoderFactory, int value)
@@ -362,7 +380,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a long to an {@link HLAinteger64BE} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the HLA byte array
 	 */
 	private static HLAinteger64BE makeHLAType(EncoderFactory encoderFactory, long value)
@@ -373,7 +392,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a double to an {@link HLAfloat64BE} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAfloat64BE}
 	 */
 	private static HLAfloat64BE makeHLAType(EncoderFactory encoderFactory, double value)
@@ -384,7 +404,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a float to an {@link HLAfloat32BE} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAfloat32BE}
 	 */
 	private static HLAfloat32BE makeHLAType(EncoderFactory encoderFactory, float value)
@@ -395,7 +416,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a boolean to an {@link HLAboolean} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAboolean}
 	 */
 	private static HLAboolean makeHLAType(EncoderFactory encoderFactory, boolean value)
@@ -406,7 +428,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a string to an {@link HLAunicodeString} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAunicodeString}
 	 */
 	private static HLAunicodeString makeHLAUnicodeString(EncoderFactory encoderFactory, String value)
@@ -417,7 +440,8 @@ public class HLACodecUtils
 	/**
 	 * Encode a string to an {@link HLAunicodeString} representation 
 	 * 
-	 * @param value the value to encode 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
 	 * @return the {@link HLAunicodeString}
 	 */
 	private static HLAASCIIstring makeHLAASCIIString(EncoderFactory encoderFactory, String value)

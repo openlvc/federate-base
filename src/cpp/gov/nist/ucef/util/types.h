@@ -14,16 +14,11 @@
 
 namespace rti1516e
 {
-	class AttributeHandle;
-	class InteractionClassHandle;
-	class ObjectClassHandle;
 	class ObjectInstanceHandle;
-	class ParameterHandle;
 }
 
 namespace ucef
 {
-	class HLAObject;
 	namespace util
 	{
 		//----------------------------------------
@@ -76,8 +71,7 @@ namespace ucef
 			std::wstring name;
 			bool publish;
 			bool subscribe;
-			std::shared_ptr<rti1516e::AttributeHandle> handle;
-		};
+			};
 
 		/**
 		 *  Represents an object class in a given Simulation Object Model
@@ -90,14 +84,12 @@ namespace ucef
 			ObjectClass() : name( L"" ),
 			                publish( false ),
 			                subscribe( false ),
-			                classHandle( nullptr ),
 			                objectAttributes{ }
 			{
 			}
 			std::wstring name; // fully qualified object class name
 			bool publish;
 			bool subscribe;
-			std::shared_ptr<rti1516e::ObjectClassHandle> classHandle;
 			ObjectAttributes objectAttributes;
 		};
 
@@ -114,7 +106,6 @@ namespace ucef
 
 			}
 			std::wstring name;
-			std::shared_ptr<rti1516e::ParameterHandle> handle;
 		};
 
 		/**
@@ -135,7 +126,6 @@ namespace ucef
 			std::wstring name; // fully qualified interaction class name
 			bool publish;
 			bool subscribe;
-			std::shared_ptr<rti1516e::InteractionClassHandle> interactionHandle;
 			InteractionParameters parameters;
 		};
 		/**
@@ -157,7 +147,8 @@ namespace ucef
 		// what we need is a faster way to get the object class
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStoreByName;
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectCacheStoreByHash;
-		typedef std::unordered_map<long, std::shared_ptr<HLAObject>> IncomingStore;
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> IncomingStore;
+		typedef std::unordered_map<long, rti1516e::ObjectInstanceHandle> OutgoingStore;
 
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionCacheStoreByName;
 		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionClassStoreByHash;
