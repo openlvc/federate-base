@@ -11,8 +11,8 @@ using namespace ucef::util;
 namespace ucef
 {
 	HLAObject::HLAObject( const string& objectClassName,
-	                      shared_ptr<ObjectInstanceHandle>& instanceHandle ) : m_className( objectClassName ),
-	                                                                           m_instanceHandle( instanceHandle )
+	                      long instanceHandle ) : m_className( objectClassName ),
+	                                              m_instanceHandle( instanceHandle )
 	{
 		m_attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
@@ -87,7 +87,7 @@ namespace ucef
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
 			return *( (bool *)data.data.get() );
-		return 0;
+		return false;
 	}
 
 	char HLAObject::getAttributeValueAsChar( const string& attributeName ) const
@@ -95,7 +95,7 @@ namespace ucef
 		VariableData data = getAttributeValue( attributeName );
 		if(data.data)
 			return *( (char *)data.data.get() );
-		return 0;
+		return (char) 0;
 	}
 
 	short HLAObject::getAttributeValueAsShort( const string& attributeName ) const
@@ -146,7 +146,21 @@ namespace ucef
 		return "";
 	}
 
-	vector<string> HLAObject::getAttributeNameList() const
+	VariableData HLAObject::getAttributeValue( const string& attributeName ) const
+	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		VariableData data;
+		data.data = nullptr;
+		data.size = 0;
+		auto it = m_attributeDataStore->find( attributeName );
+		if( it != m_attributeDataStore->end() )
+		{
+			data = it->second;
+		}
+		return data;
+	}
+
+	vector<string> HLAObject::getAttributeNames() const
 	{
 		vector<string> attributeNameList;
 		HLAObjectAttributes &store = *m_attributeDataStore;
@@ -155,18 +169,6 @@ namespace ucef
 			attributeNameList.emplace_back(kv.first);
 		}
 		return attributeNameList;
-	}
-
-	VariableData HLAObject::getAttributeValue( const string& attributeName ) const
-	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		VariableData data;
-		auto it = m_attributeDataStore->find( attributeName );
-		if( it != m_attributeDataStore->end() )
-		{
-			data = it->second;
-		}
-		return data;
 	}
 
 	void HLAObject::clearAttributeDataStore()
@@ -180,7 +182,7 @@ namespace ucef
 		return m_className;
 	}
 
-	shared_ptr<ObjectInstanceHandle> HLAObject::getInstanceHandle()
+	long HLAObject::getInstanceHandle()
 	{
 		return m_instanceHandle;
 	}

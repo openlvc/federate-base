@@ -14,6 +14,7 @@
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
+#include "RTI/Typedefs.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -179,7 +180,7 @@ namespace ucef
 		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
 		try
 		{
-			cacheHandles( objectClasses );
+			storeObjectClass( objectClasses );
 			pubSubAttributes();
 		}
 		catch( UCEFException& )
@@ -194,7 +195,7 @@ namespace ucef
 		logger.log( string("Inform RTI about publishing and subscribing interactions"), LevelInfo );
 		try
 		{
-			cacheHandles( interactionClasses );
+			storeInteractionClass( interactionClasses );
 			pubSubInteractions();
 		}
 		catch( UCEFException& )
@@ -274,46 +275,144 @@ namespace ucef
 		m_federateAmbassador->resetTimeAdvanced();
 	}
 
-	void FederateBase::receiveObjectRegistration( shared_ptr<HLAObject>& hlaObject, double federateTime )
+	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
 	{
 		lock_guard<mutex> lock( m_threadSafeLock );
-
 		Logger& logger = Logger::getInstance();
-		logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
-		m_incomingStore[hlaObject->getInstanceHandle()->hash()] = hlaObject;
-	}
 
-	void FederateBase::receiveAttributeReflection( shared_ptr<const HLAObject>& hlaObject, double federateTime )
-	{
-		Logger& logger = Logger::getInstance();
-		logger.log( "Received attribute update for " + hlaObject->getClassName()
-		            + to_string(hlaObject->getAttributeValueAsDouble("Flavor")), LevelCritical );
-		logger.log( "Received attribute update for " + hlaObject->getClassName()
-		            + to_string(hlaObject->getAttributeValueAsDouble("NumberCups")), LevelCritical );
-	}
+		shared_ptr<ObjectClass> objectClass = getObjectClass( objectClassHash );
+		if( objectClass )
+		{
+			shared_ptr<HLAObject> hlaObject =
+				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), objectInstanceHash );
+			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
+			m_incomingStore[objectInstanceHash] = objectClass;
+			receiveObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
+			                           m_federateAmbassador->getFederateTime());
 
-	void FederateBase::receiveInteraction( shared_ptr<const HLAInteraction>& hlaInteraction,
-	                                       double federateTime )
-	{
-
-	}
-
-	void FederateBase::objectDelete( std::shared_ptr<HLAObject>& hlaObject )
-	{
-		lock_guard<mutex> lock( m_threadSafeLock );
-
-		Logger& logger = Logger::getInstance();
-		logger.log( "Received object removed notification for HLAObject with id :" +
-		             to_string(hlaObject->getInstanceHandle()->hash()), LevelInfo );
-
-		size_t deletedCount =  m_incomingStore.erase( hlaObject->getInstanceHandle()->hash() );
-
-		if( deletedCount )
-			logger.log( "HLAObject with id :" + to_string(hlaObject->getInstanceHandle()->hash()) +
-			            " successsfully removed from the incoming map.", LevelInfo );
+		}
 		else
-			logger.log( "HLAObject with id :" + to_string(hlaObject->getInstanceHandle()->hash()) +
-			            " could not found for deletion.", LevelInfo );
+		{
+			logger.log( "Discovered an unknown object with class id " +
+			            to_string(objectClassHash), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingAttributeReflection( long objectInstanceHash,
+	                                                map<AttributeHandle, VariableLengthData> const& attributeValues )
+	{
+		lock_guard<mutex> lock( m_threadSafeLock );
+		Logger& logger = Logger::getInstance();
+		shared_ptr<ObjectClass> objectClass = findIncomingObject( objectInstanceHash );
+		if( objectClass )
+		{
+			logger.log( "Received attribute update for " + ConversionHelper::ws2s(objectClass->name), LevelCritical );
+			shared_ptr<HLAObject> hlaObject =
+				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), objectInstanceHash );
+
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			if( !classHandle.isValid() )
+			{
+				logger.log( "No valid class handle found for the received attribute update of " +
+				            ConversionHelper::ws2s(objectClass->name), LevelCritical );
+				return;
+			}
+
+			for( auto& incomingAttributeValue : attributeValues )
+			{
+				ObjectAttributes& attributes = objectClass->objectAttributes;
+				wstring attName = m_rtiAmbassadorWrapper->getAttributeName(classHandle, incomingAttributeValue.first);
+				if( attName == L"" )
+				{
+					logger.log( "No valid attribute name found for the received attribute with id : " +
+				                to_string(incomingAttributeValue.first.hash()), LevelCritical );
+					continue;
+				}
+
+				size_t size = incomingAttributeValue.second.size();
+				const void* data = incomingAttributeValue.second.data();
+				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
+				memcpy_s(arr.get(), size, data, size);
+				hlaObject->setAttributeValue( ConversionHelper::ws2s(attName), arr, size );
+			}
+			receiveAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
+			                            m_federateAmbassador->getFederateTime() );
+		}
+		else
+		{
+			logger.log( string("Received attribute update of an unknown object."), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingInteraction( long interactionHash,
+	                                        const ParameterHandleValueMap& parameterValues )
+	{
+		Logger& logger = Logger::getInstance();
+		shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
+		logger.log( "Received interaction update for " +
+		            ConversionHelper::ws2s(interactionClass->name), LevelCritical );
+		if( interactionClass )
+		{
+			shared_ptr<HLAInteraction> hlaInteraction =
+				make_shared<HLAInteraction>( ConversionHelper::ws2s( interactionClass->name ) );
+			InteractionClassHandle interactionHandle =
+				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+			if( !interactionHandle.isValid() )
+			{
+				logger.log( "No valid interaction handle found for the received interaction of " +
+				            ConversionHelper::ws2s(interactionClass->name), LevelCritical );
+				return;
+			}
+
+			for( auto& incomingParameterValue : parameterValues )
+			{
+				InteractionParameters& parameters = interactionClass->parameters;
+				wstring paramName =
+					m_rtiAmbassadorWrapper->getParameterName(interactionHandle, incomingParameterValue.first);
+				if( paramName == L"" )
+				{
+					logger.log( "No valid parameter name found for the received parameter with id : " +
+				                to_string(incomingParameterValue.first.hash()), LevelCritical );
+					continue;
+				}
+
+				size_t size = incomingParameterValue.second.size();
+				const void* data = incomingParameterValue.second.data();
+				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
+				memcpy_s(arr.get(), size, data, size);
+				hlaInteraction->setParameterValue( ConversionHelper::ws2s(paramName), arr, size );
+			}
+			receiveInteraction(const_pointer_cast<const HLAInteraction>(hlaInteraction),
+			                   m_federateAmbassador->getFederateTime());
+		}
+		else
+		{
+			logger.log( "Received an unknown interation with interaction id " +
+			             to_string(interactionHash), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingObjectDeletion( long objectInstanceHash )
+	{
+		lock_guard<mutex> lock( m_threadSafeLock );
+		Logger& logger = Logger::getInstance();
+
+		shared_ptr<ObjectClass> objectClass = findIncomingObject( objectInstanceHash );
+		logger.log( "Received object removed notification for HLAObject with id :" +
+		             to_string(objectInstanceHash), LevelInfo );
+
+		size_t deletedCount =  m_incomingStore.erase( objectInstanceHash );
+		if( deletedCount )
+		{
+			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
+			            " successsfully removed from the incoming map.", LevelInfo );
+			shared_ptr<HLAObject> hlaObject =
+				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), objectInstanceHash );
+			receiveObjectDeletion( const_pointer_cast<const HLAObject>(hlaObject) );
+		}
+		else
+			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
+			            " could not find for deletion.", LevelWarn );
 	}
 	
 	shared_ptr<ObjectClass> FederateBase::getObjectClass( long hash )
@@ -334,7 +433,7 @@ namespace ucef
 		return nullptr;
 	}
 
-	shared_ptr<HLAObject> FederateBase::findIncomingObject( long hash )
+	shared_ptr<ObjectClass> FederateBase::findIncomingObject( long hash )
 	{
 		lock_guard<mutex> lock( m_threadSafeLock );
 
@@ -377,7 +476,7 @@ namespace ucef
 	//----------------------------------------------------------
 	//                    Business Logic
 	//----------------------------------------------------------
-	void FederateBase::cacheHandles( vector<shared_ptr<ObjectClass>>& objectClasses )
+	void FederateBase::storeObjectClass( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -388,38 +487,12 @@ namespace ucef
 		// try to update object classes with correct class and attribute rti handles
 		for( auto& objectClass : objectClasses )
 		{
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
-			if( classHandle.isValid() )
-			{
-				objectClass->classHandle = make_shared<ObjectClassHandle>( classHandle );
-			}
-			else
-			{
-				logger.log( "An invalid class handle returned for " + ConversionHelper::ws2s(objectClass->name),
-				            LevelWarn );
-			}
-
-			ObjectAttributes& attributes = objectClass->objectAttributes;
-			for( auto& attribute : attributes )
-			{
-				AttributeHandle attributeHandle =
-					m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute.second->name );
-				if( attributeHandle.isValid() )
-				{
-					attribute.second->handle = make_shared<AttributeHandle>( attributeHandle );
-				}
-				else
-				{
-					logger.log( "An invalid attribute handle returned for " +
-					            ConversionHelper::ws2s(objectClass->name) + "." +
-					            ConversionHelper::ws2s(attribute.second->name), LevelWarn );
-				}
-			}
-
-			// now store the ObjectClass in m_objectCacheStoreByName for later use
+			// store the ObjectClass in m_objectCacheStoreByName for later use
 			m_objectCacheStoreByName.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
-			// now store the ObjectClass in m_objectCacheStoreByHash for later use
-			m_objectCacheStoreByHash.insert( make_pair(objectClass->classHandle->hash(), objectClass) );
+
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			// store the ObjectClass in m_objectCacheStoreByHash for later use
+			m_objectCacheStoreByHash.insert( make_pair(classHandle.hash(), objectClass) );
 		}
 	}
 
@@ -434,7 +507,11 @@ namespace ucef
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
-			ObjectClassHandle& classHandle = *objectClass->classHandle;
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle(objectClass->name);
+			if( !classHandle.isValid() )
+			{
+				continue;
+			}
 			// attributes we are going to publish
 			AttributeHandleSet pubAttributes;
 			// attributes we are going to subscribe
@@ -444,17 +521,22 @@ namespace ucef
 			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
+				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle(classHandle, attribute->name);
+				if( !attHandle.isValid() )
+				{
+					continue;
+				}
 				if( attribute->publish )
 				{
 					logger.log( "Federate publishes attribute " + ConversionHelper::ws2s(attribute->name) +
 					            " in " + ConversionHelper::ws2s(objectClass->name), LevelInfo );
-					pubAttributes.insert(*attribute->handle);
+					pubAttributes.insert(attHandle);
 				}
 				if( attribute->subscribe )
 				{
 					logger.log( "Federate subscribed to attribute " + ConversionHelper::ws2s(attribute->name) +
 					            " in " + ConversionHelper::ws2s(objectClass->name), LevelInfo );
-					subAttributes.insert(*attribute->handle);
+					subAttributes.insert(attHandle);
 				}
 			}
 
@@ -467,7 +549,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::cacheHandles( vector<shared_ptr<InteractionClass>>& interactionClasses )
+	void FederateBase::storeInteractionClass( vector<shared_ptr<InteractionClass>>& interactionClasses )
 	{
 		//----------------------------------------------------------
 		//     Store interaction class and parametere handles
@@ -477,40 +559,14 @@ namespace ucef
 		// try to update interaction classes with correct interaction and parameter rti handles
 		for( auto& interactionClass : interactionClasses )
 		{
-			InteractionClassHandle interactionHandle =
-			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
-			if( interactionHandle.isValid() )
-			{
-				interactionClass->interactionHandle = make_shared<InteractionClassHandle>( interactionHandle );
-			}
-			else
-			{
-				logger.log( "An invalid interaction handle returned for " +
-				            ConversionHelper::ws2s(interactionClass->name), LevelWarn );
-			}
-
-			InteractionParameters& params = interactionClass->parameters;
-			for( auto& param : params )
-			{
-				ParameterHandle paramHandle =
-					m_rtiAmbassadorWrapper->getParameterHandle( interactionHandle, param.second->name );
-				if( paramHandle.isValid() )
-				{
-					param.second->handle = make_shared<ParameterHandle>( paramHandle );
-				}
-				else
-				{
-					logger.log( "An invalid parameter handle returned for " +
-					            ConversionHelper::ws2s(interactionClass->name) + "." +
-					            ConversionHelper::ws2s(param.second->name), LevelWarn );
-				}
-			}
 			// now store the interactionClass in m_interactionCacheStoreByName for later use
 			m_interactionCacheStoreByName.insert(
 			                  make_pair(ConversionHelper::ws2s(interactionClass->name), interactionClass) );
 			// now store the ObjectClass in m_objectCacheStoreByHash for later use
+			InteractionClassHandle interactionHandle =
+			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			m_interactionCacheStoreByHash.insert(
-			                  make_pair(interactionClass->interactionHandle->hash(), interactionClass) );
+			                  make_pair(interactionHandle.hash(), interactionClass) );
 		}
 	}
 
@@ -525,8 +581,8 @@ namespace ucef
 		for( auto& interactionPair : m_interactionCacheStoreByName )
 		{
 			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
-
-			InteractionClassHandle& interactionHandle = *interactionClass->interactionHandle;
+			InteractionClassHandle interactionHandle =
+				m_rtiAmbassadorWrapper->getInteractionHandle(interactionClass->name);
 			if( interactionClass->publish )
 			{
 				logger.log( "Federate publishes interaction class " +
@@ -538,10 +594,9 @@ namespace ucef
 				            ConversionHelper::ws2s(interactionClass->name), LevelInfo);
 			}
 
-			m_rtiAmbassadorWrapper->publishSubscribeInteractionClassParams( interactionHandle,
-			                                                                interactionClass->publish,
-			                                                                interactionClass->subscribe);
-
+			m_rtiAmbassadorWrapper->publishSubscribeInteractionClass( interactionHandle,
+			                                                          interactionClass->publish,
+			                                                          interactionClass->subscribe);
 		}
 	}
 

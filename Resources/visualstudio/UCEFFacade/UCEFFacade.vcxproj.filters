@@ -88,5 +88,8 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.h">
       <Filter>Source Files\gov\nist\ucef\hla</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\IFederateBase.h">
+      <Filter>Source Files\gov\nist\ucef\hla</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
