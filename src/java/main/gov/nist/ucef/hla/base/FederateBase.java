@@ -20,8 +20,11 @@
  */
 package gov.nist.ucef.hla.base;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.FederateHandle;
 import hla.rti1516e.ResignAction;
 
 public abstract class FederateBase
@@ -42,6 +45,8 @@ public abstract class FederateBase
 	
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
+	
+	private FederateHandle federateHandle;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
