@@ -210,7 +210,7 @@ public class HLAObject
 	 */
 	public String getAsString( String attributeName )
 	{
-		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( attributeName ) );
+		return HLACodecUtils.asString( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**

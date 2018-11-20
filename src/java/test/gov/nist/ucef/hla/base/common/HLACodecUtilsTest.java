@@ -159,7 +159,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(String expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			String actual = HLACodecUtils.asUnicodeString( this.encoder, 
+			String actual = HLACodecUtils.asString( this.encoder, 
 			                                               HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
