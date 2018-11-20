@@ -213,7 +213,7 @@ public class HLAInteraction
 	 */
 	public String getAsString( String parameterName )
 	{
-		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( parameterName ) );
+		return HLACodecUtils.asString( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**

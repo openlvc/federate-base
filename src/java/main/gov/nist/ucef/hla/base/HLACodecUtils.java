@@ -199,9 +199,9 @@ public class HLACodecUtils
 	 * @param bytes the HLA byte array
 	 * @return the decoded value
 	 */
-	public static String asUnicodeString( EncoderFactory encoderFactory, byte[] bytes )
+	public static String asString( EncoderFactory encoderFactory, byte[] bytes )
 	{
-		HLAunicodeString value = makeHLAUnicodeString(encoderFactory, "");
+		HLAunicodeString value = makeHLAType(encoderFactory, "");
 		try
 		{
 			value.decode( bytes );
@@ -222,36 +222,6 @@ public class HLACodecUtils
 		}
 	}
 
-	/**
-	 * Decode HLA byte array representation of a unicode string
-	 * 
-	 * @param encoderFactory the encoder instance to use
-	 * @param bytes the HLA byte array
-	 * @return the decoded value
-	 */
-	public static String asASCIIString( EncoderFactory encoderFactory, byte[] bytes )
-	{
-		HLAASCIIstring value = makeHLAASCIIString(encoderFactory,  "" );
-		try
-		{
-			value.decode( bytes );
-			String result = value.getValue();
-			
-			// check for null terminator at end of string and remove as necessary
-			int length = result.length();
-			if( length > 0 && result.charAt( length - 1 ) == 0 )
-				result = result.substring( 0, length - 1  );
-			
-			return result;
-		}
-		catch( DecoderException de )
-		{
-			throw new UCEFException( de,
-			                         "Unable to decode byte array of length %d as a ASCII string.",
-			                         bytes.length );
-		}
-	}
-	
 	/**
 	 * Encode a short to an HLA byte array representation 
 	 * 
@@ -333,24 +303,7 @@ public class HLACodecUtils
 	 */
 	public static byte[] encode(EncoderFactory encoderFactory, String value)
 	{
-		return encode( encoderFactory, value, true );
-	}
-	
-	/**
-	 * Encode a string to an HLA byte array representation of an ASCII or unicode string
-	 * 
-	 * @param encoderFactory the encoder instance to use
-	 * @param value the value to encode
-	 * @param isUnicode if true, encode as an HLA Unicode String, otherwise encode as an HLA ASCII
-	 *            String
-	 * @return the HLA byte array
-	 */
-	public static byte[] encode(EncoderFactory encoderFactory, String value, boolean isUnicode)
-	{
-		if(isUnicode)
-			return makeHLAUnicodeString(encoderFactory, value).toByteArray();
-		
-		return makeHLAASCIIString(encoderFactory, value).toByteArray();
+		return encode( encoderFactory, value );
 	}
 	
 	/**
@@ -432,20 +385,8 @@ public class HLACodecUtils
 	 * @param value the value to encode
 	 * @return the {@link HLAunicodeString}
 	 */
-	private static HLAunicodeString makeHLAUnicodeString(EncoderFactory encoderFactory, String value)
+	private static HLAunicodeString makeHLAType(EncoderFactory encoderFactory, String value)
 	{
 		return encoderFactory.createHLAunicodeString(value == null ? "" : value);
-	}
-	
-	/**
-	 * Encode a string to an {@link HLAunicodeString} representation 
-	 * 
-	 * @param encoderFactory the encoder instance to use
-	 * @param value the value to encode
-	 * @return the {@link HLAunicodeString}
-	 */
-	private static HLAASCIIstring makeHLAASCIIString(EncoderFactory encoderFactory, String value)
-	{
-		return encoderFactory.createHLAASCIIstring( value == null ? "" : value);
 	}
 }
