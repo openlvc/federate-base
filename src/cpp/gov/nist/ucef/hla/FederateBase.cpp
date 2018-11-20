@@ -347,6 +347,7 @@ namespace ucef
 	void FederateBase::incomingInteraction( long interactionHash,
 	                                        const ParameterHandleValueMap& parameterValues )
 	{
+		lock_guard<mutex> lock( m_threadSafeLock );
 		Logger& logger = Logger::getInstance();
 		shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
 		logger.log( "Received interaction update for " +
@@ -401,7 +402,7 @@ namespace ucef
 		logger.log( "Received object removed notification for HLAObject with id :" +
 		             to_string(objectInstanceHash), LevelInfo );
 
-		size_t deletedCount =  m_incomingStore.erase( objectInstanceHash );
+		int deletedCount = deleteIncomingObject( objectInstanceHash );
 		if( deletedCount )
 		{
 			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
@@ -435,13 +436,16 @@ namespace ucef
 
 	shared_ptr<ObjectClass> FederateBase::findIncomingObject( long hash )
 	{
-		lock_guard<mutex> lock( m_threadSafeLock );
-
 		if( m_incomingStore.find( hash ) != m_incomingStore.end() )
 		{
 			return m_incomingStore[hash];
 		}
 		return nullptr;
+	}
+
+	size_t FederateBase::deleteIncomingObject( long hash )
+	{
+		return m_incomingStore.erase( hash );
 	}
 
 	std::shared_ptr<util::InteractionClass> FederateBase::getInteractionClass( long hash )

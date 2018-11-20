@@ -67,7 +67,6 @@ namespace ucef
 	                                   shared_ptr<void> data,
 	                                   const size_t size )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		if( m_attributeDataStore->find( attributeName ) != m_attributeDataStore->end() )
 		{
 			(*m_attributeDataStore)[attributeName].data = data;
@@ -148,7 +147,6 @@ namespace ucef
 
 	VariableData HLAObject::getAttributeValue( const string& attributeName ) const
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		VariableData data;
 		data.data = nullptr;
 		data.size = 0;
@@ -173,7 +171,6 @@ namespace ucef
 
 	void HLAObject::clearAttributeDataStore()
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		m_attributeDataStore->clear();
 	}
 

@@ -66,7 +66,6 @@ namespace ucef
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
 			std::string m_className;
 			long m_instanceHandle;
-			mutable std::mutex m_threadSafeLock;
 	};
 }
 

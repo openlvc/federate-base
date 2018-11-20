@@ -153,7 +153,7 @@ namespace ucef
 		try
 		{
 			ObjectClassHandle objectHandle =
-				m_rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws( hlaObject->getClassName() ) );
+				m_rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws( className ) );
 			try
 			{
 				ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( objectHandle );
@@ -242,7 +242,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::updateObjectInstances( shared_ptr<HLAObject>& hlaObject )
+	void RTIAmbassadorWrapper::updateObjectInstance( shared_ptr<HLAObject>& hlaObject )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -357,7 +357,7 @@ namespace ucef
 	{
 		try
 		{
-			m_rtiAmbassador->resignFederationExecution( NO_ACTION );
+			m_rtiAmbassador->resignFederationExecution( DELETE_OBJECTS_THEN_DIVEST );
 		}
 		catch( Exception& e )
 		{
@@ -380,7 +380,7 @@ namespace ucef
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid class handle for" +
+			logger.log( "Could not find a valid class handle for " +
 			            ConversionHelper::ws2s(name), LevelError );
 		}
 		return classHandle;
@@ -397,7 +397,7 @@ namespace ucef
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid attribute handle for" +
+			logger.log( "Could not find a valid attribute handle for " +
 			            ConversionHelper::ws2s(name), LevelError );
 		}
 		return attHandle;
@@ -414,7 +414,7 @@ namespace ucef
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid name for the given attribute handle with id" +
+			logger.log( "Could not find a valid name for the given attribute handle with id " +
 			            to_string(attributeHandle.hash()), LevelError );
 		}
 		return attName;
@@ -432,7 +432,7 @@ namespace ucef
 		catch( Exception& )
 		{
 			
-			logger.log( "Could not find a valid interaction class handle for" +
+			logger.log( "Could not find a valid interaction class handle for " +
 			             ConversionHelper::ws2s(name), LevelError );
 		}
 		return interactionhandle;
@@ -466,7 +466,7 @@ namespace ucef
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid name for the given parameter handle with id" +
+			logger.log( "Could not find a valid name for the given parameter handle with id " +
 			            to_string(parameterHandle.hash()), LevelError );
 		}
 		return paramName;
