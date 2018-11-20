@@ -522,7 +522,7 @@ public class MyFederate extends FederateBase {
     				else
     				{
 						// assume anything else is a unicode String
-    					value = '"' + HLACodecUtils.asUnicodeString( encoder, rawValue ) + '"';
+    					value = '"' + HLACodecUtils.asString( encoder, rawValue ) + '"';
     				}
     				builder.append( value );
 				}
@@ -575,7 +575,7 @@ public class MyFederate extends FederateBase {
 					else
 					{
 						// anything else is a unicode String
-						value = '"' + HLACodecUtils.asUnicodeString( encoder, rawValue ) + '"';
+						value = '"' + HLACodecUtils.asString( encoder, rawValue ) + '"';
 					}
 					builder.append( value );
 				}
