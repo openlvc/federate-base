@@ -22,6 +22,7 @@ package gov.nist.ucef.hla.base;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.FederateHandle;
@@ -412,12 +413,18 @@ public abstract class FederateBase
 		rtiamb.evokeMultipleCallbacks( MIN_TIME, MAX_TIME );
 	}
 
+	/**
+	 * Resign from the federation and destroy the federation execution
+	 */
 	private void resignAndDestroyFederation()
 	{
 		resignFromFederation( null );
 		destroyFederation();
 	}
 	
+	/**
+	 * Resign from the federation
+	 */
 	private void resignFromFederation( ResignAction resignAction )
 	{
 		if( resignAction == null )
@@ -426,11 +433,17 @@ public abstract class FederateBase
 		rtiamb.resignFederationExecution( resignAction );
 	}
 
+	/**
+	 * Destroy the federation execution
+	 */
 	private void destroyFederation()
 	{
 		rtiamb.destroyFederationExecution( configuration );
 	}
 	
+	/**
+	 * Enable the time policy settings
+	 */
 	private void enableTimePolicy()
 	{
 		// enable time regulation based on configuration
@@ -450,6 +463,9 @@ public abstract class FederateBase
 		}
 	}
 
+	/**
+	 * Disable the time policy settings
+	 */
 	private void disableTimePolicy()
 	{
 		// no waiting for callbacks when disabling time policies
@@ -460,15 +476,60 @@ public abstract class FederateBase
 		fedamb.isTimeRegulating = false;
 	}
 	
+	/**
+	 * Publish and subscribe to all configured interactions and reflected attributes 
+	 */
 	private void publishAndSubscribe()
 	{
 		rtiamb.publishObjectClassAttributes( configuration.getPublishedAttributes() );
 		rtiamb.publishInteractionClasses( configuration.getPublishedInteractions() );
 		
-		rtiamb.subscribeObjectClassesAttributes( configuration.getSubscribedAttributes() );
+		rtiamb.subscribeObjectClassAttributes( configuration.getSubscribedAttributes() );
 		rtiamb.subscribeInteractionClasses( configuration.getSubscribedInteractions() );
 	}
 
+	/**
+	 * Publish an interaction
+	 * 
+	 * @param className the name of the interaction
+	 */
+	protected void publishInteraction( String className )
+	{
+		rtiamb.publishInteractionClass( className );
+	}
+	
+	/**
+	 * Subscribe to an interaction
+	 * 
+	 * @param className the name of the interaction
+	 */
+	protected void subscribeInteraction( String className )
+	{
+		rtiamb.subscribeInteractionClass( className );
+	}
+	
+	/**
+	 * Publish an attribute reflection
+	 * 
+	 * @param className the name of the object to which the attributes belong
+	 * @param attributes the names of the attributes to be published
+	 */
+	protected void publishAttributes( String className, Set<String> attributes )
+	{
+		rtiamb.publishObjectClassAttributes( className, attributes );
+	}
+	
+	/**
+	 * Subscribe to an attribute reflection
+	 * 
+	 * @param className the name of the object to which the attributes belong
+	 * @param attributes the names of the attributes of interest
+	 */
+	protected void subscribeAttributes( String className, Set<String> attributes  )
+	{
+		rtiamb.subscribeObjectClassAttributes( className, attributes );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
