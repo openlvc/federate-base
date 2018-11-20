@@ -103,8 +103,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		publishInteractionClass( JOINED_FEDERATION_INTERACTION );
-		publishInteractionClass( RESIGNED_FEDERATION_INTERACTION );
+		publishInteraction( JOINED_FEDERATION_INTERACTION );
+		publishInteraction( RESIGNED_FEDERATION_INTERACTION );
 		
 		// notify the federation that we have joined
 		send(makeFederationJoinedInteraction(), null);

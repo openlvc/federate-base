@@ -113,14 +113,10 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		subscribeInteractionClass( JOINED_FEDERATION_INTERACTION );
-		subscribeInteractionClass( RESIGNED_FEDERATION_INTERACTION );
-		
-		// pre-announce all UCEF synchronization points
-		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
-		{
-			registerSyncPointAndWaitForAnnounce( syncPoint, null );
-		}
+		subscribeInteraction( JOINED_FEDERATION_INTERACTION );
+		subscribeInteraction( RESIGNED_FEDERATION_INTERACTION );
+
+		preAnnounceSyncPoints();
 		
 		// allow the user to control when we are ready to populate
 		// TODO what we actually want to do here is be listening out somehow 
@@ -216,12 +212,28 @@ public class FederateManager extends FederateBase {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Pre-announce all UCEF synchronization points
+	 */
+	private void preAnnounceSyncPoints()
+	{
+		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
+		{
+			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+		}
+	}
+	
+	/**
+	 * Utility method to cause execution to wait until the given timestamp is reached
+	 * 
+	 * @param timestamp the time to wait until (as system clock time in milliseconds)
+	 */
 	private void waitUntil( long timestamp )
 	{
 		long delay = timestamp - System.currentTimeMillis();
-		if(delay <= 0)
+		if( delay <= 0 )
 			return;
-		
+
 		try
 		{
 			Thread.sleep( delay );
@@ -262,7 +274,7 @@ public class FederateManager extends FederateBase {
 	private String makeSummary( HLAInteraction instance )
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
+		builder.append( rtiamb.makeSummary( instance ) );
 		builder.append( "\n" );
 		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
 		{

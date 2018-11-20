@@ -27,6 +27,7 @@ import java.util.Set;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.FederateHandle;
 import hla.rti1516e.ResignAction;
+import hla.rti1516e.encoding.EncoderFactory;
 
 public abstract class FederateBase
 {
@@ -48,6 +49,8 @@ public abstract class FederateBase
 	protected FederateAmbassador fedamb;
 	
 	private FederateHandle federateHandle;
+	
+	private EncoderFactory encoder = HLACodecUtils.getEncoder();
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
