@@ -24,8 +24,10 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
 import gov.nist.ucef.hla.base.FederateBase;
@@ -36,6 +38,7 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedRecord;
@@ -70,6 +73,8 @@ public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	// cache of object instances which we have registered with the RTI
+	protected Set<HLAObject> registeredObjects;
 	private EncoderFactory encoder;
 
 	//----------------------------------------------------------
@@ -79,6 +84,7 @@ public class MyFederate extends FederateBase {
 	{
 		super();
 		
+		registeredObjects = new HashSet<>();
 		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
@@ -97,6 +103,10 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
+		// any additional publish/subscribe code that is require outside of the configured
+		// publications and subscriptions (which will have automatically been applied) 
+		// should be placed here.
+		
 		// allow the user to control when we are ready to populate
 		waitForUser("beforeReadyToPopulate() - press ENTER to continue");
 	}
@@ -104,8 +114,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToRun()
 	{
-		// allow the user to control when we are ready to run
-		// waitForUser("beforeReadyToRun() - press ENTER to continue");
+		// we register the objects we will be handling here 
+		registerObjects();
 	}
 
 	@Override
@@ -128,14 +138,12 @@ public class MyFederate extends FederateBase {
 		                                               randomBool(), randomBool(), randomBool() );
 		send( interaction, null );
 
-		// here we end out attribute reflections for all attributes of all registered pbjects:
+		// here we end out attribute reflections for all attributes of all registered objects:
 		System.out.println( "sending attribute reflection(s) at time " + currentTime + "..." );
 		for( HLAObject hlaObject : this.registeredObjects )
 		{
-			for( String attrName : hlaObject.getAttributeNames() )
-			{
-				hlaObject.set( attrName, randomFruit() );
-			}
+			hlaObject.set( FLAVOR_ATTR_ID, randomFruit() );
+			hlaObject.set( NUMBER_CUPS_ATTR_ID, randomInt( 1, 5 ) );
 			update( hlaObject, null );
 		}
 
@@ -152,7 +160,8 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeExit()
 	{
-		// no cleanup required before exit
+		// we de-register our objects instances here before exiting  
+		deregisterObjects();
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,6 +276,34 @@ public class MyFederate extends FederateBase {
 	}
 	
 	/**
+	 * Registers any object instances that we are handling
+	 */
+	private void registerObjects()
+	{
+		// TODO this is just test code which simply registers an instance for every 
+		//      published attribute entry in the configuration. It's possible that the
+		//      implementation might require single or multiple instances (or none, though
+		//      that would be pointless) on a per entry basis.
+		for(String className: configuration.getPublishedAttributes().keySet())
+		{
+			this.registeredObjects.add( makeObjectInstance( className ) );
+		}
+	}
+	
+	/**
+	 * De-registers any object instances that we were handling once things have finished up
+	 */
+	private void deregisterObjects()
+	{
+		Set<HLAObject> deleted = new HashSet<>();
+		for( HLAObject obj : this.registeredObjects )
+		{
+			deleted.add( deleteObjectInstance( obj ) );
+		}
+		this.registeredObjects.removeAll( deleted );
+	}
+	
+	/**
 	 * This method simply blocks until the user presses ENTER, allowing for a pause in
 	 * proceedings.
 	 */
@@ -297,6 +334,19 @@ public class MyFederate extends FederateBase {
 	private String randomFruit()
 	{
 		return FRUITS[ThreadLocalRandom.current().nextInt(FRUITS.length)];
+	}
+	
+	/**
+	 * This just generates a random integer within the min/max range 
+	 * 
+	 * @param min the minimum allowed value (inclusive)
+	 * @param max the maximum allowed value (inclusive)
+	 * @return a random integer within the min/max range
+	 */
+	private int randomInt(int min, int max)
+	{
+		int range = max - min;
+		return min + ThreadLocalRandom.current().nextInt(range + 1);
 	}
 	
 	/**
@@ -355,14 +405,13 @@ public class MyFederate extends FederateBase {
 		interactionParameters.put( TIMELINESS_OK_PARAM,
 		                           HLACodecUtils.encode( encoder, timelinessOK ) );
 		
-		byte[] accuracyOK = makeServiceStatParameter(entreeAccuracy, vege1Accuracy, vege2Accuracy);
-		byte[] temperatureOK = makeServiceStatParameter(entreeTemp, vege1Temp, vege2Temp);
+		byte[] accuracyOK = makeServiceStatParameter( entreeAccuracy, vege1Accuracy, vege2Accuracy );
+		byte[] temperatureOK = makeServiceStatParameter( entreeTemp, vege1Temp, vege2Temp );
 
 		interactionParameters.put( TEMPERATURE_OK_PARAM, temperatureOK );
 		interactionParameters.put( ACCURACY_OK_PARAM, accuracyOK );
 		
-		return makeInteraction( MAIN_COURSE_SERVED_INTERACTION_ID,
-		                        interactionParameters );
+		return makeInteraction( MAIN_COURSE_SERVED_INTERACTION_ID, interactionParameters );
 	}
 	
 	/**
@@ -434,7 +483,7 @@ public class MyFederate extends FederateBase {
 	private String makeSummary( HLAInteraction instance )
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance.getInteractionClassHandle() ) );
+		builder.append( rtiamb.makeSummary( instance ) );
 		builder.append( "\n" );
 		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
 		{
@@ -453,7 +502,7 @@ public class MyFederate extends FederateBase {
 				try 
 				{
     				String value = "";
-    				// decode using parameter name to detect data type
+    				// decode using parameter name to determine data type
     				if( TIMELINESS_OK_PARAM.equals( parameterName ) )
     				{
 						// boolean types
@@ -493,16 +542,15 @@ public class MyFederate extends FederateBase {
 	private String makeSummary( HLAObject instance )
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance.getInstanceHandle() ) );
+		builder.append( rtiamb.makeSummary( instance ) );
 		builder.append( "\n" );
 		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
 		{
+			String attributeName = entry.getKey();
 			builder.append( "\t" );
-			builder.append( entry.getKey() );
+			builder.append( attributeName );
 			builder.append( " = " );
-			// TODO at the moment this assumes that all values are strings, but going forward there
-			// 		will need to be some sort of mapping of attribute names/handles to primitive
-			//      types for parsing
+
 			byte[] rawValue = entry.getValue();
 			if( rawValue == null || rawValue.length == 0 )
 			{
@@ -510,9 +558,27 @@ public class MyFederate extends FederateBase {
 			}
 			else
 			{
-				builder.append("'");
-				builder.append( HLACodecUtils.asUnicodeString( encoder, rawValue ) );
-				builder.append("'");
+				try
+				{
+					String value = "";
+					// decode using attribute name to determine data type
+					if( NUMBER_CUPS_ATTR_ID.equals( attributeName ) )
+					{
+						// boolean types
+						value = Integer.toString( HLACodecUtils.asInt( encoder, rawValue ) );
+					}
+					else
+					{
+						// anything else is a unicode String
+						value = '"' + HLACodecUtils.asUnicodeString( encoder, rawValue ) + '"';
+					}
+					builder.append( value );
+				}
+				catch( Exception e )
+				{
+					builder.append( "Unable to decode value: " + e.getMessage() );
+				}
+
 			}
 			builder.append( "\n" );
 		}

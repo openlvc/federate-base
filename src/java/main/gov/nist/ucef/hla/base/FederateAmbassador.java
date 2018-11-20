@@ -130,11 +130,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 		return this.federateTime;
 	}
 	
-	public void deleteObjectInstances()
-	{
-		this.federate.rtiamb.deleteObjectInstances( remoteHlaObjects.keySet() );	
-	}
-	
 	/////////////////////////////////////////////////////////////////////////////////////
 	// FederateAmbassador Callbacks     /////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -241,8 +236,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		{
 			// this is what *should* be happening - since it's a discovery, it 
 			// shouldn't be in the cache yet
-			Set<String> attributeNames = federate.subscribedObjectClassAttributeNames.get(objectClassHandle);
-			hlaObjectInstance = new HLAObject( objectInstanceHandle, attributeNames );
+			hlaObjectInstance = new HLAObject( objectInstanceHandle, null );
 			this.remoteHlaObjects.put( objectInstanceHandle, hlaObjectInstance );
 		}
 		this.federate.receiveObjectRegistration( hlaObjectInstance );
@@ -296,7 +290,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		}
 
 		// convert AttributeHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> attributes = this.federate.convert( objectInstanceHandle, attributeMap );
+		Map<String,byte[]> attributes = federate.rtiamb.convert( objectInstanceHandle, attributeMap );
 		hlaObjectInstance.setState( attributes );
 
 		// do the appropriate callback on the federate
@@ -341,7 +335,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	    throws FederateInternalError
 	{
 		// convert ParameterHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> parameters = this.federate.convert( interactionClassHandle, parameterMap );
+		Map<String,byte[]> parameters = federate.rtiamb.convert( interactionClassHandle, parameterMap );
 
 		// create the (transient) interaction
 		HLAInteraction interaction = new HLAInteraction( interactionClassHandle, parameters );
