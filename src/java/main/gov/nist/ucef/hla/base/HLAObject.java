@@ -38,7 +38,6 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final byte[] EMPTY_BYTE_ARRAY = {};
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -52,26 +51,35 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public HLAObject( ObjectInstanceHandle objectInstanceHandle, Collection<String> attributeNames )
+	/**
+	 * Construct a new object instance with no attribute values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjetInstance() method should be
+	 * used to create a new {@link HLAObject}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 */
+	protected HLAObject( ObjectInstanceHandle objectInstanceHandle )
+	{
+		this( objectInstanceHandle, null );
+	}
+
+	/**
+	 * Construct a new object instance with attribute values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjetInstance() method should be
+	 * used to create a new {@link HLAObject}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 * @param initialValues the initial attribute values for the interaction (may be empty or
+	 *            null)
+	 */
+	protected HLAObject( ObjectInstanceHandle objectInstanceHandle,
+	                     Map<String,byte[]> initialValues )
 	{
 		this.objectInstanceHandle = objectInstanceHandle;
-		this.attributes = new HashMap<>();
-		// sanity check for null attribute names - since an object instance with no attributes wouldn't
-		// be very useful, possibly we should throw an exception here...? There's nothing inherently
-		// "illegal" about it though, it's just pointless.
-		if(attributeNames != null)
-		{
-			// TODO Here we initialise each attribute with an empty/zero-length byte array - this 
-			//      essentially means that the attributes are all "uninitialised", since even an 
-			//      empty string would require a single byte '\0' (null terminator) character. Any
-			//      attempt to retrieve a "typed" value at this stage will result in an HLA 
-			//      decoding error (see the isInitialised() method). 
-			//      In future we should probably initialise each attribute with at least a sensible 
-			//      default value for primitive types at least (e.g., 0 for integers, 0.0 for floats,
-			//      false for booleans, etc) but for now this is sufficient.
-			attributeNames.forEach( (attrName) -> this.attributes.put( attrName, EMPTY_BYTE_ARRAY) );
-		}
-		
+		this.attributes = initialValues == null ? new HashMap<>() : initialValues;
+
 		this.encoder = HLACodecUtils.getEncoder();
 	}
 	
@@ -95,7 +103,7 @@ public class HLAObject
 	 * Obtain the underlying HLA handle associated with this instance
 	 * @return the underlying HLA handle associated with this instance
 	 */
-	public ObjectInstanceHandle getInstanceHandle()
+	protected ObjectInstanceHandle getInstanceHandle()
 	{
 		return this.objectInstanceHandle;
 	}
@@ -202,7 +210,7 @@ public class HLAObject
 	 */
 	public String getAsString( String attributeName )
 	{
-		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( attributeName ) );
+		return HLACodecUtils.asString( this.encoder, getRawValue( attributeName ) );
 	}
 	
 	/**

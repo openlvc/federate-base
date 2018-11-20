@@ -51,12 +51,34 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public HLAInteraction( InteractionClassHandle interactionClassHandle,
-	                       Map<String, byte[]> parameters )
+	/**
+	 * Construct a new interaction instance with no parameter values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
+	 * to create a new {@link HLAInteraction}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 */
+	protected HLAInteraction( InteractionClassHandle interactionClassHandle )
+	{
+		this( interactionClassHandle, null );
+	}
+
+	/**
+	 * Construct a new interaction instance with parameter values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
+	 * to create a new {@link HLAInteraction}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 * @param parameters the parameter values for the interaction (may be empty or null)
+	 */
+	protected HLAInteraction( InteractionClassHandle interactionClassHandle,
+	                          Map<String,byte[]> parameters )
 	{
 		this.interactionClassHandle = interactionClassHandle;
 		this.parameters = parameters == null ? new HashMap<>() : parameters;
-		
+
 		this.encoder = HLACodecUtils.getEncoder();
 	}
 
@@ -83,7 +105,7 @@ public class HLAInteraction
 	 * Obtain the underlying HLA handle associated with this interaction
 	 * @return the underlying HLA handle associated with this interaction
 	 */
-	public InteractionClassHandle getInteractionClassHandle()
+	protected InteractionClassHandle getInteractionClassHandle()
 	{
 		return this.interactionClassHandle;
 	}
@@ -100,7 +122,7 @@ public class HLAInteraction
 	}
 	
 	/**
-	 * Determine if the named parameter has been initialised (i.e. has a value)
+	 * Determine if the named parameter has been initialized (i.e. has a value)
 	 * 
 	 * In practice, this means that the byte array value associated with the 
 	 * named parameter is: 
@@ -110,7 +132,7 @@ public class HLAInteraction
 	 * @param parameterName the name of the attribute
 	 * @return true if the parameter as a value defined for it, false otherwise
 	 */
-	public boolean isInitialised( String parameterName )
+	public boolean isInitialized( String parameterName )
 	{
 		byte[] rawValue = getRawValue( parameterName );
 		return rawValue != null && rawValue.length != 0;
@@ -191,7 +213,7 @@ public class HLAInteraction
 	 */
 	public String getAsString( String parameterName )
 	{
-		return HLACodecUtils.asUnicodeString( this.encoder, getRawValue( parameterName ) );
+		return HLACodecUtils.asString( this.encoder, getRawValue( parameterName ) );
 	}
 	
 	/**
