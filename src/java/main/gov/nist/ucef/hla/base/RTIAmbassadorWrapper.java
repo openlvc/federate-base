@@ -810,6 +810,15 @@ public class RTIAmbassadorWrapper
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
 	 */
+	public void publishInteractionClass( String className )
+	{
+		publishInteractionClass( getInteractionClassHandle( className ) );
+	}
+	
+	/**
+	 * This method will inform the RTI about the types of interactions that the federate will be
+	 * publishing to the federation.
+	 */
 	public void publishInteractionClasses( Collection<String> classNames)
 	{
 		if( classNames == null || classNames.isEmpty() )
@@ -819,15 +828,6 @@ public class RTIAmbassadorWrapper
 			publishInteractionClass( className );
 	}
 
-	/**
-	 * This method will inform the RTI about the types of interactions that the federate will be
-	 * publishing to the federation.
-	 */
-	private void publishInteractionClass( String className )
-	{
-		publishInteractionClass( getInteractionClassHandle( className ) );
-	}
-	
 	/**
 	 * This method will inform the RTI about the an interaction that a federate will be publishing
 	 * to the federation.
@@ -851,40 +851,69 @@ public class RTIAmbassadorWrapper
 	
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
-	 * publishing to the federation, and to which classes they belong.
+	 * publishing to the federation, and to which class they belong.
 	 * 
 	 * This needs to be done before registering instances of the object classes and updating their
-	 * attributes' values 
+	 * attributes' values
+	 * 
+	 * @param className the object class name
+	 * @param attribute the associated attribute class names for publishing
 	 */
-	public void publishObjectClassAttributes( Map<String,Set<String>> publishedAttributes)
+	public void publishObjectClassAttributes( String className,  Set<String> attributes)
 	{
-		if(publishedAttributes == null || publishedAttributes.isEmpty())
-			return;
-
-		for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
+		if( className == null )
 		{
-			String className = publication.getKey();
-			ObjectClassHandle classHandle = getObjectClassHandle( className );
+			throw new UCEFException( "%s class name. Cannot publish attributes.",
+			                         NULL_TEXT );
+		}
+		
+		if( attributes == null )
+		{
+			throw new UCEFException( "%s attributes. Cannot publish attributes for object class '%s'.",
+			                         NULL_TEXT, className );
+		}
+		
+		ObjectClassHandle classHandle = getObjectClassHandle( className );
+		if( classHandle == null )
+		{
+			throw new UCEFException( "Unknown object class name '%s'. Cannot publish attributes.",
+			                         className );
+		}
+		
+		AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
+		for( String attributeName : attributes )
+		{
+			AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
 			if( classHandle == null )
 			{
-				throw new UCEFException( "Unknown object class name '%s'. Cannot publish attributes.",
-				                         className );
+				throw new UCEFException( "Unknown attribute name '%s'. Cannot publish attributes " +
+					"for object class %s.",
+					attributeName , makeSummary( classHandle ) );
 			}
-			
-			AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
-			for( String attributeName : publication.getValue() )
-			{
-				AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
-				if( classHandle == null )
-				{
-					throw new UCEFException( "Unknown attribute name '%s'. Cannot publish attributes " +
-											 "for object class %s.",
-					                         attributeName , makeSummary( classHandle ) );
-				}
-				attributeHandleSet.add( attributeHandle );
-			}
-			
-			publishObjectClassAttributes( classHandle, attributeHandleSet );
+			attributeHandleSet.add( attributeHandle );
+		}
+		
+		publishObjectClassAttributes( classHandle, attributeHandleSet );
+	}
+	
+	/**
+	 * This method will inform the RTI about the types of attributes the federate will be
+	 * publishing to the federation, and to which classes they belong (in bulk).
+	 * 
+	 * This needs to be done before registering instances of the object classes and updating their
+	 * attributes' values
+	 * 
+	 * @param publishedAttributes a map relating object class names to the associated attribute
+	 *            class names for publishing
+	 */
+	public void publishObjectClassAttributes( Map<String,Set<String>> publishedAttributes )
+	{
+		if( publishedAttributes == null || publishedAttributes.isEmpty() )
+			return;
+		
+		for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
+		{
+			publishObjectClassAttributes( publication.getKey(), publication.getValue() );
 		}
 	}
 	
@@ -894,6 +923,9 @@ public class RTIAmbassadorWrapper
 	 * 
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values
+	 * 
+	 * @param handle the object class handle
+	 * @param attributes the associated attribute handles for publishing
 	 */
 	private void publishObjectClassAttributes( ObjectClassHandle handle,
 	                                           AttributeHandleSet attributes )
@@ -920,14 +952,16 @@ public class RTIAmbassadorWrapper
 	
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
-	 * interested in hearing about as other federates produce them.
+	 * interested in hearing about (in bulk) as other federates produce them.
+	 * 
+	 * @param classNames the interaction class names to subscribe to
 	 */
-	public void subscribeInteractionClasses( Collection<String> interactionClassNames )
+	public void subscribeInteractionClasses( Collection<String> classNames )
 	{
-		if( interactionClassNames == null || interactionClassNames.isEmpty() )
+		if( classNames == null || classNames.isEmpty() )
 			return;
 
-		for( String interactionClassName : interactionClassNames )
+		for( String interactionClassName : classNames )
 		{
 			subscribeInteractionClass( interactionClassName );
 		}
@@ -938,7 +972,7 @@ public class RTIAmbassadorWrapper
 	 * 
 	 * @param className the name of the interaction class to subscribe to
 	 */
-	private void subscribeInteractionClass( String className )
+	public void subscribeInteractionClass( String className )
 	{
 		InteractionClassHandle handle = getInteractionClassHandle( className );
 
@@ -977,7 +1011,44 @@ public class RTIAmbassadorWrapper
 	
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
-	 * interested in hearing about, and to which classes they belong.
+	 * interested in hearing about, and to which class they belong.
+	 * 
+	 * We need to subscribe to hear about information on attributes of classes created and altered
+	 * in other federates
+	 * 
+	 * @param className the object class name
+	 * @param attributes the attribute names to be subscribed to
+	 */
+	public void subscribeObjectClassAttributes( String className, Set<String> attributes )
+	{
+		ObjectClassHandle classHandle = getObjectClassHandle( className );
+		if( classHandle == null )
+		{
+			throw new UCEFException( "Unknown object class name '%s'. Cannot subscribe to attributes.",
+			                         className );
+		}
+		
+		// package the information into a handle set
+		AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
+		for( String attributeName : attributes )
+		{
+			AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
+			if( attributeHandle == null )
+			{
+				throw new UCEFException( "Unknown attribute name '%s'. Cannot subscribe to " +
+					"attributes for object class %s.", attributeName,
+					makeSummary( classHandle ) );
+			}
+			attributeHandleSet.add( attributeHandle );
+		}
+		
+		// do the actual subscription
+		subscribeObjectClassAttributes( classHandle, attributeHandleSet );
+	}
+	
+	/**
+	 * This method will inform the RTI about the types of attributes the federate will be
+	 * interested in hearing about, and to which classes they belong (in bulk).
 	 * 
 	 * We need to subscribe to hear about information on attributes of classes created and altered
 	 * in other federates
@@ -985,37 +1056,14 @@ public class RTIAmbassadorWrapper
 	 * @param subscribedAttributes a map which connects object class names to sets of attribute
 	 *            names to be subscribed to
 	 */
-	public void subscribeObjectClassesAttributes( Map<String,Set<String>> subscribedAttributes )
+	public void subscribeObjectClassAttributes( Map<String,Set<String>> subscribedAttributes )
 	{
 		if( subscribedAttributes == null || subscribedAttributes.isEmpty() )
 			return;
 
 		for( Entry<String,Set<String>> subscription : subscribedAttributes.entrySet() )
 		{
-			// get all the handle information for the attributes of the current class
-			String className = subscription.getKey();
-			ObjectClassHandle classHandle = getObjectClassHandle( className );
-			if( classHandle == null )
-			{
-				throw new UCEFException( "Unknown object class name '%s'. Cannot subscribe to attributes.",
-				                         className );
-			}
-			// package the information into the handle set
-			AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
-			for( String attributeName : subscription.getValue() )
-			{
-				AttributeHandle attributeHandle = getAttributeHandle( classHandle, attributeName );
-				if( attributeHandle == null )
-				{
-					throw new UCEFException( "Unknown attribute name '%s'. Cannot subscribe to " +
-					                         "attributes for object class %s.", attributeName,
-					                         makeSummary( classHandle ) );
-				}
-				attributeHandleSet.add( attributeHandle );
-			}
-
-			// do the actual subscription
-			subscribeObjectClassAttributes( classHandle, attributeHandleSet );
+			subscribeObjectClassAttributes( subscription.getKey(), subscription.getValue() );
 		}
 	}
 	
