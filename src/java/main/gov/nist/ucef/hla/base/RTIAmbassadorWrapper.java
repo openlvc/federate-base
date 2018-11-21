@@ -44,11 +44,18 @@ import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.exceptions.AlreadyConnected;
+import hla.rti1516e.exceptions.AttributeNotDefined;
 import hla.rti1516e.exceptions.DeletePrivilegeNotHeld;
+import hla.rti1516e.exceptions.FederateNotExecutionMember;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 import hla.rti1516e.exceptions.InteractionClassNotPublished;
+import hla.rti1516e.exceptions.NotConnected;
+import hla.rti1516e.exceptions.ObjectClassNotDefined;
+import hla.rti1516e.exceptions.RTIinternalError;
+import hla.rti1516e.exceptions.RestoreInProgress;
+import hla.rti1516e.exceptions.SaveInProgress;
 import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
 import hla.rti1516e.exceptions.TimeConstrainedIsNotEnabled;
 import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
@@ -108,11 +115,13 @@ public class RTIAmbassadorWrapper
 		return this.rtiAmbassador;
 	}
 	
-	public void connect( FederateAmbassador federateAmbassador )
+	public void connect( FederateAmbassador federateAmbassador, boolean useEvokedCallbacks )
 	{
+		CallbackModel callbackModel = useEvokedCallbacks ? CallbackModel.HLA_EVOKED : 
+														   CallbackModel.HLA_IMMEDIATE;
 		try
 		{
-			this.rtiAmbassador.connect( federateAmbassador, CallbackModel.HLA_EVOKED );
+			this.rtiAmbassador.connect( federateAmbassador, callbackModel );
 		}
 		catch( AlreadyConnected e )
 		{
@@ -151,7 +160,7 @@ public class RTIAmbassadorWrapper
 
 	public FederateHandle joinFederation( FederateConfiguration configuration )
 	{
-		String federationName = configuration.getFederationName();
+		String federationExecutionName = configuration.getFederationName();
 		String federateName = configuration.getFederateName();
 		String federateType = configuration.getFederateType();
 		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
@@ -160,7 +169,7 @@ public class RTIAmbassadorWrapper
 		{
 			// join the federation with the configured join FOM modules
 			return rtiAmbassador.joinFederationExecution( federateName, federateType, 
-			                                              federationName, joinModules );
+			                                              federationExecutionName, joinModules );
 		}
 		catch(Exception e)
 		{
@@ -442,15 +451,49 @@ public class RTIAmbassadorWrapper
 		return this.attributeHandleSetFactory.create();
 	}
 	
+	/**
+	 * Utility method to create an attribute handle set for an object class and a set of attribute
+	 * names
+	 * 
+	 * @param handle the hanlde for the object class with which the attributes are associated
+	 * @param attributeNames the names of the attributes
+	 * @return the attribute handle set
+	 */
+	protected AttributeHandleSet makeAttributeHandleSet( ObjectClassHandle handle,
+	                                                     Set<String> attributeNames )
+	{
+		AttributeHandleSet attributeHandleSet = this.attributeHandleSetFactory.create();
+		for(String attributeName : attributeNames)
+		{
+			attributeHandleSet.add( getAttributeHandle( handle, attributeName ) );
+		}
+		return attributeHandleSet;
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////// IDENTIFIER <-> HANDLE LOOKUPS ETC /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * A "safe" way to get an object class name from a handle. If anything goes wrong, exceptions are 
-	 * absorbed and a null value is returned
+	 * A "safe" way to get an object class name from an instance.
+	 * 
+	 * @param instance the object instance to obtain the class name for
+	 * @return the corresponding object class name
+	 */
+	public String getObjectClassName( HLAObject instance )
+	{
+		// basic sanity checks on provided arguments
+		if( instance == null )
+			throw new UCEFException( "%s object instance. Cannot obtain object class name.",
+			                         NULL_TEXT );
+		
+		return getObjectClassName( getKnownObjectClassHandle( instance.getInstanceHandle() ) );
+	}
+
+	/**
+	 * A "safe" way to get an object class name from a handle.
 	 * 
 	 * @param handle the object class handle to obtain the object class name for
-	 * @return the corresponding object class name, or null if anything went wrong
+	 * @return the corresponding object class name
 	 */
 	public String getObjectClassName( ObjectClassHandle handle )
 	{
@@ -468,11 +511,10 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an object class handle from a name. If anything goes wrong, exceptions are 
-	 * absorbed and a null value is returned
+	 * A "safe" way to get an object class handle from a name.
 	 * 
 	 * @param name the object class name to obtain the object class handle for
-	 * @return the corresponding object class handle, or null if anything went wrong
+	 * @return the corresponding object class handle
 	 */
 	public ObjectClassHandle getObjectClassHandle( String name )
 	{
@@ -490,11 +532,10 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an object class handle from an object instance handle. If anything goes wrong,
-	 * exceptions are absorbed and a null value is returned
+	 * A "safe" way to get an object class handle from an object instance handle.
 	 * 
 	 * @param handle the object instance handle to obtain the object class handle for
-	 * @return the corresponding object class handle, or null if anything went wrong
+	 * @return the corresponding object class handle
 	 */
 	public ObjectClassHandle getKnownObjectClassHandle( ObjectInstanceHandle handle )
 	{
@@ -559,13 +600,29 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
+	 * A "safe" way to get an interaction class name from an interaction.
+	 * 
+	 * @param interaction the interaction to obtain the name for
+	 * @return the corresponding interaction class name
+	 */
+	public String getInteractionClassName( HLAInteraction interaction )
+	{
+		// basic sanity checks on provided arguments
+		if( interaction == null )
+			throw new UCEFException( "%s interaction instance. Cannot obtain interaction class name.",
+			                         NULL_TEXT );
+		
+		return getInteractionClassName( interaction.getInteractionClassHandle() );
+	}
+
+	/**
 	 * A "safe" way to get an interaction class name from an interaction class handle. If anything goes 
 	 * wrong, exceptions are absorbed and a null value is returned
 	 * 
 	 * @param handle the interaction class handle to obtain the name for
 	 * @return the corresponding interaction class name, or null if anything went wrong
 	 */
-	public String getInteractionClassName( InteractionClassHandle handle )
+	protected String getInteractionClassName( InteractionClassHandle handle )
 	{
 		try
 		{
@@ -1182,6 +1239,62 @@ public class RTIAmbassadorWrapper
 		{
 			throw new UCEFException( e, "Failed to send interaction %s",
 			                         makeSummary( interactionClassHandle ) );
+		}
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////// REQUESTS //////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	public void requestAttributeValueUpdate( HLAObject instance, Set<String> attributes )
+	{
+		requestAttributeValueUpdate( instance, attributes, null );
+	}
+
+	public void requestAttributeValueUpdate( HLAObject instance,
+	                                         Set<String> attributes,
+	                                         byte[] tag )
+	{
+		// basic sanity checks on provided arguments
+		if( instance == null )
+			throw new UCEFException( "%s object instance. Cannot request attribute update.",
+			                         NULL_TEXT );
+
+		if( attributes == null )
+			throw new UCEFException( "%s attributes. Cannot request attribute update for %s.",
+			                         NULL_TEXT, makeSummary( instance ) );
+		
+		try
+		{
+			ObjectInstanceHandle instanceHandle = instance.getInstanceHandle();
+			ObjectClassHandle classHandle = getKnownObjectClassHandle( instanceHandle );
+			AttributeHandleSet attributeHandles = makeAttributeHandleSet( classHandle, attributes );
+			
+			requestAttributeValueUpdate( instanceHandle, attributeHandles, tag );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException("Failed to request attribute update %s");
+		}
+	}
+
+	private void requestAttributeValueUpdate( ObjectInstanceHandle handle, AttributeHandleSet attributes, byte[] tag )
+	{
+		if( handle == null )
+			throw new UCEFException( "%s object instance handle. Cannot request attribute update.",
+			                         NULL_TEXT );
+
+		if( attributes == null )
+			throw new UCEFException( "%s attribute handle set. Cannot request attribute update for %s.",
+			                         NULL_TEXT, makeSummary( handle ) );
+		
+		try
+		{
+			this.rtiAmbassador.requestAttributeValueUpdate( handle, attributes, safeByteArray( tag ) );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException("Failed to request attribute update %s");
 		}
 	}
 	

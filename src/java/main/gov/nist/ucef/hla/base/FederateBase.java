@@ -20,14 +20,11 @@
  */
 package gov.nist.ucef.hla.base;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import hla.rti1516e.AttributeHandleValueMap;
-import hla.rti1516e.FederateHandle;
 import hla.rti1516e.ResignAction;
-import hla.rti1516e.encoding.EncoderFactory;
 
 public abstract class FederateBase
 {
@@ -37,9 +34,6 @@ public abstract class FederateBase
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
 	
-	protected static final String JOINED_FEDERATION_INTERACTION = "HLAinteractionRoot.ManagedFederation.Federate.Joined";
-	protected static final String RESIGNED_FEDERATION_INTERACTION = "HLAinteractionRoot.ManagedFederation.Federate.Resigned";	
-	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -47,10 +41,6 @@ public abstract class FederateBase
 	
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
-	
-	private FederateHandle federateHandle;
-	
-	private EncoderFactory encoder = HLACodecUtils.getEncoder();
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -253,37 +243,6 @@ public abstract class FederateBase
 	}
 	
 	/**
-	 * A utility method to allow simple instantiation of an interaction based off an interaction
-	 * name and some parameters
-	 * 
-	 * @param name the interaction class name
-	 * @param parameters the parameters (can be null)
-	 * @return the interaction
-	 */
-	protected HLAInteraction makeFederationJoinedInteraction()
-	{
-		Map<String, byte[]> parameters = new HashMap<>();
-		parameters.put( "FederateType", HLACodecUtils.encode( encoder, configuration.getFederateType() ));
-		parameters.put( "FederateHandle", HLACodecUtils.encode( encoder, federateHandle.hashCode() ));
-		return makeInteraction( JOINED_FEDERATION_INTERACTION, parameters );
-	}
-	
-	/**
-	 * A utility method to allow simple instantiation of an interaction based off an interaction
-	 * name and some parameters
-	 * 
-	 * @param name the interaction class name
-	 * @param parameters the parameters (can be null)
-	 * @return the interaction
-	 */
-	protected HLAInteraction makeFederationResignedInteraction()
-	{
-		Map<String, byte[]> parameters = new HashMap<>();
-		parameters.put( "FederateHandle", HLACodecUtils.encode( encoder, federateHandle.hashCode() ));
-		return makeInteraction( RESIGNED_FEDERATION_INTERACTION, parameters );
-	}	
-	
-	/**
 	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
 	 * a populated map containing attribute names and their associated byte values 
 	 * 
@@ -316,7 +275,27 @@ public abstract class FederateBase
 	{
 		return rtiamb.deleteObjectInstance( instance, tag );
 	}
-
+	
+	protected String typeOf( HLAInteraction instance )
+	{
+		return rtiamb.getInteractionClassName( instance );
+	}
+	
+	protected String typeOf( HLAObject instance )
+	{
+		return rtiamb.getObjectClassName( instance );
+	}
+	
+	protected boolean isType( HLAInteraction instance, String type )
+	{
+		return type == null ? false : type.equals( typeOf(instance) );
+	}
+	
+	protected boolean isType( HLAObject instance, String type )
+	{
+		return type == null ? false : type.equals( typeOf(instance) );
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -327,11 +306,11 @@ public abstract class FederateBase
 	 */
 	private void createAndJoinFederation()
 	{
-		rtiamb.connect( fedamb );
+		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		rtiamb.createFederation( configuration );
 
 		beforeFederationJoin();
-		federateHandle = rtiamb.joinFederation( configuration );
+		rtiamb.joinFederation( configuration );
 	}
 
 	/**

@@ -36,9 +36,9 @@ import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
+import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedRecord;
@@ -103,14 +103,9 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		publishInteraction( JOINED_FEDERATION_INTERACTION );
-		publishInteraction( RESIGNED_FEDERATION_INTERACTION );
-		
-		// notify the federation that we have joined
-		send(makeFederationJoinedInteraction(), null);
-		
 		// allow the user to control when we are ready to populate
-		waitForUser("beforeReadyToPopulate() - press ENTER to continue");
+		// waitForUser("beforeReadyToPopulate() - press ENTER to continue");
+		System.out.println( String.format( "Waiting for '%s' synchronization point...", UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
 
 	@Override
@@ -164,8 +159,6 @@ public class MyFederate extends FederateBase {
 	{
 		// we de-register our objects instances here before exiting  
 		deregisterObjects();
-		// notify the federation that we are resigning
-		send(makeFederationResignedInteraction(), null);
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +236,7 @@ public class MyFederate extends FederateBase {
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
-			                                                      "Federate-" + new Date().getTime(), 
+			                                                      "FederateX" + new Date().getTime(), 
 																  "TestFederate" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
@@ -264,8 +257,7 @@ public class MyFederate extends FederateBase {
 			// modules
 			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
 			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml",
-								   fomRootPath+"FedMan.xml"};
+			                       fomRootPath+"RestaurantDrinks.xml"};
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
@@ -275,7 +267,7 @@ public class MyFederate extends FederateBase {
 		catch( Exception e )
 		{
 			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
-		}	
+		}
 		
 		return config;
 	}

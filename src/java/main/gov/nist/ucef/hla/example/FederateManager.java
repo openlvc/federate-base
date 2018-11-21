@@ -20,25 +20,41 @@
  */
 package gov.nist.ucef.hla.example;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import hla.rti1516e.encoding.EncoderFactory;
 
+/**
+ *		            ___
+ *		          _/   \_     _     _
+ *		         / \   / \   / \   / \
+ *		        ( U )-( C )-( E )-( F )
+ *		         \_/   \_/   \_/   \_/
+ *		        <-+-> <-+-----+-----+->
+ *		       Universal CPS Environment
+ *		             for Federation
+ * 		     ______         ____  ___
+ * 		    / ____/__  ____/ /  |/  /___ _____ 
+ * 		   / /_  / _ \/ __  / /\|_/ / __ `/ __\
+ * 		  / __/ /  __/ /_/ / /  / / /_/ / / / /
+ * 		 /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
+ * 		------------ Federate Manager ----------
+ *
+ */
 public class FederateManager extends FederateBase {
+
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -48,7 +64,19 @@ public class FederateManager extends FederateBase {
 		"   / /_  / _ \\/ __  / /\\|_/ / __ `/ __\\\n" +
 		"  / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
 		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
-		"------------ Federate Manager -----------\n";
+		"------------ Federate Manager ----------\n";
+	
+	private static final String FEDMAN_FEDERATE_TYPE = "FederateManager";
+	private static final String FEDMAN_FEDERATE_NAME = "FederateManager";
+	
+	private static final String HLAFEDERATE_OBJECT_CLASS_NAME = "HLAobjectRoot.HLAmanager.HLAfederate";
+	private static final String HLAFEDERATE_TYPE_ATTR = "HLAfederateType";
+	private static final String HLAFEDERATE_NAME_ATTR = "HLAfederateName";
+	private static final String HLAFEDERATE_HANDLE_ATTR = "HLAfederateHandle";
+	private static final Set<String> HLAFEDERATE_ATTRIBUTE_NAMES =
+	    new HashSet<>( Arrays.asList( new String[]{ HLAFEDERATE_HANDLE_ATTR, 
+	                                                HLAFEDERATE_NAME_ATTR,
+	                                                HLAFEDERATE_TYPE_ATTR } ) );
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
@@ -83,7 +111,10 @@ public class FederateManager extends FederateBase {
 	private double maxTime;
 	
 	private long wallClockStepDelay;
-	private EncoderFactory encoder;
+	
+	private Map<String, Set<JoinedFederate>> joinedFederatesByType; 
+	private Map<String, Integer> startRequirements;
+	private int totalFederatesRequired = 0;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -98,7 +129,11 @@ public class FederateManager extends FederateBase {
 		
 		this.wallClockStepDelay = (long)(1000.0 / this.timeAdvanceFrequency);
 		
-		this.encoder = HLACodecUtils.getEncoder();
+		joinedFederatesByType = new HashMap<>();
+		startRequirements = new HashMap<>();
+		
+		// we need at least two federates of type "FederateX" to begin
+		startRequirements.put( "FederateX", 2 );
 	}
 	
 	//----------------------------------------------------------
@@ -110,32 +145,45 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeFederationJoin()
 	{
-		// no preparation required before federation join
+		totalFederatesRequired = startRequirements.values().parallelStream().mapToInt( i -> i.intValue() ).sum();
 	}
 
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		Set<String> attributes =
-		    new HashSet<>( Arrays.asList( new String[]{ "HLAfederateHandle", "HLAfederateName",
-		                                                "HLAfederateType" } ) );
-		subscribeAttributes( "HLAobjectRoot.HLAmanager.HLAfederate", attributes );
-		// subscribeInteraction( JOINED_FEDERATION_INTERACTION );
-		// subscribeInteraction( RESIGNED_FEDERATION_INTERACTION );
-
 		preAnnounceSyncPoints();
+
+		System.out.print( "beforeReadyToPopulate()\nWaiting for federates to join..." );
 		
-		// allow the user to control when we are ready to populate
-		// TODO what we actually want to do here is be listening out somehow 
-		//      for federates joining the federation and what types they are
-		waitForUser("beforeReadyToPopulate()\nWaiting for federates to join.\n(press ENTER to continue)");
+		long count = 0;
+		int lastJoinedCount = -1;
+		int currentJoinedCount = joinedCount();
+		while( !canStart() )
+		{
+			waitFor( 500 );
+			
+			if( ++count % 2 == 0 )
+			{
+				// show progress
+				System.out.print( '.' );
+				currentJoinedCount = joinedCount();
+				if(currentJoinedCount != lastJoinedCount)
+				{
+					System.out.println( "\n" + joinedCount() + " of " + totalFederatesRequired + " federates have joined.");
+					lastJoinedCount = currentJoinedCount;
+				}
+			}
+		}
+		
+		System.out.println();
+		System.out.println( String.format( "Start requirements met - we are now %s.",
+		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
 
 	@Override
 	public void beforeReadyToRun()
 	{
-		// allow the user to control when we are ready to run
-		// waitForUser("beforeReadyToRun() - press ENTER to continue");
+		// no preparation required before ready to run
 	}
 
 	@Override
@@ -182,26 +230,48 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void receiveObjectRegistration( HLAObject hlaObject )
 	{
-		// federate manager does not care about this
+		if( isType( hlaObject, HLAFEDERATE_OBJECT_CLASS_NAME ) )
+		{
+			rtiamb.requestAttributeValueUpdate( hlaObject, HLAFEDERATE_ATTRIBUTE_NAMES );
+		}
 	}
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject )
 	{
-		// federate manager does not care about this
+		JoinedFederate joinedFederate = new JoinedFederate( hlaObject );
+		if( FEDMAN_FEDERATE_TYPE.equals( joinedFederate.getFederateType() ) )
+		{
+			// ignore ourself joining...
+			return;
+		}
+
+		// WORKAROUND for the fact that the federate type is currently not correctly
+		//            propagated (and instead is actually the federate name)
+		//            see: https://github.com/openlvc/portico/issues/280
+		String federateType = joinedFederate.getFederateType();
+		for( String requiredType : startRequirements.keySet() )
+		{
+			if( federateType.startsWith( requiredType ) )
+			{
+				synchronized( joinedFederatesByType )
+				{
+					joinedFederatesByType.computeIfAbsent( requiredType,
+					                                       x -> new HashSet<>() ).add( joinedFederate );
+				}
+			}
+		}
 	}
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject, double time )
 	{
-		// federate manager does not care about this
+		receiveAttributeReflection( hlaObject );
 	}
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		System.out.println( "receiveInteraction()" );
-		System.out.println( makeSummary(hlaInteraction) );
 	}
 
 	@Override
@@ -230,20 +300,49 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
-	/**
-	 * Utility method to cause execution to wait until the given timestamp is reached
-	 * 
-	 * @param timestamp the time to wait until (as system clock time in milliseconds)
-	 */
-	private void waitUntil( long timestamp )
+	private int joinedCount()
 	{
-		long delay = timestamp - System.currentTimeMillis();
-		if( delay <= 0 )
+		int result = 0;
+		synchronized( joinedFederatesByType )
+		{
+			result = joinedFederatesByType.values().parallelStream().mapToInt( i -> i.size() ).sum();
+		}
+		return result;
+	}
+	
+	private boolean canStart()
+	{
+		synchronized( joinedFederatesByType )
+		{
+    		for( Entry<String,Integer> x: startRequirements.entrySet() )
+    		{
+    			String federateType = x.getKey();
+    			int minCount = x.getValue();
+    			
+    			Set<JoinedFederate> joined = joinedFederatesByType.get( federateType );
+    			if(joined == null || joined.size() < minCount )
+    			{
+    				return false;
+    			}
+    		}
+		}
+		
+		return true;
+	}
+	
+	/**
+	 * Utility method to cause execution to wait for the given duration
+	 * 
+	 * @param duration the duration to wait in milliseconds
+	 */
+	private void waitFor( long duration )
+	{
+		if( duration <= 0 )
 			return;
-
+		
 		try
 		{
-			Thread.sleep( delay );
+			Thread.sleep( duration );
 		}
 		catch( InterruptedException e )
 		{
@@ -252,65 +351,13 @@ public class FederateManager extends FederateBase {
 	}
 	
 	/**
-	 * This method simply blocks until the user presses ENTER, allowing for a pause in
-	 * proceedings.
+	 * Utility method to cause execution to wait until the given timestamp is reached
+	 * 
+	 * @param timestamp the time to wait until (as system clock time in milliseconds)
 	 */
-	private void waitForUser( String msg )
+	private void waitUntil( long timestamp )
 	{
-		if( !( msg == null || "".equals( msg )) )
-		{
-			System.out.println( msg );
-		}
-
-		BufferedReader reader = new BufferedReader( new InputStreamReader( System.in ) );
-		try
-		{
-			reader.readLine();
-		}
-		catch( Exception e )
-		{
-			System.err.println( "Error while waiting for user input: " + e.getMessage() );
-			e.printStackTrace();
-		}
-	}
-	
-	/**
-	 * Provide a string representation of an HLAInteraction instance, suitable for logging and
-	 * debugging purposes
-	 */
-	private String makeSummary( HLAInteraction instance )
-	{
-		StringBuilder builder = new StringBuilder();
-		builder.append( rtiamb.makeSummary( instance ) );
-		builder.append( "\n" );
-		for( Entry<String,byte[]> entry : instance.getState().entrySet() )
-		{
-			String parameterName = entry.getKey();
-			builder.append( "\t" );
-			builder.append( parameterName );
-			builder.append( " = " );
-			// TODO at the moment this assumes that all values are strings, but going forward there
-			// 		will need to be some sort of mapping of parameter names/handles to primitive
-			//      types for parsing
-			byte[] rawValue = entry.getValue();
-			if( rawValue == null || rawValue.length == 0 )
-			{
-				builder.append( "UNDEFINED" );
-			}
-			else
-			{
-				if("FederateHandle".equals( parameterName) )
-				{
-					builder.append("'").append( HLACodecUtils.asInt( encoder, rawValue ) ).append("'");
-				}
-				else
-				{
-					builder.append("'").append( HLACodecUtils.asString( encoder, rawValue ) ).append("'");
-				}
-			}
-			builder.append( "\n" );
-		}
-		return builder.toString();
+		waitFor( timestamp - System.currentTimeMillis() );
 	}
 	
 	//----------------------------------------------------------
@@ -324,8 +371,14 @@ public class FederateManager extends FederateBase {
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
-			                                                      "FederateManager", 
-																  "FederateManager" );
+		                                                          FEDMAN_FEDERATE_NAME, 
+		                                                          FEDMAN_FEDERATE_TYPE );
+		
+		// subscribe to reflections described in MIM to detected joining federates 
+		config.addSubscribedAtributes( HLAFEDERATE_OBJECT_CLASS_NAME, HLAFEDERATE_ATTRIBUTE_NAMES );
+		// here about callbacks *immediately*, rather than when evoked, otherwise
+		// we don't know about joined federates until after the ticking starts 
+		config.setCallbacksAreEvoked( false ); // use CallbackModel.HLA_IMMEDIATE
 		
 		config.setLookAhead( 0.25 );
 		
@@ -351,4 +404,40 @@ public class FederateManager extends FederateBase {
 		
 		return config;
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////// PRIVATE CLASSES /////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	
+	private class JoinedFederate
+	{
+		private HLAObject instance;
+
+		JoinedFederate(HLAObject instance)
+		{
+			this.instance = instance;
+		}
+
+//		public String getFederateName()
+//		{
+//			return instance.getAsString( HLAFEDERATE_NAME_ATTR );
+//		}
+		
+		public String getFederateType()
+		{
+			return instance.getAsString( HLAFEDERATE_TYPE_ATTR );
+		}
+		
+		public int hashCode()
+		{
+			return getFederateHandle();
+		}
+		
+		public int getFederateHandle()
+		{
+			return instance.getAsInt( HLAFEDERATE_HANDLE_ATTR );
+		}
+	}
+	
+
 }
