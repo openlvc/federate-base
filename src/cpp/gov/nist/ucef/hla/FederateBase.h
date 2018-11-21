@@ -53,6 +53,7 @@ namespace ucef
 			std::shared_ptr<util::ObjectClass> getObjectClass( long hash );
 			std::shared_ptr<util::ObjectClass> getObjectClass( std::string name );
 			std::shared_ptr<util::ObjectClass> findIncomingObject( long hash );
+			size_t deleteIncomingObject( long hash );
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );
 			inline void storeObjectClass( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
 			inline void storeInteractionClass( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);

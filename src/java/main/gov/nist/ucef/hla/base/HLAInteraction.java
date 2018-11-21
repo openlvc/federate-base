@@ -206,6 +206,17 @@ public class HLAInteraction
 	}
 	
 	/**
+	 * Obtain the value for the named parameter as a char
+	 * 
+	 * @param parameterName the name of the parameter
+	 * @return the value
+	 */
+	public char getAsChar( String parameterName )
+	{
+		return HLACodecUtils.asChar( this.encoder, getRawValue( parameterName ) );
+	}
+	
+	/**
 	 * Obtain the value for the named parameter as a string
 	 * 
 	 * @param parameterName the name of the parameter
@@ -234,84 +245,95 @@ public class HLAInteraction
 	}
     
 	/**
-	 * Set the value of an attribute to a short 
+	 * Set the value of a parameter to a short 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, short value )
+	public void setValue( String parameterName, short value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to an integer 
+	 * Set the value of a parameter to an integer 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, int value )
+	public void setValue( String parameterName, int value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to a long 
+	 * Set the value of a parameter to a long 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, long value )
+	public void setValue( String parameterName, long value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to a float 
+	 * Set the value of a parameter to a float 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, float value )
+	public void setValue( String parameterName, float value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to a double 
+	 * Set the value of a parameter to a double 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, double value )
+	public void setValue( String parameterName, double value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to a float 
+	 * Set the value of a parameter to a float 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, boolean value )
+	public void setValue( String parameterName, boolean value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the value of an attribute to a string 
+	 * Set the value of a parameter to a character 
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
-	public void set( String parameterName, String value )
+	public void setValue( String parameterName, char value )
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
 	
 	/**
-	 * Set the the raw byte array value of an parameter from the parameter name
+	 * Set the value of a parameter to a string 
+	 * 
+	 * @param parameterName the name of the parameter
+	 * @param value the value to set
+	 */
+	public void setValue( String parameterName, String value )
+	{
+		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
+	}
+	
+	/**
+	 * Set the the raw byte array value of a parameter from the parameter name
 	 * 
 	 * @param parameterName the parameter name
 	 * @param value the new raw byte array value
@@ -343,15 +365,13 @@ public class HLAInteraction
     }
     
 	/**
-	 * Set the current value of parameters this object instance.
+	 * Set the current value of multiple parameters this object instance.
 	 * 
 	 * @param parameters the parameters and values to update from
 	 * @return this instance
 	 */
 	public HLAInteraction setState( Map<String, byte[]> parameters )
 	{
-		// TODO should we sanity check that we are updating from 
-		//      a compatible set of attributes...?
 		synchronized( this.parameters )
 		{
 			this.parameters.putAll( parameters );
@@ -359,6 +379,22 @@ public class HLAInteraction
 		return this;
 	}
     
+	/**
+	 * Clear all parameters
+	 * 
+	 * NOTE: After this method is called, there will be no parameters defined.
+	 * 
+	 * @return this instance
+	 */
+	public HLAInteraction clearState()
+	{
+		synchronized( this.parameters )
+		{
+			this.parameters.clear();
+		}
+		return this;
+	}
+	
 	/**
 	 * Get the parameter identifiers of this interaction.
 	 *

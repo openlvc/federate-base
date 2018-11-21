@@ -29,6 +29,7 @@ import hla.rti1516e.encoding.HLAfloat64BE;
 import hla.rti1516e.encoding.HLAinteger16BE;
 import hla.rti1516e.encoding.HLAinteger32BE;
 import hla.rti1516e.encoding.HLAinteger64BE;
+import hla.rti1516e.encoding.HLAunicodeChar;
 import hla.rti1516e.encoding.HLAunicodeString;
 import hla.rti1516e.exceptions.RTIinternalError;
 
@@ -192,6 +193,29 @@ public class HLACodecUtils
 	}
 
 	/**
+	 * Decode HLA byte array representation of a char
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param bytes the HLA byte array
+	 * @return the decoded value
+	 */
+	public static char asChar( EncoderFactory encoderFactory, byte[] bytes )
+	{
+		HLAunicodeChar value = makeHLAType(encoderFactory, (char)0);
+		try
+		{
+			value.decode( bytes );
+			return (char)value.getValue();
+		}
+		catch( DecoderException de )
+		{
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a short.",
+			                         bytes.length );
+		}
+	}
+	
+	/**
 	 * Decode HLA byte array representation of a unicode string
 	 * 
 	 * @param encoderFactory the encoder instance to use
@@ -221,6 +245,18 @@ public class HLACodecUtils
 		}
 	}
 
+	/**
+	 * Encode a short to an HLA byte array representation 
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode 
+	 * @return the HLA byte array
+	 */
+	public static byte[] encode(EncoderFactory encoderFactory, char value)
+	{
+		return makeHLAType(encoderFactory, value).toByteArray();
+	}
+	
 	/**
 	 * Encode a short to an HLA byte array representation 
 	 * 
@@ -375,6 +411,20 @@ public class HLACodecUtils
 	private static HLAboolean makeHLAType(EncoderFactory encoderFactory, boolean value)
 	{
 		return encoderFactory.createHLAboolean(value);
+	}
+	
+	/**
+	 * Encode a char to an {@link HLAunicodeChar} representation 
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
+	 * @return the {@link HLAunicodeChar}
+	 */
+	private static HLAunicodeChar makeHLAType(EncoderFactory encoderFactory, char value)
+	{
+		// NOTE: we need to cast the char to a short here
+		//       in order to create the HLAunicodeChar 
+		return encoderFactory.createHLAunicodeChar((short)value);
 	}
 	
 	/**

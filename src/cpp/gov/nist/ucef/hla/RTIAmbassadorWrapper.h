@@ -60,7 +60,7 @@ namespace ucef
 			void announceSynchronizationPoint( const std::wstring& synchPoint );
 			void achieveSynchronizationPoint( const std::wstring& synchPoint );
 			void advanceLogicalTime( const double requestedTime );
-			void updateObjectInstances( std::shared_ptr<HLAObject>& hlaObject );
+			void updateObjectInstance( std::shared_ptr<HLAObject>& hlaObject );
 			void sendInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction );
 			void deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject );
 			void resign();
