@@ -22,7 +22,10 @@ package gov.nist.ucef.hla.example;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
@@ -113,8 +116,12 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		subscribeInteraction( JOINED_FEDERATION_INTERACTION );
-		subscribeInteraction( RESIGNED_FEDERATION_INTERACTION );
+		Set<String> attributes =
+		    new HashSet<>( Arrays.asList( new String[]{ "HLAfederateHandle", "HLAfederateName",
+		                                                "HLAfederateType" } ) );
+		subscribeAttributes( "HLAobjectRoot.HLAmanager.HLAfederate", attributes );
+		// subscribeInteraction( JOINED_FEDERATION_INTERACTION );
+		// subscribeInteraction( RESIGNED_FEDERATION_INTERACTION );
 
 		preAnnounceSyncPoints();
 		
@@ -298,7 +305,7 @@ public class FederateManager extends FederateBase {
 				}
 				else
 				{
-					builder.append("'").append( HLACodecUtils.asUnicodeString( encoder, rawValue ) ).append("'");
+					builder.append("'").append( HLACodecUtils.asString( encoder, rawValue ) ).append("'");
 				}
 			}
 			builder.append( "\n" );

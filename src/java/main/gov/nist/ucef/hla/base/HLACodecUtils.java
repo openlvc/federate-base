@@ -23,7 +23,6 @@ package gov.nist.ucef.hla.base;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
-import hla.rti1516e.encoding.HLAASCIIstring;
 import hla.rti1516e.encoding.HLAboolean;
 import hla.rti1516e.encoding.HLAfloat32BE;
 import hla.rti1516e.encoding.HLAfloat64BE;
@@ -303,7 +302,7 @@ public class HLACodecUtils
 	 */
 	public static byte[] encode(EncoderFactory encoderFactory, String value)
 	{
-		return encode( encoderFactory, value );
+		return makeHLAType( encoderFactory, value ).toByteArray();
 	}
 	
 	/**
