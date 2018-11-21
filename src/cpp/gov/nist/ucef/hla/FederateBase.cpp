@@ -320,7 +320,7 @@ namespace ucef
 				const void* data = incomingAttributeValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
 				memcpy_s(arr.get(), size, data, size);
-				hlaObject->setAttributeValue( ConversionHelper::ws2s(attName), arr, size );
+				hlaObject->setValue( ConversionHelper::ws2s(attName), arr, size );
 			}
 			receiveAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
 			                            m_federateAmbassador->getFederateTime() );
@@ -368,7 +368,7 @@ namespace ucef
 				const void* data = incomingParameterValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
 				memcpy_s(arr.get(), size, data, size);
-				hlaInteraction->setParameterValue( ConversionHelper::ws2s(paramName), arr, size );
+				hlaInteraction->setValue( ConversionHelper::ws2s(paramName), arr, size );
 			}
 			receiveInteraction(const_pointer_cast<const HLAInteraction>(hlaInteraction),
 			                   m_federateAmbassador->getFederateTime());

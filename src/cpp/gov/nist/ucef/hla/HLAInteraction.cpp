@@ -20,49 +20,55 @@ namespace ucef
 	{
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, bool val )
+	bool HLAInteraction::isParameter( const string& attributeName ) const
 	{
-		setParameterValue( parameterName, make_shared<bool>(val), sizeof(bool) );
+		bool flag = m_parameterDataStore->find( attributeName ) == m_parameterDataStore->end() ? false : true;
+		return flag;
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, const char val )
+	void HLAInteraction::setValue( const string& parameterName, bool val )
 	{
-		setParameterValue( parameterName, make_shared<char>(val), sizeof(char) );
+		setValue( parameterName, make_shared<bool>(val), sizeof(bool) );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, short val )
+	void HLAInteraction::setValue( const string& parameterName, const char val )
 	{
-		setParameterValue( parameterName, make_shared<short>(val), sizeof(short));
+		setValue( parameterName, make_shared<char>(val), sizeof(char) );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, int val )
+	void HLAInteraction::setValue( const string& parameterName, short val )
 	{
-		setParameterValue( parameterName, make_shared<int>(val), sizeof(int) );
+		setValue( parameterName, make_shared<short>(val), sizeof(short));
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, long val )
+	void HLAInteraction::setValue( const string& parameterName, int val )
 	{
-		setParameterValue( parameterName, make_shared<long>(val), sizeof(long) );
+		setValue( parameterName, make_shared<int>(val), sizeof(int) );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, float val )
+	void HLAInteraction::setValue( const string& parameterName, long val )
 	{
-		setParameterValue( parameterName, make_shared<float>(val), sizeof(float) );
+		setValue( parameterName, make_shared<long>(val), sizeof(long) );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, double val )
+	void HLAInteraction::setValue( const string& parameterName, float val )
 	{
-		setParameterValue( parameterName, make_shared<double>(val), sizeof(double) );
+		setValue( parameterName, make_shared<float>(val), sizeof(float) );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName, const string& val )
+	void HLAInteraction::setValue( const string& parameterName, double val )
+	{
+		setValue( parameterName, make_shared<double>(val), sizeof(double) );
+	}
+
+	void HLAInteraction::setValue( const string& parameterName, const string& val )
 	{
 		shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
 		strcpy_s(arr.get(), val.length() + 1, val.c_str());
-		setParameterValue( parameterName, arr, val.length() + 1 );
+		setValue( parameterName, arr, val.length() + 1 );
 	}
 
-	void HLAInteraction::setParameterValue( const string& parameterName,
+	void HLAInteraction::setValue( const string& parameterName,
 	                                        shared_ptr<void> data,
 	                                        const size_t size )
 	{
@@ -80,71 +86,71 @@ namespace ucef
 		}
 	}
 
-	bool HLAInteraction::getParameterValueAsBool( const string& parameterName ) const
+	bool HLAInteraction::getAsBool( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (bool *)data.data.get() );
 		return false;
 	}
 
-	char HLAInteraction::getParameterValueAsChar( const string& parameterName ) const
+	char HLAInteraction::getAsChar( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (char *)data.data.get() );
 		return (char) 0;
 	}
 
-	short HLAInteraction::getParameterValueAsShort( const string& parameterName ) const
+	short HLAInteraction::getAsShort( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (short *)data.data.get() );
 		return 0;
 	}
 
-	int HLAInteraction::getParameterValueAsInt( const string& parameterName ) const
+	int HLAInteraction::getAsInt( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (int *)data.data.get() );
 		return 0;
 	}
 
-	long HLAInteraction::getParameterValueAsLong( const string& parameterName ) const
+	long HLAInteraction::getAsLong( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (long *)data.data.get() );
 		return 0;
 	}
 
-	float HLAInteraction::getParameterValueAsFloat( const string& parameterName ) const
+	float HLAInteraction::getAsFloat( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (float *)data.data.get() );
 		return 0.0f;
 	}
 
-	double HLAInteraction::getParameterValueAsDouble( const string& parameterName ) const
+	double HLAInteraction::getAsDouble( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return *( (double *)data.data.get() );
 		return 0.0;
 	}
 
-	string HLAInteraction::getParameterValueAsString( const string& parameterName ) const
+	string HLAInteraction::getAsString( const string& parameterName ) const
 	{
-		VariableData data = getParameterValue( parameterName );
+		VariableData data = getRawValue( parameterName );
 		if(data.data)
 			return string( (char *)data.data.get() );
 		return "";
 	}
 
-	VariableData HLAInteraction::getParameterValue( const string& parameterName ) const
+	VariableData HLAInteraction::getRawValue( const string& parameterName ) const
 	{
 		VariableData data;
 		data.data = nullptr;
@@ -168,13 +174,13 @@ namespace ucef
 		return paramNameList;
 	}
 
-	void HLAInteraction::clearParameterDataStore()
-	{
-		m_parameterDataStore->clear();
-	}
-
 	std::string HLAInteraction::getInteractionClassName() const
 	{
 		return m_interactionClassName;
+	}
+
+	void HLAInteraction::clear()
+	{
+		m_parameterDataStore->clear();
 	}
 }

@@ -12,7 +12,7 @@ namespace ucef
 {
 	HLAObject::HLAObject( const string& objectClassName,
 	                      long instanceId ) : m_className( objectClassName ),
-	                                              m_instanceId( instanceId )
+	                                          m_instanceId( instanceId )
 	{
 		m_attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
@@ -21,56 +21,64 @@ namespace ucef
 	{
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, bool val )
+	
+	bool HLAObject::isAttribute( const string& attributeName ) const
 	{
-		setAttributeValue( attributeName, make_shared<bool>(val), sizeof(bool) );
+		bool flag = m_attributeDataStore->find( attributeName ) == m_attributeDataStore->end() ? false : true;
+		return flag;
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, const char val )
+	void HLAObject::setValue( const string& attributeName, bool val )
 	{
-		setAttributeValue( attributeName, make_shared<char>(val), sizeof(char) );
+		setValue( attributeName, make_shared<bool>(val), sizeof(bool) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, short val )
+	void HLAObject::setValue( const string& attributeName, const char val )
 	{
-		setAttributeValue( attributeName, make_shared<short>(val), sizeof(short));
+		setValue( attributeName, make_shared<char>(val), sizeof(char) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, int val )
+	void HLAObject::setValue( const string& attributeName, short val )
 	{
-		setAttributeValue( attributeName, make_shared<int>(val), sizeof(int) );
+		setValue( attributeName, make_shared<short>(val), sizeof(short));
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, long val )
+	void HLAObject::setValue( const string& attributeName, int val )
 	{
-		setAttributeValue( attributeName, make_shared<long>(val), sizeof(long) );
+		setValue( attributeName, make_shared<int>(val), sizeof(int) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, float val )
+	void HLAObject::setValue( const string& attributeName, long val )
 	{
-		setAttributeValue( attributeName, make_shared<float>(val), sizeof(float) );
+		setValue( attributeName, make_shared<long>(val), sizeof(long) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, double val )
+	void HLAObject::setValue( const string& attributeName, float val )
 	{
-		setAttributeValue( attributeName, make_shared<double>(val), sizeof(double) );
+		setValue( attributeName, make_shared<float>(val), sizeof(float) );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName, const string& val )
+	void HLAObject::setValue( const string& attributeName, double val )
+	{
+		setValue( attributeName, make_shared<double>(val), sizeof(double) );
+	}
+
+	void HLAObject::setValue( const string& attributeName, const string& val )
 	{
 		shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
 		strcpy_s(arr.get(), val.length() + 1, val.c_str());
-		setAttributeValue( attributeName, arr, val.length() + 1 );
+		setValue( attributeName, arr, val.length() + 1 );
 	}
 
-	void HLAObject::setAttributeValue( const string& attributeName,
-	                                   shared_ptr<void> data,
-	                                   const size_t size )
+	void HLAObject::setValue( const string& attributeName,
+	                          shared_ptr<void> data,
+	                          const size_t size )
 	{
-		if( m_attributeDataStore->find( attributeName ) != m_attributeDataStore->end() )
+		auto it = m_attributeDataStore->find( attributeName );
+		if( it != m_attributeDataStore->end() )
 		{
-			(*m_attributeDataStore)[attributeName].data = data;
-			(*m_attributeDataStore)[attributeName].size = size;
+			it->second.data = data;
+			it->second.size = size;
 		}
 		else
 		{ 
@@ -81,71 +89,71 @@ namespace ucef
 		}
 	}
 
-	bool HLAObject::getAttributeValueAsBool( const string& attributeName ) const
+	bool HLAObject::getAsBool( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (bool *)data.data.get() );
 		return false;
 	}
 
-	char HLAObject::getAttributeValueAsChar( const string& attributeName ) const
+	char HLAObject::getAsChar( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (char *)data.data.get() );
 		return (char) 0;
 	}
 
-	short HLAObject::getAttributeValueAsShort( const string& attributeName ) const
+	short HLAObject::getAsShort( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (short *)data.data.get() );
 		return 0;
 	}
 
-	int HLAObject::getAttributeValueAsInt( const string& attributeName ) const
+	int HLAObject::getAsInt( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (int *)data.data.get() );
 		return 0;
 	}
 
-	long HLAObject::getAttributeValueAsLong( const string& attributeName ) const
+	long HLAObject::getAsLong( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (long *)data.data.get() );
 		return 0;
 	}
 
-	float HLAObject::getAttributeValueAsFloat( const string& attributeName ) const
+	float HLAObject::getAsFloat( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (float *)data.data.get() );
 		return 0.0f;
 	}
 
-	double HLAObject::getAttributeValueAsDouble( const string& attributeName ) const
+	double HLAObject::getAsDouble( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return *( (double *)data.data.get() );
 		return 0.0;
 	}
 
-	string HLAObject::getAttributeValueAsString( const string& attributeName ) const
+	string HLAObject::getAsString( const string& attributeName ) const
 	{
-		VariableData data = getAttributeValue( attributeName );
+		VariableData data = getRawValue( attributeName );
 		if(data.data)
 			return string( (char *)data.data.get() );
 		return "";
 	}
 
-	VariableData HLAObject::getAttributeValue( const string& attributeName ) const
+	VariableData HLAObject::getRawValue( const string& attributeName ) const
 	{
 		VariableData data;
 		data.data = nullptr;
@@ -169,7 +177,7 @@ namespace ucef
 		return attributeNameList;
 	}
 
-	void HLAObject::clearAttributeDataStore()
+	void HLAObject::clear()
 	{
 		m_attributeDataStore->clear();
 	}

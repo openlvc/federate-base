@@ -253,7 +253,7 @@ namespace ucef
 		for( string& attrbuteName : attributeList )
 		{
 			AttributeHandle handle = getAttributeHandle( objectHandle, ConversionHelper::s2ws( attrbuteName ) );
-			VariableData val = hlaObject->getAttributeValue( attrbuteName );
+			VariableData val = hlaObject->getRawValue( attrbuteName );
 			if( val.data != nullptr )
 			{
 				VariableLengthData data( val.data.get(), val.size );
@@ -307,7 +307,7 @@ namespace ucef
 		{
 			ParameterHandle handle =
 				getParameterHandle( interactionHandle, ConversionHelper::s2ws( param ) );
-			VariableData val = hlaInteraction->getParameterValue( param );
+			VariableData val = hlaInteraction->getRawValue( param );
 			if( val.data != nullptr )
 			{
 				VariableLengthData data( val.data.get(), val.size );
