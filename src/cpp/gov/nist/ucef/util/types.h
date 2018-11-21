@@ -145,13 +145,13 @@ namespace ucef
 
 		// unordered_map because we do not need any ordering,
 		// what we need is a faster way to get the object class
-		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStoreByName;
-		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectCacheStoreByHash;
-		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> IncomingStore;
-		typedef std::unordered_map<long, rti1516e::ObjectInstanceHandle> OutgoingStore;
+		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance; // for incoming
+		typedef std::unordered_map<long, rti1516e::ObjectInstanceHandle> ObjectInstanceStoreByHash; // for outgoing
 
-		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionCacheStoreByName;
-		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionClassStoreByHash;
+		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
+		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
 		//----------------------------------------
 		//           Conversion helpers
 		//-----------------------------------------

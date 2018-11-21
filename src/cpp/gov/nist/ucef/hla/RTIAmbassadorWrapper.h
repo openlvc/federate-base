@@ -81,7 +81,7 @@ namespace ucef
 			//             Private members
 			//----------------------------------------------------------
 			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
-			util::OutgoingStore m_outgoingStore;
+			util::ObjectInstanceStoreByHash m_instanceStoreByHash;
 	};
 }
 

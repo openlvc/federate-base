@@ -178,30 +178,17 @@ namespace ucef
 			SOMParser::getObjectClasses( ConversionHelper::ws2s(m_ucefConfig->getSomPath()) );
 
 		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
-		try
-		{
-			storeObjectClass( objectClasses );
-			pubSubAttributes();
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
+		storeObjectClassData( objectClasses );
+		pubSubAttributes();
 
 		// parse the SOM file and build up the HLA object classes
 		vector<shared_ptr<InteractionClass>> interactionClasses =
 			SOMParser::getInteractionClasses( ConversionHelper::ws2s(m_ucefConfig->getSomPath()) );
 
 		logger.log( string("Inform RTI about publishing and subscribing interactions"), LevelInfo );
-		try
-		{
-			storeInteractionClass( interactionClasses );
-			pubSubInteractions();
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
+		storeInteractionClassData( interactionClasses );
+		pubSubInteractions();
+
 	}
 
 	void FederateBase::synchronize( SynchPoint point )
@@ -280,13 +267,13 @@ namespace ucef
 		lock_guard<mutex> lock( m_threadSafeLock );
 		Logger& logger = Logger::getInstance();
 
-		shared_ptr<ObjectClass> objectClass = getObjectClass( objectClassHash );
+		shared_ptr<ObjectClass> objectClass = getObjectClassByClassHandle( objectClassHash );
 		if( objectClass )
 		{
 			shared_ptr<HLAObject> hlaObject =
 				make_shared<HLAObject>( ConversionHelper::ws2s( objectClass->name ), objectInstanceHash );
 			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
-			m_incomingStore[objectInstanceHash] = objectClass;
+			m_objectDataStoreByInstance[objectInstanceHash] = objectClass;
 			receiveObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
 			                           m_federateAmbassador->getFederateTime());
 
@@ -303,7 +290,7 @@ namespace ucef
 	{
 		lock_guard<mutex> lock( m_threadSafeLock );
 		Logger& logger = Logger::getInstance();
-		shared_ptr<ObjectClass> objectClass = findIncomingObject( objectInstanceHash );
+		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
 		if( objectClass )
 		{
 			logger.log( "Received attribute update for " + ConversionHelper::ws2s(objectClass->name), LevelCritical );
@@ -398,11 +385,11 @@ namespace ucef
 		lock_guard<mutex> lock( m_threadSafeLock );
 		Logger& logger = Logger::getInstance();
 
-		shared_ptr<ObjectClass> objectClass = findIncomingObject( objectInstanceHash );
+		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
 		logger.log( "Received object removed notification for HLAObject with id :" +
 		             to_string(objectInstanceHash), LevelInfo );
 
-		int deletedCount = deleteIncomingObject( objectInstanceHash );
+		size_t deletedCount = deleteIncomingInstanceHandle( objectInstanceHash );
 		if( deletedCount )
 		{
 			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
@@ -416,43 +403,43 @@ namespace ucef
 			            " could not find for deletion.", LevelWarn );
 	}
 	
-	shared_ptr<ObjectClass> FederateBase::getObjectClass( long hash )
+	shared_ptr<ObjectClass> FederateBase::getObjectClassByClassHandle( long hash )
 	{
-		if( m_objectCacheStoreByHash.find( hash ) != m_objectCacheStoreByHash.end() )
+		if( m_objectDataStoreByHash.find( hash ) != m_objectDataStoreByHash.end() )
 		{
-			return m_objectCacheStoreByHash[hash];
+			return m_objectDataStoreByHash[hash];
 		}
 		return nullptr;
 	}
 
-	shared_ptr<ObjectClass> FederateBase::getObjectClass( string name )
+	shared_ptr<ObjectClass> FederateBase::getObjectClassByName( string name )
 	{
-		if( m_objectCacheStoreByName.find( name ) != m_objectCacheStoreByName.end() )
+		if( m_objectDataStoreByName.find( name ) != m_objectDataStoreByName.end() )
 		{
-			return m_objectCacheStoreByName[name];
+			return m_objectDataStoreByName[name];
 		}
 		return nullptr;
 	}
 
-	shared_ptr<ObjectClass> FederateBase::findIncomingObject( long hash )
+	shared_ptr<ObjectClass> FederateBase::getObjectClassByInstanceHandle( long hash )
 	{
-		if( m_incomingStore.find( hash ) != m_incomingStore.end() )
+		if( m_objectDataStoreByInstance.find( hash ) != m_objectDataStoreByInstance.end() )
 		{
-			return m_incomingStore[hash];
+			return m_objectDataStoreByInstance[hash];
 		}
 		return nullptr;
 	}
 
-	size_t FederateBase::deleteIncomingObject( long hash )
+	size_t FederateBase::deleteIncomingInstanceHandle( long hash )
 	{
-		return m_incomingStore.erase( hash );
+		return m_objectDataStoreByInstance.erase( hash );
 	}
 
 	std::shared_ptr<util::InteractionClass> FederateBase::getInteractionClass( long hash )
 	{
-		if( m_interactionCacheStoreByHash.find( hash ) != m_interactionCacheStoreByHash.end() )
+		if( m_interactionDataStoreByHash.find( hash ) != m_interactionDataStoreByHash.end() )
 		{
-			return m_interactionCacheStoreByHash[hash];
+			return m_interactionDataStoreByHash[hash];
 		}
 		return nullptr;
 	}
@@ -480,7 +467,7 @@ namespace ucef
 	//----------------------------------------------------------
 	//                    Business Logic
 	//----------------------------------------------------------
-	void FederateBase::storeObjectClass( vector<shared_ptr<ObjectClass>>& objectClasses )
+	void FederateBase::storeObjectClassData( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -492,11 +479,14 @@ namespace ucef
 		for( auto& objectClass : objectClasses )
 		{
 			// store the ObjectClass in m_objectCacheStoreByName for later use
-			m_objectCacheStoreByName.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
+			m_objectDataStoreByName.insert( make_pair(ConversionHelper::ws2s(objectClass->name), objectClass) );
 
 			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
-			// store the ObjectClass in m_objectCacheStoreByHash for later use
-			m_objectCacheStoreByHash.insert( make_pair(classHandle.hash(), objectClass) );
+			if( classHandle.isValid() )
+			{
+				// store the ObjectClass in m_objectCacheStoreByHash for later use
+				m_objectDataStoreByHash.insert( make_pair( classHandle.hash(), objectClass ) );
+			}
 		}
 	}
 
@@ -507,7 +497,7 @@ namespace ucef
 		// are published and subscribed by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
-		for( auto classPair : m_objectCacheStoreByName )
+		for( auto classPair : m_objectDataStoreByName )
 		{
 			shared_ptr<ObjectClass> objectClass = classPair.second;
 
@@ -553,7 +543,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::storeInteractionClass( vector<shared_ptr<InteractionClass>>& interactionClasses )
+	void FederateBase::storeInteractionClassData( vector<shared_ptr<InteractionClass>>& interactionClasses )
 	{
 		//----------------------------------------------------------
 		//     Store interaction class and parametere handles
@@ -564,13 +554,16 @@ namespace ucef
 		for( auto& interactionClass : interactionClasses )
 		{
 			// now store the interactionClass in m_interactionCacheStoreByName for later use
-			m_interactionCacheStoreByName.insert(
+			m_interactionDataStoreByName.insert(
 			                  make_pair(ConversionHelper::ws2s(interactionClass->name), interactionClass) );
 			// now store the ObjectClass in m_objectCacheStoreByHash for later use
 			InteractionClassHandle interactionHandle =
 			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
-			m_interactionCacheStoreByHash.insert(
-			                  make_pair(interactionHandle.hash(), interactionClass) );
+			if( interactionHandle.isValid() )
+			{
+				m_interactionDataStoreByHash.insert(
+				                make_pair( interactionHandle.hash(), interactionClass ) );
+			}
 		}
 	}
 
@@ -582,7 +575,7 @@ namespace ucef
 		//----------------------------------------------------------
 
 		Logger& logger = Logger::getInstance();
-		for( auto& interactionPair : m_interactionCacheStoreByName )
+		for( auto& interactionPair : m_interactionDataStoreByName )
 		{
 			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
 			InteractionClassHandle interactionHandle =

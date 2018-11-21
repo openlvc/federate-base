@@ -50,27 +50,27 @@ namespace ucef
 			void advanceLogicalTime();
 			void resignAndDestroy();
 
-			std::shared_ptr<util::ObjectClass> getObjectClass( long hash );
-			std::shared_ptr<util::ObjectClass> getObjectClass( std::string name );
-			std::shared_ptr<util::ObjectClass> findIncomingObject( long hash );
-			size_t deleteIncomingObject( long hash );
+			std::shared_ptr<util::ObjectClass> getObjectClassByClassHandle( long hash );
+			std::shared_ptr<util::ObjectClass> getObjectClassByName( std::string name );
+			std::shared_ptr<util::ObjectClass> getObjectClassByInstanceHandle( long hash );
+			size_t deleteIncomingInstanceHandle( long hash );
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );
-			inline void storeObjectClass( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
-			inline void storeInteractionClass( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);
+			inline void storeObjectClassData( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
+			inline void storeInteractionClassData( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);
 			inline void pubSubAttributes();
 			inline void pubSubInteractions();
 			inline void tickForCallBacks();
 
 		protected:
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			util::ObjectCacheStoreByName m_objectCacheStoreByName;
-			util::InteractionCacheStoreByName m_interactionCacheStoreByName;
+			util::ObjectDataStoreByName m_objectDataStoreByName;
+			util::InteractionDataStoreByName m_interactionDataStoreByName;
 
 		private:
 			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
-			util::ObjectCacheStoreByHash m_objectCacheStoreByHash;
-			util::InteractionClassStoreByHash m_interactionCacheStoreByHash;
-			util::IncomingStore m_incomingStore;
+			util::ObjectDataStoreByHash m_objectDataStoreByHash;
+			util::InteractionDataStoreByHash m_interactionDataStoreByHash;
+			util::ObjectDataStoreByInstance m_objectDataStoreByInstance;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			std::mutex m_threadSafeLock;
 	};

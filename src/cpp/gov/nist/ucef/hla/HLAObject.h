@@ -24,7 +24,7 @@ namespace ucef
 			//                     Constructors
 			//----------------------------------------------------------
 			HLAObject( const std::string& objectClassName,
-			           long instanceHandle );
+			           long instanceId );
 			virtual ~HLAObject();
 			HLAObject( const HLAObject& ) = delete;
 			HLAObject& operator=( const HLAObject& ) = delete;
@@ -57,7 +57,8 @@ namespace ucef
 			std::vector<std::string> getAttributeNames() const;
 			void clearAttributeDataStore();
 			std::string getClassName() const;
-			long getInstanceHandle();
+
+			long getInstanceId();
 		private:
 
 			//----------------------------------------------------------
@@ -65,7 +66,7 @@ namespace ucef
 			//----------------------------------------------------------
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
 			std::string m_className;
-			long m_instanceHandle;
+			long m_instanceId;
 	};
 }
 

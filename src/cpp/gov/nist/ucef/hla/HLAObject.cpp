@@ -11,8 +11,8 @@ using namespace ucef::util;
 namespace ucef
 {
 	HLAObject::HLAObject( const string& objectClassName,
-	                      long instanceHandle ) : m_className( objectClassName ),
-	                                              m_instanceHandle( instanceHandle )
+	                      long instanceId ) : m_className( objectClassName ),
+	                                              m_instanceId( instanceId )
 	{
 		m_attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
@@ -179,8 +179,8 @@ namespace ucef
 		return m_className;
 	}
 
-	long HLAObject::getInstanceHandle()
+	long HLAObject::getInstanceId()
 	{
-		return m_instanceHandle;
+		return m_instanceId;
 	}
 }

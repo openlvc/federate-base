@@ -158,7 +158,7 @@ namespace ucef
 			{
 				ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( objectHandle );
 				hlaObject = make_shared<HLAObject>( className, instanceHandle.hash() );
-				m_outgoingStore[instanceHandle.hash()] = instanceHandle;
+				m_instanceStoreByHash[instanceHandle.hash()] = instanceHandle;
 			}
 			catch( Exception& )
 			{
@@ -268,9 +268,10 @@ namespace ucef
 			VariableLengthData tag( (void*)"", 1 );
 			try
 			{
-				if( m_outgoingStore.find( hlaObject->getInstanceHandle() ) != m_outgoingStore.end() )
+				ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
+				if( it != m_instanceStoreByHash.end() )
 				{
-					ObjectInstanceHandle handle = m_outgoingStore[hlaObject->getInstanceHandle()];
+					ObjectInstanceHandle handle = it->second;
 					m_rtiAmbassador->updateAttributeValues( handle, rtiAttributeMap, tag );
 					logger.log( "Successfully published the updated attributes of " + hlaObject->getClassName() +
 					            ".", LevelDebug );
@@ -278,7 +279,7 @@ namespace ucef
 				else
 				{
 					logger.log( "Cannot publish attributes of " + hlaObject->getClassName() + ". Instance id : " +
-					            to_string( hlaObject->getInstanceHandle() ) + " not found.", LevelWarn );
+					            to_string( hlaObject->getInstanceId() ) + " not found.", LevelWarn );
 				}
 			}
 			catch( Exception& e )
@@ -331,26 +332,29 @@ namespace ucef
 
 	void RTIAmbassadorWrapper::deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject )
 	{
-		try
+
+		Logger& logger = Logger::getInstance();
+		ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
+		if( it != m_instanceStoreByHash.end() )
 		{
-			Logger& logger = Logger::getInstance();
-			if( m_outgoingStore.find( hlaObject->getInstanceHandle() ) != m_outgoingStore.end() )
+			VariableLengthData tag( (void*)"", 1 );
+			ObjectInstanceHandle handle = it->second;
+			m_instanceStoreByHash.erase( hlaObject->getInstanceId() );
+			try
 			{
-				VariableLengthData tag( (void*)"", 1 );
-				ObjectInstanceHandle handle = m_outgoingStore[hlaObject->getInstanceHandle()];
 				m_rtiAmbassador->deleteObjectInstance( handle, tag );
-				m_outgoingStore.erase(hlaObject->getInstanceHandle());
 			}
-			else
+			catch( Exception& e )
 			{
-				logger.log( "Cannot delete the given instance of " + hlaObject->getClassName() + ". Instance id : " +
-				            to_string(hlaObject->getInstanceHandle()) + " not found.", LevelWarn );
+				throw UCEFException( ConversionHelper::ws2s(e.what()) );
 			}
 		}
-		catch( Exception& e )
+		else
 		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+			logger.log( "Cannot delete the given instance of " + hlaObject->getClassName() + ". Instance id : " +
+				        to_string(hlaObject->getInstanceId()) + " not found.", LevelWarn );
 		}
+
 	}
 
 	void RTIAmbassadorWrapper::resign()
