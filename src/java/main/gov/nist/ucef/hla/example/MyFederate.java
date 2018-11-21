@@ -132,19 +132,19 @@ public class MyFederate extends FederateBase {
 		// - a MainCourseServed interaction, which has several parameters
 		System.out.println( "sending interaction(s) at time " + currentTime + "..." );
 		HLAInteraction interaction = makeDrinkServedInteraction();
-		send( interaction, null );
+		sendInteraction( interaction, null );
 		interaction = makeMainCourseServedInteraction( randomBool(), 
 		                                               randomBool(), randomBool(), randomBool(), 
 		                                               randomBool(), randomBool(), randomBool() );
-		send( interaction, null );
+		sendInteraction( interaction, null );
 
 		// here we end out attribute reflections for all attributes of all registered objects:
 		System.out.println( "sending attribute reflection(s) at time " + currentTime + "..." );
 		for( HLAObject hlaObject : this.registeredObjects )
 		{
-			hlaObject.set( FLAVOR_ATTR_ID, randomFruit() );
-			hlaObject.set( NUMBER_CUPS_ATTR_ID, randomInt( 1, 5 ) );
-			update( hlaObject, null );
+			hlaObject.setValue( FLAVOR_ATTR_ID, randomFruit() );
+			hlaObject.setValue( NUMBER_CUPS_ATTR_ID, randomInt( 1, 5 ) );
+			updateAttributeValues( hlaObject, null );
 		}
 
 		// keep going until time 10.0

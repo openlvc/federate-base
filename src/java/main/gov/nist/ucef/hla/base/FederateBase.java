@@ -136,7 +136,7 @@ public abstract class FederateBase
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Create an interaction (with no parameter values)
@@ -167,7 +167,7 @@ public abstract class FederateBase
 	 * @param interaction the interaction
 	 * @param tag the tag (can be null)
 	 */
-	protected void send( HLAInteraction interaction, byte[] tag )
+	protected void sendInteraction( HLAInteraction interaction, byte[] tag )
 	{
 		rtiamb.sendInteraction( interaction, tag, null );
 	}
@@ -180,7 +180,7 @@ public abstract class FederateBase
 	 * @param tag the tag (can be null)
 	 * @param time the time-stamp
 	 */
-	protected void send( HLAInteraction interaction, byte[] tag, double time )
+	protected void sendInteraction( HLAInteraction interaction, byte[] tag, double time )
 	{
 		rtiamb.sendInteraction( interaction, tag, time );
 	}
@@ -223,7 +223,7 @@ public abstract class FederateBase
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 */
-	protected void update( HLAObject instance, byte[] tag )
+	protected void updateAttributeValues( HLAObject instance, byte[] tag )
 	{
 		rtiamb.updateAttributeValues( instance, tag, null );
 	}
@@ -236,7 +236,7 @@ public abstract class FederateBase
 	 * @param tag the tag (can be null)
 	 * @param time the time-stamp
 	 */
-	protected void update( HLAObject instance, byte[] tag, double time )
+	protected void updateAttributeValues( HLAObject instance, byte[] tag, double time )
 	{
 		rtiamb.updateAttributeValues( instance, tag, time );
 	}

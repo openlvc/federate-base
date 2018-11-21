@@ -61,6 +61,21 @@ public class HLACodecUtilsTest extends TestCase
 	}
 	
 	/**
+	 * Test encoding/decoding of character values
+	 */
+	public void testChar()
+	{
+		char[] testValues = {' ', 'A', 'a', '字'};
+		for(char expected : testValues)
+		{
+			// run through an encode/decode cycle, should come out the same
+			char actual = HLACodecUtils.asChar( this.encoder, 
+			                                    HLACodecUtils.encode( this.encoder, expected ) );
+			assertEquals( expected, actual );
+		}
+	}
+	
+	/**
 	 * Test encoding/decoding of short values
 	 */
 	public void testShort()
@@ -160,7 +175,7 @@ public class HLACodecUtilsTest extends TestCase
 		{
 			// run through an encode/decode cycle, should come out the same
 			String actual = HLACodecUtils.asString( this.encoder, 
-			                                               HLACodecUtils.encode( this.encoder, expected ) );
+			                                        HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}

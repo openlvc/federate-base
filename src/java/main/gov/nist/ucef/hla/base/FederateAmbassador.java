@@ -360,10 +360,9 @@ public class FederateAmbassador extends NullFederateAmbassador
 		HLAObject hlaObjectInstance = this.remoteHlaObjects.remove( objectInstanceHandle ); 
 		if( hlaObjectInstance == null )
 		{
-			throw new UCEFException("Deletion notification received for undiscovered object " +
-									"instance with handle '%s'", objectInstanceHandle);
+			throw new UCEFException( "Deletion notification received for undiscovered object " +
+									 "instance with handle '%s'", objectInstanceHandle );
 		}
-		
 		this.federate.receiveObjectDeleted( hlaObjectInstance );
 	}
 	

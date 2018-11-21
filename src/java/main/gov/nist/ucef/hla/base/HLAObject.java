@@ -203,6 +203,17 @@ public class HLAObject
 	}
 	
 	/**
+	 * Obtain the value for the named attribute as a char
+	 * 
+	 * @param attributeName the name of the attribute
+	 * @return the value
+	 */
+	public char getAsChar( String attributeName )
+	{
+		return HLACodecUtils.asChar( this.encoder, getRawValue( attributeName ) );
+	}
+	
+	/**
 	 * Obtain the value for the named attribute as a string
 	 * 
 	 * @param attributeName the name of the attribute
@@ -236,7 +247,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, short value )
+	public void setValue( String attributeName, short value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -247,7 +258,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, int value )
+	public void setValue( String attributeName, int value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -258,7 +269,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, long value )
+	public void setValue( String attributeName, long value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -269,7 +280,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, float value )
+	public void setValue( String attributeName, float value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -280,7 +291,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, double value )
+	public void setValue( String attributeName, double value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -291,7 +302,18 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, boolean value )
+	public void setValue( String attributeName, boolean value )
+	{
+		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
+	}
+	
+	/**
+	 * Set the value of an attribute to a char
+	 * 
+	 * @param attributeName the name of the attribute
+	 * @param value the value to set
+	 */
+	public void setValue( String attributeName, char value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -302,7 +324,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @param value the value to set
 	 */
-	public void set( String attributeName, String value )
+	public void setValue( String attributeName, String value )
 	{
 		setRawValue( attributeName, HLACodecUtils.encode( this.encoder, value ) );
 	}
@@ -340,15 +362,13 @@ public class HLAObject
 	}
     
 	/**
-	 * Set the current value of attributes this object instance.
+	 * Set the current value of multiple attributes this object instance.
 	 * 
 	 * @param attributes the attributes and values to update from
 	 * @return this instance
 	 */
 	public HLAObject setState( Map<String, byte[]> attributes )
 	{
-		// TODO should we sanity check that we are updating from 
-		//      a compatible set of attributes...?
 		synchronized( this.attributes )
 		{
 			this.attributes.putAll( attributes );
@@ -356,6 +376,22 @@ public class HLAObject
 		return this;
 	}
     
+	/**
+	 * Clear all attributes
+	 * 
+	 * NOTE: After this method is called, there will be no attributes defined.
+	 * 
+	 * @return this instance
+	 */
+	public HLAObject clearState()
+	{
+		synchronized( this.attributes )
+		{
+			this.attributes.clear();
+		}
+		return this;
+	}
+	
 	/**
 	 * Get the attribute identifiers of this object instance.
 	 *
