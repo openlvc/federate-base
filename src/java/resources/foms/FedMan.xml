@@ -8,52 +8,5 @@
         <securityClassification>Unclassified</securityClassification>
     </modelIdentification>
     <interactions>
-        <interactionClass>
-            <name>HLAinteractionRoot</name>
-            <interactionClass>
-                <name>ManagedFederation</name>
-                <sharing>PublishSubscribe</sharing>
-                <dimensions/>
-                <transportation>HLAreliable</transportation>
-                <order>TimeStamp</order>
-                <semantics>The base class of management interactions in a managed federation</semantics>
-	            <interactionClass>
-	                <name>Federate</name>
-	                <sharing>PublishSubscribe</sharing>
-	                <dimensions/>
-	                <transportation>HLAreliable</transportation>
-	                <order>TimeStamp</order>
-	                <semantics>The base class management interactions for federates</semantics>
-	                <interactionClass>
-	                    <name>Joined</name>
-	                    <sharing>PublishSubscribe</sharing>
-	                    <dimensions/>
-	                    <transportation>HLAreliable</transportation>
-	                    <order>TimeStamp</order>
-	                    <semantics>Federate has joined the federation</semantics>
-						<parameter>
-							<name>FederateType</name>
-							<dataType>HLAunicodeString</dataType>
-						</parameter>
-						<parameter>
-							<name>FederateHandle</name>
-							<dataType>HLAinteger32BE</dataType>
-						</parameter>
-	                </interactionClass>
-	                <interactionClass>
-	                    <name>Resigned</name>
-	                    <sharing>PublishSubscribe</sharing>
-	                    <dimensions/>
-	                    <transportation>HLAreliable</transportation>
-	                    <order>TimeStamp</order>
-	                    <semantics>Federate has resigned from the federation</semantics>
-						<parameter>
-							<name>FederateHandle</name>
-							<dataType>HLAinteger32BE</dataType>
-						</parameter>
-	                </interactionClass>
-	            </interactionClass>
-	        </interactionClass>
-        </interactionClass>
     </interactions>
 </objectModel>
