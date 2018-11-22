@@ -83,6 +83,112 @@ namespace ucef
 		afterDeath();
 	}
 
+	vector<string> FederateBase::getClassNamesPublish()
+	{
+		vector<string> publishClassNames;
+		for( auto& kv : m_objectDataStoreByName )
+		{
+			if( kv.second->publish )
+			{
+				publishClassNames.push_back( kv.first );
+			}
+		}
+		return publishClassNames;
+	}
+
+	vector<string> FederateBase::getClassNamesSubscribe()
+	{
+		vector<string> subscribedClassNames;
+		for( auto& kv : m_objectDataStoreByName )
+		{
+			if( kv.second->subscribe )
+			{
+				subscribedClassNames.push_back( kv.first );
+			}
+		}
+		return subscribedClassNames;
+	}
+
+	vector<string> FederateBase::getInteractionNamesSubscribe()
+	{
+		vector<string> publishInteractionNames;
+		for( auto& kv : m_interactionDataStoreByName )
+		{
+			if( kv.second->publish )
+			{
+				publishInteractionNames.push_back( kv.first );
+			}
+		}
+		return publishInteractionNames;
+	}
+
+	vector<string> FederateBase::getInteractionNamesPublish()
+	{
+		vector<string> subscribedInteractionNames;
+		for( auto& kv : m_interactionDataStoreByName )
+		{
+			if( kv.second->publish )
+			{
+				subscribedInteractionNames.push_back( kv.first );
+			}
+		}
+		return subscribedInteractionNames;
+	}
+
+	std::vector<std::string> FederateBase::getAttributeNamesPublish( const string& className )
+	{
+		vector<string> attributeNamesPublish;
+		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find(className);
+		if( it != m_objectDataStoreByName.end() )
+		{
+			ObjectAttributes& attributes = it->second->objectAttributes;
+			for( auto& kv : attributes )
+			{
+				if( kv.second->publish )
+				{
+					attributeNamesPublish.push_back(kv.first);
+				}
+
+			}
+		}
+		return attributeNamesPublish;
+	}
+
+	vector<string> FederateBase::getAttributeNamesSubscribe( const string& className  )
+	{
+		vector<string> attributeNamesSubscribe;
+		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find(className);
+		if( it != m_objectDataStoreByName.end() )
+		{
+			ObjectAttributes& attributes = it->second->objectAttributes;
+			for( auto& kv : attributes )
+			{
+				if( kv.second->subscribe )
+				{
+					attributeNamesSubscribe.push_back(kv.first);
+				}
+
+			}
+		}
+		return attributeNamesSubscribe;
+	}
+
+	vector<string> FederateBase::getParameterNames( const string& interactionName  )
+	{
+		vector<string> parameterNames;
+		InteractionDataStoreByName::iterator it = m_interactionDataStoreByName.find(interactionName);
+		if( it != m_interactionDataStoreByName.end() )
+		{
+			InteractionParameters& parameters = it->second->parameters;
+			for( auto& kv : parameters )
+			{
+				parameterNames.push_back(kv.first);
+			}
+		}
+		return parameterNames;
+	}
+
+
 	void FederateBase::connectToRti()
 	{
 		try
@@ -387,8 +493,8 @@ namespace ucef
 		logger.log( "Received object removed notification for HLAObject with id :" +
 		             to_string(objectInstanceHash), LevelInfo );
 
-		size_t deletedCount = deleteIncomingInstanceHandle( objectInstanceHash );
-		if( deletedCount )
+		bool success = deleteIncomingInstanceHandle( objectInstanceHash );
+		if( success )
 		{
 			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
 			            " successsfully removed from the incoming map.", LevelInfo );
@@ -419,9 +525,11 @@ namespace ucef
 		return nullptr;
 	}
 
-	size_t FederateBase::deleteIncomingInstanceHandle( long hash )
+	bool FederateBase::deleteIncomingInstanceHandle( long hash )
 	{
-		return m_objectDataStoreByInstance.erase( hash );
+		size_t deletedCount = m_objectDataStoreByInstance.erase( hash );
+		bool success = deletedCount ? true : false;
+		return success;
 	}
 
 	std::shared_ptr<util::InteractionClass> FederateBase::getInteractionClass( long hash )

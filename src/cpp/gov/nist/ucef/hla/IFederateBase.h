@@ -40,6 +40,17 @@ namespace ucef
 			virtual void afterDeath() = 0;
 			virtual bool step(double federateTime) = 0;
 			virtual void runFederate() = 0;
+
+			//----------------------------------------------------------
+			//                 SOM data
+			//----------------------------------------------------------
+			virtual std::vector<std::string> getClassNamesPublish() = 0;
+			virtual std::vector<std::string> getClassNamesSubscribe() = 0;
+			virtual std::vector<std::string> getInteractionNamesSubscribe() = 0;
+			virtual std::vector<std::string> getInteractionNamesPublish() = 0;
+			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) = 0;
+			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) = 0;
+			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) = 0;
 	};
 }
 

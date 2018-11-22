@@ -26,7 +26,20 @@ namespace ucef
 			FederateBase& operator=(const FederateBase&) = delete;
 
 			//----------------------------------------------------------
-			//                    Instance Methods
+			//       IFederateBase interface implementation
+			//----------------------------------------------------------
+			virtual void runFederate() final;
+			virtual std::vector<std::string> getClassNamesPublish() override;
+			virtual std::vector<std::string> getClassNamesSubscribe() override;
+			virtual std::vector<std::string> getInteractionNamesSubscribe() override;
+			virtual std::vector<std::string> getInteractionNamesPublish() override;
+
+			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) override;
+			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) override;
+			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) override;
+
+			//----------------------------------------------------------
+			//                    Business Logic
 			//----------------------------------------------------------
 			void incomingObjectRegistration( long objectInstanceHash,
 			                                 long objectClassHash );
@@ -37,7 +50,6 @@ namespace ucef
 			       ( long interactionHash,
 			         const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 			void incomingObjectDeletion( long objectInstanceHash );
-			virtual void runFederate() final;
 
 		private:
 			//----------------------------------------------------------
@@ -54,7 +66,7 @@ namespace ucef
 
 			std::shared_ptr<util::ObjectClass> getObjectClassByClassHandle( long hash );
 			std::shared_ptr<util::ObjectClass> getObjectClassByInstanceHandle( long hash );
-			size_t deleteIncomingInstanceHandle( long hash );
+			bool deleteIncomingInstanceHandle( long hash );
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );
 			inline void storeObjectClassData( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
 			inline void storeInteractionClassData( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);
@@ -63,11 +75,11 @@ namespace ucef
 			inline void tickForCallBacks();
 
 		protected:
-			util::ObjectDataStoreByName m_objectDataStoreByName;
-			util::InteractionDataStoreByName m_interactionDataStoreByName;
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 
 		private:
+			util::ObjectDataStoreByName m_objectDataStoreByName;
+			util::InteractionDataStoreByName m_interactionDataStoreByName;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			util::ObjectDataStoreByHash m_objectDataStoreByHash;
 			util::InteractionDataStoreByHash m_interactionDataStoreByHash;
