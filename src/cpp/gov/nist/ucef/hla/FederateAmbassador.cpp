@@ -152,8 +152,9 @@ namespace ucef
 		}
 		else
 		{
-			Logger::getInstance().log( string("Received object delete notification with an invalid handler."),
-			                           LevelError );
+			string msg = "Received object delete notification with an invalid handler.";
+			Logger::getInstance().log( msg,
+			                          LevelError );
 		}
 	}
 

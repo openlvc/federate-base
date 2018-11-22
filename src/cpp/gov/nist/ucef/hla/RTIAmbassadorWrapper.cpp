@@ -8,7 +8,6 @@
 #include "gov/nist/ucef/util/UCEFException.h"
 
 #include "RTI/Handle.h"
-#include "RTI/Handle.h"
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
@@ -158,7 +157,8 @@ namespace ucef
 			{
 				ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( objectHandle );
 				hlaObject = make_shared<HLAObject>( className, instanceHandle.hash() );
-				m_instanceStoreByHash[instanceHandle.hash()] = instanceHandle;
+
+				m_instanceStoreByHash[instanceHandle.hash()] = make_shared<ObjectInstanceHandle>(instanceHandle);
 			}
 			catch( Exception& )
 			{
@@ -271,8 +271,8 @@ namespace ucef
 				ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
 				if( it != m_instanceStoreByHash.end() )
 				{
-					ObjectInstanceHandle handle = it->second;
-					m_rtiAmbassador->updateAttributeValues( handle, rtiAttributeMap, tag );
+					auto handle = it->second;
+					m_rtiAmbassador->updateAttributeValues( *handle, rtiAttributeMap, tag );
 					logger.log( "Successfully published the updated attributes of " + hlaObject->getClassName() +
 					            ".", LevelDebug );
 				}
@@ -338,11 +338,11 @@ namespace ucef
 		if( it != m_instanceStoreByHash.end() )
 		{
 			VariableLengthData tag( (void*)"", 1 );
-			ObjectInstanceHandle handle = it->second;
+			auto handle = it->second;
 			m_instanceStoreByHash.erase( hlaObject->getInstanceId() );
 			try
 			{
-				m_rtiAmbassador->deleteObjectInstance( handle, tag );
+				m_rtiAmbassador->deleteObjectInstance( *handle, tag );
 			}
 			catch( Exception& e )
 			{

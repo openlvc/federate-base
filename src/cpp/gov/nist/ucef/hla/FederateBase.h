@@ -1,7 +1,9 @@
 #pragma once
 
+
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
@@ -31,7 +33,7 @@ namespace ucef
 			void incomingAttributeReflection
 			       ( long objectInstanceHash,
 			         const std::map<rti1516e::AttributeHandle, rti1516e::VariableLengthData>& attributeValues );
-			void FederateBase::incomingInteraction
+			void incomingInteraction
 			       ( long interactionHash,
 			         const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 			void incomingObjectDeletion( long objectInstanceHash );
@@ -62,16 +64,16 @@ namespace ucef
 			inline void tickForCallBacks();
 
 		protected:
-			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 			util::ObjectDataStoreByName m_objectDataStoreByName;
 			util::InteractionDataStoreByName m_interactionDataStoreByName;
+			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 
 		private:
-			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
+			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			util::ObjectDataStoreByHash m_objectDataStoreByHash;
 			util::InteractionDataStoreByHash m_interactionDataStoreByHash;
 			util::ObjectDataStoreByInstance m_objectDataStoreByInstance;
-			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
+			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 			std::mutex m_threadSafeLock;
 	};
 }

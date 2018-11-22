@@ -10,11 +10,11 @@ namespace ucef
 	{
 		FederateConfiguration::FederateConfiguration() : m_federateName( "Federate" + to_string(rand()) ),
 		                                                 m_federateType( "FederateType" + to_string(rand()) ),
-		                                                 m_immediateCallBacks( true ),
+														 m_lookAhead( 1.0 ),
+														 m_timeStep( 1.0 ),
+														 m_immediateCallBacks( true ),
 		                                                 m_timeRegulated( true ),
-		                                                 m_timeConstrained( true ),
-		                                                 m_lookAhead( 1.0 ),
-		                                                 m_timeStep( 1.0 )
+		                                                 m_timeConstrained( true )
 		{
 
 			m_federateName = ( "Federate" + to_string(std::time(0)));

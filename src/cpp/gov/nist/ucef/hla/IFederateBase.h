@@ -21,13 +21,13 @@ namespace ucef
 			//----------------------------------------------------------
 			//                     Callback Methods
 			//----------------------------------------------------------
-			virtual void receiveObjectRegistration( std::shared_ptr<const HLAObject>& hlaObject,
+			virtual void receiveObjectRegistration( std::shared_ptr<const HLAObject> hlaObject,
 			                                        double federateTime ) = 0;
-			virtual void receiveAttributeReflection( std::shared_ptr<const HLAObject>& hlaObject,
+			virtual void receiveAttributeReflection( std::shared_ptr<const HLAObject> hlaObject,
 			                                         double federateTime ) = 0;
-			virtual void receiveInteraction( std::shared_ptr<const HLAInteraction>& hlaInteraction,
+			virtual void receiveInteraction( std::shared_ptr<const HLAInteraction> hlaInteraction,
 			                                 double federateTime ) = 0;
-			virtual void receiveObjectDeletion( std::shared_ptr<const HLAObject>& hlaObject ) = 0;
+			virtual void receiveObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) = 0;
 
 			//----------------------------------------------------------
 			//            Lifecycle hooks

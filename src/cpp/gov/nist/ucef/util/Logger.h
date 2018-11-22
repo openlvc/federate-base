@@ -68,7 +68,7 @@ namespace ucef
 			 *
 			 * @see LogLevel
 			 */
-			void log(std::string& message, LogLevel level);
+			void log( const std::string& message, LogLevel level );
 
 		private:
 			std::shared_ptr<spdlog::logger> logger;

@@ -154,13 +154,13 @@ namespace ucef
 			//----------------------------------------------------------
 			double convertTime( const rti1516e::LogicalTime& theTime );
 		private:
-			FederateBase* m_federateBase;
 			std::set<std::wstring> announcedSynchPoints;
 			std::set<std::wstring> achievedSynchPoints;
 			bool m_regulated;
 			bool m_constrained;
 			bool m_advanced;
 			double m_federateTime;
+			FederateBase* m_federateBase;
 			std::mutex m_threadSafeLock;
 	};
 }

@@ -1,6 +1,9 @@
 #include "HLAObject.h"
 
 #include <string>
+#ifndef _WIN32
+#include <cstring>
+#endif
 #include "gov/nist/ucef/util/Logger.h"
 #include "RTI/Handle.h"
 
@@ -66,7 +69,7 @@ namespace ucef
 	void HLAObject::setValue( const string& attributeName, const string& val )
 	{
 		shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
-		strcpy_s(arr.get(), val.length() + 1, val.c_str());
+		strcpy(arr.get(), val.c_str());
 		setValue( attributeName, arr, val.length() + 1 );
 	}
 

@@ -69,8 +69,8 @@ namespace ucef
 			rti1516e::ObjectClassHandle getClassHandle( const std::wstring& name );
 			rti1516e::AttributeHandle getAttributeHandle( const rti1516e::ObjectClassHandle& classHandle,
 			                                              const std::wstring& name );
-			std::wstring RTIAmbassadorWrapper::getAttributeName( const rti1516e::ObjectClassHandle& classHandle,
-			                                                     const rti1516e::AttributeHandle& attributeHandle );
+			std::wstring getAttributeName( const rti1516e::ObjectClassHandle& classHandle,
+			                               const rti1516e::AttributeHandle& attributeHandle );
 			rti1516e::InteractionClassHandle getInteractionHandle( const std::wstring& name );
 			rti1516e::ParameterHandle getParameterHandle( const rti1516e::InteractionClassHandle& interactionHandle,
 			                                              const std::wstring& name );

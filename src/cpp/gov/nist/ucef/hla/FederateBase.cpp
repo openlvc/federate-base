@@ -307,7 +307,6 @@ namespace ucef
 
 			for( auto& incomingAttributeValue : attributeValues )
 			{
-				ObjectAttributes& attributes = objectClass->objectAttributes;
 				wstring attName = m_rtiAmbassadorWrapper->getAttributeName(classHandle, incomingAttributeValue.first);
 				if( attName == L"" )
 				{
@@ -319,7 +318,7 @@ namespace ucef
 				size_t size = incomingAttributeValue.second.size();
 				const void* data = incomingAttributeValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-				memcpy_s(arr.get(), size, data, size);
+				memcpy(arr.get(), data, size);
 				hlaObject->setValue( ConversionHelper::ws2s(attName), arr, size );
 			}
 			receiveAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
@@ -354,7 +353,6 @@ namespace ucef
 
 			for( auto& incomingParameterValue : parameterValues )
 			{
-				InteractionParameters& parameters = interactionClass->parameters;
 				wstring paramName =
 					m_rtiAmbassadorWrapper->getParameterName(interactionHandle, incomingParameterValue.first);
 				if( paramName == L"" )
@@ -367,7 +365,7 @@ namespace ucef
 				size_t size = incomingParameterValue.second.size();
 				const void* data = incomingParameterValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-				memcpy_s(arr.get(), size, data, size);
+				memcpy(arr.get(), data, size);
 				hlaInteraction->setValue( ConversionHelper::ws2s(paramName), arr, size );
 			}
 			receiveInteraction(const_pointer_cast<const HLAInteraction>(hlaInteraction),
@@ -469,8 +467,6 @@ namespace ucef
 	//----------------------------------------------------------
 	void FederateBase::storeObjectClassData( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
-		Logger& logger = Logger::getInstance();
-
 		//----------------------------------------------------------
 		//            Store object class and attribute handles
 		//----------------------------------------------------------
@@ -548,7 +544,6 @@ namespace ucef
 		//----------------------------------------------------------
 		//     Store interaction class and parametere handles
 		//----------------------------------------------------------
-		Logger& logger = Logger::getInstance();
 
 		// try to update interaction classes with correct interaction and parameter rti handles
 		for( auto& interactionClass : interactionClasses )

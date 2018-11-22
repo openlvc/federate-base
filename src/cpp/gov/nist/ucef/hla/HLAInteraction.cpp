@@ -1,6 +1,11 @@
 #include "HLAInteraction.h"
 
 #include <string>
+
+#ifndef _WIN32
+#include <cstring>
+#endif
+
 #include "gov/nist/ucef/util/Logger.h"
 #include "RTI/Handle.h"
 
@@ -64,13 +69,13 @@ namespace ucef
 	void HLAInteraction::setValue( const string& parameterName, const string& val )
 	{
 		shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
-		strcpy_s(arr.get(), val.length() + 1, val.c_str());
+		strcpy(arr.get(), val.c_str());
 		setValue( parameterName, arr, val.length() + 1 );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName,
-	                                        shared_ptr<void> data,
-	                                        const size_t size )
+	                               shared_ptr<void> data,
+	                               const size_t size )
 	{
 		if( m_parameterDataStore->find( parameterName ) != m_parameterDataStore->end() )
 		{

@@ -6,6 +6,7 @@
 
 #include <map>
 #include <mutex>
+#include <vector>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"

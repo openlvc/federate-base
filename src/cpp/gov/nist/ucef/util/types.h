@@ -4,7 +4,6 @@
  * @file types.h
  * Defines all POD types used bye UCEFFederate
  */
-
 #include <codecvt>
 #include <list>
 #include <locale>
@@ -148,7 +147,7 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance; // for incoming
-		typedef std::unordered_map<long, rti1516e::ObjectInstanceHandle> ObjectInstanceStoreByHash; // for outgoing
+		typedef std::unordered_map<long, std::shared_ptr<rti1516e::ObjectInstanceHandle>> ObjectInstanceStoreByHash; // for outgoing
 
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
 		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
