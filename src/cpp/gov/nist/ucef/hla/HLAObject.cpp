@@ -1,9 +1,8 @@
 #include "HLAObject.h"
 
-#include <string>
-#ifndef _WIN32
 #include <cstring>
-#endif
+#include <string>
+
 #include "gov/nist/ucef/util/Logger.h"
 #include "RTI/Handle.h"
 

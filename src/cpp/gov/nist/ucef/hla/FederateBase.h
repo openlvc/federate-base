@@ -53,7 +53,6 @@ namespace ucef
 			void resignAndDestroy();
 
 			std::shared_ptr<util::ObjectClass> getObjectClassByClassHandle( long hash );
-			std::shared_ptr<util::ObjectClass> getObjectClassByName( std::string name );
 			std::shared_ptr<util::ObjectClass> getObjectClassByInstanceHandle( long hash );
 			size_t deleteIncomingInstanceHandle( long hash );
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );

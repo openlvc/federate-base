@@ -410,15 +410,6 @@ namespace ucef
 		return nullptr;
 	}
 
-	shared_ptr<ObjectClass> FederateBase::getObjectClassByName( string name )
-	{
-		if( m_objectDataStoreByName.find( name ) != m_objectDataStoreByName.end() )
-		{
-			return m_objectDataStoreByName[name];
-		}
-		return nullptr;
-	}
-
 	shared_ptr<ObjectClass> FederateBase::getObjectClassByInstanceHandle( long hash )
 	{
 		if( m_objectDataStoreByInstance.find( hash ) != m_objectDataStoreByInstance.end() )
