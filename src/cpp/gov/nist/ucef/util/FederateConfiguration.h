@@ -16,42 +16,42 @@ namespace ucef
 				FederateConfiguration();
 
 				/**
-				 * Returns the configured federation name
+				 * Returns the name of the federation
 				 * 
-				 * @return the configured federation name
+				 * @return the federation name
 				 */
 				std::string getFederationName();
 
 				/**
-				 * Returns the configured federate name
+				 * Returns the name of the federate
 				 * 
-				 * @return the configured federate name
+				 * @return the federate name
 				 */
 				std::string getFederateName();
 
 				/**
-				 * Returns the configured federate type
+				 * Returns the type of the federate
 				 * 
-				 * @return the configured federate type
+				 * @return the federate type
 				 */
 				std::string getFederateType();
 
 				/**
-				 * Returns the stored paths of FOM files
+				 * Returns paths to FOM files
 				 * 
-				 * @return the stored paths of FOM files
+				 * @return paths to FOM files
 				 */
 				std::vector<std::string> getFomPaths();
 
 				/**
-				 * Returns the stored path of the SOM files
+				 * Returns the path to a SOM file
 				 * 
-				 * @return the stored path of the SOM files
+				 * @return the path to a SOM file
 				 */
 				std::string getSomPath();
 
 				/**
-				 * Returns the lookahead value for time regulating federates
+				 * Returns the lookahead value of a time regulating federate
 				 * 
 				 * The default lookahead value is set to 1.
 				 *
@@ -60,30 +60,30 @@ namespace ucef
 				float getLookAhead();
 
 				/**
-				 * Returns the time step value of this federate.
+				 * Returns the size of the time step in this federate.
 				 *
-				 * The default time step value is set to 1.
+				 * The default time step size is set to 1.
 				 * 
-				 * @return the time step value of this federate
+				 * @return the time step size of this federate
 				 */
 				float getTimeStep();
 
 				/**
-				 * Returns the callback configuration of this federate
+				 * Returns the callback mode of this federate
 				 * 
-				 * @return true if HLAImmediate to be used, false HLAEvoked
+				 * @return true if HLAImmediate to be used, false for HLAEvoked
 				 */
 				bool isImmediate();
 
 				/**
-				 * Indicates this federate is a time regulated federate
+				 * Indicates whether this federate is a time regulated federate
 				 * 
 				 * @return true if this federate is time regulated, false otherwise
 				 */
 				bool isTimeRegulated();
 
 				/**
-				 * Indicates this federate is a time constrained federate
+				 * Indicates whether this federate is a time constrained federate
 				 * 
 				 * @return true if this federate is time constrained, false otherwise
 				 */
@@ -97,7 +97,6 @@ namespace ucef
 				bool m_immediateCallBacks;
 				bool m_timeRegulated;
 				bool m_timeConstrained;
-
 		};
 	}
 }

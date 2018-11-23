@@ -30,7 +30,7 @@ namespace ucef
 	                                                            throw( FederateInternalError )
 	{
 		SynchPoint synPoint = ConversionHelper::StringToSynchPoint( label );
-		if( synPoint == PointUnknown )
+		if( synPoint == POINT_UNKNOWN )
 		{
 			// may be we can achieve this immediately
 			return;
@@ -223,16 +223,28 @@ namespace ucef
 		return achieved;
 	}
 
-	bool FederateAmbassador::isRegulated()
+	bool FederateAmbassador::isTimeRegulated()
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_regulated;
 	}
 
-	bool FederateAmbassador::isConstrained()
+	void FederateAmbassador::resetTimeRegulated()
+	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		m_regulated = false;
+	}
+
+	bool FederateAmbassador::isTimeConstrained()
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_constrained;
+	}
+
+	void FederateAmbassador::resetTimeConstrained()
+	{
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		m_constrained = false;
 	}
 
 	double FederateAmbassador::getFederateTime()
