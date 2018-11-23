@@ -39,14 +39,15 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.example.util.CmdArgParser;
-import gov.nist.ucef.hla.example.util.CmdArgParser.ListArgument;
-import gov.nist.ucef.hla.example.util.CmdArgParser.ParseException;
-import gov.nist.ucef.hla.example.util.CmdArgParser.ValidationResult;
-import gov.nist.ucef.hla.example.util.CmdArgParser.Validator;
-import gov.nist.ucef.hla.example.util.CmdArgParser.ValueArgument;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.example.util.cmdargs.CmdArgParser;
+import gov.nist.ucef.hla.example.util.cmdargs.ListArgument;
+import gov.nist.ucef.hla.example.util.cmdargs.CmdArgException;
+import gov.nist.ucef.hla.example.util.cmdargs.StandardValidator;
+import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
+import gov.nist.ucef.hla.example.util.cmdargs.Validator;
+import gov.nist.ucef.hla.example.util.cmdargs.ValueArgument;
 
 /**
  *		            ___
@@ -168,112 +169,6 @@ public class FederateManager extends FederateBase {
 			System.out.println( "Cannot proceed. Exiting now." );
 			System.exit( 1 );
 		}
-	}
-	
-	private boolean processAndValidate( String[] args )
-	{
-        CmdArgParser cmdArgParser = new CmdArgParser();
-        ListArgument requiredFederateTypes = cmdArgParser
-        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
-        	.isRequired(true)
-		    .validator( new RequiredFedValidator() )
-		    .help( String.format( "Define required federate types and counts. For example, " +
-		                          "'-%s FedABC,2' would require two 'FedABC' federates to join. " +
-		                          "Multiple requirements can be specified by repeated use " +
-		                          "of -%s.",
-		                          CMDLINEARG_REQUIRE_SHORT,
-		                          CMDLINEARG_REQUIRE_SHORT ) )
-		    .hint( "FEDERATE_TYPE,COUNT" );
-		ValueArgument logicalSecondArg = cmdArgParser
-			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
-		    .validator( new PosDoubleValidator() )
-		    .isRequired( false )
-		    .help( String.format( "Define a 'logical second'; the logical step size which " +
-		    					  "equates to a real-time second. If unspecified a value " +
-		    					  "of %.2f will be used.",
-		    					  LOGICAL_SECOND_DEFAULT ) )
-		    .hint( "1.0" );
-		ValueArgument logicalStepGranularityArg = cmdArgParser
-			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
-		    .validator( new PosIntValidator() )
-		    .isRequired( false )
-		    .help( String.format( "Define the number of steps per logical second. If " +
-		    				      "unspecified a value of %d will be used.",
-		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
-		    .hint( "1" );
-        ValueArgument realtimeMultiplierArg = cmdArgParser
-        	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
-		    .validator( new PosDoubleValidator() )
-		    .isRequired(false)
-        	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
-        						  "half speed, 2.0 is double speed, and so on. If unspecified " +
-        						  "a value of %.2f will be used.", 
-        						  REALTIME_MULTIPLIER_DEFAULT ) )
-        	.hint("1.0");
-        
-        try
-		{
-			cmdArgParser.parse( args );
-		}
-		catch( ParseException e )
-		{
-			System.err.println( e.getMessage() );
-			System.out.println( "Usage: " + cmdArgParser.getUsage( "mycommand" ) );
-			System.out.println( cmdArgParser.getHelp() );
-			return false;
-		}
-		
-        // At this stage we know that all command line arguments are valid,
-        // so we can use the values without checking them further 
-		if(logicalSecondArg.isSet())
-			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
-		
-		if(logicalStepGranularityArg.isSet())
-			this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
-		
-		if(realtimeMultiplierArg.isSet())
-			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
-		
-		// this is a required argument, so we don't need to check if it's set
-		List<String> requires = requiredFederateTypes.value();
-		for( String require : requires )
-		{
-			StringTokenizer tokenizer = new StringTokenizer( require, "," );
-			String federateType = tokenizer.nextToken();
-			int federateCount = Integer.parseInt( tokenizer.nextToken() );
-			startRequirements.put( federateType, federateCount );
-		}
-
-		double oneSecond = 1000.0 / this.realTimeMultiplier;
-		this.logicalStepSize = this.logicalSecond / this.logicalStepGranularity;
-		this.wallClockStepDelay = (long)(oneSecond * this.logicalStepSize);
-		
-		// the values are all fine individually, but in combination they might 
-		// cause problems - check for mega-fast tick rates resulting from the
-		// provided command line argument values
-		if( this.wallClockStepDelay < 5 )
-		{
-			System.err.println( String.format( "The combination of the specified values for " +
-											   "--%s, --%s and/or --%s " +
-			                                   " cannot be achieved (tick rate is too high).",
-			                                   CMDLINEARG_LOGICAL_SECOND,
-			                                   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
-			                                   CMDLINEARG_REALTIME_MULTIPLIER ) );
-			return false;
-		}
-		else if( this.wallClockStepDelay < 20 )
-		{
-			System.out.println( String.format( "WARNING: The combination of the specified " +
-											   "values for --%s, --%s and/or --%s " +
-											   "requires a high tick rate higher than 50 " +
-											   "ticks per second - your simulation may not " +
-											   "keep up with your requirements.",
-                                			   CMDLINEARG_LOGICAL_SECOND,
-                                			   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
-                                			   CMDLINEARG_REALTIME_MULTIPLIER ) );
-		}
-		
-		return true;
 	}
 
 	//----------------------------------------------------------
@@ -428,15 +323,110 @@ public class FederateManager extends FederateBase {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Pre-announce all UCEF synchronization points.
-	 */
-	private void preAnnounceSyncPoints()
+	private boolean processAndValidate( String[] args )
 	{
-		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
+        CmdArgParser cmdArgParser = new CmdArgParser();
+        ListArgument requiredFederateTypes = cmdArgParser
+        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
+        	.isRequired(true)
+		    .validator( new RequiredFedValidator() )
+		    .help( String.format( "Define required federate types and counts. For example, " +
+		                          "'-%s FedABC,2' would require two 'FedABC' federates to join. " +
+		                          "Multiple requirements can be specified by repeated use " +
+		                          "of -%s.",
+		                          CMDLINEARG_REQUIRE_SHORT,
+		                          CMDLINEARG_REQUIRE_SHORT ) )
+		    .hint( "FEDERATE_TYPE,COUNT" );
+		ValueArgument logicalSecondArg = cmdArgParser
+			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
+		    .validator( StandardValidator.POS_DOUBLE )
+		    .isRequired( false )
+		    .help( String.format( "Define a 'logical second'; the logical step size which " +
+		    					  "equates to a real-time second. If unspecified a value " +
+		    					  "of %.2f will be used.",
+		    					  LOGICAL_SECOND_DEFAULT ) )
+		    .hint( "1.0" );
+		ValueArgument logicalStepGranularityArg = cmdArgParser
+			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
+		    .validator( StandardValidator.POS_INT )
+		    .isRequired( false )
+		    .help( String.format( "Define the number of steps per logical second. If " +
+		    				      "unspecified a value of %d will be used.",
+		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
+		    .hint( "1" );
+        ValueArgument realtimeMultiplierArg = cmdArgParser
+        	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
+		    .validator( StandardValidator.POS_DOUBLE )
+		    .isRequired(false)
+        	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
+        						  "half speed, 2.0 is double speed, and so on. If unspecified " +
+        						  "a value of %.2f will be used.", 
+        						  REALTIME_MULTIPLIER_DEFAULT ) )
+        	.hint("1.0");
+        
+        try
 		{
-			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+			cmdArgParser.parse( args );
 		}
+		catch( CmdArgException e )
+		{
+			System.err.println( e.getMessage() );
+			System.out.println( "Usage: " + cmdArgParser.getUsage( "mycommand" ) );
+			System.out.println( cmdArgParser.getHelp() );
+			return false;
+		}
+		
+        // At this stage we know that all command line arguments are valid,
+        // so we can use the values without checking them further 
+		if(logicalSecondArg.isSet())
+			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
+		
+		if(logicalStepGranularityArg.isSet())
+			this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
+		
+		if(realtimeMultiplierArg.isSet())
+			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
+		
+		// this is a required argument, so we don't need to check if it's set
+		List<String> requires = requiredFederateTypes.value();
+		for( String require : requires )
+		{
+			StringTokenizer tokenizer = new StringTokenizer( require, "," );
+			String federateType = tokenizer.nextToken();
+			int federateCount = Integer.parseInt( tokenizer.nextToken() );
+			startRequirements.put( federateType, federateCount );
+		}
+
+		double oneSecond = 1000.0 / this.realTimeMultiplier;
+		this.logicalStepSize = this.logicalSecond / this.logicalStepGranularity;
+		this.wallClockStepDelay = (long)(oneSecond * this.logicalStepSize);
+		
+		// the values are all fine individually, but in combination they might 
+		// cause problems - check for mega-fast tick rates resulting from the
+		// provided command line argument values
+		if( this.wallClockStepDelay < 5 )
+		{
+			System.err.println( String.format( "The combination of the specified values for " +
+											   "--%s, --%s and/or --%s " +
+			                                   " cannot be achieved (tick rate is too high).",
+			                                   CMDLINEARG_LOGICAL_SECOND,
+			                                   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
+			                                   CMDLINEARG_REALTIME_MULTIPLIER ) );
+			return false;
+		}
+		else if( this.wallClockStepDelay < 20 )
+		{
+			System.out.println( String.format( "WARNING: The combination of the specified " +
+											   "values for --%s, --%s and/or --%s " +
+											   "requires a high tick rate higher than 50 " +
+											   "ticks per second - your simulation may not " +
+											   "keep up with your requirements.",
+                                			   CMDLINEARG_LOGICAL_SECOND,
+                                			   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
+                                			   CMDLINEARG_REALTIME_MULTIPLIER ) );
+		}
+		
+		return true;
 	}
 	
 	private String configurationSummary()
@@ -618,6 +608,18 @@ public class FederateManager extends FederateBase {
 		waitFor( timestamp - System.currentTimeMillis() );
 	}
 	
+	/**
+	 * Pre-announce all UCEF synchronization points.
+	 */
+	private void preAnnounceSyncPoints()
+	{
+		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
+		{
+			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+		}
+	}
+	
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -697,43 +699,7 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
-	private class PosDoubleValidator implements Validator
-	{
-		@Override
-		public ValidationResult validate( Object value )
-		{
-			try
-			{
-				if( Double.parseDouble( (String)value ) > 0.0 )
-					return CmdArgParser.GENERIC_SUCCESS;
-			}
-			catch( Exception e )
-			{
-				// ignore
-			}
-			return new ValidationResult( false, "Value must be greater than zero." );
-		}
-	}
-
-	private class PosIntValidator implements Validator
-	{
-		@Override
-		public ValidationResult validate( Object value )
-		{
-			try
-			{
-				if( Integer.parseInt( (String)value ) > 0.0 )
-					return CmdArgParser.GENERIC_SUCCESS;
-			}
-			catch( Exception e )
-			{
-				// ignore
-			}
-			return new ValidationResult( false, "Value must be a whole number greater than zero." );
-		}
-	};
-
-	private class RequiredFedValidator implements Validator
+	private class RequiredFedValidator extends Validator
 	{
 		@Override
 		public ValidationResult validate( Object value )
@@ -766,11 +732,12 @@ public class FederateManager extends FederateBase {
 					}
 				}
 				if( isValid )
-					return CmdArgParser.GENERIC_SUCCESS;
+					return ValidationResult.GENERIC_SUCCESS;
 			}
 			catch( Exception e )
 			{
-				// ignore
+				// something has gone wrong - doesn't really matter 
+				// what, just fall through 
 			}
 			return new ValidationResult( false,
 			                             "Values must be a federate type name and a " +
