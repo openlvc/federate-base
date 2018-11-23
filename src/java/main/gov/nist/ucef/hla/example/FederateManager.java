@@ -41,7 +41,7 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.example.util.cmdargs.CmdArgParser;
+import gov.nist.ucef.hla.example.util.cmdargs.CmdArgProcessor;
 import gov.nist.ucef.hla.example.util.cmdargs.ListArgument;
 import gov.nist.ucef.hla.example.util.cmdargs.CmdArgException;
 import gov.nist.ucef.hla.example.util.cmdargs.StandardValidator;
@@ -73,7 +73,7 @@ public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
 	private static final String FEDMAN_LOGO =
 		"     ______         ____  ___\n" +
-		"    / ____/__  ____/ /  |/  /___  _____\n" + 
+		"    / ____/__  ____/ /  |/  /___  ____\n" + 
 		"   / /_  / _ \\/ __  / /\\|_/ / __`/ __ \\\n" +
 		"  / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
 		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
@@ -161,6 +161,8 @@ public class FederateManager extends FederateBase {
 		this.logicalSecond = LOGICAL_SECOND_DEFAULT;
 		this.logicalStepGranularity = LOGICAL_STEP_GRANULARITY_DEFAULT;
 		this.realTimeMultiplier = REALTIME_MULTIPLIER_DEFAULT;
+		
+		this.maxTime = 15.0;
 		
 		this.nextTimeAdvance = -1;
 		
@@ -325,8 +327,8 @@ public class FederateManager extends FederateBase {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	private boolean processAndValidate( String[] args )
 	{
-        CmdArgParser cmdArgParser = new CmdArgParser();
-        ListArgument requiredFederateTypes = cmdArgParser
+        CmdArgProcessor argProcessor = new CmdArgProcessor();
+        ListArgument requiredFederateTypes = argProcessor
         	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
         	.isRequired(true)
 		    .validator( new RequiredFedValidator() )
@@ -337,7 +339,7 @@ public class FederateManager extends FederateBase {
 		                          CMDLINEARG_REQUIRE_SHORT,
 		                          CMDLINEARG_REQUIRE_SHORT ) )
 		    .hint( "FEDERATE_TYPE,COUNT" );
-		ValueArgument logicalSecondArg = cmdArgParser
+		ValueArgument logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
 			.isRequired( false )
 		    .validator( StandardValidator.POS_DOUBLE )
@@ -346,7 +348,7 @@ public class FederateManager extends FederateBase {
 		    					  "of %.2f will be used.",
 		    					  LOGICAL_SECOND_DEFAULT ) )
 		    .hint( "1.0" );
-		ValueArgument logicalStepGranularityArg = cmdArgParser
+		ValueArgument logicalStepGranularityArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
 			.isRequired( false )
 		    .validator( StandardValidator.POS_INT )
@@ -354,7 +356,7 @@ public class FederateManager extends FederateBase {
 		    				      "unspecified a value of %d will be used.",
 		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
 		    .hint( "1" );
-        ValueArgument realtimeMultiplierArg = cmdArgParser
+        ValueArgument realtimeMultiplierArg = argProcessor
         	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
         	.isRequired(false)
 		    .validator( StandardValidator.POS_DOUBLE )
@@ -366,25 +368,25 @@ public class FederateManager extends FederateBase {
         
         try
 		{
-			cmdArgParser.parse( args );
+			argProcessor.process( args );
 		}
 		catch( CmdArgException e )
 		{
 			System.err.println( e.getMessage() );
-			System.out.println( "Usage: " + cmdArgParser.getUsage( "fedman" ) );
-			System.out.println( cmdArgParser.getHelp() );
+			System.out.println( "Usage: " + argProcessor.getUsage( "fedman" ) );
+			System.out.println( argProcessor.getHelp() );
 			return false;
 		}
 		
-        // At this stage we know that all command line arguments are valid,
-        // so we can use the values without checking them further 
-		if(logicalSecondArg.isSet())
+		// At this stage we know that all command line arguments are valid,
+		// so we can use the values without checking them further 
+		if( logicalSecondArg.isSet() )
 			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
-		
-		if(logicalStepGranularityArg.isSet())
+
+		if( logicalStepGranularityArg.isSet() )
 			this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
-		
-		if(realtimeMultiplierArg.isSet())
+
+		if( realtimeMultiplierArg.isSet() )
 			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
 		
 		// this is a required argument, so we don't need to check if it's set
@@ -406,7 +408,7 @@ public class FederateManager extends FederateBase {
 		// provided command line argument values
 		if( this.wallClockStepDelay < 5 )
 		{
-			System.err.println( String.format( "The combination of the specified values for " +
+			System.err.println( String.format( "The specified value(s) for " +
 											   "--%s, --%s and/or --%s " +
 			                                   " cannot be achieved (tick rate is too high).",
 			                                   CMDLINEARG_LOGICAL_SECOND,
@@ -416,10 +418,10 @@ public class FederateManager extends FederateBase {
 		}
 		else if( this.wallClockStepDelay < 20 )
 		{
-			System.out.println( String.format( "WARNING: The combination of the specified " +
-											   "values for --%s, --%s and/or --%s " +
-											   "requires a high tick rate higher than 50 " +
-											   "ticks per second - your simulation may not " +
+			System.out.println( String.format( "WARNING: The specified value(s) for " +
+											   "--%s, --%s and/or --%s " +
+											   "requires a tick rate higher than 50 ticks" +
+											   "per second - your simulation may not " +
 											   "keep up with your requirements.",
                                 			   CMDLINEARG_LOGICAL_SECOND,
                                 			   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
@@ -461,6 +463,7 @@ public class FederateManager extends FederateBase {
 		builder.append( ")" );
 		builder.append( NEWLINE );
 		builder.append( "Start Requirements:" );
+		builder.append( NEWLINE );
 		builder.append( startRequirementsSummary() );
 		return builder.toString();
 	}
@@ -630,9 +633,9 @@ public class FederateManager extends FederateBase {
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+		FederateConfiguration config = new FederateConfiguration( FEDMAN_FEDERATE_TYPE, 
 		                                                          FEDMAN_FEDERATE_NAME, 
-		                                                          FEDMAN_FEDERATE_TYPE );
+		                                                          "TheUnitedFederationOfPlanets");
 		
 		// subscribe to reflections described in MIM to detected joining federates 
 		config.addSubscribedAtributes( HLAFEDERATE_OBJECT_CLASS_NAME, HLAFEDERATE_ATTRIBUTE_NAMES );

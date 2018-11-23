@@ -56,7 +56,7 @@ import java.util.Set;
  *    System.exit(0);
  * }
  */
-public class CmdArgParser
+public class CmdArgProcessor
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -75,7 +75,7 @@ public class CmdArgParser
 	/**
 	 * Constructor - nothing special here
 	 */
-	public CmdArgParser()
+	public CmdArgProcessor()
 	{
 		shortFormArgMap = new HashMap<>();
 		longFormArgMap = new HashMap<>();
@@ -162,10 +162,9 @@ public class CmdArgParser
 	 *
 	 * @param args the command line arguments to be parsed
 	 * @throws CmdArgException if there are unrecognised command line arguments, or missing
-	 *             required command line arguments
+	 *             required command line arguments, or arguments which do not pass validation 
 	 */
-	public void parse( String[] args )
-	    throws CmdArgException
+	public void process( String[] args ) throws CmdArgException
 	{
 		// reset everything
 		for( CmdLineArgument cmdLineArgument : collectAllCommandLineArguments() )
@@ -453,7 +452,7 @@ public class CmdArgParser
 	 */
 	public static void main( String args[] )
 	{
-		CmdArgParser cmdArgParser = new CmdArgParser();
+		CmdArgProcessor cmdArgParser = new CmdArgProcessor();
 		SwitchArgument theSwitch = cmdArgParser
 			.addSwitchArg( 'a', "activate-thing" )
 			.help( "Activate the thing" );
@@ -470,7 +469,7 @@ public class CmdArgParser
 		
 		try
 		{
-			cmdArgParser.parse( args );
+			cmdArgParser.process( args );
 			System.out.println( theSwitch.value() );
 			System.out.println( alphabetValue.value() );
 			System.out.println( bradshawValue.value() );

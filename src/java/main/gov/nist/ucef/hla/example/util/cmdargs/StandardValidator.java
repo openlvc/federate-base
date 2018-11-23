@@ -68,6 +68,10 @@ public class StandardValidator
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	private StandardValidator()
+	{
+		// hidden constructor
+	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS

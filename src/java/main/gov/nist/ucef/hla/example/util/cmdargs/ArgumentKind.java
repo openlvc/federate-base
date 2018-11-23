@@ -20,11 +20,14 @@
  */
 package gov.nist.ucef.hla.example.util.cmdargs;
 
-//----------------------------------------------------------
-//                      ENUMERATIONS
-//----------------------------------------------------------
+/**
+ * The different kinds of command line arguments
+ */
 public enum ArgumentKind
 {
+	//----------------------------------------------------------
+    //  VALUES
+    //----------------------------------------------------------
 	SWITCH, VALUE, LIST,
 	UNKNOWN
 }
