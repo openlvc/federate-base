@@ -20,14 +20,18 @@
  */
 package gov.nist.ucef.hla.example;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
@@ -35,6 +39,12 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
+import gov.nist.ucef.hla.example.util.CmdArgParser;
+import gov.nist.ucef.hla.example.util.CmdArgParser.ListArgument;
+import gov.nist.ucef.hla.example.util.CmdArgParser.ParseException;
+import gov.nist.ucef.hla.example.util.CmdArgParser.ValidationResult;
+import gov.nist.ucef.hla.example.util.CmdArgParser.Validator;
+import gov.nist.ucef.hla.example.util.CmdArgParser.ValueArgument;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
 
@@ -49,7 +59,7 @@ import gov.nist.ucef.hla.example.util.FileUtils;
  *		             for Federation
  * 		     ______         ____  ___
  * 		    / ____/__  ____/ /  |/  /___ _____ 
- * 		   / /_  / _ \/ __  / /\|_/ / __ `/ __\
+ * 		   / /_  / _ \/ __  / /\|_/ / __`/ __ \
  * 		  / __/ /  __/ /_/ / /  / / /_/ / / / /
  * 		 /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
  * 		------------ Federate Manager ----------
@@ -62,11 +72,21 @@ public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
 	private static final String FEDMAN_LOGO =
 		"     ______         ____  ___\n" +
-		"    / ____/__  ____/ /  |/  /___ _____\n" + 
-		"   / /_  / _ \\/ __  / /\\|_/ / __ `/ __\\\n" +
+		"    / ____/__  ____/ /  |/  /___  _____\n" + 
+		"   / /_  / _ \\/ __  / /\\|_/ / __`/ __ \\\n" +
 		"  / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
 		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
 		"------------ Federate Manager ----------\n";
+
+	// command line arguments and defaults
+	private static final String CMDLINEARG_REQUIRE = "require";
+	private static final char CMDLINEARG_REQUIRE_SHORT = 'r';
+	private static final String CMDLINEARG_LOGICAL_SECOND = "logical-second";
+	private static final double LOGICAL_SECOND_DEFAULT = 1.0;
+	private static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY = "logical-granularity";
+	private static final int LOGICAL_STEP_GRANULARITY_DEFAULT = 1;
+	private static final String CMDLINEARG_REALTIME_MULTIPLIER = "realtime-multiplier";
+	private static final double REALTIME_MULTIPLIER_DEFAULT = 1.0;
 	
 	private static final String FEDMAN_FEDERATE_TYPE = "FederateManager";
 	private static final String FEDMAN_FEDERATE_NAME = "FederateManager";
@@ -80,7 +100,10 @@ public class FederateManager extends FederateBase {
 	                                                HLAFEDERATE_NAME_ATTR,
 	                                                HLAFEDERATE_TYPE_ATTR } ) );
 	
-	
+	private static final String FEDERATE_TYPE_HEADING = "Type";
+	private static final String NUMBER_REQUIRED_HEADING = "Required";
+	private static final String NUMBER_JOINED_HEADING = "Joined";
+	private static final char NEWLINE = '\n';
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
@@ -92,7 +115,7 @@ public class FederateManager extends FederateBase {
 		
 		try
 		{
-			new FederateManager().runFederate( makeConfig() );
+			new FederateManager(args).runFederate( makeConfig() );
 		}
 		catch(Exception e)
 		{
@@ -110,36 +133,149 @@ public class FederateManager extends FederateBase {
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private long nextTimeAdvance;
-	private double timeAdvanceFrequency; // in Hertz
-	private double timeAdvanceStep;
 	private double maxTime;
+	
+	private double logicalSecond;
+	private int logicalStepGranularity;
+	private double realTimeMultiplier;
+	
+	private double logicalStepSize;
 	
 	private long wallClockStepDelay;
 	
 	private Map<String, Set<JoinedFederate>> joinedFederatesByType; 
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
-	
+
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateManager()
+	public FederateManager( String[] args )
 	{
 		super();
 		
+		this.startRequirements = new HashMap<>();
+		this.joinedFederatesByType = new HashMap<>();
+		this.logicalSecond = LOGICAL_SECOND_DEFAULT;
+		this.logicalStepGranularity = LOGICAL_STEP_GRANULARITY_DEFAULT;
+		this.realTimeMultiplier = REALTIME_MULTIPLIER_DEFAULT;
+		
 		this.nextTimeAdvance = -1;
-		this.timeAdvanceFrequency = 4; // Hz
-		this.maxTime = 15.0;
 		
-		this.wallClockStepDelay = (long)(1000.0 / this.timeAdvanceFrequency);
-		
-		joinedFederatesByType = new HashMap<>();
-		startRequirements = new HashMap<>();
-		
-		// we need at least two federates of type "FederateX" to begin
-		startRequirements.put( "FederateX", 2 );
+		if( !processAndValidate( args ) )
+		{
+			System.out.println( "Cannot proceed. Exiting now." );
+			System.exit( 1 );
+		}
 	}
 	
+	private boolean processAndValidate( String[] args )
+	{
+        CmdArgParser cmdArgParser = new CmdArgParser();
+        ListArgument requiredFederateTypes = cmdArgParser
+        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
+        	.isRequired(true)
+		    .validator( new RequiredFedValidator() )
+		    .help( String.format( "Define required federate types and counts. For example, " +
+		                          "'-%s FedABC,2' would require two 'FedABC' federates to join. " +
+		                          "Multiple requirements can be specified by repeated use " +
+		                          "of -%s.",
+		                          CMDLINEARG_REQUIRE_SHORT,
+		                          CMDLINEARG_REQUIRE_SHORT ) )
+		    .hint( "FEDERATE_TYPE,COUNT" );
+		ValueArgument logicalSecondArg = cmdArgParser
+			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
+		    .validator( new PosDoubleValidator() )
+		    .isRequired( false )
+		    .help( String.format( "Define a 'logical second'; the logical step size which " +
+		    					  "equates to a real-time second. If unspecified a value " +
+		    					  "of %.2f will be used.",
+		    					  LOGICAL_SECOND_DEFAULT ) )
+		    .hint( "1.0" );
+		ValueArgument logicalStepGranularityArg = cmdArgParser
+			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
+		    .validator( new PosIntValidator() )
+		    .isRequired( false )
+		    .help( String.format( "Define the number of steps per logical second. If " +
+		    				      "unspecified a value of %d will be used.",
+		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
+		    .hint( "1" );
+        ValueArgument realtimeMultiplierArg = cmdArgParser
+        	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
+		    .validator( new PosDoubleValidator() )
+		    .isRequired(false)
+        	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
+        						  "half speed, 2.0 is double speed, and so on. If unspecified " +
+        						  "a value of %.2f will be used.", 
+        						  REALTIME_MULTIPLIER_DEFAULT ) )
+        	.hint("1.0");
+        
+        try
+		{
+			cmdArgParser.parse( args );
+		}
+		catch( ParseException e )
+		{
+			System.err.println( e.getMessage() );
+			System.out.println( "Usage: " + cmdArgParser.getUsage( "mycommand" ) );
+			System.out.println( cmdArgParser.getHelp() );
+			return false;
+		}
+		
+        // At this stage we know that all command line arguments are valid,
+        // so we can use the values without checking them further 
+		if(logicalSecondArg.isSet())
+			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
+		
+		if(logicalStepGranularityArg.isSet())
+			this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
+		
+		if(realtimeMultiplierArg.isSet())
+			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
+		
+		// this is a required argument, so we don't need to check if it's set
+		List<String> requires = requiredFederateTypes.value();
+		for( String require : requires )
+		{
+			StringTokenizer tokenizer = new StringTokenizer( require, "," );
+			String federateType = tokenizer.nextToken();
+			int federateCount = Integer.parseInt( tokenizer.nextToken() );
+			startRequirements.put( federateType, federateCount );
+		}
+
+		double oneSecond = 1000.0 / this.realTimeMultiplier;
+		this.logicalStepSize = this.logicalSecond / this.logicalStepGranularity;
+		this.wallClockStepDelay = (long)(oneSecond * this.logicalStepSize);
+		
+		// the values are all fine individually, but in combination they might 
+		// cause problems - check for mega-fast tick rates resulting from the
+		// provided command line argument values
+		if( this.wallClockStepDelay < 5 )
+		{
+			System.err.println( String.format( "The combination of the specified values for " +
+											   "--%s, --%s and/or --%s " +
+			                                   " cannot be achieved (tick rate is too high).",
+			                                   CMDLINEARG_LOGICAL_SECOND,
+			                                   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
+			                                   CMDLINEARG_REALTIME_MULTIPLIER ) );
+			return false;
+		}
+		else if( this.wallClockStepDelay < 20 )
+		{
+			System.out.println( String.format( "WARNING: The combination of the specified " +
+											   "values for --%s, --%s and/or --%s " +
+											   "requires a high tick rate higher than 50 " +
+											   "ticks per second - your simulation may not " +
+											   "keep up with your requirements.",
+                                			   CMDLINEARG_LOGICAL_SECOND,
+                                			   CMDLINEARG_LOGICAL_STEP_GRANULARITY,
+                                			   CMDLINEARG_REALTIME_MULTIPLIER ) );
+		}
+		
+		return true;
+	}
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -157,8 +293,8 @@ public class FederateManager extends FederateBase {
 	{
 		preAnnounceSyncPoints();
 
+		System.out.println( configurationSummary() );
 		System.out.print( "beforeReadyToPopulate()\nWaiting for federates to join..." );
-		
 		long count = 0;
 		int lastJoinedCount = -1;
 		int currentJoinedCount = joinedCount();
@@ -193,7 +329,6 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeFirstStep()
 	{
-		this.timeAdvanceStep = configuration.getLookAhead();
 		this.nextTimeAdvance = System.currentTimeMillis();
 	}
 	
@@ -208,7 +343,7 @@ public class FederateManager extends FederateBase {
 			this.nextTimeAdvance += wallClockStepDelay;
 			waitUntil( this.nextTimeAdvance );
 			System.out.println( String.format( "Advancing time to %.3f...",
-			                                   (federateTime + this.timeAdvanceStep) ) );
+			                                   (federateTime + this.logicalStepSize) ) );
 			return true;
 		}
 		
@@ -287,14 +422,14 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void receiveObjectDeleted( HLAObject hlaObject )
 	{
-		// federate manager does not care about this
+		// federate manager does not process this
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Pre-announce all UCEF synchronization points
+	 * Pre-announce all UCEF synchronization points.
 	 */
 	private void preAnnounceSyncPoints()
 	{
@@ -302,6 +437,125 @@ public class FederateManager extends FederateBase {
 		{
 			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
 		}
+	}
+	
+	private String configurationSummary()
+	{
+		StringBuilder builder = new StringBuilder();
+		builder.append( center( " Federate Manager Details ", 80, '=' ) );
+		builder.append( NEWLINE );
+		builder.append( "Time:" );
+		builder.append( NEWLINE );
+		builder.append( String.format( "\tLogical step of %.2f = %.2f real time seconds.", 
+		                               this.logicalSecond, 1.0 ) );
+		builder.append( NEWLINE );
+		builder.append( "\tRunning " );
+		if(this.realTimeMultiplier > 1.0)
+		{
+			builder.append( String.format( "%.2f× faster than ", 
+			                               (this.realTimeMultiplier)) );
+		}
+		else if(this.realTimeMultiplier < 1.0)
+		{
+			builder.append( String.format( "%.2f× slower than ", 
+			                               (1.0/this.realTimeMultiplier)) );
+		}
+		else
+		{
+			builder.append( "in ");
+		}
+		builder.append( "real time (");
+		
+		builder.append( String.format( "one logical step of %.2f every %d milliseconds.", 
+		                               this.logicalStepSize, this.wallClockStepDelay) );
+		builder.append( ")" );
+		builder.append( NEWLINE );
+		builder.append( "Start Requirements:" );
+		builder.append( startRequirementsSummary() );
+		return builder.toString();
+	}
+	
+	/**
+	 * Utility method which just generates an ASCII-art style table summarizing the requirements
+	 * for a federation to achieve the "ready to populate" synchronization point
+	 * 
+	 * @return an ASCII-art style table summarizing the configured start requirements
+	 */
+	private String startRequirementsSummary()
+	{
+		// sorted federate types list
+		List<String> federateTypes = new ArrayList<>(startRequirements.keySet());
+		federateTypes.sort( null );
+		
+		// check the maximum length of federate type names so that we can
+		// format the summary table nicely
+		int col0width = federateTypes.parallelStream().mapToInt( str -> str.length() ).max().getAsInt();
+		col0width = Math.max( col0width, FEDERATE_TYPE_HEADING.length() );
+		
+		int col1width = NUMBER_REQUIRED_HEADING.length();
+		int col2width = NUMBER_JOINED_HEADING.length();
+		
+		StringBuilder builder = new StringBuilder();
+		builder.append( repeat("-", col0width + 1) );
+		builder.append( "+" );
+		builder.append( repeat("-", NUMBER_REQUIRED_HEADING.length() + 2 ) );
+		builder.append( "+" );
+		builder.append( repeat("-", NUMBER_JOINED_HEADING.length() + 1 ) );
+		builder.append(NEWLINE);
+		String rowSeparator = builder.toString();
+		
+		// build the table
+		builder = new StringBuilder();
+		//      top border
+		builder.append( rowSeparator );
+		//      header row
+		builder.append( FEDERATE_TYPE_HEADING );
+		builder.append( repeat( " ", col0width - FEDERATE_TYPE_HEADING.length() ) );
+		builder.append( " | " ).append( NUMBER_REQUIRED_HEADING );
+		builder.append( repeat( " ", col1width - NUMBER_REQUIRED_HEADING.length() ) );
+		builder.append( " | " ).append( NUMBER_JOINED_HEADING );
+		builder.append( NEWLINE );
+		//      header row/data separator
+		builder.append( rowSeparator );
+		//      data
+		for( String federateType : federateTypes )
+		{
+			String requiredCount = Integer.toString( startRequirements.get( federateType ) );
+			String joinedCount = Integer.toString( joinedFederatesByType.getOrDefault( federateTypes, Collections.emptySet() ).size() );
+			
+			builder.append(federateType);
+			builder.append( repeat(" ", col0width - federateType.length()) );
+			builder.append(" | " );
+			builder.append(requiredCount);
+			builder.append( repeat(" ", col1width - requiredCount.length()) );
+			builder.append(" | " );
+			builder.append(joinedCount);
+			builder.append( repeat(" ", col2width - joinedCount.length()) );
+			builder.append( "\n" );
+		}
+		//      bottom border
+		builder.append( rowSeparator );
+		
+		return builder.toString();
+	}
+	
+	private String repeat( String str, int count )
+	{
+		return IntStream.range( 0, count ).mapToObj( i -> str ).collect( Collectors.joining( "" ) );
+	}
+	
+	private String center( String str, int width, char padding )
+	{
+		int count = width - str.length();
+		if( count <= 0)
+			return str;
+		
+		String padStr = Character.toString( padding );
+		String leftPad = repeat(padStr, count / 2); 
+		if(count %2 ==0)
+			return leftPad + str + leftPad;
+			
+		return leftPad + str + leftPad.substring( 0, count+1 );
 	}
 	
 	private int joinedCount()
@@ -443,5 +697,85 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
+	private class PosDoubleValidator implements Validator
+	{
+		@Override
+		public ValidationResult validate( Object value )
+		{
+			try
+			{
+				if( Double.parseDouble( (String)value ) > 0.0 )
+					return CmdArgParser.GENERIC_SUCCESS;
+			}
+			catch( Exception e )
+			{
+				// ignore
+			}
+			return new ValidationResult( false, "Value must be greater than zero." );
+		}
+	}
 
+	private class PosIntValidator implements Validator
+	{
+		@Override
+		public ValidationResult validate( Object value )
+		{
+			try
+			{
+				if( Integer.parseInt( (String)value ) > 0.0 )
+					return CmdArgParser.GENERIC_SUCCESS;
+			}
+			catch( Exception e )
+			{
+				// ignore
+			}
+			return new ValidationResult( false, "Value must be a whole number greater than zero." );
+		}
+	};
+
+	private class RequiredFedValidator implements Validator
+	{
+		@Override
+		public ValidationResult validate( Object value )
+		{
+			boolean isValid = true;
+			try
+			{
+				@SuppressWarnings("unchecked")
+				List<String> val = (List<String>)value;
+				for( String s : val )
+				{
+					String[] parts = s.split( "," );
+					if( parts.length != 2 )
+					{
+						// something wrong with the expected comma separated value 
+						isValid = false;
+						break;
+					}
+					if( parts[0].length() == 0 )
+					{
+						// something wrong with the federate type name (empty) 
+						isValid = false;
+						break;
+					}
+					if( Integer.parseInt( parts[1], 10 ) < 1 )
+					{
+						// something wrong with the count (not a number or less than 1) 
+						isValid = false;
+						break;
+					}
+				}
+				if( isValid )
+					return CmdArgParser.GENERIC_SUCCESS;
+			}
+			catch( Exception e )
+			{
+				// ignore
+			}
+			return new ValidationResult( false,
+			                             "Values must be a federate type name and a " +
+			                             "number greater than zero separated by a comma. " +
+			                             "For example, 'FedABC,2'." );
+		}
+	};
 }

@@ -33,7 +33,6 @@ import hla.rti1516e.AttributeHandleSetFactory;
 import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.AttributeHandleValueMapFactory;
 import hla.rti1516e.CallbackModel;
-import hla.rti1516e.FederateHandle;
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
@@ -44,18 +43,11 @@ import hla.rti1516e.RTIambassador;
 import hla.rti1516e.ResignAction;
 import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.exceptions.AlreadyConnected;
-import hla.rti1516e.exceptions.AttributeNotDefined;
 import hla.rti1516e.exceptions.DeletePrivilegeNotHeld;
-import hla.rti1516e.exceptions.FederateNotExecutionMember;
 import hla.rti1516e.exceptions.FederatesCurrentlyJoined;
 import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 import hla.rti1516e.exceptions.FederationExecutionDoesNotExist;
 import hla.rti1516e.exceptions.InteractionClassNotPublished;
-import hla.rti1516e.exceptions.NotConnected;
-import hla.rti1516e.exceptions.ObjectClassNotDefined;
-import hla.rti1516e.exceptions.RTIinternalError;
-import hla.rti1516e.exceptions.RestoreInProgress;
-import hla.rti1516e.exceptions.SaveInProgress;
 import hla.rti1516e.exceptions.TimeConstrainedAlreadyEnabled;
 import hla.rti1516e.exceptions.TimeConstrainedIsNotEnabled;
 import hla.rti1516e.exceptions.TimeRegulationAlreadyEnabled;
@@ -155,18 +147,16 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public FederateHandle joinFederation( FederateConfiguration configuration )
+	public void joinFederation( String federateType,
+	                            String federateName,
+	                            String federationName,
+	                            URL[] joinModules )
 	{
-		String federationExecutionName = configuration.getFederationName();
-		String federateName = configuration.getFederateName();
-		String federateType = configuration.getFederateType();
-		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
-		
 		try
 		{
 			// join the federation with the configured join FOM modules
-			return rtiAmbassador.joinFederationExecution( federateName, federateType, 
-			                                              federationExecutionName, joinModules );
+			rtiAmbassador.joinFederationExecution( federateName, federateType, 
+			                                       federationName, joinModules );
 		}
 		catch(Exception e)
 		{

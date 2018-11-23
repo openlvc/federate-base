@@ -333,13 +333,11 @@ public abstract class FederateBase
 	 */
 	private void createAndJoinFederation()
 	{
-		rtiamb.connect( fedamb );
+		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
 		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederation( federationName, modules );
-		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
-		rtiamb.createFederation( configuration );
 
 		beforeFederationJoin();
 		
