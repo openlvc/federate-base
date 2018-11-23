@@ -125,11 +125,8 @@ public class RTIAmbassadorWrapper
 		}
 	}
 	
-	public void createFederation( FederateConfiguration configuration )
+	public void createFederation( String federationName, URL[] modules )
 	{
-		String federationName = configuration.getFederationName();
-		URL[] modules = configuration.getModules().toArray( new URL[0] );
-
 		try
 		{
 			// We attempt to create a new federation with the configured FOM modules
@@ -148,13 +145,11 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void joinFederation( FederateConfiguration configuration )
+	public void joinFederation( String federateType,
+	                            String federateName,
+	                            String federationName,
+	                            URL[] joinModules )
 	{
-		String federationName = configuration.getFederationName();
-		String federateName = configuration.getFederateName();
-		String federateType = configuration.getFederateType();
-		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
-		
 		try
 		{
 			// join the federation with the configured join FOM modules
@@ -235,11 +230,11 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void destroyFederationExecution( FederateConfiguration configuration )
+	public void destroyFederationExecution( String federationName )
 	{
 		try
 		{
-			rtiAmbassador.destroyFederationExecution( configuration.getFederateName() );
+			rtiAmbassador.destroyFederationExecution( federationName );
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{

@@ -238,9 +238,9 @@ public class MyFederate extends FederateBase {
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
+		FederateConfiguration config = new FederateConfiguration( "TestFederate", 
 			                                                      "Federate-" + new Date().getTime(), 
-																  "TestFederate" );
+																  "TheUnitedFederationOfPlanets" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String[] attributes = new String[]{ NUMBER_CUPS_ATTR_ID, FLAVOR_ATTR_ID };
