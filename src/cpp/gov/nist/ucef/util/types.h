@@ -61,13 +61,13 @@ namespace ucef
 		 */
 		struct ObjectAttribute
 		{
-			ObjectAttribute() : name( L"" ),
+			ObjectAttribute() : name( "" ),
 			                    publish( false ),
 			                    subscribe( false )
 			{
 			}
 
-			std::wstring name;
+			std::string name;
 			bool publish;
 			bool subscribe;
 			};
@@ -80,13 +80,13 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 		struct ObjectClass
 		{
-			ObjectClass() : name( L"" ),
+			ObjectClass() : name( "" ),
 			                publish( false ),
 			                subscribe( false ),
 			                objectAttributes{ }
 			{
 			}
-			std::wstring name; // fully qualified object class name
+			std::string name; // fully qualified object class name
 			bool publish;
 			bool subscribe;
 			ObjectAttributes objectAttributes;
@@ -100,11 +100,11 @@ namespace ucef
 		 */
 		struct InteractionParameter
 		{
-			InteractionParameter() : name( L"" )
+			InteractionParameter() : name( "" )
 			{
 
 			}
-			std::wstring name;
+			std::string name;
 		};
 
 		/**
@@ -115,14 +115,14 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionParameter>> InteractionParameters;
 		struct InteractionClass
 		{
-			InteractionClass() : name( L"" ),
+			InteractionClass() : name( "" ),
 			                     publish( false ),
 			                     subscribe( false ),
 			                     parameters{ }
 			{
 
 			}
-			std::wstring name; // fully qualified interaction class name
+			std::string name; // fully qualified interaction class name
 			bool publish;
 			bool subscribe;
 			InteractionParameters parameters;

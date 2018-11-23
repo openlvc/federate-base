@@ -36,8 +36,10 @@ namespace ucef
 			return;
 		}
 		lock_guard<mutex> lock( m_threadSafeLock );
-		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
-			announcedSynchPoints.insert( label );
+
+		string sLabel = ConversionHelper::ws2s( label );
+		if( announcedSynchPoints.find(sLabel) == announcedSynchPoints.end() )
+			announcedSynchPoints.insert( sLabel );
 	}
 
 
@@ -46,8 +48,9 @@ namespace ucef
 	                                                             throw( FederateInternalError )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		if( achievedSynchPoints.find(label) == achievedSynchPoints.end() )
-			achievedSynchPoints.insert(label);
+		string sLabel = ConversionHelper::ws2s( label );
+		if( achievedSynchPoints.find(sLabel) == achievedSynchPoints.end() )
+			achievedSynchPoints.insert(sLabel);
 	}
 
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
@@ -206,14 +209,14 @@ namespace ucef
 		receiveInteraction( theInteraction, theParameters, tag, sentOrder, theType, theReceiveInfo );
 	}
 
-	bool FederateAmbassador::isAnnounced( wstring& announcedPoint )
+	bool FederateAmbassador::isAnnounced( string& announcedPoint )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
 		return announced;
 	}
 
-	bool FederateAmbassador::isAchieved( wstring& achievedPoint )
+	bool FederateAmbassador::isAchieved( string& achievedPoint )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;

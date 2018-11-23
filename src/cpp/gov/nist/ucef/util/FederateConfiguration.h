@@ -41,14 +41,14 @@ namespace ucef
 				 * 
 				 * @return the stored paths of FOM files
 				 */
-				std::vector<std::wstring> getFomPaths();
+				std::vector<std::string> getFomPaths();
 
 				/**
 				 * Returns the stored path of the SOM files
 				 * 
 				 * @return the stored path of the SOM files
 				 */
-				std::wstring getSomPath();
+				std::string getSomPath();
 
 				/**
 				 * Returns the lookahead value for time regulating federates

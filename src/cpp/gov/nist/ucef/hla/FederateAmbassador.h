@@ -155,7 +155,7 @@ namespace ucef
 			 * @return true if the synchronization point has already been announced to the federation,
 			 *         false otherwise
 			 */
-			bool isAnnounced( std::wstring& label );
+			bool isAnnounced( std::string& label );
 
 			/**
 			 * Check if the federation has achieved the synchronization point
@@ -164,7 +164,7 @@ namespace ucef
 			 * @return true if the synchronization point has already been achieved by the federation,
 			 *         false otherwise
 			 */
-			bool isAchieved( std::wstring& achievedPoint );
+			bool isAchieved( std::string& achievedPoint );
 
 			/**
 			 * Check if this federation is time regulated
@@ -200,8 +200,8 @@ namespace ucef
 			double logicalTimeAsDouble( const rti1516e::LogicalTime& time );
 
 		private:
-			std::set<std::wstring> announcedSynchPoints;
-			std::set<std::wstring> achievedSynchPoints;
+			std::set<std::string> announcedSynchPoints;
+			std::set<std::string> achievedSynchPoints;
 			bool m_regulated;
 			bool m_constrained;
 			double m_federateTime;

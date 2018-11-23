@@ -35,18 +35,18 @@ namespace ucef
 			return m_federateType;
 		}
 
-		vector<wstring> FederateConfiguration::getFomPaths()
+		vector<string> FederateConfiguration::getFomPaths()
 		{
-			vector<wstring> foms;
-			foms.push_back( L"restaurant/RestaurantFood.xml" );
-			foms.push_back( L"restaurant/RestaurantDrinks.xml" );
-			foms.push_back( L"restaurant/RestaurantProcesses.xml" );
+			vector<string> foms;
+			foms.push_back( "restaurant/RestaurantFood.xml" );
+			foms.push_back( "restaurant/RestaurantDrinks.xml" );
+			foms.push_back( "restaurant/RestaurantProcesses.xml" );
 			return foms;
 		}
 
-		wstring FederateConfiguration::getSomPath()
+		string FederateConfiguration::getSomPath()
 		{
-			return L"restaurant/RestaurantProcesses.xml";
+			return "restaurant/RestaurantProcesses.xml";
 		}
 
 		float FederateConfiguration::getLookAhead()

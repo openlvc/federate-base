@@ -30,7 +30,7 @@ namespace ucef
 				if( root )
 				{
 					XMLElement* objectsElement = root->FirstChildElement( "objects" );
-					SOMParser::traverseObjectClasses( L"", SomAttributes, objectsElement, SomObjects );
+					SOMParser::traverseObjectClasses( "", SomAttributes, objectsElement, SomObjects );
 				}
 				else
 				{
@@ -64,7 +64,7 @@ namespace ucef
 				{
 					XMLElement* interactionsElement = root->FirstChildElement( "interactions" );
 					SOMParser::traverseInteractionClasses
-					               ( L"", SomInteractionParams, interactionsElement, SomInteractions );
+					               ( "", SomInteractionParams, interactionsElement, SomInteractions );
 				}
 				else
 				{
@@ -94,7 +94,7 @@ namespace ucef
 
 		// this is a recursive method and passing copies of objectClassName and
 		// attributes are required for the correct evaluation of values
-		void SOMParser::traverseObjectClasses( wstring objectClassName,
+		void SOMParser::traverseObjectClasses( string objectClassName,
 		                                       vector<shared_ptr<ObjectAttribute>> attributes,
 		                                       XMLElement* parentElement,
 		                                       vector<shared_ptr<ObjectClass>>& objectClasses )
@@ -109,7 +109,7 @@ namespace ucef
 					shared_ptr<ObjectClass> objectClass = make_shared<ObjectClass>();
 
 					// fully qualified object class name
-					objectClass->name = objectClassName + ConversionHelper::s2ws(objectNameElement->GetText());
+					objectClass->name = objectClassName + objectNameElement->GetText();
 
 					// sharing state (pub & sub) of the class
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
@@ -132,7 +132,7 @@ namespace ucef
 						{
 							shared_ptr<ObjectAttribute> objectAttribute = make_shared<ObjectAttribute>();
 							// get attribute's name as in SOM
-							objectAttribute->name = ConversionHelper::s2ws(attributeNameElement->GetText());
+							objectAttribute->name = attributeNameElement->GetText();
 
 							// get the sharing state of attributes
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
@@ -153,14 +153,13 @@ namespace ucef
 					{
 						for( shared_ptr<ObjectAttribute> attribute : attributes )
 						{
-							objectClass->objectAttributes.insert(
-								make_pair(ConversionHelper::ws2s(attribute->name), attribute) );
+							objectClass->objectAttributes.insert( make_pair(attribute->name, attribute) );
 						}
 						objectClasses.push_back( objectClass );
 					}
 					else
 					{
-						string tmpObjectClassName = ConversionHelper::ws2s( objectClass->name );
+						string tmpObjectClassName = objectClass->name ;
 						Logger::getInstance().log( tmpObjectClassName + " doesn't have any attributes.", LevelWarn );
 					}
 
@@ -173,8 +172,7 @@ namespace ucef
 				if( objectNameElement )
 				{
 					// build up the fully qualified class name
-					objectClassName +=
-							ConversionHelper::s2ws( objectNameElement->GetText() ) + L".";
+					objectClassName += objectNameElement->GetText() + string(".");
 
 					// collect attributes in this object class (traverse non-leaf attributes)
 					for( XMLElement* attrElement = parentElement->FirstChildElement( "attribute" );
@@ -186,7 +184,7 @@ namespace ucef
 						{
 							shared_ptr<ObjectAttribute> objectAttribute = make_shared<ObjectAttribute>();
 							// get attribute's name as in SOM
-							objectAttribute->name = ConversionHelper::s2ws( attributeNameElement->GetText() );
+							objectAttribute->name = attributeNameElement->GetText();
 							XMLElement* attributeSharingElement = attrElement->FirstChildElement( "sharing" );
 							if( attributeSharingElement )
 							{
@@ -211,7 +209,7 @@ namespace ucef
 				}
 			}
 		}
-		void SOMParser::traverseInteractionClasses( wstring interactionClassName,
+		void SOMParser::traverseInteractionClasses( string interactionClassName,
 		                                            vector<shared_ptr<InteractionParameter>> params,
 		                                            tinyxml2::XMLElement * parentElement, 
 		                                            vector<shared_ptr<InteractionClass>>& intClasses )
@@ -226,8 +224,7 @@ namespace ucef
 					shared_ptr<InteractionClass> interactionClass = make_shared<InteractionClass>();
 
 					// fully qualified interaction class name
-					interactionClass->name = interactionClassName +
-					                         ConversionHelper::s2ws(interactionNameElement->GetText());
+					interactionClass->name = interactionClassName + interactionNameElement->GetText();
 
 					// sharing state (pub & sub) of the interaction class
 					XMLElement* objectSharingElement = parentElement->FirstChildElement( "sharing" );
@@ -250,14 +247,14 @@ namespace ucef
 						{
 							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
 							// get param's name as in SOM
-							interactionParam->name = ConversionHelper::s2ws(attributeNameElement->GetText());
+							interactionParam->name = attributeNameElement->GetText();
 							params.push_back( interactionParam );
 						}
 					}
 	
 					for( shared_ptr<InteractionParameter> param : params )
 					{
-						interactionClass->parameters.insert( make_pair(ConversionHelper::ws2s(param->name), param) );
+						interactionClass->parameters.insert( make_pair(param->name, param) );
 					}
 					intClasses.push_back( interactionClass );
 				}
@@ -269,8 +266,7 @@ namespace ucef
 				if( interactionNameElement )
 				{
 					// build up the fully qualified interaction class name
-					interactionClassName +=
-							ConversionHelper::s2ws( interactionNameElement->GetText() ) + L".";
+					interactionClassName += interactionNameElement->GetText() + string(".");
 
 					// collect params in this interaction class (traverse non-leaf params)
 					for( XMLElement* paramElement = parentElement->FirstChildElement( "parameter" );
@@ -282,7 +278,7 @@ namespace ucef
 						{
 							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
 							// get attribute's name as in SOM
-							interactionParam->name = ConversionHelper::s2ws( paramNameElement->GetText() );
+							interactionParam->name = paramNameElement->GetText();
 							params.push_back( interactionParam );
 						}
 					}
