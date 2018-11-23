@@ -25,7 +25,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
+import java.util.StringTokenizer;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
@@ -77,6 +79,8 @@ public class FederateManager extends FederateBase {
 	    new HashSet<>( Arrays.asList( new String[]{ HLAFEDERATE_HANDLE_ATTR, 
 	                                                HLAFEDERATE_NAME_ATTR,
 	                                                HLAFEDERATE_TYPE_ATTR } ) );
+	
+	
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
