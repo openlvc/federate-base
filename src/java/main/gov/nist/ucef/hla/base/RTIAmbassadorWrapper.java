@@ -135,11 +135,8 @@ public class RTIAmbassadorWrapper
 		}
 	}
 	
-	public void createFederation( FederateConfiguration configuration )
+	public void createFederation( String federationName, URL[] modules )
 	{
-		String federationName = configuration.getFederationName();
-		URL[] modules = configuration.getModules().toArray( new URL[0] );
-
 		try
 		{
 			// We attempt to create a new federation with the configured FOM modules
@@ -245,11 +242,11 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void destroyFederationExecution( FederateConfiguration configuration )
+	public void destroyFederationExecution( String federationName )
 	{
 		try
 		{
-			rtiAmbassador.destroyFederationExecution( configuration.getFederateName() );
+			rtiAmbassador.destroyFederationExecution( federationName );
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{

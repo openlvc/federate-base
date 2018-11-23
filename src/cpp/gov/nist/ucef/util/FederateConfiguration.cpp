@@ -10,11 +10,11 @@ namespace ucef
 	{
 		FederateConfiguration::FederateConfiguration() : m_federateName( "Federate" + to_string(rand()) ),
 		                                                 m_federateType( "FederateType" + to_string(rand()) ),
+		                                                 m_lookAhead( 1.0 ),
+		                                                 m_timeStep( 1.0 ),
 		                                                 m_immediateCallBacks( true ),
 		                                                 m_timeRegulated( true ),
-		                                                 m_timeConstrained( true ),
-		                                                 m_lookAhead( 1.0 ),
-		                                                 m_timeStep( 1.0 )
+		                                                 m_timeConstrained( true )
 		{
 
 			m_federateName = ( "Federate" + to_string(std::time(0)));
@@ -35,18 +35,18 @@ namespace ucef
 			return m_federateType;
 		}
 
-		vector<wstring> FederateConfiguration::getFomPaths()
+		vector<string> FederateConfiguration::getFomPaths()
 		{
-			vector<wstring> foms;
-			foms.push_back( L"restaurant/RestaurantFood.xml" );
-			foms.push_back( L"restaurant/RestaurantDrinks.xml" );
-			foms.push_back( L"restaurant/RestaurantProcesses.xml" );
+			vector<string> foms;
+			foms.push_back( "restaurant/RestaurantFood.xml" );
+			foms.push_back( "restaurant/RestaurantDrinks.xml" );
+			foms.push_back( "restaurant/RestaurantProcesses.xml" );
 			return foms;
 		}
 
-		wstring FederateConfiguration::getSomPath()
+		string FederateConfiguration::getSomPath()
 		{
-			return L"restaurant/RestaurantProcesses.xml";
+			return "restaurant/RestaurantProcesses.xml";
 		}
 
 		float FederateConfiguration::getLookAhead()
@@ -56,7 +56,7 @@ namespace ucef
 
 		float FederateConfiguration::getTimeStep()
 		{
-			return m_lookAhead;
+			return m_timeStep;
 		}
 
 		bool FederateConfiguration::isImmediate()

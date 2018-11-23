@@ -8,7 +8,6 @@
 #include "gov/nist/ucef/util/UCEFException.h"
 
 #include "RTI/Handle.h"
-#include "RTI/Handle.h"
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
@@ -55,13 +54,19 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::createFederation( const string& federationName, const vector<wstring>& fomPaths )
+	void RTIAmbassadorWrapper::createFederation( const string& federationName, const vector<string>& fomPaths )
 	{
 		Logger& logger = Logger::getInstance();
 		try
 		{
+			vector<wstring> wFomPaths;
+			for( string path : fomPaths )
+			{
+				wFomPaths.push_back( ConversionHelper::s2ws( path ) );
+			}
+
 			m_rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(federationName),
-			                                            fomPaths );
+			                                            wFomPaths );
 
 		}
 		catch( FederationExecutionAlreadyExists& )
@@ -158,7 +163,8 @@ namespace ucef
 			{
 				ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( objectHandle );
 				hlaObject = make_shared<HLAObject>( className, instanceHandle.hash() );
-				m_outgoingStore[instanceHandle.hash()] = instanceHandle;
+
+				m_instanceStoreByHash[instanceHandle.hash()] = make_shared<ObjectInstanceHandle>(instanceHandle);
 			}
 			catch( Exception& )
 			{
@@ -173,40 +179,11 @@ namespace ucef
 		return hlaObject;
 	}
 
-	void RTIAmbassadorWrapper::publishSubscribeInteractionClass( InteractionClassHandle& interactionHandle,
-	                                                             const bool publish,
-	                                                             const bool subscribe )
-	{
-		if( publish )
-		{
-			try
-			{
-				m_rtiAmbassador->publishInteractionClass( interactionHandle );
-			}
-			catch( Exception& e )
-			{
-				throw UCEFException( ConversionHelper::ws2s(e.what()) );
-			}
-		}
-		if( subscribe )
-		{
-			try
-			{
-				m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
-			}
-			catch( Exception& e )
-			{
-				throw UCEFException( ConversionHelper::ws2s(e.what()) );
-			}
-		}
-	}
-
-	void RTIAmbassadorWrapper::announceSynchronizationPoint( const wstring& synchPoint )
+	void RTIAmbassadorWrapper::publishInteractionClass( InteractionClassHandle& interactionHandle )
 	{
 		try
 		{
-			const VariableLengthData tag( (void*)"", 1 );
-			m_rtiAmbassador->registerFederationSynchronizationPoint( synchPoint, tag );
+			m_rtiAmbassador->publishInteractionClass( interactionHandle );
 		}
 		catch( Exception& e )
 		{
@@ -214,11 +191,36 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::achieveSynchronizationPoint( const wstring& synchPoint )
+	void RTIAmbassadorWrapper::subscribeInteractionClasses( InteractionClassHandle& interactionHandle )
 	{
 		try
 		{
-			m_rtiAmbassador->synchronizationPointAchieved( synchPoint );
+			m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::announceSynchronizationPoint( const string& synchPoint )
+	{
+		try
+		{
+			const VariableLengthData tag( (void*)"", 1 );
+			m_rtiAmbassador->registerFederationSynchronizationPoint( ConversionHelper::s2ws(synchPoint), tag );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::achieveSynchronizationPoint( const string& synchPoint )
+	{
+		try
+		{
+			m_rtiAmbassador->synchronizationPointAchieved( ConversionHelper::s2ws(synchPoint) );
 		}
 		catch( Exception& e )
 		{
@@ -246,14 +248,14 @@ namespace ucef
 	{
 		Logger& logger = Logger::getInstance();
 
-		ObjectClassHandle objectHandle = getClassHandle( ConversionHelper::s2ws( hlaObject->getClassName() ) );
+		ObjectClassHandle objectHandle = getClassHandle( hlaObject->getClassName() );
 
 		vector<string> attributeList = hlaObject->getAttributeNames();
 		AttributeHandleValueMap rtiAttributeMap;
 		for( string& attrbuteName : attributeList )
 		{
-			AttributeHandle handle = getAttributeHandle( objectHandle, ConversionHelper::s2ws( attrbuteName ) );
-			VariableData val = hlaObject->getAttributeValue( attrbuteName );
+			AttributeHandle handle = getAttributeHandle( objectHandle, attrbuteName );
+			VariableData val = hlaObject->getRawValue( attrbuteName );
 			if( val.data != nullptr )
 			{
 				VariableLengthData data( val.data.get(), val.size );
@@ -268,17 +270,18 @@ namespace ucef
 			VariableLengthData tag( (void*)"", 1 );
 			try
 			{
-				if( m_outgoingStore.find( hlaObject->getInstanceHandle() ) != m_outgoingStore.end() )
+				ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
+				if( it != m_instanceStoreByHash.end() )
 				{
-					ObjectInstanceHandle handle = m_outgoingStore[hlaObject->getInstanceHandle()];
-					m_rtiAmbassador->updateAttributeValues( handle, rtiAttributeMap, tag );
+					auto handle = it->second;
+					m_rtiAmbassador->updateAttributeValues( *handle, rtiAttributeMap, tag );
 					logger.log( "Successfully published the updated attributes of " + hlaObject->getClassName() +
 					            ".", LevelDebug );
 				}
 				else
 				{
 					logger.log( "Cannot publish attributes of " + hlaObject->getClassName() + ". Instance id : " +
-					            to_string( hlaObject->getInstanceHandle() ) + " not found.", LevelWarn );
+					            to_string( hlaObject->getInstanceId() ) + " not found.", LevelWarn );
 				}
 			}
 			catch( Exception& e )
@@ -299,14 +302,13 @@ namespace ucef
 		Logger& logger = Logger::getInstance();
 
 		InteractionClassHandle interactionHandle = 
-			getInteractionHandle( ConversionHelper::s2ws(hlaInteraction->getInteractionClassName()) );
+			getInteractionHandle( hlaInteraction->getInteractionClassName() );
 		vector<string> paramList = hlaInteraction->getParameterNames();
 		ParameterHandleValueMap rtiParameterMap;
 		for( string& param : paramList )
 		{
-			ParameterHandle handle =
-				getParameterHandle( interactionHandle, ConversionHelper::s2ws( param ) );
-			VariableData val = hlaInteraction->getParameterValue( param );
+			ParameterHandle handle = getParameterHandle( interactionHandle, param );
+			VariableData val = hlaInteraction->getRawValue( param );
 			if( val.data != nullptr )
 			{
 				VariableLengthData data( val.data.get(), val.size );
@@ -331,26 +333,29 @@ namespace ucef
 
 	void RTIAmbassadorWrapper::deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject )
 	{
-		try
+
+		Logger& logger = Logger::getInstance();
+		ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
+		if( it != m_instanceStoreByHash.end() )
 		{
-			Logger& logger = Logger::getInstance();
-			if( m_outgoingStore.find( hlaObject->getInstanceHandle() ) != m_outgoingStore.end() )
+			VariableLengthData tag( (void*)"", 1 );
+			auto handle = it->second;
+			m_instanceStoreByHash.erase( hlaObject->getInstanceId() );
+			try
 			{
-				VariableLengthData tag( (void*)"", 1 );
-				ObjectInstanceHandle handle = m_outgoingStore[hlaObject->getInstanceHandle()];
-				m_rtiAmbassador->deleteObjectInstance( handle, tag );
-				m_outgoingStore.erase(hlaObject->getInstanceHandle());
+				m_rtiAmbassador->deleteObjectInstance( *handle, tag );
 			}
-			else
+			catch( Exception& e )
 			{
-				logger.log( "Cannot delete the given instance of " + hlaObject->getClassName() + ". Instance id : " +
-				            to_string(hlaObject->getInstanceHandle()) + " not found.", LevelWarn );
+				throw UCEFException( ConversionHelper::ws2s(e.what()) );
 			}
 		}
-		catch( Exception& e )
+		else
 		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+			logger.log( "Cannot delete the given instance of " + hlaObject->getClassName() + ". Instance id : " +
+				        to_string(hlaObject->getInstanceId()) + " not found.", LevelWarn );
 		}
+
 	}
 
 	void RTIAmbassadorWrapper::resign()
@@ -370,41 +375,39 @@ namespace ucef
 		m_rtiAmbassador->evokeMultipleCallbacks( min, max );
 	}
 
-	ObjectClassHandle RTIAmbassadorWrapper::getClassHandle( const wstring& name )
+	ObjectClassHandle RTIAmbassadorWrapper::getClassHandle( const string& name )
 	{
 		Logger& logger = Logger::getInstance();
 		ObjectClassHandle classHandle = {};
 		try
 		{
-			classHandle =  m_rtiAmbassador->getObjectClassHandle( name );
+			classHandle =  m_rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid class handle for " +
-			            ConversionHelper::ws2s(name), LevelError );
+			logger.log( "Could not find a valid class handle for " + name, LevelError );
 		}
 		return classHandle;
 	}
 
 	AttributeHandle RTIAmbassadorWrapper::getAttributeHandle( const ObjectClassHandle& classHandle,
-	                                                          const wstring& name )
+	                                                          const string& name )
 	{
 		Logger& logger = Logger::getInstance();
 		AttributeHandle attHandle = {};
 		try
 		{
-			attHandle = m_rtiAmbassador->getAttributeHandle( classHandle, name );
+			attHandle = m_rtiAmbassador->getAttributeHandle( classHandle, ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid attribute handle for " +
-			            ConversionHelper::ws2s(name), LevelError );
+			logger.log( "Could not find a valid attribute handle for " + name, LevelError );
 		}
 		return attHandle;
 	}
 
-	wstring RTIAmbassadorWrapper::getAttributeName( const ObjectClassHandle& classHandle,
-	                                                const AttributeHandle& attributeHandle )
+	string RTIAmbassadorWrapper::getAttributeName( const ObjectClassHandle& classHandle,
+	                                               const AttributeHandle& attributeHandle )
 	{
 		Logger& logger = Logger::getInstance();
 		wstring attName = L"";
@@ -417,45 +420,43 @@ namespace ucef
 			logger.log( "Could not find a valid name for the given attribute handle with id " +
 			            to_string(attributeHandle.hash()), LevelError );
 		}
-		return attName;
+		return ConversionHelper::ws2s(attName);
 	}
 
 
-	InteractionClassHandle RTIAmbassadorWrapper::getInteractionHandle( const wstring& name )
+	InteractionClassHandle RTIAmbassadorWrapper::getInteractionHandle( const string& name )
 	{
 		Logger& logger = Logger::getInstance();
 		InteractionClassHandle interactionhandle = {};
 		try
 		{
-			interactionhandle =  m_rtiAmbassador->getInteractionClassHandle( name );
+			interactionhandle =  m_rtiAmbassador->getInteractionClassHandle(  ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
 			
-			logger.log( "Could not find a valid interaction class handle for " +
-			             ConversionHelper::ws2s(name), LevelError );
+			logger.log( "Could not find a valid interaction class handle for " + name, LevelError );
 		}
 		return interactionhandle;
 	}
 
 	ParameterHandle RTIAmbassadorWrapper::getParameterHandle( const InteractionClassHandle& interactionHandle,
-	                                                          const wstring& name )
+	                                                          const string& name )
 	{
 		Logger& logger = Logger::getInstance();
 		ParameterHandle paramHandle = {};
 		try
 		{
-			paramHandle = m_rtiAmbassador->getParameterHandle( interactionHandle, name );
+			paramHandle = m_rtiAmbassador->getParameterHandle( interactionHandle, ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
-			logger.log( "Could not find a valid parameter handle for parameter " +
-			            ConversionHelper::ws2s(name), LevelWarn );
+			logger.log( "Could not find a valid parameter handle for parameter " + name, LevelWarn );
 		}
 		return paramHandle;
 	}
 
-	wstring RTIAmbassadorWrapper::getParameterName( const InteractionClassHandle& interactionHandle,
+	string RTIAmbassadorWrapper::getParameterName( const InteractionClassHandle& interactionHandle,
 	                                                const ParameterHandle& parameterHandle )
 	{
 		Logger& logger = Logger::getInstance();
@@ -469,6 +470,6 @@ namespace ucef
 			logger.log( "Could not find a valid name for the given parameter handle with id " +
 			            to_string(parameterHandle.hash()), LevelError );
 		}
-		return paramName;
+		return ConversionHelper::ws2s(paramName);
 	}
 }

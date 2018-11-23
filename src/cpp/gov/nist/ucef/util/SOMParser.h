@@ -73,7 +73,7 @@ namespace ucef
 				 * @param objectClasses collects valid objectClasses in the passed SOM
 				 *
 				 */
-				static void traverseObjectClasses( std::wstring objectClassName,
+				static void traverseObjectClasses( std::string objectClassName,
 				                                   std::vector<std::shared_ptr<ObjectAttribute>> attributes,
 				                                   tinyxml2::XMLElement* parentElement,
 				                                   std::vector<std::shared_ptr<ObjectClass>> &objectClasses);
@@ -88,7 +88,7 @@ namespace ucef
 				 * @param intClasses collects valid paramterClasses in the passed SOM
 				 *
 				 */
-				static void traverseInteractionClasses( std::wstring interactionClassName,
+				static void traverseInteractionClasses( std::string interactionClassName,
 				                                        std::vector<std::shared_ptr<InteractionParameter>> params,
 				                                        tinyxml2::XMLElement* parentElement,
 				                                        std::vector<std::shared_ptr<InteractionClass>>& intClasses);

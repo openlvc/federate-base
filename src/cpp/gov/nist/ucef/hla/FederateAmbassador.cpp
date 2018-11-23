@@ -15,7 +15,6 @@ namespace ucef
 {
 	FederateAmbassador::FederateAmbassador( FederateBase* federateBase ) : m_regulated( false ),
 	                                                                       m_constrained( false ),
-	                                                                       m_advanced( false ),
 	                                                                       m_federateTime( 0.0 ),
 	                                                                       m_federateBase( federateBase )
 	{
@@ -26,9 +25,6 @@ namespace ucef
 
 	}
 
-	//----------------------------------------------------------
-	//            synchronization related methods
-	//----------------------------------------------------------
 	void FederateAmbassador::announceSynchronizationPoint( const wstring& label,
 	                                                       const VariableLengthData& tag )
 	                                                            throw( FederateInternalError )
@@ -40,8 +36,10 @@ namespace ucef
 			return;
 		}
 		lock_guard<mutex> lock( m_threadSafeLock );
-		if( announcedSynchPoints.find(label) == announcedSynchPoints.end() )
-			announcedSynchPoints.insert( label );
+
+		string sLabel = ConversionHelper::ws2s( label );
+		if( announcedSynchPoints.find(sLabel) == announcedSynchPoints.end() )
+			announcedSynchPoints.insert( sLabel );
 	}
 
 
@@ -50,40 +48,33 @@ namespace ucef
 	                                                             throw( FederateInternalError )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		if( achievedSynchPoints.find(label) == achievedSynchPoints.end() )
-			achievedSynchPoints.insert(label);
+		string sLabel = ConversionHelper::ws2s( label );
+		if( achievedSynchPoints.find(sLabel) == achievedSynchPoints.end() )
+			achievedSynchPoints.insert(sLabel);
 	}
 
-	//----------------------------------------------------------
-	//            Time related methods
-	//----------------------------------------------------------
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( m_threadSafeLock );
-			this->m_regulated = true;
-			this->m_federateTime = convertTime( theFederateTime );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		this->m_regulated = true;
+		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
 	void FederateAmbassador::timeConstrainedEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( m_threadSafeLock );
-			this->m_constrained = true;
-			this->m_federateTime = convertTime( theFederateTime );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		this->m_constrained = true;
+		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
 	void FederateAmbassador::timeAdvanceGrant( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-			lock_guard<mutex> lockGuard( m_threadSafeLock );
-			this->m_advanced = true;
-			this->m_federateTime = convertTime( theFederateTime );
+		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
 	}
-
-	//----------------------------------------------------------
-	//            Object Management Methods
-	//----------------------------------------------------------
 
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
 	                                                 ObjectClassHandle theObjectClass,
@@ -152,18 +143,18 @@ namespace ucef
 		}
 		else
 		{
-			Logger::getInstance().log( string("Received object delete notification with an invalid handler."),
-			                           LevelError );
+			string msg = "Received object delete notification with an invalid handler.";
+			Logger::getInstance().log( msg, LevelError );
 		}
 	}
 
 	void FederateAmbassador::removeObjectInstance( ObjectInstanceHandle theObject,
 	                                               VariableLengthData const& theUserSuppliedTag,
 	                                               OrderType sentOrder,
-	                                               LogicalTime const & theTime,
+	                                               LogicalTime const& theTime,
 	                                               OrderType receivedOrder,
 	                                               SupplementalRemoveInfo theRemoveInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		removeObjectInstance( theObject, theUserSuppliedTag, sentOrder, theRemoveInfo );
 	}
@@ -171,11 +162,11 @@ namespace ucef
 	void FederateAmbassador::removeObjectInstance( ObjectInstanceHandle theObject,
 	                                               VariableLengthData const& theUserSuppliedTag,
 	                                               OrderType sentOrder,
-	                                               LogicalTime const & theTime,
+	                                               LogicalTime const& theTime,
 	                                               OrderType receivedOrder,
 	                                               MessageRetractionHandle theHandle,
 	                                               SupplementalRemoveInfo theRemoveInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		removeObjectInstance( theObject, theUserSuppliedTag, sentOrder, theRemoveInfo );
 	}
@@ -217,17 +208,15 @@ namespace ucef
 	{
 		receiveInteraction( theInteraction, theParameters, tag, sentOrder, theType, theReceiveInfo );
 	}
-	//----------------------------------------------------------
-	//             Federate Access Methods
-	//----------------------------------------------------------
-	bool FederateAmbassador::isAnnounced( wstring& announcedPoint )
+
+	bool FederateAmbassador::isAnnounced( string& announcedPoint )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
 		return announced;
 	}
 
-	bool FederateAmbassador::isAchieved( wstring& achievedPoint )
+	bool FederateAmbassador::isAchieved( string& achievedPoint )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;
@@ -246,31 +235,15 @@ namespace ucef
 		return m_constrained;
 	}
 
-	bool FederateAmbassador::isTimeAdvanced()
-	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		return m_advanced;
-	}
-
-	void FederateAmbassador::resetTimeAdvanced()
-	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		m_advanced = false;
-	}
-
 	double FederateAmbassador::getFederateTime()
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		return m_federateTime;
 	}
 	
-	//----------------------------------------------------------
-	//             Instance Methods
-	//----------------------------------------------------------
-	double FederateAmbassador::convertTime( const LogicalTime& theTime )
+	double FederateAmbassador::logicalTimeAsDouble( const LogicalTime& time )
 	{
-		const HLAfloat64Time& castTime = dynamic_cast<const HLAfloat64Time&>(theTime);
-		return castTime.getTime();
+		const HLAfloat64Time& hlaTime = dynamic_cast<const HLAfloat64Time&>( time );
+		return hlaTime.getTime();
 	}
 }
-

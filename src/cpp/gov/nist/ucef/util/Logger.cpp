@@ -1,10 +1,7 @@
-#pragma once
-
 #include <iostream>
 
 #include "Logger.h"
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h"
 
 using namespace spdlog;
 using namespace std;
@@ -40,7 +37,7 @@ namespace ucef
 			logger->set_level( level::level_enum(level) );
 		}
 
-		void Logger::log( std::string& message, LogLevel level )
+		void Logger::log( const std::string& message, LogLevel level )
 		{
 			if( level == LogLevel::LevelInfo )
 				logger->info( message );

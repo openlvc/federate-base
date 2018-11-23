@@ -120,7 +120,7 @@ public class HLAObject
 	}
 	
 	/**
-	 * Determine if the named attribute has been initialised (i.e. has a value)
+	 * Determine if the named attribute has been initialized (i.e. has a value)
 	 * 
 	 * In practice, this means that the byte array value associated with the 
 	 * named attribute is: 
@@ -130,7 +130,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @return true if the attribute as a value defined for it, false otherwise
 	 */
-	public boolean isInitialised( String attributeName )
+	public boolean isInitialized( String attributeName )
 	{
 		byte[] rawValue = getRawValue( attributeName );
 		return rawValue != null && rawValue.length != 0;

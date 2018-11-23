@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.cpp">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.cpp">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.h">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateAmbassador.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\FederateBase.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAInteraction.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\HLAObject.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\IFederateBase.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.h">
+      <Filter>gov\nist\ucef\hla</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="gov">
+      <UniqueIdentifier>{7b6bd72b-e2f5-492b-96d3-cdd8de1dc376}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gov\nist">
+      <UniqueIdentifier>{29ed812b-e8a8-4317-a1c7-7fcae6a8b087}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gov\nist\ucef">
+      <UniqueIdentifier>{8a608169-74bf-4b0f-929c-4473e41c195f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gov\nist\ucef\util">
+      <UniqueIdentifier>{7c50fbe6-d410-4436-80ef-d829a0e8097a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="gov\nist\ucef\hla">
+      <UniqueIdentifier>{b55ed8de-d567-4f7d-a627-d6d1ab44121f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

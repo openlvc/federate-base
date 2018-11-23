@@ -4,7 +4,6 @@
  * @file types.h
  * Defines all POD types used bye UCEFFederate
  */
-
 #include <codecvt>
 #include <list>
 #include <locale>
@@ -62,13 +61,13 @@ namespace ucef
 		 */
 		struct ObjectAttribute
 		{
-			ObjectAttribute() : name( L"" ),
+			ObjectAttribute() : name( "" ),
 			                    publish( false ),
 			                    subscribe( false )
 			{
 			}
 
-			std::wstring name;
+			std::string name;
 			bool publish;
 			bool subscribe;
 			};
@@ -81,13 +80,13 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 		struct ObjectClass
 		{
-			ObjectClass() : name( L"" ),
+			ObjectClass() : name( "" ),
 			                publish( false ),
 			                subscribe( false ),
 			                objectAttributes{ }
 			{
 			}
-			std::wstring name; // fully qualified object class name
+			std::string name; // fully qualified object class name
 			bool publish;
 			bool subscribe;
 			ObjectAttributes objectAttributes;
@@ -101,11 +100,11 @@ namespace ucef
 		 */
 		struct InteractionParameter
 		{
-			InteractionParameter() : name( L"" )
+			InteractionParameter() : name( "" )
 			{
 
 			}
-			std::wstring name;
+			std::string name;
 		};
 
 		/**
@@ -116,14 +115,14 @@ namespace ucef
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionParameter>> InteractionParameters;
 		struct InteractionClass
 		{
-			InteractionClass() : name( L"" ),
+			InteractionClass() : name( "" ),
 			                     publish( false ),
 			                     subscribe( false ),
 			                     parameters{ }
 			{
 
 			}
-			std::wstring name; // fully qualified interaction class name
+			std::string name; // fully qualified interaction class name
 			bool publish;
 			bool subscribe;
 			InteractionParameters parameters;
@@ -145,13 +144,17 @@ namespace ucef
 
 		// unordered_map because we do not need any ordering,
 		// what we need is a faster way to get the object class
-		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectCacheStoreByName;
-		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectCacheStoreByHash;
-		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> IncomingStore;
-		typedef std::unordered_map<long, rti1516e::ObjectInstanceHandle> OutgoingStore;
+		// to resolve object class data from the object class name for incoming objects
+		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
+		// to resolve object class data from the object class hash for incoming objects
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
+		// to resolve object class data from the object instance hash for incoming objects
+		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance;
+		// to resolve object instance handle from the instance hash of the outgoing objects
+		typedef std::unordered_map<long, std::shared_ptr<rti1516e::ObjectInstanceHandle>> ObjectInstanceStoreByHash;
 
-		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionCacheStoreByName;
-		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionClassStoreByHash;
+		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
+		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
 		//----------------------------------------
 		//           Conversion helpers
 		//-----------------------------------------

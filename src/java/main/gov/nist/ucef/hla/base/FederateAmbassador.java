@@ -58,8 +58,8 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private String announcedSyncPoint;
 	
 	private double federateTime;
-	protected boolean isTimeRegulating;
-	protected boolean isTimeConstrained;
+	private boolean isTimeRegulating;
+	private boolean isTimeConstrained;
 	
 	// discovered (remote) objects
 	private Map<ObjectInstanceHandle,HLAObject> remoteHlaObjects;
@@ -130,6 +130,46 @@ public class FederateAmbassador extends NullFederateAmbassador
 		return this.federateTime;
 	}
 	
+	/**
+	 * Set the time regulating state of the federate
+	 * 
+	 * @param isTimeRegulating true if the federate is time regulating, false otherwise
+	 */
+	protected void setTimeRegulating( boolean isTimeRegulating )
+	{
+		this.isTimeRegulating = isTimeRegulating;
+	}
+	
+	/**
+	 * Determine if the federate is time regulating
+	 * 
+	 * @return true if the federate is time regulating, false otherwise
+	 */
+	protected boolean isTimeRegulating()
+	{
+		return this.isTimeRegulating;
+	}
+
+	/**
+	 * Set the time constrained state of the federate
+	 * 
+	 * @param isTimeConstrained true if the federate is time constrained, false otherwise
+	 */
+	protected void setTimeConstrained( boolean isTimeConstrained )
+	{
+		this.isTimeConstrained = isTimeConstrained;
+	}
+
+	/**
+	 * Determine if the federate is time constrained
+	 * 
+	 * @return true if the federate is time constrained, false otherwise
+	 */
+	protected boolean isTimeConstrained()
+	{
+		return this.isTimeConstrained;
+	}
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	// FederateAmbassador Callbacks     /////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////

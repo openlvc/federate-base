@@ -73,7 +73,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 
 		// configuration should be writable at this point
 		assertEquals( false, config.isFrozen());
@@ -162,7 +162,7 @@ public class FederateConfigurationTest extends TestCase
 		boolean expectedIsLateJoiner = true;
 		boolean expectedCallbacksAreEvoked = true;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType);
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName);
 		config.addModules( expectedModules )
 			  .addJoinModules( expectedJoinModules )
 			  .addPublishedAtributes( expectedPublishedAttributes )
@@ -214,7 +214,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		int expectedMaxReconnectAttempts = 123;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedMaxReconnectAttempts != config.getMaxReconnectAttempts() );
 		// try changing the value
@@ -236,7 +236,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		int expectedReconnectWaitTime = 54321;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedReconnectWaitTime != config.getReconnectWaitTime() );
 		// try changing the value
@@ -258,7 +258,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		double expectedStepSize = 1.234;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedStepSize != config.getStepSize() );
 		// try changing the value
@@ -280,7 +280,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		double expectedLookAhead = 0.1234;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedLookAhead != config.getLookAhead() );
 		// try changing the value
@@ -302,7 +302,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		boolean expectedLateJoiner = true;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedLateJoiner != config.isLateJoiner());
 		// try changing the value
@@ -324,7 +324,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		boolean expectedCallbacksAreEvoked = true;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedCallbacksAreEvoked != config.callbacksAreEvoked());
 		// try changing the value
@@ -346,7 +346,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		boolean expectedTimeStepped = false;
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedTimeStepped != config.isTimeStepped());
 		// try changing the value
@@ -396,7 +396,7 @@ public class FederateConfigurationTest extends TestCase
 			System.exit( 1 );
 		}
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addModules( expectedModules );
 		assertEquals( expectedModules.size(), config.getModules().size());
 		// add the same modules again - shouldn't increase the size
@@ -407,7 +407,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedModules.size() + extraModules.size(), config.getModules().size());
 
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add modules - should have done nothing because config is frozen.
@@ -415,14 +415,14 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getModules().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single module - this actually ends up feeding through the adding
 		// a list of modules method
 		config.addModule( expectedModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add array of modules - this actually ends up feeding through the adding
 		// a list of modules method
 		config.addModules( expectedModules.toArray(new URL[0]) );
@@ -467,7 +467,7 @@ public class FederateConfigurationTest extends TestCase
 			System.exit( 1 );
 		}
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addJoinModules( expectedJoinModules );
 		assertEquals( expectedJoinModules.size(), config.getJoinModules().size());
 		// add the same modules again - shouldn't increase the size
@@ -478,7 +478,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedJoinModules.size() + extraJoinModules.size(), config.getJoinModules().size());
 
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add modules - should have done nothing because config is frozen.
@@ -486,14 +486,14 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getJoinModules().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single module - this actually ends up feeding through the adding
 		// a list of modules method
 		config.addModule( expectedJoinModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add array of modules - this actually ends up feeding through the adding
 		// a list of modules method
 		config.addModules( expectedJoinModules.toArray(new URL[0]) );
@@ -524,7 +524,7 @@ public class FederateConfigurationTest extends TestCase
 		Map<String, Collection<String>> extraPublishedAttributes = new HashMap<>();
 		extraPublishedAttributes.put( objectClass2, attributes2 );
 
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addPublishedAtributes( expectedPublishedAttributes );
 		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size());
 		// add the same attributes again - shouldn't increase the size
@@ -535,7 +535,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedPublishedAttributes.size() + extraPublishedAttributes.size(), config.getPublishedAttributes().size());
 
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add subscribed attributes - should have done nothing because config is frozen.
@@ -543,21 +543,21 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getPublishedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single attribute - this actually ends up feeding through the adding
 		// a map of subscribed attributes method
 		config.addPublishedAtribute( objectClass1, attributes1.get( 0 ) );
 		assertEquals( 1, config.getPublishedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple attributes on single class with an array - this actually ends up feeding
 		// through the adding a map of subscribed attributes method
 		config.addPublishedAtributes( objectClass1, attributes1.toArray( new String[0] ) );
 		assertEquals( 1, config.getPublishedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple attributes on single class with a collection - this actually ends up
 		// feeding through the adding a map of subscribed attributes method
 		config.addPublishedAtributes( objectClass1, attributes1 );
@@ -588,7 +588,7 @@ public class FederateConfigurationTest extends TestCase
 		Map<String, Collection<String>> extraSubscribedAttributes = new HashMap<>();
 		extraSubscribedAttributes.put( objectClass2, attributes2 );
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addSubscribedAtributes( expectedSubscribedAttributes );
 		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size());
 		// add the same attributes again - shouldn't increase the size
@@ -599,7 +599,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedSubscribedAttributes.size() + extraSubscribedAttributes.size(), config.getSubscribedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add subscribed attributes - should have done nothing because config is frozen.
@@ -607,21 +607,21 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single attribute - this actually ends up feeding through the adding
 		// a map of subscribed attributes method
 		config.addSubscribedAtribute( objectClass1, attributes1.get( 0 ) );
 		assertEquals( 1, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple attributes on single class with an array - this actually ends up feeding
 		// through the adding a map of subscribed attributes method
 		config.addSubscribedAtributes( objectClass1, attributes1.toArray( new String[0] ) );
 		assertEquals( 1, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple attributes on single class with a collection - this actually ends up
 		// feeding through the adding a map of subscribed attributes method
 		config.addSubscribedAtributes( objectClass1, attributes1 );
@@ -649,7 +649,7 @@ public class FederateConfigurationTest extends TestCase
 		extraInteractions.add( extraInteractionIdentifierBase+"Y" );
 		extraInteractions.add( extraInteractionIdentifierBase+"Z" );
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addPublishedInteractions( expectedInteractions );
 		assertEquals( expectedInteractions.size(), config.getPublishedInteractions().size());
 		// add the same interactions again - shouldn't increase the size
@@ -660,7 +660,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedInteractions.size() + extraInteractions.size(), config.getPublishedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add published interactions - should have done nothing because config is frozen.
@@ -668,14 +668,14 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getPublishedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single interaction - this actually ends up feeding through the adding
 		// a collection of published interactions method
 		config.addPublishedInteraction( expectedInteractions.get( 0 ) );
 		assertEquals( 1, config.getPublishedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple interactions with an array - this actually ends up feeding
 		// through the adding a collection of interactions method
 		config.addPublishedInteractions( expectedInteractions.toArray( new String[0] ) );
@@ -703,7 +703,7 @@ public class FederateConfigurationTest extends TestCase
 		extraInteractions.add( extraInteractionIdentifierBase+"Y" );
 		extraInteractions.add( extraInteractionIdentifierBase+"Z" );
 		
-		FederateConfiguration config = new FederateConfiguration( federationName, federateName, federateType );
+		FederateConfiguration config = new FederateConfiguration( federateType, federateName, federationName );
 		config.addSubscribedInteractions( expectedInteractions );
 		assertEquals( expectedInteractions.size(), config.getSubscribedInteractions().size());
 		// add the same interactions again - shouldn't increase the size
@@ -714,7 +714,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedInteractions.size() + extraInteractions.size(), config.getSubscribedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// freeze it
 		config.freeze();
 		// try to add published interactions - should have done nothing because config is frozen.
@@ -722,14 +722,14 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( 0, config.getSubscribedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add single interaction - this actually ends up feeding through the adding
 		// a collection of published interactions method
 		config.addSubscribedInteraction( expectedInteractions.get( 0 ) );
 		assertEquals( 1, config.getSubscribedInteractions().size());
 		
 		// start again with clean config
-		config = new FederateConfiguration( federationName, federateName, federateType );
+		config = new FederateConfiguration( federateType, federateName, federationName );
 		// try to add multiple interactions with an array - this actually ends up feeding
 		// through the adding a collection of interactions method
 		config.addSubscribedInteractions( expectedInteractions.toArray( new String[0] ) );

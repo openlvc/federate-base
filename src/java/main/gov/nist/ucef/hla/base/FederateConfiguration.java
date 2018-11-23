@@ -107,23 +107,21 @@ public class FederateConfiguration
 	public FederateConfiguration( String federationName, String federateName )
 	{
 		// use federate name as federate type parameter
-		this( federationName, federateName, federateName );
+		this( federateName, federateName, federationName );
 	}
 	
 	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
-	 * 
-	 * @param federationName
-	 * @param federateName
 	 * @param federateType
+	 * @param federateName
+	 * @param federationName
 	 */
-	public FederateConfiguration( String federationName, String federateName, String federateType )
+	public FederateConfiguration( String federateType, String federateName, String federationName )
 	{
 		this.federationName = federationName;
-
+		this.federateType = federateType;
 		this.federateName = federateName;
-		this.federateType = federateType == null ? federateName : federateType;
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();

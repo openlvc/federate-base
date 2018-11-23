@@ -20,6 +20,7 @@
  */
 package gov.nist.ucef.hla.base;
 
+import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 
@@ -332,11 +333,20 @@ public abstract class FederateBase
 	 */
 	private void createAndJoinFederation()
 	{
+		rtiamb.connect( fedamb );
+		
+		String federationName = configuration.getFederationName();
+		URL[] modules = configuration.getModules().toArray( new URL[0] );
+		rtiamb.createFederation( federationName, modules );
 		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		rtiamb.createFederation( configuration );
 
 		beforeFederationJoin();
-		rtiamb.joinFederation( configuration );
+		
+		String federateType = configuration.getFederateType();
+		String federateName = configuration.getFederateName();
+		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
+		rtiamb.joinFederation( federateType, federateName, federationName, joinModules );
 	}
 
 	/**
@@ -446,7 +456,7 @@ public abstract class FederateBase
 	 */
 	private void destroyFederation()
 	{
-		rtiamb.destroyFederationExecution( configuration );
+		rtiamb.destroyFederationExecution( configuration.getFederationName() );
 	}
 	
 	/**
@@ -456,7 +466,7 @@ public abstract class FederateBase
 	{
 		// enable time regulation based on configuration
 		rtiamb.enableTimeRegulation( configuration.getLookAhead() );
-		while( fedamb.isTimeRegulating == false )
+		while( fedamb.isTimeRegulating() == false )
 		{
 			// waiting for callback to confirm it's enabled
 			evokeMultipleCallbacks();
@@ -464,7 +474,7 @@ public abstract class FederateBase
 
 		// enable time constrained
 		rtiamb.enableTimeConstrained();
-		while( fedamb.isTimeConstrained == false )
+		while( fedamb.isTimeConstrained() == false )
 		{
 			// waiting for callback to confirm it's enabled
 			evokeMultipleCallbacks();
@@ -478,10 +488,10 @@ public abstract class FederateBase
 	{
 		// no waiting for callbacks when disabling time policies
 		rtiamb.disableTimeConstrained();
-		fedamb.isTimeConstrained = false;
-		
+		fedamb.setTimeConstrained( false );
+
 		rtiamb.disableTimeRegulation();
-		fedamb.isTimeRegulating = false;
+		fedamb.setTimeRegulating( false );
 	}
 	
 	/**

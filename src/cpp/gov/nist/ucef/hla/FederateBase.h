@@ -1,7 +1,9 @@
 #pragma once
 
+
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
@@ -24,18 +26,30 @@ namespace ucef
 			FederateBase& operator=(const FederateBase&) = delete;
 
 			//----------------------------------------------------------
-			//                    Instance Methods
+			//       IFederateBase interface implementation
+			//----------------------------------------------------------
+			virtual void runFederate() final;
+			virtual std::vector<std::string> getClassNamesPublish() override;
+			virtual std::vector<std::string> getClassNamesSubscribe() override;
+			virtual std::vector<std::string> getInteractionNamesSubscribe() override;
+			virtual std::vector<std::string> getInteractionNamesPublish() override;
+
+			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) override;
+			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) override;
+			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) override;
+
+			//----------------------------------------------------------
+			//                    Business Logic
 			//----------------------------------------------------------
 			void incomingObjectRegistration( long objectInstanceHash,
 			                                 long objectClassHash );
 			void incomingAttributeReflection
 			       ( long objectInstanceHash,
 			         const std::map<rti1516e::AttributeHandle, rti1516e::VariableLengthData>& attributeValues );
-			void FederateBase::incomingInteraction
+			void incomingInteraction
 			       ( long interactionHash,
 			         const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 			void incomingObjectDeletion( long objectInstanceHash );
-			virtual void runFederate() final;
 
 		private:
 			//----------------------------------------------------------
@@ -50,28 +64,27 @@ namespace ucef
 			void advanceLogicalTime();
 			void resignAndDestroy();
 
-			std::shared_ptr<util::ObjectClass> getObjectClass( long hash );
-			std::shared_ptr<util::ObjectClass> getObjectClass( std::string name );
-			std::shared_ptr<util::ObjectClass> findIncomingObject( long hash );
-			size_t deleteIncomingObject( long hash );
+			std::shared_ptr<util::ObjectClass> getObjectClassByClassHandle( long hash );
+			std::shared_ptr<util::ObjectClass> getObjectClassByInstanceHandle( long hash );
+			bool deleteIncomingInstanceHandle( long hash );
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );
-			inline void storeObjectClass( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
-			inline void storeInteractionClass( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);
+			inline void storeObjectClassData( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses);
+			inline void storeInteractionClassData( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses);
 			inline void pubSubAttributes();
 			inline void pubSubInteractions();
 			inline void tickForCallBacks();
 
 		protected:
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			util::ObjectCacheStoreByName m_objectCacheStoreByName;
-			util::InteractionCacheStoreByName m_interactionCacheStoreByName;
 
 		private:
-			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
-			util::ObjectCacheStoreByHash m_objectCacheStoreByHash;
-			util::InteractionClassStoreByHash m_interactionCacheStoreByHash;
-			util::IncomingStore m_incomingStore;
+			util::ObjectDataStoreByName m_objectDataStoreByName;
+			util::InteractionDataStoreByName m_interactionDataStoreByName;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
+			util::ObjectDataStoreByHash m_objectDataStoreByHash;
+			util::InteractionDataStoreByHash m_interactionDataStoreByHash;
+			util::ObjectDataStoreByInstance m_objectDataStoreByInstance;
+			std::shared_ptr<util::FederateConfiguration> m_ucefConfig;
 			std::mutex m_threadSafeLock;
 	};
 }
