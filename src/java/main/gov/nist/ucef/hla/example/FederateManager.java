@@ -339,8 +339,8 @@ public class FederateManager extends FederateBase {
 		    .hint( "FEDERATE_TYPE,COUNT" );
 		ValueArgument logicalSecondArg = cmdArgParser
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
+			.isRequired( false )
 		    .validator( StandardValidator.POS_DOUBLE )
-		    .isRequired( false )
 		    .help( String.format( "Define a 'logical second'; the logical step size which " +
 		    					  "equates to a real-time second. If unspecified a value " +
 		    					  "of %.2f will be used.",
@@ -348,16 +348,16 @@ public class FederateManager extends FederateBase {
 		    .hint( "1.0" );
 		ValueArgument logicalStepGranularityArg = cmdArgParser
 			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
+			.isRequired( false )
 		    .validator( StandardValidator.POS_INT )
-		    .isRequired( false )
 		    .help( String.format( "Define the number of steps per logical second. If " +
 		    				      "unspecified a value of %d will be used.",
 		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
 		    .hint( "1" );
         ValueArgument realtimeMultiplierArg = cmdArgParser
         	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
+        	.isRequired(false)
 		    .validator( StandardValidator.POS_DOUBLE )
-		    .isRequired(false)
         	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
         						  "half speed, 2.0 is double speed, and so on. If unspecified " +
         						  "a value of %.2f will be used.", 
@@ -371,7 +371,7 @@ public class FederateManager extends FederateBase {
 		catch( CmdArgException e )
 		{
 			System.err.println( e.getMessage() );
-			System.out.println( "Usage: " + cmdArgParser.getUsage( "mycommand" ) );
+			System.out.println( "Usage: " + cmdArgParser.getUsage( "fedman" ) );
 			System.out.println( cmdArgParser.getHelp() );
 			return false;
 		}
