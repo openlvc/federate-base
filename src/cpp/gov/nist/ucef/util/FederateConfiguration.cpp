@@ -10,9 +10,9 @@ namespace ucef
 	{
 		FederateConfiguration::FederateConfiguration() : m_federateName( "Federate" + to_string(rand()) ),
 		                                                 m_federateType( "FederateType" + to_string(rand()) ),
-														 m_lookAhead( 1.0 ),
-														 m_timeStep( 1.0 ),
-														 m_immediateCallBacks( true ),
+		                                                 m_lookAhead( 1.0 ),
+		                                                 m_timeStep( 1.0 ),
+		                                                 m_immediateCallBacks( true ),
 		                                                 m_timeRegulated( true ),
 		                                                 m_timeConstrained( true )
 		{
@@ -56,7 +56,7 @@ namespace ucef
 
 		float FederateConfiguration::getTimeStep()
 		{
-			return m_lookAhead;
+			return m_timeStep;
 		}
 
 		bool FederateConfiguration::isImmediate()
