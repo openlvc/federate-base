@@ -357,7 +357,7 @@ namespace ucef
 		}
 
 		// wait for the rti grant the requested time advancement
-		while( !m_federateAmbassador->isTimeAdvanced() )
+		while( m_federateAmbassador->getFederateTime() < requestedTime )
 		{
 			logger.log( "Waiting for the logical time of this federate to advance to " +
 			            to_string( requestedTime ), LevelInfo );
@@ -365,7 +365,6 @@ namespace ucef
 			tickForCallBacks();
 		}
 		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
-		m_federateAmbassador->resetTimeAdvanced();
 	}
 
 	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
