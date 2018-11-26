@@ -341,10 +341,10 @@ public abstract class FederateBase
 
 		beforeFederationJoin();
 		
-		String federateType = configuration.getFederateType();
 		String federateName = configuration.getFederateName();
+		String federateType = configuration.getFederateType();
 		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
-		rtiamb.joinFederation( federateType, federateName, federationName, joinModules );
+		rtiamb.joinFederation( federateName, federateType, federationName, joinModules );
 	}
 
 	/**
