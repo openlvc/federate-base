@@ -29,8 +29,8 @@ namespace ucef
 	                                                       const VariableLengthData& tag )
 	                                                            throw( FederateInternalError )
 	{
-		SynchPoint synPoint = ConversionHelper::StringToSynchPoint( label );
-		if( synPoint == POINT_UNKNOWN )
+		SynchPoint synchPoint = ConversionHelper::StringToSynchPoint( label );
+		if( synchPoint == POINT_UNKNOWN )
 		{
 			// may be we can achieve this immediately
 			return;
@@ -57,7 +57,7 @@ namespace ucef
 	                                                              throw( FederateInternalError )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		this->m_regulated = true;
+		setTimeRegulatedFlag( true );
 		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
@@ -65,7 +65,7 @@ namespace ucef
 	                                                              throw( FederateInternalError )
 	{
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		this->m_constrained = true;
+		setTimeConstrainedFlag( true );
 		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
@@ -229,10 +229,9 @@ namespace ucef
 		return m_regulated;
 	}
 
-	void FederateAmbassador::resetTimeRegulated()
+	void FederateAmbassador::setTimeRegulatedFlag( bool flag )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		m_regulated = false;
+		m_regulated = flag;
 	}
 
 	bool FederateAmbassador::isTimeConstrained()
@@ -241,10 +240,9 @@ namespace ucef
 		return m_constrained;
 	}
 
-	void FederateAmbassador::resetTimeConstrained()
+	void FederateAmbassador::setTimeConstrainedFlag( bool flag )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		m_constrained = false;
+		m_constrained = flag;
 	}
 
 	double FederateAmbassador::getFederateTime()

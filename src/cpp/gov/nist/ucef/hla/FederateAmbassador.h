@@ -174,9 +174,11 @@ namespace ucef
 			bool isTimeRegulated();
 
 			/**
-			 * resets time regulating indicator flag
+			 * sets time regulating indicator flag
+			 *
+			 * @param time regulating indicator value
 			 */
-			void resetTimeRegulated();
+			void setTimeRegulatedFlag( bool flag );
 
 			/**
 			 * Checks if this federation is time constrained
@@ -186,9 +188,11 @@ namespace ucef
 			bool isTimeConstrained();
 
 			/**
-			 * resets time constrained indicator flag
+			 * sets time constrained indicator flag
+			 *
+			 * @param time constrained indicator value
 			 */
-			void resetTimeConstrained();
+			void setTimeConstrainedFlag( bool flag );
 
 			/**
 			 * Returns the current federate time as a double

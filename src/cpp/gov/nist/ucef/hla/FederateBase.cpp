@@ -291,7 +291,7 @@ namespace ucef
 			try
 			{
 				m_rtiAmbassadorWrapper->disableTimeRegulation();
-				m_federateAmbassador->resetTimeRegulated();
+				m_federateAmbassador->setTimeRegulatedFlag( false );
 			}
 			catch( UCEFException& )
 			{
@@ -306,7 +306,7 @@ namespace ucef
 			try
 			{
 				m_rtiAmbassadorWrapper->disableTimeConstrained();
-				m_federateAmbassador->resetTimeConstrained();
+				m_federateAmbassador->setTimeConstrainedFlag( false );
 			}
 			catch( UCEFException& )
 			{
@@ -667,9 +667,11 @@ namespace ucef
 		Logger& logger = Logger::getInstance();
 		for( auto objectClass : objectClasses )
 		{
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle(objectClass->name);
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( !classHandle.isValid() )
 			{
+				logger.log( "Received an invalid handle for " + objectClass->name  + ", something went wrong.",
+				             LevelWarn );
 				continue;
 			}
 			// attributes we are going to subscribe
@@ -682,6 +684,8 @@ namespace ucef
 				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle(classHandle, attribute->name);
 				if( !attHandle.isValid() )
 				{
+					logger.log( "Received an invalid attribute handle for " + attribute->name +
+					            " in " + objectClass->name  + ", something went wrong.", LevelWarn );
 					continue;
 				}
 				if( attribute->subscribe )
