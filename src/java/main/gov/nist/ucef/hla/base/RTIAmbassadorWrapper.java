@@ -145,8 +145,8 @@ public class RTIAmbassadorWrapper
 		}
 	}
 
-	public void joinFederation( String federateType,
-	                            String federateName,
+	public void joinFederation( String federateName,
+	                            String federateType,
 	                            String federationName,
 	                            URL[] joinModules )
 	{
