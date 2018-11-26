@@ -633,8 +633,8 @@ public class FederateManager extends FederateBase {
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( FEDMAN_FEDERATE_TYPE, 
-		                                                          FEDMAN_FEDERATE_NAME, 
+		FederateConfiguration config = new FederateConfiguration( FEDMAN_FEDERATE_NAME, 
+		                                                          FEDMAN_FEDERATE_TYPE,
 		                                                          "TheUnitedFederationOfPlanets");
 		
 		// subscribe to reflections described in MIM to detected joining federates 
