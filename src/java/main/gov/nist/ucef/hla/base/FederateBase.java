@@ -416,7 +416,7 @@ public abstract class FederateBase
 	{
 		// enable time regulation based on configuration
 		rtiamb.enableTimeRegulation( configuration.getLookAhead() );
-		while( fedamb.isTimeRegulating() == false )
+		while( fedamb.isTimeRegulated() == false )
 		{
 			// waiting for callback to confirm it's enabled
 			evokeMultipleCallbacks();
@@ -441,7 +441,7 @@ public abstract class FederateBase
 		fedamb.setTimeConstrained( false );
 
 		rtiamb.disableTimeRegulation();
-		fedamb.setTimeRegulating( false );
+		fedamb.setTimeRegulated( false );
 	}
 	
 	/**
