@@ -58,7 +58,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private String announcedSyncPoint;
 	
 	private double federateTime;
-	private boolean isTimeRegulating;
+	private boolean isTimeRegulated;
 	private boolean isTimeConstrained;
 	
 	// discovered (remote) objects
@@ -131,23 +131,23 @@ public class FederateAmbassador extends NullFederateAmbassador
 	}
 	
 	/**
-	 * Set the time regulating state of the federate
+	 * Set the time regulated state of the federate
 	 * 
-	 * @param isTimeRegulating true if the federate is time regulating, false otherwise
+	 * @param isTimeRegulated true if the federate is time regulated, false otherwise
 	 */
-	protected void setTimeRegulating( boolean isTimeRegulating )
+	protected void setTimeRegulated( boolean isTimeRegulated )
 	{
-		this.isTimeRegulating = isTimeRegulating;
+		this.isTimeRegulated = isTimeRegulated;
 	}
 	
 	/**
-	 * Determine if the federate is time regulating
+	 * Determine if the federate is time regulated
 	 * 
-	 * @return true if the federate is time regulating, false otherwise
+	 * @return true if the federate is time regulated, false otherwise
 	 */
-	protected boolean isTimeRegulating()
+	protected boolean isTimeRegulated()
 	{
-		return this.isTimeRegulating;
+		return this.isTimeRegulated;
 	}
 
 	/**
@@ -224,7 +224,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	public void timeRegulationEnabled( LogicalTime time )
 	{
 		this.federateTime = logicalTimeAsDouble( time );
-		this.isTimeRegulating = true;
+		this.isTimeRegulated = true;
 	}
 
 	/**
