@@ -10,11 +10,8 @@ namespace ucef
 	namespace util
 	{
 		/**
-		 * @file SOMParser.h
-		 *
-		 * Defines static methods to parse a given SOM file and extract the name,
-		 * and sharing state of object classes, interaction classes, attributes
-		 * and parameters.
+		 * The {@link SOMParser} defines static methods to parse a given SOM file and extract the name,
+		 * and sharing state of object classes, interaction classes, attributes and parameters.
 		 */
 		class SOMParser
 		{
@@ -25,20 +22,20 @@ namespace ucef
 				//----------------------------------------------------------
 
 				/*
-				 * Parse the given SOM file and generate the object class list
+				 * Parse the given SOM file and extract the object classes
 				 *
-				 * @param SomFilePath the path of the federate SOM file
-				 * @param SomFileName the name of the federate SOM file
+				 * @param SomFilePath the path to the federate's SOM file
+				 * @param SomFileName the name to the federate's SOM file
 				 *
 				 * @return all the object classes found in the given SOM file
 				 */
 				static std::vector<std::shared_ptr<ObjectClass>> getObjectClasses( const std::string& somFilePath );
 
 				/*
-				 * Parse the given SOM file and generate the interaction class list
+				 * Parse the given SOM file and extract the interaction classes
 				 *
-				 * @param SomFilePath the path of the federate SOM file
-				 * @param SomFileName the name of the federate SOM file
+				 * @param SomFilePath the path to the federate's SOM file
+				 * @param SomFileName the name to the federate's SOM file
 				 *
 				 * @return all the interaction classes found in the given SOM file
 				 */
@@ -63,10 +60,12 @@ namespace ucef
 				                                    const std::string& rootText);
 
 				/*
-				 * Traverse and collect fully qualified class names, object's sharing status,
-				 * attribute names and their sharing statuses
+				 * Traverse a given SOM file in BFS pattern to extract object classes.
+				 * </p>
+				 * This allows to collect fully qualified class names, attribute names,
+				 * and sharing states.
 				 *
-				 * @param objectClassName is the fully qualified class name that get built recursively
+				 * @param objectClassName the fully qualified class name holder that get appended recursively
 				 * @param attributes collect all the attributes found in each class during the
 				 *        recursion
 				 * @param parentElement the next XML element that is going to get explored
@@ -78,10 +77,12 @@ namespace ucef
 				                                   tinyxml2::XMLElement* parentElement,
 				                                   std::vector<std::shared_ptr<ObjectClass>> &objectClasses);
 				/*
-				 * Traverse and collect fully qualified interaction class names, and parameter names.
+				 * Traverse a given SOM file in BFS pattern to extract interaction classes.
+				 * </p>
+				 * This allows to collect fully qualified interaction class names, and parameter names.
 				 *
 				 * @param interactionClassName is the fully qualified interaction class
-				 *        name that get built recursively
+				 *        name holder that get appended recursively
 				 * @param params collect all the parameters found in each interaction class during the
 				 *        recursion
 				 * @param parentElement the next XML element that is going to get explored

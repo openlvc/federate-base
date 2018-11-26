@@ -40,47 +40,51 @@ namespace ucef
 		// initialise rti ambassador
 		connectToRti();
 
-		// before creating the federation hook
-		beforeFederationCreate();
 		// create federation
 		createFederation();
-
-		// before joining the federation hook
-		beforeFederateJoin();
 		// join the federation
 		joinFederation();
-
 		// enables time management policy for this federate
 		enableTimePolicy();
 		string s;
 		cin >> s;
-		// now we are ready to populate the federation
-		synchronize( PointReadyToPopulate );
 		// inform RTI about the data we are going publish and subscribe
 		publishAndSubscribe();
+
+		// lifecycle hook
+		beforeReadyToPopulate();
+
+		// now we are ready to populate the federation
+		synchronize( READY_TO_POPULATE );
 
 		// before federate run hook
 		beforeReadyToRun();
 		// now we are ready to run this federate
-		synchronize( PointReadyToRun );
-		// just before the first update
-		afterReadyToRun();
+		synchronize( READY_TO_RUN );
+
+		// just before the first update hook
+		beforeFirstStep();
 
 		while( true )
 		{
 			if( step( m_federateAmbassador->getFederateTime() ) == false )
 				break;
-			advanceLogicalTime();
+			advanceTime();
 		}
+
+		disableTimePolicy();
 
 		// before resigning the federation hook
 		beforeReadyToResign();
+
 		// now we are ready to resign from this federation
-		synchronize( PointReadyToResign );
+		synchronize( READY_TO_RESIGN );
+
+		// before exit hook for cleanup
+		beforeExit();
+
 		// resign from this federation
 		resignAndDestroy();
-		// after death hook for cleanup
-		afterDeath();
 	}
 
 	vector<string> FederateBase::getClassNamesPublish()
@@ -241,14 +245,14 @@ namespace ucef
 
 			try
 			{
-				m_rtiAmbassadorWrapper->enableTimeRegulated( m_ucefConfig->getLookAhead() );
+				m_rtiAmbassadorWrapper->enableTimeRegulation( m_ucefConfig->getLookAhead() );
 			}
 			catch( UCEFException& )
 			{
 				throw;
 			}
 
-			while( !m_federateAmbassador->isRegulated() )
+			while( !m_federateAmbassador->isTimeRegulated() )
 			{
 				tickForCallBacks();
 			}
@@ -268,11 +272,46 @@ namespace ucef
 				throw;
 			}
 
-			while( !m_federateAmbassador->isConstrained() )
+			while( !m_federateAmbassador->isTimeConstrained() )
 			{
 				tickForCallBacks();
 			}
 			logger.log( string("RTI acknowledged time policy - constrain"), LevelInfo );
+		}
+	}
+
+	void FederateBase::disableTimePolicy()
+	{
+		Logger& logger = Logger::getInstance();
+
+		if( m_ucefConfig->isTimeRegulated() )
+		{
+			logger.log( string("Disable time policy - regulated"), LevelInfo );
+
+			try
+			{
+				m_rtiAmbassadorWrapper->disableTimeRegulation();
+				m_federateAmbassador->setTimeRegulatedFlag( false );
+			}
+			catch( UCEFException& )
+			{
+				throw;
+			}
+		}
+
+		if( m_ucefConfig->isTimeConstrained() )
+		{
+			logger.log( string("Disable time policy - constrained"), LevelInfo );
+
+			try
+			{
+				m_rtiAmbassadorWrapper->disableTimeConstrained();
+				m_federateAmbassador->setTimeConstrainedFlag( false );
+			}
+			catch( UCEFException& )
+			{
+				throw;
+			}
 		}
 	}
 
@@ -281,19 +320,20 @@ namespace ucef
 		Logger& logger = Logger::getInstance();
 		// parse the SOM file and build up the HLA object classes
 		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
-
 		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
+
+		publishObjectClassAttributes(objectClasses );
+		subscribeObjectClassAttributes(objectClasses );
 		storeObjectClassData( objectClasses );
-		pubSubAttributes();
 
 		// parse the SOM file and build up the HLA object classes
 		vector<shared_ptr<InteractionClass>> interactionClasses =
 			SOMParser::getInteractionClasses( m_ucefConfig->getSomPath() );
-
 		logger.log( string("Inform RTI about publishing and subscribing interactions"), LevelInfo );
-		storeInteractionClassData( interactionClasses );
-		pubSubInteractions();
 
+		publishInteractionClasses( interactionClasses );
+		subscribeInteractionClasses( interactionClasses );
+		storeInteractionClassData( interactionClasses );
 	}
 
 	void FederateBase::synchronize( SynchPoint point )
@@ -303,7 +343,7 @@ namespace ucef
 		// announce synch point
 		try
 		{
-			m_rtiAmbassadorWrapper->announceSynchronizationPoint( synchPointStr );
+			m_rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPointStr );
 		}
 		catch( UCEFException& )
 		{
@@ -323,7 +363,7 @@ namespace ucef
 		// immedietly acheive the announced synch point
 		try
 		{
-			m_rtiAmbassadorWrapper->achieveSynchronizationPoint( synchPointStr );
+			m_rtiAmbassadorWrapper->synchronizationPointAchieved( synchPointStr );
 		}
 		catch( UCEFException& )
 		{
@@ -341,14 +381,14 @@ namespace ucef
 		            ConversionHelper::SynchPointToString(point), LevelInfo );
 	}
 
-	void FederateBase::advanceLogicalTime()
+	void FederateBase::advanceTime()
 	{
 		Logger& logger = Logger::getInstance();
 
 		double requestedTime = m_federateAmbassador->getFederateTime() + m_ucefConfig->getTimeStep();
 		try
 		{
-			m_rtiAmbassadorWrapper->advanceLogicalTime( requestedTime );
+			m_rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
 		}
 		catch( UCEFException& )
 		{
@@ -409,7 +449,7 @@ namespace ucef
 
 			for( auto& incomingAttributeValue : attributeValues )
 			{
-				string attName = m_rtiAmbassadorWrapper->getAttributeName(classHandle, incomingAttributeValue.first);
+				string attName = m_rtiAmbassadorWrapper->getAttributeName( classHandle, incomingAttributeValue.first );
 				if( attName == "" )
 				{
 					logger.log( "No valid attribute name found for the received attribute with id : " +
@@ -420,7 +460,7 @@ namespace ucef
 				size_t size = incomingAttributeValue.second.size();
 				const void* data = incomingAttributeValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-				memcpy(arr.get(), data, size);
+				memcpy( arr.get(), data, size );
 				hlaObject->setValue( attName, arr, size );
 			}
 			receiveAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
@@ -454,7 +494,7 @@ namespace ucef
 			for( auto& incomingParameterValue : parameterValues )
 			{
 				string paramName =
-					m_rtiAmbassadorWrapper->getParameterName(interactionHandle, incomingParameterValue.first);
+					m_rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
 				if( paramName == "" )
 				{
 					logger.log( "No valid parameter name found for the received parameter with id : " +
@@ -464,12 +504,12 @@ namespace ucef
 
 				size_t size = incomingParameterValue.second.size();
 				const void* data = incomingParameterValue.second.data();
-				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-				memcpy(arr.get(), data, size);
+				shared_ptr<void> arr( new char[size](), [](char *p) { delete [] p; } );
+				memcpy( arr.get(), data, size );
 				hlaInteraction->setValue( paramName, arr, size );
 			}
-			receiveInteraction(const_pointer_cast<const HLAInteraction>(hlaInteraction),
-			                   m_federateAmbassador->getFederateTime());
+			receiveInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
+			                    m_federateAmbassador->getFederateTime() );
 		}
 		else
 		{
@@ -578,17 +618,15 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::pubSubAttributes()
+	void FederateBase::publishObjectClassAttributes( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
 		//----------------------------------------------------------
 		// Inform RTI about the classes and attributes that
 		// are published and subscribed by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
-		for( auto classPair : m_objectDataStoreByName )
+		for( auto objectClass : objectClasses )
 		{
-			shared_ptr<ObjectClass> objectClass = classPair.second;
-
 			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle(objectClass->name);
 			if( !classHandle.isValid() )
 			{
@@ -596,8 +634,6 @@ namespace ucef
 			}
 			// attributes we are going to publish
 			AttributeHandleSet pubAttributes;
-			// attributes we are going to subscribe
-			AttributeHandleSet subAttributes;
 
 			ObjectAttributes &objectAtributes = objectClass->objectAttributes;
 			for( auto& attributePair : objectAtributes )
@@ -610,24 +646,59 @@ namespace ucef
 				}
 				if( attribute->publish )
 				{
-					logger.log( "Federate publishes attribute " + attribute->name + " in " +
+					logger.log( "Federate publishes an attribute named " + attribute->name + " in " +
 					            objectClass->name , LevelInfo );
 					pubAttributes.insert(attHandle);
 				}
+			}
+
+
+			m_rtiAmbassadorWrapper->publishObjectClassAttributes( classHandle,
+			                                                      pubAttributes );
+		}
+	}
+
+	void FederateBase::subscribeObjectClassAttributes( vector<shared_ptr<ObjectClass>>& objectClasses )
+	{
+		//----------------------------------------------------------
+		// Inform RTI about the classes and attributes that
+		// are published and subscribed by this federate
+		//----------------------------------------------------------
+		Logger& logger = Logger::getInstance();
+		for( auto objectClass : objectClasses )
+		{
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			if( !classHandle.isValid() )
+			{
+				logger.log( "Received an invalid handle for " + objectClass->name  + ", something went wrong.",
+				             LevelWarn );
+				continue;
+			}
+			// attributes we are going to subscribe
+			AttributeHandleSet subAttributes;
+
+			ObjectAttributes &objectAtributes = objectClass->objectAttributes;
+			for( auto& attributePair : objectAtributes )
+			{
+				shared_ptr<ObjectAttribute> attribute = attributePair.second;
+				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle(classHandle, attribute->name);
+				if( !attHandle.isValid() )
+				{
+					logger.log( "Received an invalid attribute handle for " + attribute->name +
+					            " in " + objectClass->name  + ", something went wrong.", LevelWarn );
+					continue;
+				}
 				if( attribute->subscribe )
 				{
-					logger.log( "Federate subscribed to attribute " + attribute->name + " in " + 
+					logger.log( "Federate subscribed to an attribute named " + attribute->name + " in " +
 					            objectClass->name, LevelInfo );
 					subAttributes.insert(attHandle);
 				}
 			}
 
-			if( pubAttributes.size() || subAttributes.size())
-			{
-				m_rtiAmbassadorWrapper->publishSubscribeObjectClassAttributes( classHandle,
-				                                                               pubAttributes,
-				                                                               subAttributes );
-			}
+			m_rtiAmbassadorWrapper->subscribeObjectClassAttributes( classHandle,
+			                                                        subAttributes );
+
 		}
 	}
 
@@ -653,7 +724,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::pubSubInteractions()
+	void FederateBase::publishInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClass)
 	{
 		//----------------------------------------------------------
 		// Inform RTI about interaction that are published
@@ -671,6 +742,22 @@ namespace ucef
 				logger.log( "Federate publishes interaction class " + interactionClass->name, LevelInfo);
 				m_rtiAmbassadorWrapper->publishInteractionClass( interactionHandle );
 			}
+		}
+	}
+
+	void FederateBase::subscribeInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClass)
+	{
+		//----------------------------------------------------------
+		// Inform RTI about interaction that are published
+		// and subscribed by this federate
+		//----------------------------------------------------------
+
+		Logger& logger = Logger::getInstance();
+		for( auto& interactionPair : m_interactionDataStoreByName )
+		{
+			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
+			InteractionClassHandle interactionHandle =
+				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionClass->subscribe )
 			{
 				logger.log( "Federate subscribed to Interaction class " + interactionClass->name, LevelInfo);
@@ -687,7 +774,7 @@ namespace ucef
 		}
 		else
 		{
-			m_rtiAmbassadorWrapper->tickForCallBacks( 0.1, 1.0 );
+			m_rtiAmbassadorWrapper->evokeMultipleCallbacks( 0.1, 1.0 );
 		}
 	}
 }

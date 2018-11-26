@@ -15,7 +15,7 @@ namespace ucef
 	typedef std::map<std::string, util::VariableData> HLAObjectAttributes;
 	/**
 	 * The {@link HLAObject} represents a transient object that stores object class
-	 * data for publishing or data of a received object class.
+	 * data for publishing or data of a subscribed object class.
 	 *
 	 * @see RTIAmbassadorWrapper#updateObjectInstance(std::shared_ptr<HLAObject>&)
 	 * @see RTIAmbassadorWrapper#deleteObjectInstances(std::shared_ptr<HLAObject>&)
@@ -40,7 +40,7 @@ namespace ucef
 			//----------------------------------------------------------
 
 			/**
-			 * Determines if this instance has the named attribute.
+			 * Determines if this instance knows the named attribute.
 			 * 
 			 * @param attributeName the name of the attribute
 			 * @return true if the attribute is known by this instance, false otherwise
@@ -48,7 +48,7 @@ namespace ucef
 			bool isAttribute( const std::string& attributeName ) const;
 
 			/**
-			 * Sets the value of the named attribute to a bool.
+			 * Sets the value of a named attribute to a bool.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -59,7 +59,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, bool val );
 			
 			/**
-			 * Sets the value of the named attribute to a char.
+			 * Sets the value of a named attribute to a char.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -70,7 +70,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, const char val );
 
 			/**
-			 * Sets the value of the named attribute to a short.
+			 * Sets the value of a named attribute to a short.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -81,7 +81,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, short val );
 
 			/**
-			 * Sets the value of the named attribute to a int.
+			 * Sets the value of a named attribute to a int.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -92,7 +92,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, int val );
 
 			/**
-			 * Sets the value of the named attribute to a long.
+			 * Sets the value of a named attribute to a long.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -103,7 +103,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, long val );
 
 			/**
-			 * Sets the value of the named attribute to a float.
+			 * Sets the value of a named attribute to a float.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -114,7 +114,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, float val );
 
 			/**
-			 * Sets the value of the named attribute to a double.
+			 * Sets the value of a named attribute to a double.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -125,7 +125,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, double val );
 
 			/**
-			 * Sets the value of the named attribute to a val.
+			 * Sets the value of a named attribute to a val.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -136,7 +136,7 @@ namespace ucef
 			void setValue( const std::string& attributeName, const std::string& val );
 
 			/**
-			 * Sets the value of the named attribute to a void pointer type.
+			 * Sets the value of a named attribute to a void pointer type.
 			 * <p/>
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
@@ -150,7 +150,7 @@ namespace ucef
 			               const size_t size );
 
 			/**
-			 * Returns the value of the named attribute as a bool.
+			 * Returns the value of a named attribute as a bool.
 			 * <p/>
 			 * If the named attribute cannot be found false will be returned.
 			 *
@@ -160,7 +160,7 @@ namespace ucef
 			bool getAsBool( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the value of the named attribute as a char.
+			 * Returns the value of a named attribute as a char.
 			 * <p/>
 			 * If the named attribute cannot be found an empty char will be returned.
 			 *
@@ -170,7 +170,7 @@ namespace ucef
 			char getAsChar( const std::string& attributeName ) const;
 			
 			/**
-			 * Returns the value of the named attribute as a short.
+			 * Returns the value of a named attribute as a short.
 			 * <p/>
 			 * If the named attribute cannot be found zero will be returned.
 			 *
@@ -180,7 +180,7 @@ namespace ucef
 			short getAsShort( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the value of the named attribute as a int.
+			 * Returns the value of a named attribute as a int.
 			 * <p/>
 			 * If the named attribute cannot be found zero will be returned.
 			 *
@@ -190,7 +190,7 @@ namespace ucef
 			int getAsInt( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the value of the named attribute as a long.
+			 * Returns the value of a named attribute as a long.
 			 * <p/>
 			 * If the named attribute cannot be found zero will be returned.
 			 *
@@ -200,7 +200,7 @@ namespace ucef
 			long getAsLong( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the value of the named attribute as a float.
+			 * Returns the value of a named attribute as a float.
 			 * <p/>
 			 * If the named attribute cannot be found zero will be returned.
 			 *
@@ -210,7 +210,7 @@ namespace ucef
 			float getAsFloat( const std::string& attributeName ) const;
 			
 			/**
-			 * Returns the value of the named attribute as a double.
+			 * Returns the value of a named attribute as a double.
 			 * <p/>
 			 * If the named attribute cannot be found zero will be returned.
 			 *
@@ -220,7 +220,7 @@ namespace ucef
 			double getAsDouble( const std::string& attributeName ) const;
 			
 			/**
-			 * Returns the value of the named attribute as a string.
+			 * Returns the value of a named attribute as a string.
 			 * <p/>
 			 * If the named attribute cannot be found an empty string
 			 * will be returned.
@@ -231,7 +231,7 @@ namespace ucef
 			std::string getAsString( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the value of the named attribute as a VariableData.
+			 * Returns the value of a named attribute as a VariableData.
 			 * <p/>
 			 * If the named attribute cannot be found an instance of a VariableData
 			 * is returned and the `data` member of this instance will point to a nullptr.
@@ -242,9 +242,9 @@ namespace ucef
 			util::VariableData getRawValue( const std::string& attributeName ) const;
 
 			/**
-			 * Returns the names of the attributes stored in this HLA Object.
+			 * Returns the names of the attributes stored in a HLA Object.
 			 *
-			 * @return attribute names that are stored in this HLA Object.
+			 * @return attribute names that are stored in a HLA Object.
 			 */
 			std::vector<std::string> getAttributeNames() const;
 
