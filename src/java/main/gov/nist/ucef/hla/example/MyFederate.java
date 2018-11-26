@@ -238,8 +238,8 @@ public class MyFederate extends FederateBase {
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "TestFederate", 
-			                                                      "Federate-" + new Date().getTime(), 
+		FederateConfiguration config = new FederateConfiguration( "Federate-" + new Date().getTime(),
+			                                                      "TestFederate", 
 																  "TheUnitedFederationOfPlanets" );
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
