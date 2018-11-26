@@ -113,15 +113,15 @@ public class FederateConfiguration
 	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
-	 * @param federateType
 	 * @param federateName
+	 * @param federateType
 	 * @param federationName
 	 */
-	public FederateConfiguration( String federateType, String federateName, String federationName )
+	public FederateConfiguration( String federateName, String federateType, String federationName )
 	{
-		this.federationName = federationName;
-		this.federateType = federateType;
 		this.federateName = federateName;
+		this.federateType = federateType;
+		this.federationName = federationName;
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
