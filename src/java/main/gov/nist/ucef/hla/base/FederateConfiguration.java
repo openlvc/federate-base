@@ -96,21 +96,6 @@ public class FederateConfiguration
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
-	 * Constructor - the federation name and federate name are supplied.
-	 * 
-	 * The federate type is taken to be the same as the federate name, and all other properties are 
-	 * left as defaults and or empty
-	 * 
-	 * @param federationName
-	 * @param federateName
-	 */
-	public FederateConfiguration( String federationName, String federateName )
-	{
-		// use federate name as federate type parameter
-		this( federateName, federateName, federationName );
-	}
-	
-	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
 	 * @param federateName
