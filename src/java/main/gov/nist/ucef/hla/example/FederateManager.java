@@ -148,7 +148,6 @@ public class FederateManager extends FederateBase {
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
 
-
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -166,7 +165,7 @@ public class FederateManager extends FederateBase {
 		
 		this.nextTimeAdvance = -1;
 		
-		if( !processAndValidate( args ) )
+		if( !validateAndProcessCmdLineArgs( args ) )
 		{
 			System.out.println( "Cannot proceed. Exiting now." );
 			System.exit( 1 );
@@ -182,7 +181,11 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeFederationJoin()
 	{
-		totalFederatesRequired = startRequirements.values().parallelStream().mapToInt( i -> i.intValue() ).sum();
+		totalFederatesRequired = startRequirements
+			.values()
+			.parallelStream()
+			.mapToInt( i -> i.intValue() )
+			.sum();
 	}
 
 	@Override
@@ -325,7 +328,19 @@ public class FederateManager extends FederateBase {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	private boolean processAndValidate( String[] args )
+	/**
+	 * Does the following:
+	 * 
+	 *  - Sets up the command line arguments
+	 *  - validates and processes what the user provided
+	 *  - populate all necessary internal state information that 
+	 *    relies on information from command line arguments 
+	 * 
+	 * @param args the command line arguments
+	 * @return true if the arguments were all valid and correct, false otherwise (execution should
+	 *  	   not continue.
+	 */
+	private boolean validateAndProcessCmdLineArgs( String[] args )
 	{
         CmdArgProcessor argProcessor = new CmdArgProcessor();
         ListArgument requiredFederateTypes = argProcessor
@@ -389,7 +404,9 @@ public class FederateManager extends FederateBase {
 		if( realtimeMultiplierArg.isSet() )
 			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
 		
-		// this is a required argument, so we don't need to check if it's set
+		// this is a required argument, so we don't need to check if it's set, and we know
+		// it's validated so splitting on the comma and parsing the integer etc aren't
+		// things we need check up on here - we know everything is fine.
 		List<String> requires = requiredFederateTypes.value();
 		for( String require : requires )
 		{
@@ -428,9 +445,15 @@ public class FederateManager extends FederateBase {
                                 			   CMDLINEARG_REALTIME_MULTIPLIER ) );
 		}
 		
+		// all command line arguments are present and correct!
 		return true;
 	}
 	
+	/**
+	 * Create a human readable summary of the federate manager's configuration
+	 *  
+	 * @return a human readable summary of the federate manager's configuration
+	 */
 	private String configurationSummary()
 	{
 		StringBuilder builder = new StringBuilder();
@@ -532,11 +555,26 @@ public class FederateManager extends FederateBase {
 		return builder.toString();
 	}
 	
+	/**
+	 * Utility method to repeat a string a given number of times.
+	 * 
+	 * @param str the string to repeat
+	 * @param count the number of repetitions
+	 * @return the repeated string
+	 */
 	private String repeat( String str, int count )
 	{
 		return IntStream.range( 0, count ).mapToObj( i -> str ).collect( Collectors.joining( "" ) );
 	}
 	
+	/**
+	 * Utility class to center a string in a given width
+	 * 
+	 * @param str the string to center
+	 * @param width the width to center the string in
+	 * @param padding the padding character to use to the left and right of the string
+	 * @return the centered string
+	 */
 	private String center( String str, int width, char padding )
 	{
 		int count = width - str.length();
@@ -551,6 +589,15 @@ public class FederateManager extends FederateBase {
 		return leftPad + str + leftPad.substring( 0, count+1 );
 	}
 	
+	/**
+	 * Utility method which simply returns a count of the number of federates which have joined
+	 * the federation.
+	 * 
+	 * NOTE: this only counts federates which meet the criteria for allowing the simulation to
+	 * begin (i.e., as specified in the command line arguments) and ignores all others.
+	 * 
+	 * @return the number of joined federates
+	 */
 	private int joinedCount()
 	{
 		int result = 0;
@@ -561,6 +608,11 @@ public class FederateManager extends FederateBase {
 		return result;
 	}
 	
+	/**
+	 * Utility method to determine whether start requirements have been met yet
+	 * 
+	 * @return true if the start requirements have been met, false otherwise
+	 */
 	private boolean canStart()
 	{
 		synchronized( joinedFederatesByType )
@@ -622,7 +674,6 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
-	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -681,6 +732,7 @@ public class FederateManager extends FederateBase {
 			this.instance = instance;
 		}
 
+// TODO this method seems to be unnecessary...?
 //		public String getFederateName()
 //		{
 //			return instance.getAsString( HLAFEDERATE_NAME_ATTR );
@@ -702,6 +754,11 @@ public class FederateManager extends FederateBase {
 		}
 	}
 	
+	/**
+	 * Private class implementing a command line argument validator to check that any provided
+	 * command line arguments specifying the number and type of required federates is in the
+	 * correct format and contains no errors.
+	 */
 	private class RequiredFedValidator extends Validator
 	{
 		@Override

@@ -301,29 +301,6 @@ public class MyFederate extends FederateBase {
 	}
 	
 	/**
-	 * This method simply blocks until the user presses ENTER, allowing for a pause in
-	 * proceedings.
-	 */
-	private void waitForUser( String msg )
-	{
-		if( !( msg == null || "".equals( msg )) )
-		{
-			System.out.println( msg );
-		}
-
-		BufferedReader reader = new BufferedReader( new InputStreamReader( System.in ) );
-		try
-		{
-			reader.readLine();
-		}
-		catch( Exception e )
-		{
-			System.err.println( "Error while waiting for user input: " + e.getMessage() );
-			e.printStackTrace();
-		}
-	}
-	
-	/**
 	 * This just generates a random string from a list of fruits
 	 * 
 	 * @return a random fruit name
