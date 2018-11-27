@@ -20,26 +20,30 @@
  */
 package gov.nist.ucef.hla.example.util.cmdargs;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
- * Class to provide the functionality for 'value' command line arguments
+ * Class to provide the functionality for multiple 'value' command line arguments
  */
-public class ValueArgument extends CmdLineArgument
+public class ListArg extends Arg
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final ArgumentKind argKind = ArgumentKind.VALUE;
+	private static final ArgKind argKind = ArgKind.LIST;
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private boolean isRequired;
 	private boolean isSet;
-	private String defaultValue;
-	private String actualValue;
+	private List<String> defaultValue;
+	private List<String> actualValue;
 	private String hint;
-
-	protected Validator validator;
+	protected IArgValidator validator;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -50,13 +54,13 @@ public class ValueArgument extends CmdLineArgument
 	 * @param shortForm the short form of the value argument
 	 * @param longForm the long form of the value argument
 	 */
-	public ValueArgument( Character shortForm, String longForm )
+	public ListArg( Character shortForm, String longForm )
 	{
 		super( shortForm, longForm );
 		isRequired = false;
 		isSet = false;
-		defaultValue = "";
-		actualValue = "";
+		defaultValue = Collections.emptyList();
+		actualValue = new ArrayList<>();
 		hint = "";
 		validator = null;
 	}
@@ -65,22 +69,22 @@ public class ValueArgument extends CmdLineArgument
 	protected void reset()
 	{
 		this.isSet = false;
-		this.actualValue = this.defaultValue;
+		this.actualValue = new ArrayList<>();
 	}
 
 	@Override
-	public ArgumentKind argKind()
+	public ArgKind argKind()
 	{
 		return argKind;
 	}
 
-	@Override
-	public boolean isRequired()
-	{
-		return this.isRequired;
-	}
-
-	public ValueArgument validator( Validator validator )
+	/**
+	 * Set the validator for this argument
+	 * 
+	 * @param validator the validator
+	 * @return
+	 */
+	public ListArg validator( IArgValidator validator )
 	{
 		this.validator = validator;
 		return this;
@@ -91,13 +95,18 @@ public class ValueArgument extends CmdLineArgument
 	 * 
 	 * @param value the value for this value argument
 	 */
-	protected ValueArgument parse( String value )
+	protected ListArg parse( String value )
 	{
-		this.actualValue = value;
+		this.actualValue.add( value );
 		this.isSet = true;
 		return this;
 	}
 
+	/**
+	 * Validate this argument
+	 * 
+	 * @return a {@link ValidationResult}
+	 */
 	public ValidationResult validate()
 	{
 		if( this.validator == null )
@@ -121,9 +130,24 @@ public class ValueArgument extends CmdLineArgument
 	 * 
 	 * @return the current value for this value argument
 	 */
-	public String value()
+	public List<String> value()
 	{
 		return isSet() ? this.actualValue : this.defaultValue;
+	}
+
+	/**
+	 * Obtain the current value for this value argument
+	 * 
+	 * @return the current value for this value argument
+	 */
+	public String valueToString( String delimiter )
+	{
+		List<String> val = isSet() ? this.actualValue : this.defaultValue;
+
+		if( val == null )
+			return null;
+
+		return val.stream().collect( Collectors.joining( delimiter ) );
 	}
 
 	/**
@@ -131,10 +155,20 @@ public class ValueArgument extends CmdLineArgument
 	 * 
 	 * @param isRequired true if this value argument is required, false otherwise
 	 */
-	public ValueArgument isRequired( boolean isRequired )
+	public ListArg isRequired( boolean isRequired )
 	{
 		this.isRequired = isRequired;
 		return this;
+	}
+
+	/**
+	 * Determine if this value argument is required
+	 * 
+	 * @return true if this value argument is required, false otherwise
+	 */
+	public boolean isRequired()
+	{
+		return this.isRequired;
 	}
 
 	/**
@@ -143,7 +177,7 @@ public class ValueArgument extends CmdLineArgument
 	 * @param defaultValue the default value of this value argument if it is not specified
 	 * @return this instance, to facilitate method chaining
 	 */
-	public ValueArgument defaultValue( String defaultValue )
+	public ListArg defaultValue( List<String> defaultValue )
 	{
 		this.defaultValue = defaultValue;
 		return this;
@@ -154,7 +188,7 @@ public class ValueArgument extends CmdLineArgument
 	 * 
 	 * @return the default value of this value argument if it is not specified
 	 */
-	public String defaultValue()
+	public List<String> defaultValue()
 	{
 		return this.defaultValue;
 	}
@@ -165,7 +199,7 @@ public class ValueArgument extends CmdLineArgument
 	 * @param help the help text for this value argument
 	 * @return this instance, to facilitate method chaining
 	 */
-	public ValueArgument help( String help )
+	public ListArg help( String help )
 	{
 		super.setHelp( help );
 		return this;
@@ -187,7 +221,7 @@ public class ValueArgument extends CmdLineArgument
 	 * @param hint the hint text for this value argument
 	 * @return this instance, to facilitate method chaining
 	 */
-	public ValueArgument hint( String hint )
+	public ListArg hint( String hint )
 	{
 		this.hint = hint;
 		return this;

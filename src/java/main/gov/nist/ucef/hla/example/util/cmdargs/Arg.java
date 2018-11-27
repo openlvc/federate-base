@@ -23,11 +23,13 @@ package gov.nist.ucef.hla.example.util.cmdargs;
 /**
  * Abstract class to provide the basic functionality for any command line argument
  */
-public abstract class CmdLineArgument
+public abstract class Arg
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	public static final String SHORT_FORM_PREFIX = "-"; 
+	public static final String LONG_FORM_PREFIX = "--"; 
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES
@@ -45,7 +47,7 @@ public abstract class CmdLineArgument
 	 * @param shortForm the short form of the argument
 	 * @param longForm the long form of the argument
 	 */
-	public CmdLineArgument( Character shortForm, String longForm )
+	public Arg( Character shortForm, String longForm )
 	{
 		this.longForm = longForm;
 		this.shortForm = shortForm;
@@ -66,7 +68,7 @@ public abstract class CmdLineArgument
 	 * 
 	 * @return the kind of argument this is
 	 */
-	public abstract ArgumentKind argKind();
+	public abstract ArgKind argKind();
 
 	/**
 	 * Determine if this value argument is required
@@ -124,6 +126,25 @@ public abstract class CmdLineArgument
 	{
 		return this.help;
 	}
+	
+	/**
+	 * Return the prefixed representation of this argument, preferring the short or long form as
+	 * requested (if available)
+	 *
+	 * @param preferLong if true, use the long form of the argument (if available) in preference
+	 *            to the short form. If false, use the short form of the argument (if available)
+	 *            in preference to the long form.
+	 * @return the prefixed representation of this argument
+	 */
+	public String makePrefixedArg( boolean preferLong )
+	{
+		if( preferLong )
+			return hasLongForm() ? LONG_FORM_PREFIX + longForm
+			                     : SHORT_FORM_PREFIX + shortForm.toString();
+		
+		return hasShortForm() ? SHORT_FORM_PREFIX + shortForm.toString()
+		                      : LONG_FORM_PREFIX + longForm;
+	}
 
 	/**
 	 * Obtain a basic usage string associated with this argument
@@ -132,17 +153,6 @@ public abstract class CmdLineArgument
 	 */
 	public String getUsageString()
 	{
-		StringBuilder usage = new StringBuilder();
-		usage.append( '-' );
-		if( hasShortForm() )
-		{
-			usage.append( shortForm );
-		}
-		else
-		{
-			usage.append( '-' );
-			usage.append( longForm );
-		}
-		return usage.toString();
+		return makePrefixedArg( true );
 	}
 }

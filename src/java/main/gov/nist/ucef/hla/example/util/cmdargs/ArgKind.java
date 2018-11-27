@@ -20,10 +20,16 @@
  */
 package gov.nist.ucef.hla.example.util.cmdargs;
 
-public abstract class Validator
+/**
+ * The different kinds of command line arguments
+ */
+public enum ArgKind
 {
-	public ValidationResult validate( Object value )
-	{
-		return ValidationResult.GENERIC_SUCCESS;
-	};
+	//----------------------------------------------------------
+    //  VALUES
+    //----------------------------------------------------------
+	SWITCH, // on/off 
+	VALUE,  // single value
+	LIST,   // multiple values
+	UNKNOWN // ???
 }

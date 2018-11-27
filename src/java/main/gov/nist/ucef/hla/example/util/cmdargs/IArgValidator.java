@@ -21,13 +21,15 @@
 package gov.nist.ucef.hla.example.util.cmdargs;
 
 /**
- * The different kinds of command line arguments
+ * Interface defining the requirements for an argument validator
  */
-public enum ArgumentKind
+public interface IArgValidator
 {
-	//----------------------------------------------------------
-    //  VALUES
-    //----------------------------------------------------------
-	SWITCH, VALUE, LIST,
-	UNKNOWN
+	/**
+	 * Validate the provided value information
+	 * 
+	 * @param value the value to be validated
+	 * @return a {@link ValidationResult}
+	 */
+	public ValidationResult validate( Object value );
 }

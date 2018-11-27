@@ -41,13 +41,13 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.example.util.cmdargs.CmdArgProcessor;
-import gov.nist.ucef.hla.example.util.cmdargs.ListArgument;
-import gov.nist.ucef.hla.example.util.cmdargs.CmdArgException;
-import gov.nist.ucef.hla.example.util.cmdargs.StandardValidator;
+import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
+import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
+import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
+import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
-import gov.nist.ucef.hla.example.util.cmdargs.Validator;
-import gov.nist.ucef.hla.example.util.cmdargs.ValueArgument;
+import gov.nist.ucef.hla.example.util.cmdargs.IArgValidator;
+import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
 
 /**
  *		            ___
@@ -342,8 +342,8 @@ public class FederateManager extends FederateBase {
 	 */
 	private boolean validateAndProcessCmdLineArgs( String[] args )
 	{
-        CmdArgProcessor argProcessor = new CmdArgProcessor();
-        ListArgument requiredFederateTypes = argProcessor
+        ArgProcessor argProcessor = new ArgProcessor();
+        ListArg requiredFederateTypes = argProcessor
         	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
         	.isRequired(true)
 		    .validator( new RequiredFedValidator() )
@@ -354,27 +354,27 @@ public class FederateManager extends FederateBase {
 		                          CMDLINEARG_REQUIRE_SHORT,
 		                          CMDLINEARG_REQUIRE_SHORT ) )
 		    .hint( "FEDERATE_TYPE,COUNT" );
-		ValueArgument logicalSecondArg = argProcessor
+		ValueArg logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
 			.isRequired( false )
-		    .validator( StandardValidator.POS_DOUBLE )
+		    .validator( StdValidators.CheckDoubleGtZero )
 		    .help( String.format( "Define a 'logical second'; the logical step size which " +
 		    					  "equates to a real-time second. If unspecified a value " +
 		    					  "of %.2f will be used.",
 		    					  LOGICAL_SECOND_DEFAULT ) )
 		    .hint( "1.0" );
-		ValueArgument logicalStepGranularityArg = argProcessor
+		ValueArg logicalStepGranularityArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
 			.isRequired( false )
-		    .validator( StandardValidator.POS_INT )
+		    .validator( StdValidators.CheckIntGtZero )
 		    .help( String.format( "Define the number of steps per logical second. If " +
 		    				      "unspecified a value of %d will be used.",
 		    				      LOGICAL_STEP_GRANULARITY_DEFAULT ) )
 		    .hint( "1" );
-        ValueArgument realtimeMultiplierArg = argProcessor
+        ValueArg realtimeMultiplierArg = argProcessor
         	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
         	.isRequired(false)
-		    .validator( StandardValidator.POS_DOUBLE )
+		    .validator( StdValidators.CheckDoubleGtZero )
         	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
         						  "half speed, 2.0 is double speed, and so on. If unspecified " +
         						  "a value of %.2f will be used.", 
@@ -385,7 +385,7 @@ public class FederateManager extends FederateBase {
 		{
 			argProcessor.process( args );
 		}
-		catch( CmdArgException e )
+		catch( ArgException e )
 		{
 			System.err.println( e.getMessage() );
 			System.out.println( "Usage: " + argProcessor.getUsage( "fedman" ) );
@@ -759,7 +759,7 @@ public class FederateManager extends FederateBase {
 	 * command line arguments specifying the number and type of required federates is in the
 	 * correct format and contains no errors.
 	 */
-	private class RequiredFedValidator extends Validator
+	private class RequiredFedValidator implements IArgValidator
 	{
 		@Override
 		public ValidationResult validate( Object value )
@@ -767,6 +767,8 @@ public class FederateManager extends FederateBase {
 			boolean isValid = true;
 			try
 			{
+				// if there is a class cast exception here, it means the wrong
+				// type was passed in, which is just a validation error
 				@SuppressWarnings("unchecked")
 				List<String> val = (List<String>)value;
 				for( String s : val )

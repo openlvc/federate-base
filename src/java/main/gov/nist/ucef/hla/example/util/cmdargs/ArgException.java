@@ -20,68 +20,36 @@
  */
 package gov.nist.ucef.hla.example.util.cmdargs;
 
-public class StandardValidator
+import gov.nist.ucef.hla.base.UCEFException;
+
+/**
+ * An Exception to use when command line parsing fails for some reason
+ */
+public class ArgException extends UCEFException
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	public static final Validator POS_DOUBLE = new Validator()
-	{
-		@Override
-		public ValidationResult validate( Object value )
-		{
-			try
-			{
-				if( Double.parseDouble( (String)value ) > 0.0 )
-					return ValidationResult.GENERIC_SUCCESS;
-			}
-			catch( Exception e )
-			{
-				// ignore
-			}
-			return new ValidationResult( false, "Value must be greater than zero." );
-		}
-	};
-
-	public static final Validator POS_INT = new Validator()
-	{
-		@Override
-		public ValidationResult validate( Object value )
-		{
-			try
-			{
-				if( Integer.parseInt( (String)value ) > 0.0 )
-					return ValidationResult.GENERIC_SUCCESS;
-			}
-			catch( Exception e )
-			{
-				// ignore
-			}
-			return new ValidationResult( false, "Value must be a whole number greater than zero." );
-		}
-	};
+	private static final long serialVersionUID = -1178320692138577859L;
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private StandardValidator()
+	/**
+	 * Constructor
+	 * 
+	 * @param message the message describing the situation which caused this exception to occur
+	 */
+	public ArgException( String message )
 	{
-		// hidden constructor
+		super( message );
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
-	//----------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
 	//----------------------------------------------------------
 }

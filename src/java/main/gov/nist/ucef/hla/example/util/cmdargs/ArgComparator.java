@@ -24,9 +24,9 @@ import java.util.Comparator;
 
 /**
  * Utility class which simpy implements the {@link Comparator} interface to allow comparison of
- * {@link CmdLineArgument} instances for the purposes of sorting
+ * {@link Arg} instances for the purposes of sorting
  */
-class CmdLineArgumentComparator implements Comparator<CmdLineArgument>
+class ArgComparator implements Comparator<Arg>
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -44,7 +44,7 @@ class CmdLineArgumentComparator implements Comparator<CmdLineArgument>
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	@Override
-	public int compare( CmdLineArgument cla1, CmdLineArgument cla2 )
+	public int compare( Arg cla1, Arg cla2 )
 	{
 		// return...
 		//   *  -ve if the first value is less than the second 

@@ -37,9 +37,9 @@ import java.util.Set;
  * public static void main(String args[])
  * {
  *    CmdArgParser cmdArgParser = new CmdArgParser();
- *    SwitchArgument theSwitch = cmdArgParser.addSwitchArg('a', "activate").help("Activate the thing.");
- *    ValueArgument alphabetValue = cmdArgParser.addValueArg(null, "alphabet").isRequired(false).help("Define Alphabet").hint("ABCDEFG...");
- *    ValueArgument bradshawValue = cmdArgParser.addValueArg('b', "bradshaw").isRequired(true).help("Set the bradshaw radius").hint("RADIUS");
+ *    SwitchArg theSwitch = cmdArgParser.addSwitchArg('a', "activate").help("Activate the thing.");
+ *    ValueArg alphabetValue = cmdArgParser.addValueArg(null, "alphabet").isRequired(false).help("Define Alphabet").hint("ABCDEFG...");
+ *    ValueArg bradshawValue = cmdArgParser.addValueArg('b', "bradshaw").isRequired(true).help("Set the bradshaw radius").hint("RADIUS");
  *    try
  *    {
  *        cmdArgParser.parse(args);
@@ -56,18 +56,21 @@ import java.util.Set;
  *    System.exit(0);
  * }
  */
-public class CmdArgProcessor
+public class ArgProcessor
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	// used when printing usage and help messages to the console
+	private static final int CONSOLE_WIDTH = 80;
+	private static final String TAB_AS_SPACES = "    ";
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
 	// maps for looking up under short and long forms of command line arguments
-	private Map<Character,CmdLineArgument> shortFormArgMap;
-	private Map<String,CmdLineArgument> longFormArgMap;
+	private Map<Character,Arg> shortFormArgMap;
+	private Map<String,Arg> longFormArgMap;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -75,7 +78,7 @@ public class CmdArgProcessor
 	/**
 	 * Constructor - nothing special here
 	 */
-	public CmdArgProcessor()
+	public ArgProcessor()
 	{
 		shortFormArgMap = new HashMap<>();
 		longFormArgMap = new HashMap<>();
@@ -85,20 +88,20 @@ public class CmdArgProcessor
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
-	 * Add a {@link SwitchArgument} to supply a boolean argument. This is implicitly optional
+	 * Add a {@link SwitchArg} to supply a boolean argument. This is implicitly optional
 	 *
 	 * @param shortForm the short form of the command line argument
 	 * @param longForm the long form of the command line argument
 	 *
-	 * @return the created {@link SwitchArgument}, or null if *both* short and long forms are null
+	 * @return the created {@link SwitchArg}, or null if *both* short and long forms are null
 	 *         or empty
 	 */
-	public SwitchArgument addSwitchArg( Character shortForm, String longForm )
+	public SwitchArg addSwitchArg( Character shortForm, String longForm )
 	{
 		if( shortForm == null && (longForm == null || longForm.length() == 0) )
 			return null;
 
-		SwitchArgument switchArgument = new SwitchArgument( shortForm, longForm );
+		SwitchArg switchArgument = new SwitchArg( shortForm, longForm );
 
 		if( switchArgument.hasShortForm() )
 			shortFormArgMap.put( shortForm, switchArgument );
@@ -109,20 +112,20 @@ public class CmdArgProcessor
 	}
 
 	/**
-	 * Add a {@link ValueArgument} to supply a string argument.
+	 * Add a {@link ValueArg} to supply a string argument.
 	 *
 	 * @param shortForm the short form of the command line argument
 	 * @param longForm the long form of the command line argument
 	 *
-	 * @return the created {@link ValueArgument}, or null if *both* short and long forms are null
+	 * @return the created {@link ValueArg}, or null if *both* short and long forms are null
 	 *         or empty
 	 */
-	public ValueArgument addValueArg( Character shortForm, String longForm )
+	public ValueArg addValueArg( Character shortForm, String longForm )
 	{
 		if( shortForm == null && (longForm == null || longForm.length() == 0) )
 			return null;
 
-		ValueArgument valueArgument = new ValueArgument( shortForm, longForm );
+		ValueArg valueArgument = new ValueArg( shortForm, longForm );
 
 		if( valueArgument.hasShortForm() )
 			shortFormArgMap.put( shortForm, valueArgument );
@@ -133,20 +136,20 @@ public class CmdArgProcessor
 	}
 
 	/**
-	 * Add a {@link ListArgument} to supply one or more string arguments under the same argument
+	 * Add a {@link ListArg} to supply one or more string arguments under the same argument
 	 *
 	 * @param shortForm the short form of the command line argument
 	 * @param longForm the long form of the command line argument
 	 *
-	 * @return the created {@link ListArgument}, or null if *both* short and long forms are null
+	 * @return the created {@link ListArg}, or null if *both* short and long forms are null
 	 *         or empty
 	 */
-	public ListArgument addListArg( Character shortForm, String longForm )
+	public ListArg addListArg( Character shortForm, String longForm )
 	{
 		if( shortForm == null && (longForm == null || longForm.length() == 0) )
 			return null;
 
-		ListArgument listArgument = new ListArgument( shortForm, longForm );
+		ListArg listArgument = new ListArg( shortForm, longForm );
 
 		if( listArgument.hasShortForm() )
 			shortFormArgMap.put( shortForm, listArgument );
@@ -157,61 +160,65 @@ public class CmdArgProcessor
 	}
 
 	/**
-	 * Parse the provided command line arguments using the defined {@link SwitchArgument}s and
-	 * {@link ValueArgument}s
+	 * Parse the provided command line arguments using the defined {@link SwitchArg}s and
+	 * {@link ValueArg}s
 	 *
 	 * @param args the command line arguments to be parsed
-	 * @throws CmdArgException if there are unrecognised command line arguments, or missing
+	 * @throws ArgException if there are unrecognised command line arguments, or missing
 	 *             required command line arguments, or arguments which do not pass validation 
 	 */
-	public void process( String[] args ) throws CmdArgException
+	public void process( String[] args ) throws ArgException
 	{
 		// reset everything
-		for( CmdLineArgument cmdLineArgument : collectAllCommandLineArguments() )
+		for( Arg cmdLineArgument : collectAllCommandLineArguments() )
 			cmdLineArgument.reset();
 
 		// get a list of required command line arguments so that we can check them off
 		// and make sure they are all specified
-		List<CmdLineArgument> requiredArgList = Arrays.asList( collectRequiredArguments() );
-		Set<CmdLineArgument> requiredArgs = new HashSet<>( requiredArgList );
-		Map<CmdLineArgument,ValidationResult> invalidParams = new HashMap<>();
+		List<Arg> requiredArgList = Arrays.asList( collectRequiredArguments() );
+		Set<Arg> requiredArgs = new HashSet<>( requiredArgList );
+		Map<Arg,ValidationResult> invalidParams = new HashMap<>();
 		// make a list to contain anything we came across that we don't recognise
 		List<String> unknownArgs = new ArrayList<>();
 
+		int longFormPrefixLen = Arg.LONG_FORM_PREFIX.length();
+		int shortFormPrefixLen = Arg.SHORT_FORM_PREFIX.length();
 		// parse the command line arguments
 		for( int i = 0; i < args.length; i++ )
 		{
 			String arg = args[i];
-			if( arg.charAt( 0 ) == '-' && arg.length() > 1 )
+			boolean isLongForm = arg.startsWith( Arg.LONG_FORM_PREFIX ) && arg.length() > longFormPrefixLen;
+			boolean isShortForm = arg.startsWith( Arg.SHORT_FORM_PREFIX ) && arg.length() == (shortFormPrefixLen+1);
+			if( isLongForm || isShortForm )
 			{
 				// figure out if it's a short or long form version of the argument,
 				// and look it up in the tables as appropriate
-				CmdLineArgument cmdLineArgument = null;
-				if( arg.charAt( 1 ) == '-' && arg.length() > 2 )
-					cmdLineArgument = longFormArgMap.get( arg.substring( 2 ) );
-				else if( arg.charAt( 1 ) != '-' && arg.length() == 2 )
-					cmdLineArgument = shortFormArgMap.get( arg.charAt( 1 ) );
+				Arg cmdLineArgument = null;
+				if( isLongForm )
+					cmdLineArgument = longFormArgMap.get( arg.substring( longFormPrefixLen ) );
+				else if( isShortForm )
+					cmdLineArgument = shortFormArgMap.get( arg.charAt( shortFormPrefixLen ) );
 
-				ArgumentKind argKind = cmdLineArgument != null ? cmdLineArgument.argKind() 
-				                                               : ArgumentKind.UNKNOWN;
+				ArgKind argKind = cmdLineArgument != null ? cmdLineArgument.argKind() 
+				                                               : ArgKind.UNKNOWN;
 				// handle the argument as required
-				if( ArgumentKind.VALUE.equals( argKind ) || 
-					ArgumentKind.LIST.equals( argKind ) )
+				if( ArgKind.VALUE.equals( argKind ) || 
+					ArgKind.LIST.equals( argKind ) )
 				{
 					// ValueArgument or ListArgument, so we need to grab the 
 					// next item as the value for it
 					if( i + 1 < args.length )
 					{
 						// get the value
-						if( ArgumentKind.VALUE.equals( argKind ) )
+						if( ArgKind.VALUE.equals( argKind ) )
 						{
-							ValidationResult result = ((ValueArgument)cmdLineArgument).parse( args[i + 1] ).validate();
+							ValidationResult result = ((ValueArg)cmdLineArgument).parse( args[i + 1] ).validate();
 							if( !result.isValid )
 								invalidParams.put( cmdLineArgument, result );
 						}
 						else
 						{
-							ValidationResult result = ((ListArgument)cmdLineArgument).parse( args[i + 1] ).validate();
+							ValidationResult result = ((ListArg)cmdLineArgument).parse( args[i + 1] ).validate();
 							if( !result.isValid )
 								invalidParams.put( cmdLineArgument, result );
 						}
@@ -221,10 +228,10 @@ public class CmdArgProcessor
 						requiredArgs.remove( cmdLineArgument );
 					}
 				}
-				else if( ArgumentKind.SWITCH.equals( argKind ) )
+				else if( ArgKind.SWITCH.equals( argKind ) )
 				{
 					// switch argument - just set it now
-					((SwitchArgument)cmdLineArgument).set( true );
+					((SwitchArg)cmdLineArgument).set( true );
 				}
 				else
 				{
@@ -247,21 +254,21 @@ public class CmdArgProcessor
 		{
 			// need to throw an exception with an informative error message
 			StringBuilder message = new StringBuilder();
-			message.append( "Missing required argument" );
-			message.append( requiredArgs.size() == 1 ? ": " : "s: " );
-			CmdLineArgument[] requiredArgsArray = requiredArgs.toArray( new CmdLineArgument[0] );
+			message.append( "Missing required " )
+				   .append( pluralize("argument", requiredArgs.size(), "s") )
+				   .append( " " );
+			Arg[] requiredArgsArray = requiredArgs.toArray( new Arg[0] );
 			for( int idx = 0; idx < requiredArgsArray.length; idx++ )
 			{
-				CmdLineArgument cmdLineArgument = requiredArgsArray[idx];
-				String argName = cmdLineArgument.hasShortForm() ? "-" + cmdLineArgument.shortForm.toString()
-				                                   				: "--" + cmdLineArgument.longForm;
+				Arg cmdLineArgument = requiredArgsArray[idx];
+				String argName = cmdLineArgument.makePrefixedArg( true );
 				message.append( argName );
 				if( idx + 2 < requiredArgsArray.length )
 					message.append( ", " );
 				else if( idx + 1 < requiredArgsArray.length )
 					message.append( " and " );
 			}
-			throw new CmdArgException( message.toString() );
+			throw new ArgException( message.toString() );
 		}
 
 		// were there any unknown arguments encountered?
@@ -269,8 +276,9 @@ public class CmdArgProcessor
 		{
 			// need to throw an exception with an informative error message
 			StringBuilder message = new StringBuilder();
-			message.append( "Unknown argument" );
-			message.append( unknownArgs.size() == 1 ? ": " : "s: " );
+			message.append( "Unknown " )
+				   .append( pluralize("argument", unknownArgs.size(), "s") )
+				   .append( " " );
 			for( int idx = 0; idx < unknownArgs.size(); idx++ )
 			{
 				message.append( unknownArgs.get( idx ) );
@@ -279,7 +287,7 @@ public class CmdArgProcessor
 				else if( idx + 1 < unknownArgs.size() )
 					message.append( " and " );
 			}
-			throw new CmdArgException( message.toString() );
+			throw new ArgException( message.toString() );
 		}
 
 		// were there any invalid parameters
@@ -287,20 +295,19 @@ public class CmdArgProcessor
 		{
 			// need to throw an exception with an informative error message
 			StringBuilder message = new StringBuilder();
-			message.append( "Invalid parameter" );
-			message.append( invalidParams.size() == 1 ? ": " : "s:\n" );
-			for( Entry<CmdLineArgument,ValidationResult> invalidParam : invalidParams.entrySet() )
+			message.append( "Invalid " )
+				   .append( pluralize("parameter", invalidParams.size(), "s") )
+				   .append( " " );
+			for( Entry<Arg,ValidationResult> invalidParam : invalidParams.entrySet() )
 			{
-				CmdLineArgument cmdLineArgument = invalidParam.getKey();
+				Arg cmdLineArgument = invalidParam.getKey();
 				ValidationResult validationResult = invalidParam.getValue();
-				String argName =
-				    cmdLineArgument.hasShortForm() ? "-" + cmdLineArgument.shortForm.toString()
-				                                   : "--" + cmdLineArgument.longForm;
+				String argName = cmdLineArgument.makePrefixedArg( true );
 				message.append( "The value for " + argName + " was not valid. " );
 				message.append( validationResult.getMessage() );
 				message.append( "\n" );
 			}
-			throw new CmdArgException( message.toString() );
+			throw new ArgException( message.toString() );
 		}
 	}
 
@@ -312,11 +319,11 @@ public class CmdArgProcessor
 	 */
 	public String getUsage( String command )
 	{
-		CmdLineArgument[] allCmdLineArguments = collectAllCommandLineArguments();
-		Arrays.sort( allCmdLineArguments, new CmdLineArgumentComparator() );
+		Arg[] allCmdLineArguments = collectAllCommandLineArguments();
+		Arrays.sort( allCmdLineArguments, new ArgComparator() );
 
 		StringBuilder usage = new StringBuilder( command );
-		for( CmdLineArgument cmdLineArgument : allCmdLineArguments )
+		for( Arg cmdLineArgument : allCmdLineArguments )
 		{
 			usage.append( " " );
 			usage.append( cmdLineArgument.getUsageString() );
@@ -333,17 +340,17 @@ public class CmdArgProcessor
 	 */
 	public String getHelp()
 	{
-		CmdLineArgument[] allCmdLineArguments = collectAllCommandLineArguments();
-		Arrays.sort( allCmdLineArguments, new CmdLineArgumentComparator() );
+		Arg[] allCmdLineArguments = collectAllCommandLineArguments();
+		Arrays.sort( allCmdLineArguments, new ArgComparator() );
 
 		StringBuilder help = new StringBuilder();
-		for( CmdLineArgument cmdLineArgument : allCmdLineArguments )
+		for( Arg cmdLineArgument : allCmdLineArguments )
 		{
 			boolean hasShortForm = cmdLineArgument.hasShortForm();
 			boolean hasLongForm = cmdLineArgument.hasLongForm();
-			if( ArgumentKind.SWITCH.equals( cmdLineArgument.argKind() ) )
+			if( ArgKind.SWITCH.equals( cmdLineArgument.argKind() ) )
 			{
-				SwitchArgument switchArgument = (SwitchArgument)cmdLineArgument;
+				SwitchArg switchArgument = (SwitchArg)cmdLineArgument;
 				if( hasShortForm )
 					help.append( "[-" ).append( switchArgument.shortForm ).append( "]" );
 				if( hasShortForm && hasLongForm )
@@ -352,53 +359,60 @@ public class CmdArgProcessor
 					help.append( "[--" ).append( switchArgument.longForm ).append( "]" );
 				if( cmdLineArgument.hasHelp() )
 				{
-					help.append( "\n\t" ).append( cmdLineArgument.getHelp() );
+					String helpText = cmdLineArgument.getHelp();
+					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					for(String line : helpLines)
+					{
+						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
+					}
 				}
 			}
-			else if( ArgumentKind.VALUE.equals( cmdLineArgument.argKind() ) )
+			else if( ArgKind.VALUE.equals( cmdLineArgument.argKind() ) )
 			{
-				ValueArgument valueArgument = (ValueArgument)cmdLineArgument;
+				ValueArg valueArgument = (ValueArg)cmdLineArgument;
 				boolean isRequired = valueArgument.isRequired();
 				if( hasShortForm )
 					help.append( (isRequired ? "" : "[") )
-					.append( "-" )
-					.append(valueArgument.shortForm )
-					.append( (isRequired ? "" : "]") );
+						.append( valueArgument.makePrefixedArg( false ) )
+						.append( (isRequired ? "" : "]") );
 				if( hasShortForm && hasLongForm )
 					help.append( ", " );
 				if( hasLongForm )
 					help.append( (isRequired ? "" : "[") )
-					.append( "--" )
-					.append( valueArgument.longForm ).append( (isRequired ? "" : "]") );
+						.append( valueArgument.makePrefixedArg( true ) )
+						.append( (isRequired ? "" : "]") );
 				if( cmdLineArgument.hasHelp() )
 				{
-					help.append( "\n\t" )
-					.append( cmdLineArgument.isRequired() ? "(REQUIRED) " 
-					                                      : "(OPTIONAL) " )
-					.append( cmdLineArgument.getHelp() );
+					String helpText = cmdLineArgument.getHelp();
+					helpText = (cmdLineArgument.isRequired() ? "(REQUIRED) " 
+						                                     : "(OPTIONAL) ") + helpText;
+					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					for(String line : helpLines)
+						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
 				}
 			}
-			else if( ArgumentKind.LIST.equals( cmdLineArgument.argKind() ) )
+			else if( ArgKind.LIST.equals( cmdLineArgument.argKind() ) )
 			{
-				ListArgument listArgument = (ListArgument)cmdLineArgument;
+				ListArg listArgument = (ListArg)cmdLineArgument;
 				boolean isRequired = listArgument.isRequired();
 				if( hasShortForm )
 					help.append( (isRequired ? "" : "[") )
-					.append( "-" )
-					.append( listArgument.shortForm )
-					.append( (isRequired ? "" : "]") );
+						.append( listArgument.makePrefixedArg( false ) )
+						.append( (isRequired ? "" : "]") );
 				if( hasShortForm && hasLongForm )
 					help.append( ", " );
 				if( hasLongForm )
 					help.append( (isRequired ? "" : "[") )
-					.append( "--" )
-					.append( listArgument.longForm ).append( (isRequired ? "" : "]") );
+						.append( listArgument.makePrefixedArg( true ) )
+						.append( (isRequired ? "" : "]") );
 				if( cmdLineArgument.hasHelp() )
 				{
-					help.append( "\n\t" )
-					.append( cmdLineArgument.isRequired() ? "(REQUIRED) " 
-					                                      : "(OPTIONAL) " )
-					.append( cmdLineArgument.getHelp() );
+					String helpText = cmdLineArgument.getHelp();
+					helpText = (cmdLineArgument.isRequired() ? "(REQUIRED) " 
+						                                     : "(OPTIONAL) ") + helpText;
+					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					for(String line : helpLines)
+						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
 				}
 			}
 			help.append( "\n" );
@@ -411,12 +425,12 @@ public class CmdArgProcessor
 	 *
 	 * @return all defined command line arguments in an array
 	 */
-	private CmdLineArgument[] collectAllCommandLineArguments()
+	private Arg[] collectAllCommandLineArguments()
 	{
-		Set<CmdLineArgument> all = new HashSet<>();
+		Set<Arg> all = new HashSet<>();
 		all.addAll( shortFormArgMap.values() );
 		all.addAll( longFormArgMap.values() );
-		return all.toArray( new CmdLineArgument[0] );
+		return all.toArray( new Arg[0] );
 	}
 
 	/**
@@ -424,20 +438,114 @@ public class CmdArgProcessor
 	 *
 	 * @return all required command line arguments in an array
 	 */
-	private CmdLineArgument[] collectRequiredArguments()
+	private Arg[] collectRequiredArguments()
 	{
-		Set<CmdLineArgument> required = new HashSet<>();
-		List<CmdLineArgument> allCmdLineArguments = new ArrayList<>();
+		Set<Arg> required = new HashSet<>();
+		List<Arg> allCmdLineArguments = new ArrayList<>();
 		allCmdLineArguments.addAll( shortFormArgMap.values() );
 		allCmdLineArguments.addAll( longFormArgMap.values() );
-		for( CmdLineArgument cmdLineArgument : allCmdLineArguments )
+		for( Arg cmdLineArgument : allCmdLineArguments )
 		{
 			if( cmdLineArgument.isRequired() )
 				required.add( cmdLineArgument );
 		}
-		return required.toArray( new CmdLineArgument[0] );
+		return required.toArray( new Arg[0] );
+	}
+	
+	/**
+	 * Utility method to allow simple pluralization of text if the count is not 1. By default, use 's'
+	 * as the pluralization suffix:
+	 * Usage examples:
+	 * 
+	 *   - pluralize("vote", 0, null) returns "votes"
+	 *   - pluralize("vote", 1, null) returns "vote"
+	 *   - pluralize("vote", 2, null) returns "votes"
+	 *   
+	 *   - pluralize("class", 0, "es") returns "classes"
+	 *   - pluralize("class", 1, "es") returns "class"
+	 *   - pluralize("class", 2, "es") returns "classes"
+	 *   
+	 *   - pluralize("cand", 0, "y,ies") returns "candies"
+	 *   - pluralize("cand", 1, "y,ies") returns "candy"
+	 *   - pluralize("cand", 2, "y,ies") returns "candies"
+	 *   
+	 * @param stem the stem of the word
+	 * @param count the count
+	 * @param suffix the pluralizing suffix specifier
+	 * @return the pluralized word
+	 */
+	private String pluralize( String stem, int count, String suffix )
+	{
+		String singularSuffix = "";
+		String pluralSuffix = (suffix == null ? "s" : suffix);
+		String[] bits = suffix.split( "," );
+		if( bits.length > 2 )
+		{
+			return "";
+		}
+		else if( bits.length == 2 )
+		{
+			singularSuffix = bits[0];
+			pluralSuffix = bits[1];
+		}
+		return (stem == null ? "" : stem) + (count == 1 ? singularSuffix : pluralSuffix);
 	}
 
+	/**
+	 * A word-wrap function that preserves existing line breaks. Expects that existing line breaks
+	 * are posix newlines (i.e., \n).
+	 * 
+	 * Preserves all white space except added line breaks consume the space on which they break the
+	 * line.
+	 * 
+	 * NOTE: Doesn't wrap long words, thus the output text *may* have lines longer than width.
+	 * 
+	 * @param text the original text
+	 * @param width the desired width
+	 * @return the lines of the wrapped text
+	 */
+	private List<String> wrap( String text, int width )
+	{
+		List<String> lines = new ArrayList<>();
+		for( String line : text.split( "\n" ) )
+		{
+			if( line.length() < width )
+			{
+				lines.add( line );
+			}
+			else
+			{
+				while( line.length() > width )
+				{
+					// find the last space character within the width
+					// from the start of the string
+					int spacePos = line.substring( 0, width ).lastIndexOf( ' ' ) + 1;
+					if( spacePos == 0 )
+					{
+						// no space character found, look from the start of the string
+						spacePos = line.indexOf( ' ' ) + 1;
+					}
+					if( spacePos == 0 )
+					{
+						// still no space character found - can't split!
+						lines.add( line );
+						line = "";
+					}
+					else
+					{
+						lines.add( line.substring( 0, spacePos - 1 ) );
+						line = line.substring( spacePos );
+					}
+				}
+				if( line.length() > 0 )
+				{
+					lines.add( line );
+				}
+			}
+		}
+		return lines;
+	}
+	
 	//----------------------------------------------------------
 	//                    STATIC METHODS
 	//----------------------------------------------------------
@@ -452,16 +560,16 @@ public class CmdArgProcessor
 	 */
 	public static void main( String args[] )
 	{
-		CmdArgProcessor cmdArgParser = new CmdArgProcessor();
-		SwitchArgument theSwitch = cmdArgParser
+		ArgProcessor cmdArgParser = new ArgProcessor();
+		SwitchArg theSwitch = cmdArgParser
 			.addSwitchArg( 'a', "activate-thing" )
 			.help( "Activate the thing" );
-		ValueArgument alphabetValue = cmdArgParser
+		ValueArg alphabetValue = cmdArgParser
 			.addValueArg( null, "alphabet" )
 			.isRequired( false )
 			.help( "Define Alphabet" )
 			.hint( "ABCDEFG..." );
-		ValueArgument bradshawValue = cmdArgParser
+		ValueArg bradshawValue = cmdArgParser
 			.addValueArg( 'b', "bradshaw" )
 			.isRequired( true )
 			.help( "Set the bradshaw radius" )
@@ -474,7 +582,7 @@ public class CmdArgProcessor
 			System.out.println( alphabetValue.value() );
 			System.out.println( bradshawValue.value() );
 		}
-		catch( CmdArgException e )
+		catch( ArgException e )
 		{
 			System.err.println( e.getMessage() );
 			System.err.println( "Usage: " + cmdArgParser.getUsage( "mycommand" ) );

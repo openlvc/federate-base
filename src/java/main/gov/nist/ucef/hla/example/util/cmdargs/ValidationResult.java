@@ -20,10 +20,23 @@
  */
 package gov.nist.ucef.hla.example.util.cmdargs;
 
+/**
+ * A class to contain a command line argument validation result
+ *
+ */
 public class ValidationResult
 {
+	//----------------------------------------------------------
+	//                    STATIC VARIABLES
+	//----------------------------------------------------------
+	// to save creation of success instances all the time, this standard
+	// one can be used - generally all you need is a true flag and no
+	// message if everything is OK
 	public final static ValidationResult GENERIC_SUCCESS = new ValidationResult( true, "" );
 
+	//----------------------------------------------------------
+	//                    INSTANCE VARIABLES
+	//----------------------------------------------------------
 	boolean isValid;
 	private String msg;
 

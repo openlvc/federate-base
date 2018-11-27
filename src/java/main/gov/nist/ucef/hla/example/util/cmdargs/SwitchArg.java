@@ -23,12 +23,12 @@ package gov.nist.ucef.hla.example.util.cmdargs;
 /**
  * Class to provide the functionality for 'switch' command line arguments
  */
-public class SwitchArgument extends CmdLineArgument
+public class SwitchArg extends Arg
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final ArgumentKind argKind = ArgumentKind.SWITCH;
+	private static final ArgKind argKind = ArgKind.SWITCH;
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES
@@ -45,7 +45,7 @@ public class SwitchArgument extends CmdLineArgument
 	 * @param shortForm the short form of the switch argument
 	 * @param longForm the long form of the switch argument
 	 */
-	public SwitchArgument( Character shortForm, String longForm )
+	public SwitchArg( Character shortForm, String longForm )
 	{
 		super( shortForm, longForm );
 		defaultValue = false;
@@ -61,7 +61,7 @@ public class SwitchArgument extends CmdLineArgument
 	}
 
 	@Override
-	public ArgumentKind argKind()
+	public ArgKind argKind()
 	{
 		return argKind;
 	}
@@ -98,7 +98,7 @@ public class SwitchArgument extends CmdLineArgument
 	 * @param defaultValue the default value of this switch if it is not specified
 	 * @return this instance, to facilitate method chaining
 	 */
-	public SwitchArgument defaultValue( boolean defaultValue )
+	public SwitchArg defaultValue( boolean defaultValue )
 	{
 		this.defaultValue = defaultValue;
 		return this;
@@ -120,7 +120,7 @@ public class SwitchArgument extends CmdLineArgument
 	 * @param help the help text for this switch
 	 * @return this instance, to facilitate method chaining
 	 */
-	public SwitchArgument help( String help )
+	public SwitchArg help( String help )
 	{
 		super.setHelp( help );
 		return this;
