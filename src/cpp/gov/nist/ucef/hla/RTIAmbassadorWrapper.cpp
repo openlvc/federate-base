@@ -97,12 +97,24 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::enableTimeRegulated( const float lookAhead )
+	void RTIAmbassadorWrapper::enableTimeRegulation( const float lookAhead )
 	{
 		HLAfloat64Interval lookAheadInterval( lookAhead );
 		try
 		{
 			m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::disableTimeRegulation()
+	{
+		try
+		{
+			m_rtiAmbassador->disableTimeRegulation();
 		}
 		catch( Exception& e )
 		{
@@ -120,11 +132,22 @@ namespace ucef
 		{
 			throw UCEFException( ConversionHelper::ws2s(e.what()) );
 		}
-	}	
+	}
 
-	void RTIAmbassadorWrapper::publishSubscribeObjectClassAttributes( ObjectClassHandle& classHandle,
-	                                                                  set<AttributeHandle>& pubAttributes,
-	                                                                  set<AttributeHandle>& subAttributes )
+	void RTIAmbassadorWrapper::disableTimeConstrained()
+	{
+		try
+		{
+			m_rtiAmbassador->disableTimeConstrained();
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::publishObjectClassAttributes( ObjectClassHandle& classHandle,
+	                                                         set<AttributeHandle>& pubAttributes)
 	{
 		if( pubAttributes.size() )
 		{
@@ -137,6 +160,11 @@ namespace ucef
 				throw UCEFException( ConversionHelper::ws2s(e.what()) );
 			}
 		}
+	}
+
+	void RTIAmbassadorWrapper::subscribeObjectClassAttributes( ObjectClassHandle& classHandle,
+	                                                           set<AttributeHandle>& subAttributes)
+	{
 		if( subAttributes.size() )
 		{
 			try
@@ -150,7 +178,72 @@ namespace ucef
 		}
 	}
 
-	std::shared_ptr<HLAObject> RTIAmbassadorWrapper::registerObjectInstance( const string& className )
+	void RTIAmbassadorWrapper::publishInteractionClass( InteractionClassHandle& interactionHandle )
+	{
+		try
+		{
+			m_rtiAmbassador->publishInteractionClass( interactionHandle );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::subscribeInteractionClasses( InteractionClassHandle& interactionHandle )
+	{
+		try
+		{
+			m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::registerFederationSynchronizationPoint( const string& synchPoint )
+	{
+		try
+		{
+			const VariableLengthData tag( (void*)"", 1 );
+			m_rtiAmbassador->registerFederationSynchronizationPoint( ConversionHelper::s2ws(synchPoint), tag );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::synchronizationPointAchieved( const string& synchPoint )
+	{
+		try
+		{
+			m_rtiAmbassador->synchronizationPointAchieved( ConversionHelper::s2ws(synchPoint) );
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	void RTIAmbassadorWrapper::timeAdvanceRequest( const double requestedTime )
+	{
+		unique_ptr<HLAfloat64Time> newTime( new HLAfloat64Time(requestedTime) );
+		try
+		{
+			m_rtiAmbassador->timeAdvanceRequest( *newTime );
+		}
+		catch( InTimeAdvancingState& )
+		{
+		}
+		catch( Exception& e )
+		{
+			throw UCEFException( ConversionHelper::ws2s(e.what()) );
+		}
+	}
+
+	shared_ptr<HLAObject> RTIAmbassadorWrapper::registerObjectInstance( const string& className )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -179,72 +272,7 @@ namespace ucef
 		return hlaObject;
 	}
 
-	void RTIAmbassadorWrapper::publishInteractionClass( InteractionClassHandle& interactionHandle )
-	{
-		try
-		{
-			m_rtiAmbassador->publishInteractionClass( interactionHandle );
-		}
-		catch( Exception& e )
-		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
-		}
-	}
-
-	void RTIAmbassadorWrapper::subscribeInteractionClasses( InteractionClassHandle& interactionHandle )
-	{
-		try
-		{
-			m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
-		}
-		catch( Exception& e )
-		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
-		}
-	}
-
-	void RTIAmbassadorWrapper::announceSynchronizationPoint( const string& synchPoint )
-	{
-		try
-		{
-			const VariableLengthData tag( (void*)"", 1 );
-			m_rtiAmbassador->registerFederationSynchronizationPoint( ConversionHelper::s2ws(synchPoint), tag );
-		}
-		catch( Exception& e )
-		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
-		}
-	}
-
-	void RTIAmbassadorWrapper::achieveSynchronizationPoint( const string& synchPoint )
-	{
-		try
-		{
-			m_rtiAmbassador->synchronizationPointAchieved( ConversionHelper::s2ws(synchPoint) );
-		}
-		catch( Exception& e )
-		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
-		}
-	}
-
-	void RTIAmbassadorWrapper::advanceLogicalTime( const double requestedTime )
-	{
-		unique_ptr<HLAfloat64Time> newTime( new HLAfloat64Time(requestedTime) );
-		try
-		{
-			m_rtiAmbassador->timeAdvanceRequest( *newTime );
-		}
-		catch( InTimeAdvancingState& )
-		{
-		}
-		catch( Exception& e )
-		{
-			throw UCEFException( ConversionHelper::ws2s(e.what()) );
-		}
-	}
-
-	void RTIAmbassadorWrapper::updateObjectInstance( shared_ptr<HLAObject>& hlaObject )
+	void RTIAmbassadorWrapper::updateAttributeValues( shared_ptr<HLAObject>& hlaObject )
 	{
 		Logger& logger = Logger::getInstance();
 
@@ -331,7 +359,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::deleteObjectInstances( std::shared_ptr<HLAObject>& hlaObject )
+	void RTIAmbassadorWrapper::deleteObjectInstance( shared_ptr<HLAObject>& hlaObject )
 	{
 
 		Logger& logger = Logger::getInstance();
@@ -370,7 +398,7 @@ namespace ucef
 		}
 	}
 
-	void RTIAmbassadorWrapper::tickForCallBacks( double min, double max )
+	void RTIAmbassadorWrapper::evokeMultipleCallbacks( double min, double max )
 	{
 		m_rtiAmbassador->evokeMultipleCallbacks( min, max );
 	}

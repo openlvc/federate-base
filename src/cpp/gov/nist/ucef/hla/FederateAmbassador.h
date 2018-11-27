@@ -15,7 +15,7 @@ namespace ucef
 	class FederateBase;
 	/**
 	 * The {@link FederateAmbassador} class implements an interface that allows RTI
-	 * infrastructure to communicate with the {@link FederateBase}
+	 * infrastructure to communicate with the Federate.
 	 *
 	 * @see IFederateBase
 	 */
@@ -149,36 +149,50 @@ namespace ucef
 			//----------------------------------------------------------
 
 			/**
-			 * Check if a synchronization point has been announced to the federation
+			 * Checks if a synchronization point has been announced to the federation
 			 * 
 			 * @param label the identifier of the synchronization point
-			 * @return true if the synchronization point has already been announced to the federation,
+			 * @return true if the synchronization point has been announced to the federation,
 			 *         false otherwise
 			 */
 			bool isAnnounced( std::string& label );
 
 			/**
-			 * Check if the federation has achieved the synchronization point
+			 * Checks if a given synchronization point has been achieved by the federation
 			 * 
 			 * @param label the identifier of the synchronization point
-			 * @return true if the synchronization point has already been achieved by the federation,
+			 * @return true if the synchronization point has been achieved by the federation,
 			 *         false otherwise
 			 */
 			bool isAchieved( std::string& achievedPoint );
 
 			/**
-			 * Check if this federation is time regulated
+			 * Checks if this federation is time regulated
 			 * 
 			 * @return true if this federation is time regulated, false otherwise
 			 */
-			bool isRegulated();
+			bool isTimeRegulated();
 
 			/**
-			 * Check if this federation is time constrained
+			 * sets time regulating indicator flag
+			 *
+			 * @param time regulating indicator value
+			 */
+			void setTimeRegulatedFlag( bool flag );
+
+			/**
+			 * Checks if this federation is time constrained
 			 * 
 			 * @return true if this federation is time constrained, false otherwise
 			 */
-			bool isConstrained();
+			bool isTimeConstrained();
+
+			/**
+			 * sets time constrained indicator flag
+			 *
+			 * @param time constrained indicator value
+			 */
+			void setTimeConstrainedFlag( bool flag );
 
 			/**
 			 * Returns the current federate time as a double

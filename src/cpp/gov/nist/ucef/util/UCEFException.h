@@ -9,9 +9,16 @@ namespace ucef
 {
 	namespace util
 	{
+		/**
+		 * The {@link UCEFException} encapsulate lower level exceptions (RTI exceptions)
+		 * into a user friendly custom exception type.
+		 */
 		class UCEF_API UCEFException : public std::runtime_error
 		{
 		public:
+			//----------------------------------------------------------
+			//                     Constructors
+			//----------------------------------------------------------
 			UCEFException( const std::string& message );
 			UCEFException( const UCEFException& exception );
 		};

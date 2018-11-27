@@ -2,7 +2,7 @@
 
 /**
  * @file types.h
- * Defines all POD types used bye UCEFFederate
+ * Defines all types used by UCEFFederate
  */
 #include <codecvt>
 #include <list>
@@ -26,9 +26,8 @@ namespace ucef
 
 		/**
 		 *  Represents the logging level of the logger
-		 *  parameter or attribute
 		 *
-		 *  @see Logger::setLogLevel( LogLevel level )
+		 *  @see Logger#setLogLevel( LogLevel )
 		 */
 		enum LogLevel
 		{
@@ -41,12 +40,17 @@ namespace ucef
 			LevelOff = 6
 		};
 
+		/**
+		 *  Represents the synchronization points of this federate
+		 *
+		 *  @see FederateBase#synchronize( SynchPoint )
+		 */
 		enum SynchPoint
 		{
-			PointReadyToPopulate = 0,
-			PointReadyToRun = 1,
-			PointReadyToResign = 2,
-			PointUnknown = 3
+			READY_TO_POPULATE = 0,
+			READY_TO_RUN = 1,
+			READY_TO_RESIGN = 2,
+			POINT_UNKNOWN = 3
 		};
 
 
@@ -55,7 +59,7 @@ namespace ucef
 		//-----------------------------------------
 
 		/**
-		 *  Represents an attribute of an object class in a given Simulation Object Model
+		 *  Represents an attribute of an object class given a Simulation Object Model
 		 *
 		 *  @see ObjectClass
 		 */
@@ -73,9 +77,10 @@ namespace ucef
 			};
 
 		/**
-		 *  Represents an object class in a given Simulation Object Model
+		 *  Represents an object class given a Simulation Object Model
 		 *
 		 *  @see SOMParser#getObjectClasses(string&)
+		 *  @see ObjectAttribute
 		 */
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 		struct ObjectClass
@@ -93,8 +98,7 @@ namespace ucef
 		};
 
 		/**
-		 *  Represents a parameter of an interaction class in a given
-		 *  Simulation Object Model
+		 *  Represents a parameter of an interaction class a Simulation Object Model
 		 *
 		 *  @see InteractionClass
 		 */
@@ -108,9 +112,10 @@ namespace ucef
 		};
 
 		/**
-		 *  Represents an interaction class in a given Simulation Object Model
+		 *  Represents an interaction class given a Simulation Object Model
 		 *
 		 *  @see SOMParser#getInteractionClasses(string&)
+		 *  @see InteractionParameter
 		 */
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionParameter>> InteractionParameters;
 		struct InteractionClass
@@ -127,10 +132,12 @@ namespace ucef
 			bool subscribe;
 			InteractionParameters parameters;
 		};
+
 		/**
-		 *  Represents attribute and interaction data passed from/to user
+		 * Type neutral representation of attrbiute and parameter values
 		 *
 		 *  @see HLAObject
+		 *  @see HLAInteraction
 		 */
 		struct VariableData
 		{
@@ -142,25 +149,42 @@ namespace ucef
 		//           Typedefs
 		//-----------------------------------------
 
-		// unordered_map because we do not need any ordering,
+		// unordered_map because we do not need any ordering
 		// what we need is a faster way to get the object class
-		// to resolve object class data from the object class name for incoming objects
+
+		// to resolve object class data from a object class name of an incoming object
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
-		// to resolve object class data from the object class hash for incoming objects
+		// to resolve object class data from a object class handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
-		// to resolve object class data from the object instance hash for incoming objects
+		// to resolve object class data from a object instance handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance;
-		// to resolve object instance handle from the instance hash of the outgoing objects
+		// to resolve object instance handle from the instance hash of an outgoing object
 		typedef std::unordered_map<long, std::shared_ptr<rti1516e::ObjectInstanceHandle>> ObjectInstanceStoreByHash;
 
+		// to resolve interaction class data from an interaction class name of an incoming object
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
+		// to resolve interaction class data from an interaction class handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
+
 		//----------------------------------------
 		//           Conversion helpers
 		//-----------------------------------------
+
+		/**
+		 * The {@link ConversionHelper} contains various static helper methods
+		 */
 		class ConversionHelper
 		{
 			public:
+
+				/**
+				 * Returns true if a given sharing state string is related
+				 * to publishing, false otherwise
+				 * 
+				 * @param sharingStateString sharing state string as in a SOM
+				 * @return true if the given sharing state string is related to publishing,
+				 *         false otherwise
+				 */
 				static bool isPublish( const std::string& sharingStateString )
 				{
 					bool publish = false;
@@ -171,6 +195,14 @@ namespace ucef
 					return publish;
 				}
 
+				/**
+				 * Returns true if a given sharing state string is related
+				 * to subscribing, false otherwise
+				 * 
+				 * @param sharingStateString sharing state string as in a SOM
+				 * @return true if the given sharing state string is related to subscribing,
+				 *         false otherwise
+				 */
 				static bool isSubscribe( const std::string& sharingStateString )
 				{
 					bool subscribe = false;
@@ -181,60 +213,60 @@ namespace ucef
 					return subscribe;
 				}
 
+				/**
+				 * Converts a synchronization point to an equivalent string representation
+				 * 
+				 * @param point synchronization point
+				 * @return the equivalent string representation of a synchronization point
+				 */
 				static std::string SynchPointToString( SynchPoint point )
 				{
 					std::string synchPointStr = "";
-					if( point == SynchPoint::PointReadyToPopulate )
+					if( point == SynchPoint::READY_TO_POPULATE )
 					{
 						synchPointStr = "ReadyToPopulate";
 					}
-					else if( point == SynchPoint::PointReadyToRun )
+					else if( point == SynchPoint::READY_TO_RUN )
 					{
 						synchPointStr = "ReadyToRun";
 					}
-					else if( point == SynchPoint::PointReadyToResign )
+					else if( point == SynchPoint::READY_TO_RESIGN )
 					{
 						synchPointStr = "ReadyToResign";
 					}
 					return synchPointStr;
 				}
 
-				static std::wstring SynchPointToWstring( SynchPoint point )
-				{
-					std::wstring synchPointStr = L"";
-					if( point == SynchPoint::PointReadyToPopulate )
-					{
-						synchPointStr = L"ReadyToPopulate";
-					}
-					else if( point == SynchPoint::PointReadyToRun )
-					{
-						synchPointStr = L"ReadyToRun";
-					}
-					else if( point == SynchPoint::PointReadyToResign )
-					{
-						synchPointStr = L"ReadyToResign";
-					}
-					return synchPointStr;
-				}
-
+				/**
+				 * Converts a given string to an equivalent synchronization point representation
+				 * 
+				 * @param synchPointStr wstring representation of a synchronization point
+				 * @return the equivalent synchronization point representation of a wstring
+				 */
 				static SynchPoint StringToSynchPoint( std::wstring synchPointStr )
 				{
-					SynchPoint synchPointEnum = SynchPoint::PointUnknown;
+					SynchPoint synchPointEnum = SynchPoint::POINT_UNKNOWN;
 					if( synchPointStr == L"ReadyToPopulate" )
 					{
-						synchPointEnum =  SynchPoint::PointReadyToPopulate;
+						synchPointEnum =  SynchPoint::READY_TO_POPULATE;
 					}
 					else if( synchPointStr == L"ReadyToRun" )
 					{
-						synchPointEnum =  SynchPoint::PointReadyToRun;
+						synchPointEnum =  SynchPoint::READY_TO_RUN;
 					}
 					else if( synchPointStr == L"ReadyToResign" )
 					{
-						synchPointEnum =  SynchPoint::PointReadyToResign;
+						synchPointEnum =  SynchPoint::READY_TO_RESIGN;
 					}
 					return synchPointEnum;
 				}
 
+				/**
+				 * Converts a string to a wstring
+				 * 
+				 * @param str the msg that required wstring representation
+				 * @return the wstring representation of a string
+				 */
 				static std::wstring s2ws( const std::string& str )
 				{
 					using convert_typeX = std::codecvt_utf8<wchar_t>;
@@ -243,6 +275,12 @@ namespace ucef
 					return converterX.from_bytes(str);
 				}
 
+				/**
+				 * Converts a wstring to a string
+				 * 
+				 * @param wstr the msg that required string representation
+				 * @return the string representation of a wstring
+				 */
 				static std::string ws2s(const std::wstring& wstr)
 				{
 					using convert_typeX = std::codecvt_utf8<wchar_t>;

@@ -17,9 +17,8 @@ namespace ucef
 	namespace util
 	{
 		/**
-		 * @file Logger.h
-		 *
-		 * A singelton class that provides logging methods
+		 * The {@link Logger} provides a simple logging framework for the system.
+		 * 
 		 */
 		class UCEF_API Logger
 		{
@@ -28,9 +27,12 @@ namespace ucef
 			//----------------------------------------------------------
 		public:
 			/*
-			 * Returns a logger to provide logging facility.
+			 * Returns a singelton instance of the {@link Logger}.
+			 * <p/>
+			 * By default the logging level of the Logger is set to
+			 * LogLevel::LevelInfo.
 			 *
-			 * By default the logging level is set to LogLevel::LevelDebug.
+			 * @see LogLevel
 			 */
 			static Logger& getInstance();
 
@@ -52,7 +54,7 @@ namespace ucef
 			//----------------------------------------------------------
 
 			/*
-			 * Update the logging level of the logger
+			 * Updates the logging level of the {@link Logger}.
 			 *
 			 * @param level the logging level to be set
 			 *
@@ -64,7 +66,7 @@ namespace ucef
 			 * Logs a message to a log file
 			 *
 			 * @param message the message to be logged
-			 * @param level log level of this message
+			 * @param level logging level of this message
 			 *
 			 * @see LogLevel
 			 */
