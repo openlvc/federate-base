@@ -71,6 +71,7 @@ public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	// the Federate Manager logo as ASCII art - shown on startup in console
 	private static final String FEDMAN_LOGO =
 		"     ______         ____  ___\n" +
 		"    / ____/__  ____/ /  |/  /___  ____\n" + 
@@ -79,6 +80,9 @@ public class FederateManager extends FederateBase {
 		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
 		"------------ Federate Manager ----------\n";
 
+	// name of the Federate Manager executable
+	private static final String EXEC_NAME = "fedman";
+	
 	// command line arguments and defaults
 	private static final String CMDLINEARG_REQUIRE = "require";
 	private static final char CMDLINEARG_REQUIRE_SHORT = 'r';
@@ -89,9 +93,11 @@ public class FederateManager extends FederateBase {
 	private static final String CMDLINEARG_REALTIME_MULTIPLIER = "realtime-multiplier";
 	private static final double REALTIME_MULTIPLIER_DEFAULT = 1.0;
 	
+	// Federate Manager federation naming conventions 
 	private static final String FEDMAN_FEDERATE_TYPE = "FederateManager";
 	private static final String FEDMAN_FEDERATE_NAME = "FederateManager";
-	
+
+	// MIM defined attribute reflections for detection of joining federates
 	private static final String HLAFEDERATE_OBJECT_CLASS_NAME = "HLAobjectRoot.HLAmanager.HLAfederate";
 	private static final String HLAFEDERATE_TYPE_ATTR = "HLAfederateType";
 	private static final String HLAFEDERATE_NAME_ATTR = "HLAfederateName";
@@ -101,6 +107,7 @@ public class FederateManager extends FederateBase {
 	                                                HLAFEDERATE_NAME_ATTR,
 	                                                HLAFEDERATE_TYPE_ATTR } ) );
 	
+	// Various common text items used in output
 	private static final String FEDERATE_TYPE_HEADING = "Type";
 	private static final String NUMBER_REQUIRED_HEADING = "Required";
 	private static final String NUMBER_JOINED_HEADING = "Joined";
@@ -141,7 +148,6 @@ public class FederateManager extends FederateBase {
 	private double realTimeMultiplier;
 	
 	private double logicalStepSize;
-	
 	private long wallClockStepDelay;
 	
 	private Map<String, Set<JoinedFederate>> joinedFederatesByType; 
@@ -151,6 +157,11 @@ public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * Constructor
+	 * 
+	 * @param args command line arguments
+	 */
 	public FederateManager( String[] args )
 	{
 		super();
@@ -331,6 +342,8 @@ public class FederateManager extends FederateBase {
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Utility method for validating and processing of command line arguments/options
+	 * 
 	 * Does the following:
 	 * 
 	 *  - Sets up the command line arguments
@@ -390,7 +403,7 @@ public class FederateManager extends FederateBase {
 		catch( ArgException e )
 		{
 			System.err.println( e.getMessage() );
-			System.out.println( "Usage: " + argProcessor.getUsage( "fedman" ) );
+			System.out.println( "Usage: " + argProcessor.getUsage( EXEC_NAME ) );
 			System.out.println( argProcessor.getHelp() );
 			return false;
 		}

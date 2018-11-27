@@ -25,6 +25,7 @@ public class Constants
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	// the UCEF logo as ASCII art - may be shown on federate startup in console
 	public static final String UCEF_LOGO =
 		"            ___\n" +
 		"          _/   \\_     _     _\n" +
@@ -34,7 +35,6 @@ public class Constants
 		"        <-+-> <-+-----+-----+->\n" +
 		"       Universal CPS Environment\n" +
 		"             for Federation\n";
-		
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
