@@ -65,6 +65,12 @@ public class ListArg extends Arg
 		validator = null;
 	}
 
+	//----------------------------------------------------------
+	//                    INSTANCE METHODS
+	//----------------------------------------------------------
+	
+	////////////////////////////////////////////////////////////
+	// start Arg method implementations
 	@Override
 	protected void reset()
 	{
@@ -78,6 +84,27 @@ public class ListArg extends Arg
 		return argKind;
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	protected ListArg parse( String value )
+	{
+		this.actualValue.add( value );
+		this.isSet = true;
+		return this;
+	}
+
+	@Override
+	public ValidationResult validate()
+	{
+		if( this.validator == null )
+			return ValidationResult.GENERIC_SUCCESS;
+
+		return this.validator.validate( value() );
+	}
+
+	// end Arg method implementations
+	////////////////////////////////////////////////////////////
+
 	/**
 	 * Set the validator for this argument
 	 * 
@@ -88,31 +115,6 @@ public class ListArg extends Arg
 	{
 		this.validator = validator;
 		return this;
-	}
-
-	/**
-	 * Parse the provided value with respect to this value argument
-	 * 
-	 * @param value the value for this value argument
-	 */
-	protected ListArg parse( String value )
-	{
-		this.actualValue.add( value );
-		this.isSet = true;
-		return this;
-	}
-
-	/**
-	 * Validate this argument
-	 * 
-	 * @return a {@link ValidationResult}
-	 */
-	public ValidationResult validate()
-	{
-		if( this.validator == null )
-			return ValidationResult.GENERIC_SUCCESS;
-
-		return this.validator.validate( value() );
 	}
 
 	/**

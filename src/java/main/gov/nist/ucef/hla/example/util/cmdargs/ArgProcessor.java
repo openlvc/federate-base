@@ -188,12 +188,12 @@ public class ArgProcessor
 		for( int i = 0; i < args.length; i++ )
 		{
 			String arg = args[i];
-			boolean isLongForm = arg.startsWith( Arg.LONG_FORM_PREFIX ) && arg.length() > longFormPrefixLen;
-			boolean isShortForm = arg.startsWith( Arg.SHORT_FORM_PREFIX ) && arg.length() == (shortFormPrefixLen+1);
+			boolean isShortForm = arg.startsWith( Arg.SHORT_FORM_PREFIX ) && 
+								  arg.length() == ( shortFormPrefixLen + 1 );
+			boolean isLongForm = arg.startsWith( Arg.LONG_FORM_PREFIX ) && 
+								 arg.length() > longFormPrefixLen;
 			if( isLongForm || isShortForm )
 			{
-				// figure out if it's a short or long form version of the argument,
-				// and look it up in the tables as appropriate
 				Arg cmdLineArgument = null;
 				if( isLongForm )
 					cmdLineArgument = longFormArgMap.get( arg.substring( longFormPrefixLen ) );
@@ -201,28 +201,19 @@ public class ArgProcessor
 					cmdLineArgument = shortFormArgMap.get( arg.charAt( shortFormPrefixLen ) );
 
 				ArgKind argKind = cmdLineArgument != null ? cmdLineArgument.argKind() 
-				                                               : ArgKind.UNKNOWN;
+				                                          : ArgKind.UNKNOWN;
 				// handle the argument as required
 				if( ArgKind.VALUE.equals( argKind ) || 
 					ArgKind.LIST.equals( argKind ) )
 				{
-					// ValueArgument or ListArgument, so we need to grab the 
-					// next item as the value for it
+					// ValueArgument or ListArgument, so we need to grab the next item 
+					// as the value for it
 					if( i + 1 < args.length )
 					{
 						// get the value
-						if( ArgKind.VALUE.equals( argKind ) )
-						{
-							ValidationResult result = ((ValueArg)cmdLineArgument).parse( args[i + 1] ).validate();
-							if( !result.isValid )
-								invalidParams.put( cmdLineArgument, result );
-						}
-						else
-						{
-							ValidationResult result = ((ListArg)cmdLineArgument).parse( args[i + 1] ).validate();
-							if( !result.isValid )
-								invalidParams.put( cmdLineArgument, result );
-						}
+						ValidationResult result = cmdLineArgument.parse( args[i + 1] ).validate();
+						if( !result.isValid )
+							invalidParams.put( cmdLineArgument, result );
 						// skip over the value so we don't parse it as the next argument
 						i++;
 						// tick off the argument from the required list (if it's there)
@@ -237,7 +228,7 @@ public class ArgProcessor
 				else
 				{
 					// unknown argument!
-					String argName = arg.substring( arg.lastIndexOf( '-' ) + 1 );
+					String argName = arg.substring( isLongForm ? longFormPrefixLen : shortFormPrefixLen );
 					if( !"".equals( argName ) )
 						unknownArgs.add( argName );
 				}
@@ -298,15 +289,19 @@ public class ArgProcessor
 			StringBuilder message = new StringBuilder();
 			message.append( "Invalid " )
 				   .append( pluralize("parameter", invalidParams.size(), "s") )
-				   .append( " " );
+				   .append( ":\n" );
 			for( Entry<Arg,ValidationResult> invalidParam : invalidParams.entrySet() )
 			{
 				Arg cmdLineArgument = invalidParam.getKey();
 				ValidationResult validationResult = invalidParam.getValue();
 				String argName = cmdLineArgument.makePrefixedArg( true );
-				message.append( "The value for " + argName + " was not valid. " );
-				message.append( validationResult.getMessage() );
-				message.append( "\n" );
+				String validationMessage = validationResult.getMessage();
+				validationMessage = "The value for " + argName + " was not valid. " + validationMessage;
+				List<String> lines = wrap( validationMessage, CONSOLE_WIDTH - TAB_AS_SPACES.length() );
+				for(String line : lines)
+				{
+					message.append( TAB_AS_SPACES ).append( line ).append( "\n" );
+				}
 			}
 			throw new ArgException( message.toString() );
 		}
@@ -352,15 +347,18 @@ public class ArgProcessor
 			if( ArgKind.SWITCH.equals( cmdLineArgument.argKind() ) )
 			{
 				SwitchArg switchArgument = (SwitchArg)cmdLineArgument;
+				help.append( "[");
 				if( hasShortForm )
-					help.append( "[-" ).append( switchArgument.shortForm ).append( "]" );
+					help.append( switchArgument.makePrefixedArg( false ) );
 				if( hasShortForm && hasLongForm )
 					help.append( ", " );
 				if( hasLongForm )
-					help.append( "[--" ).append( switchArgument.longForm ).append( "]" );
+					help.append( switchArgument.makePrefixedArg( true ) );
+				help.append( "]");
 				if( cmdLineArgument.hasHelp() )
 				{
 					String helpText = cmdLineArgument.getHelp();
+					helpText = "(OPTIONAL) " + helpText;
 					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
 					for(String line : helpLines)
 					{
@@ -372,16 +370,14 @@ public class ArgProcessor
 			{
 				ValueArg valueArgument = (ValueArg)cmdLineArgument;
 				boolean isRequired = valueArgument.isRequired();
+				help.append( (isRequired ? "" : "[") );
 				if( hasShortForm )
-					help.append( (isRequired ? "" : "[") )
-						.append( valueArgument.makePrefixedArg( false ) )
-						.append( (isRequired ? "" : "]") );
+					help.append( valueArgument.makePrefixedArg( false ) );
 				if( hasShortForm && hasLongForm )
 					help.append( ", " );
 				if( hasLongForm )
-					help.append( (isRequired ? "" : "[") )
-						.append( valueArgument.makePrefixedArg( true ) )
-						.append( (isRequired ? "" : "]") );
+					help.append( valueArgument.makePrefixedArg( true ) );
+				help.append( (isRequired ? "" : "]") );
 				if( cmdLineArgument.hasHelp() )
 				{
 					String helpText = cmdLineArgument.getHelp();
@@ -396,16 +392,14 @@ public class ArgProcessor
 			{
 				ListArg listArgument = (ListArg)cmdLineArgument;
 				boolean isRequired = listArgument.isRequired();
+				help.append( (isRequired ? "" : "[") );
 				if( hasShortForm )
-					help.append( (isRequired ? "" : "[") )
-						.append( listArgument.makePrefixedArg( false ) )
-						.append( (isRequired ? "" : "]") );
+					help.append( listArgument.makePrefixedArg( false ) );
 				if( hasShortForm && hasLongForm )
 					help.append( ", " );
 				if( hasLongForm )
-					help.append( (isRequired ? "" : "[") )
-						.append( listArgument.makePrefixedArg( true ) )
-						.append( (isRequired ? "" : "]") );
+					help.append( listArgument.makePrefixedArg( true ) );
+				help.append( (isRequired ? "" : "]") );
 				if( cmdLineArgument.hasHelp() )
 				{
 					String helpText = cmdLineArgument.getHelp();
@@ -574,7 +568,8 @@ public class ArgProcessor
 		ListArg bradshawValues = cmdArgParser
 			.addListArg( 'b', "bradshaw" )
 			.isRequired( true )
-			.help( "Set the bradshaw radii" )
+			.validator( StdValidators.CheckIntList )
+			.help( "Set the bradshaw radii values." )
 			.hint( "RADIUS" );
 		
 		try

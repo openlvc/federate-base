@@ -45,9 +45,20 @@ public class ValidationResult
 		this.msg = msg;
 	}
 
+	public ValidationResult( boolean isValid, String formatter, Object... args )
+	{
+		this.isValid = isValid;
+		this.msg = String.format( formatter, args );
+	}
+	
 	public boolean isValid()
 	{
 		return this.isValid;
+	}
+	
+	public boolean isInvalid()
+	{
+		return !isValid();
 	}
 
 	public String getMessage()

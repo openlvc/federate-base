@@ -68,21 +68,36 @@ public abstract class Arg
 	 * 
 	 * @return the kind of argument this is
 	 */
-	public abstract ArgKind argKind();
+	protected abstract ArgKind argKind();
 
 	/**
 	 * Determine if this value argument is required
 	 * 
 	 * @return true if this value argument is required, false otherwise
 	 */
-	public abstract boolean isRequired();
+	protected abstract boolean isRequired();
 
+	/**
+	 * Parse the string value for this argument
+	 * 
+	 * @param value this argument's value
+	 * @return the argument instance
+	 */
+	protected abstract <T extends Arg> T parse( String value );
+	
+	/**
+	 * Validate the value for this argument
+	 * 
+	 * @return true if this value argument is required, false otherwise
+	 */
+	protected abstract ValidationResult validate();
+	
 	/**
 	 * Determine if this argument has a short form
 	 * 
 	 * @return true if this argument has a short form, false otherwise
 	 */
-	public boolean hasShortForm()
+	protected boolean hasShortForm()
 	{
 		return this.shortForm != null;
 	}
@@ -92,7 +107,7 @@ public abstract class Arg
 	 * 
 	 * @return true if this argument has a long form, false otherwise
 	 */
-	public boolean hasLongForm()
+	protected boolean hasLongForm()
 	{
 		return this.longForm != null && this.longForm.length() > 0;
 	}
@@ -102,7 +117,7 @@ public abstract class Arg
 	 * 
 	 * @return true if this argument has help text associated with it, false otherwise
 	 */
-	public boolean hasHelp()
+	protected boolean hasHelp()
 	{
 		return this.help != null && this.help.length() > 0;
 	}
@@ -136,7 +151,7 @@ public abstract class Arg
 	 *            in preference to the long form.
 	 * @return the prefixed representation of this argument
 	 */
-	public String makePrefixedArg( boolean preferLong )
+	protected String makePrefixedArg( boolean preferLong )
 	{
 		if( preferLong )
 			return hasLongForm() ? LONG_FORM_PREFIX + longForm
@@ -151,7 +166,7 @@ public abstract class Arg
 	 * 
 	 * @return a basic usage string associated with this argument
 	 */
-	public String getUsageString()
+	protected String getUsageString()
 	{
 		return makePrefixedArg( true );
 	}

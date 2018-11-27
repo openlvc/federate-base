@@ -85,6 +85,29 @@ public class ValueArg extends Arg
 	{
 		return this.isRequired;
 	}
+	
+	/**
+	 * Parse the provided value with respect to this value argument
+	 * 
+	 * @param value the value for this value argument
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected ValueArg parse( String value )
+	{
+		this.actualValue = value;
+		this.isSet = true;
+		return this;
+	}
+	
+	@Override
+	public ValidationResult validate()
+	{
+		if( this.validator == null )
+			return ValidationResult.GENERIC_SUCCESS;
+
+		return this.validator.validate( value() );
+	}
 	// end Arg method implementations
 	////////////////////////////////////////////////////////////
 
@@ -98,31 +121,6 @@ public class ValueArg extends Arg
 	{
 		this.validator = validator;
 		return this;
-	}
-
-	/**
-	 * Parse the provided value with respect to this value argument
-	 * 
-	 * @param value the value for this value argument
-	 */
-	protected ValueArg parse( String value )
-	{
-		this.actualValue = value;
-		this.isSet = true;
-		return this;
-	}
-
-	/**
-	 * Validate this argument
-	 * 
-	 * @return a {@link ValidationResult}
-	 */
-	public ValidationResult validate()
-	{
-		if( this.validator == null )
-			return ValidationResult.GENERIC_SUCCESS;
-
-		return this.validator.validate( value() );
 	}
 
 	/**

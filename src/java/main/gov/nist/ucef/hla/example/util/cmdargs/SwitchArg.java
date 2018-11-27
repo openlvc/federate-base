@@ -54,6 +54,9 @@ public class SwitchArg extends Arg
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+
+	////////////////////////////////////////////////////////////
+	// start Arg method implementations
 	@Override
 	protected void reset()
 	{
@@ -72,6 +75,22 @@ public class SwitchArg extends Arg
 		return false;
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	protected SwitchArg parse( String value )
+	{
+		// no action required here
+		return this;
+	}
+	
+	@Override
+	protected ValidationResult validate()
+	{
+		return ValidationResult.GENERIC_SUCCESS;
+	}
+	// end Arg method implementations
+	////////////////////////////////////////////////////////////
+	
 	/**
 	 * Set the state of this switch
 	 * 

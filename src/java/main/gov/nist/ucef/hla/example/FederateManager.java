@@ -68,6 +68,8 @@ import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
  */
 public class FederateManager extends FederateBase {
 
+
+
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -84,8 +86,14 @@ public class FederateManager extends FederateBase {
 	private static final String EXEC_NAME = "fedman";
 	
 	// command line arguments and defaults
+	private static final String CMDLINE_ARG_FEDERATION_EXEC_NAME = "federation";
+	private static final char CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT = 'f';
 	private static final String CMDLINEARG_REQUIRE = "require";
 	private static final char CMDLINEARG_REQUIRE_SHORT = 'r';
+	private static final String CMDLINEARG_FEDMAN_FEDERATE_NAME = "fedman-name";
+	private static final String DEFAULT_FEDMAN_FEDERATE_NAME = "FederateManager";
+	private static final String CMDLINEARG_FEDMAN_FEDERATE_TYPE = "fedman-type";
+	private static final String DEFAULT_FEDMAN_FEDERATE_TYPE = "FederateManager";
 	private static final String CMDLINEARG_LOGICAL_SECOND = "logical-second";
 	private static final double LOGICAL_SECOND_DEFAULT = 1.0;
 	private static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY = "logical-granularity";
@@ -94,8 +102,8 @@ public class FederateManager extends FederateBase {
 	private static final double REALTIME_MULTIPLIER_DEFAULT = 1.0;
 	
 	// Federate Manager federation naming conventions 
-	private static final String FEDMAN_FEDERATE_TYPE = "FederateManager";
-	private static final String FEDMAN_FEDERATE_NAME = "FederateManager";
+	private static final String FEDMAN_FEDERATE_TYPE = DEFAULT_FEDMAN_FEDERATE_NAME;
+	private static final String FEDMAN_FEDERATE_NAME = DEFAULT_FEDMAN_FEDERATE_NAME;
 
 	// MIM defined attribute reflections for detection of joining federates
 	private static final String HLAFEDERATE_OBJECT_CLASS_NAME = "HLAobjectRoot.HLAmanager.HLAfederate";
@@ -140,9 +148,9 @@ public class FederateManager extends FederateBase {
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private long nextTimeAdvance;
-	private double maxTime;
-	
+	private String federationExecName;
+	private String federateName;
+	private String federateType;
 	private double logicalSecond;
 	private int logicalStepGranularity;
 	private double realTimeMultiplier;
@@ -150,6 +158,8 @@ public class FederateManager extends FederateBase {
 	private double logicalStepSize;
 	private long wallClockStepDelay;
 	
+	private long nextTimeAdvance;
+	private double maxTime;
 	private Map<String, Set<JoinedFederate>> joinedFederatesByType; 
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
@@ -192,6 +202,17 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeFederationJoin()
 	{
+		// update the federate name, type and federation execution name in 
+		// accordance with the values obtained from the command line args
+		configuration.setFederateName( this.federateName );
+		configuration.setFederateType( this.federateType );
+		configuration.setFederationName( this.federationExecName );
+		// update the configuration lookahead value so that it is the same
+		// logical step size as obtained from the command line args
+		configuration.setLookAhead( logicalStepSize );
+		
+		// convenience calculation so we don't need to do 
+		// it repeatedly later on
 		totalFederatesRequired = startRequirements
 			.values()
 			.parallelStream()
@@ -234,9 +255,6 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToRun()
 	{
-		// update the configuration lookahead value so that it is the same
-		// logical step size as obtained from the command line args
-		configuration.setLookAhead( logicalStepSize );
 	}
 
 	@Override
@@ -358,6 +376,11 @@ public class FederateManager extends FederateBase {
 	private boolean validateAndProcessCmdLineArgs( String[] args )
 	{
         ArgProcessor argProcessor = new ArgProcessor();
+        ValueArg federationExecNameArg = argProcessor
+        	.addValueArg( CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT, CMDLINE_ARG_FEDERATION_EXEC_NAME )
+        	.isRequired( true )
+        	.help( "Set the name of the federation execution the Federate Manager will join." )
+        	.hint( "FEDERATION_EXEC_NAME" );
         ListArg requiredFederateTypes = argProcessor
         	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
         	.isRequired(true)
@@ -369,18 +392,36 @@ public class FederateManager extends FederateBase {
 		                          CMDLINEARG_REQUIRE_SHORT,
 		                          CMDLINEARG_REQUIRE_SHORT ) )
 		    .hint( "FEDERATE_TYPE,COUNT" );
+        ValueArg federateNameArg = argProcessor
+        	.addValueArg( null, CMDLINEARG_FEDMAN_FEDERATE_NAME )
+        	.isRequired( false )
+			.defaultValue( DEFAULT_FEDMAN_FEDERATE_NAME )
+        	.help( String.format( "Set the federate name for the Federate Manager to use. " +
+        						  "If unspecified a value of '%s' will be used.",
+        						  DEFAULT_FEDMAN_FEDERATE_NAME ) )
+        	.hint( "FEDMAN_NAME" );
+    	ValueArg federateTypeArg = argProcessor
+        	.addValueArg( null, CMDLINEARG_FEDMAN_FEDERATE_TYPE )
+        	.isRequired( false )
+        	.defaultValue( DEFAULT_FEDMAN_FEDERATE_TYPE )
+        	.help( String.format( "Set the federate type for the Federate Manager to use. " +
+        		"If unspecified a value of '%s' will be used.",
+        		DEFAULT_FEDMAN_FEDERATE_TYPE ) )
+        	.hint( "FEDMAN_TYPE" );
 		ValueArg logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
 			.isRequired( false )
+			.defaultValue( Double.toString( LOGICAL_SECOND_DEFAULT ) )
 		    .validator( StdValidators.CheckDoubleGtZero )
 		    .help( String.format( "Define a 'logical second'; the logical step size which " +
-		    					  "equates to a real-time second. If unspecified a value " +
-		    					  "of %.2f will be used.",
+		    					  "equates to a real-time second. " +
+		    					  "If unspecified a value of %.2f will be used.",
 		    					  LOGICAL_SECOND_DEFAULT ) )
 		    .hint( "1.0" );
 		ValueArg logicalStepGranularityArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_STEP_GRANULARITY )
 			.isRequired( false )
+			.defaultValue( Integer.toString( LOGICAL_STEP_GRANULARITY_DEFAULT, 10 ) )
 		    .validator( StdValidators.CheckIntGtZero )
 		    .help( String.format( "Define the number of steps per logical second. If " +
 		    				      "unspecified a value of %d will be used.",
@@ -389,6 +430,7 @@ public class FederateManager extends FederateBase {
         ValueArg realtimeMultiplierArg = argProcessor
         	.addValueArg(null, CMDLINEARG_REALTIME_MULTIPLIER)
         	.isRequired(false)
+			.defaultValue( Double.toString( REALTIME_MULTIPLIER_DEFAULT ) )
 		    .validator( StdValidators.CheckDoubleGtZero )
         	.help( String.format( "Define the simulation rate. 1.0 is real time, 0.5 is " +
         						  "half speed, 2.0 is double speed, and so on. If unspecified " +
@@ -403,13 +445,17 @@ public class FederateManager extends FederateBase {
 		catch( ArgException e )
 		{
 			System.err.println( e.getMessage() );
-			System.out.println( "Usage: " + argProcessor.getUsage( EXEC_NAME ) );
-			System.out.println( argProcessor.getHelp() );
+			System.out.println( "======= Usage:\n" + argProcessor.getUsage( EXEC_NAME ) );
+			System.out.println( "===== Options:\n" + argProcessor.getHelp() );
 			return false;
 		}
 		
 		// At this stage we know that all command line arguments are valid,
-		// so we can use the values without checking them further 
+		// so we can use the values without checking them further
+        this.federationExecName = federationExecNameArg.value();
+        this.federateName = federateNameArg.value();
+        this.federateType = federateTypeArg.value();
+        
 		if( logicalSecondArg.isSet() )
 			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
 
@@ -779,15 +825,21 @@ public class FederateManager extends FederateBase {
 		@Override
 		public ValidationResult validate( Object value )
 		{
+			ValidationResult initialValidation = StdValidators.CheckNonEmptyList.validate( value );
+			if( initialValidation.isInvalid() )
+				return initialValidation;
+			
 			boolean isValid = true;
+			String lastCheckedItem = null;
 			try
 			{
-				// if there is a class cast exception here, it means the wrong
-				// type was passed in, which is just a validation error
+				// we know it's a List<String> now, so this next cast is safe
 				@SuppressWarnings("unchecked")
 				List<String> val = (List<String>)value;
+				// check all the values
 				for( String s : val )
 				{
+					lastCheckedItem = s;
 					String[] parts = s.split( "," );
 					if( parts.length != 2 )
 					{
@@ -817,9 +869,10 @@ public class FederateManager extends FederateBase {
 				// what, just fall through 
 			}
 			return new ValidationResult( false,
-			                             "Values must be a federate type name and a " +
-			                             "number greater than zero separated by a comma. " +
-			                             "For example, 'FedABC,2'." );
+			                             "'%s' is not in the correct format. Values must be a " +
+			                             "federate type name and a number greater than zero separated " +
+			                             "by a comma. For example, 'FedABC,2'.",
+			                             lastCheckedItem );
 		}
 	};
 }
