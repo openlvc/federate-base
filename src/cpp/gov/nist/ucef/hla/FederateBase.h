@@ -5,7 +5,6 @@
 #include <mutex>
 #include <vector>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
 #include "gov/nist/ucef/hla/HLAObject.h"
 #include "gov/nist/ucef/hla/IFederateBase.h"
@@ -13,6 +12,7 @@
 
 namespace ucef
 {
+	class FederateAmbassador;
 
 	class UCEF_API FederateBase : public IFederateBase
 	{
@@ -32,11 +32,13 @@ namespace ucef
 			virtual void runFederate() final;
 			virtual std::vector<std::string> getClassNamesPublish() override;
 			virtual std::vector<std::string> getClassNamesSubscribe() override;
+
 			virtual std::vector<std::string> getInteractionNamesSubscribe() override;
 			virtual std::vector<std::string> getInteractionNamesPublish() override;
 
 			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) override;
 			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) override;
+
 			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) override;
 
 			//----------------------------------------------------------
@@ -157,7 +159,7 @@ namespace ucef
 			 * @param intClasses interaction classes in the SOM
 			 */
 			inline void publishInteractionClasses
-			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClass );
+			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses );
 
 			/**
 			 * Register subscribing interactions with RTI
@@ -165,7 +167,7 @@ namespace ucef
 			 * @param intClasses interaction classes in the SOM
 			 */
 			inline void subscribeInteractionClasses
-			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClass );
+			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses );
 
 			/**
 			 * Ticks RTI for callbacks
@@ -190,4 +192,3 @@ namespace ucef
 			std::mutex m_threadSafeLock;
 	};
 }
-

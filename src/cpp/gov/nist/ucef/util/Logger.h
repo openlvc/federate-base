@@ -20,7 +20,7 @@ namespace ucef
 		 * The {@link Logger} provides a simple logging framework for the system.
 		 * 
 		 */
-		class UCEF_API Logger
+		class Logger
 		{
 			//----------------------------------------------------------
 			//                    Static methods

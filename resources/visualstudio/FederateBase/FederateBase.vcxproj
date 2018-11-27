@@ -43,12 +43,12 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\dist\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\FederateBase.Int\</IntDir>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\dist\</OutDir>
     <TargetExt>.dll</TargetExt>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\FederateBase.Int\</IntDir>
   </PropertyGroup>

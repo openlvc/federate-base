@@ -20,14 +20,14 @@ namespace ucef
 	 * as they arrive. Finaly, helper methods are given to the users to query the SOM data which will be
 	 * useful in object class and interaction class creation and update.
 	 */
-	class IFederateBase
+	class UCEF_API IFederateBase
 	{
 		public:
 			//----------------------------------------------------------
 			//                      CONSTRUCTORS
 			//----------------------------------------------------------
-			public:
-				virtual ~IFederateBase() {};
+			IFederateBase() = default;
+			virtual ~IFederateBase() {};
 
 			//----------------------------------------------------------
 			//                     Callback Methods
@@ -41,7 +41,7 @@ namespace ucef
 			 *                  name and a unique identifier (@link HLAInteraction#getInstanceId()).
 			 * @param federateTime the current logical time of the federate
 			 */
-			virtual void receiveObjectRegistration( std::shared_ptr<const HLAObject> hlaObject,
+			virtual void receivedObjectRegistration( std::shared_ptr<const HLAObject> hlaObject,
 			                                        double federateTime ) = 0;
 			/**
 			 * Called by {@link IFederateBase} whenever RTI receives a new attribute update
@@ -52,7 +52,7 @@ namespace ucef
 			 *                  is carried out it is important to use the right getters to get valid data.
 			 * @param federateTime the current logical time of the federate
 			 */
-			virtual void receiveAttributeReflection( std::shared_ptr<const HLAObject> hlaObject,
+			virtual void receivedAttributeReflection( std::shared_ptr<const HLAObject> hlaObject,
 			                                         double federateTime ) = 0;
 
 			/**
@@ -64,7 +64,7 @@ namespace ucef
 			 *                       getters to get valid data.
 			 * @param federateTime the current logical time of the federate
 			 */
-			virtual void receiveInteraction( std::shared_ptr<const HLAInteraction> hlaInteraction,
+			virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInteraction,
 			                                 double federateTime ) = 0;
 
 			/**
@@ -73,7 +73,7 @@ namespace ucef
 			 * @param hlaObject HLAObject that got deleted from the federation. This object contains a
 			 *                  valid object class name and a identifier (@link HLAInteraction#getInstanceId())
 			 */
-			virtual void receiveObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) = 0;
+			virtual void receivedObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) = 0;
 
 			//----------------------------------------------------------
 			//            Lifecycle hooks

@@ -104,6 +104,10 @@ namespace ucef
 		{
 			m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
 		}
+		catch( TimeRegulationAlreadyEnabled& )
+		{
+
+		}
 		catch( Exception& e )
 		{
 			throw UCEFException( ConversionHelper::ws2s(e.what()) );
@@ -115,6 +119,10 @@ namespace ucef
 		try
 		{
 			m_rtiAmbassador->disableTimeRegulation();
+		}
+		catch( TimeRegulationIsNotEnabled& )
+		{
+
 		}
 		catch( Exception& e )
 		{
@@ -128,6 +136,10 @@ namespace ucef
 		{
 			m_rtiAmbassador->enableTimeConstrained();
 		}
+		catch( TimeConstrainedAlreadyEnabled& )
+		{
+
+		}
 		catch( Exception& e )
 		{
 			throw UCEFException( ConversionHelper::ws2s(e.what()) );
@@ -139,6 +151,9 @@ namespace ucef
 		try
 		{
 			m_rtiAmbassador->disableTimeConstrained();
+		}
+		catch( TimeConstrainedIsNotEnabled& )
+		{
 		}
 		catch( Exception& e )
 		{

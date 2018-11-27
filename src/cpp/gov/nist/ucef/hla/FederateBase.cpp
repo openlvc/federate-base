@@ -46,8 +46,7 @@ namespace ucef
 		joinFederation();
 		// enables time management policy for this federate
 		enableTimePolicy();
-		string s;
-		cin >> s;
+
 		// inform RTI about the data we are going publish and subscribe
 		publishAndSubscribe();
 
@@ -139,7 +138,7 @@ namespace ucef
 		return subscribedInteractionNames;
 	}
 
-	std::vector<std::string> FederateBase::getAttributeNamesPublish( const string& className )
+	vector<string> FederateBase::getAttributeNamesPublish( const string& className )
 	{
 		vector<string> attributeNamesPublish;
 		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find(className);
@@ -417,7 +416,7 @@ namespace ucef
 			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
 			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
 			m_objectDataStoreByInstance[objectInstanceHash] = objectClass;
-			receiveObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
+			receivedObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
 			                           m_federateAmbassador->getFederateTime());
 
 		}
@@ -463,7 +462,7 @@ namespace ucef
 				memcpy( arr.get(), data, size );
 				hlaObject->setValue( attName, arr, size );
 			}
-			receiveAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
+			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
 			                            m_federateAmbassador->getFederateTime() );
 		}
 		else
@@ -508,7 +507,7 @@ namespace ucef
 				memcpy( arr.get(), data, size );
 				hlaInteraction->setValue( paramName, arr, size );
 			}
-			receiveInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
+			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
 			                    m_federateAmbassador->getFederateTime() );
 		}
 		else
@@ -533,7 +532,7 @@ namespace ucef
 			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
 			            " successsfully removed from the incoming map.", LevelInfo );
 			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
-			receiveObjectDeletion( const_pointer_cast<const HLAObject>(hlaObject) );
+			receivedObjectDeletion( const_pointer_cast<const HLAObject>(hlaObject) );
 		}
 		else
 			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
@@ -565,7 +564,7 @@ namespace ucef
 		return success;
 	}
 
-	std::shared_ptr<util::InteractionClass> FederateBase::getInteractionClass( long hash )
+	shared_ptr<InteractionClass> FederateBase::getInteractionClass( long hash )
 	{
 		if( m_interactionDataStoreByHash.find( hash ) != m_interactionDataStoreByHash.end() )
 		{
@@ -724,7 +723,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::publishInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClass)
+	void FederateBase::publishInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClasses)
 	{
 		//----------------------------------------------------------
 		// Inform RTI about interaction that are published
@@ -732,9 +731,8 @@ namespace ucef
 		//----------------------------------------------------------
 
 		Logger& logger = Logger::getInstance();
-		for( auto& interactionPair : m_interactionDataStoreByName )
+		for( auto& interactionClass : interactionClasses )
 		{
-			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
 			InteractionClassHandle interactionHandle =
 				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionClass->publish )
@@ -745,7 +743,7 @@ namespace ucef
 		}
 	}
 
-	void FederateBase::subscribeInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClass)
+	void FederateBase::subscribeInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClasses)
 	{
 		//----------------------------------------------------------
 		// Inform RTI about interaction that are published
@@ -753,9 +751,8 @@ namespace ucef
 		//----------------------------------------------------------
 
 		Logger& logger = Logger::getInstance();
-		for( auto& interactionPair : m_interactionDataStoreByName )
+		for( auto& interactionClass : interactionClasses )
 		{
-			shared_ptr<InteractionClass> interactionClass = interactionPair.second;
 			InteractionClassHandle interactionHandle =
 				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionClass->subscribe )

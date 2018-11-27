@@ -18,7 +18,7 @@ namespace ucef
 			vector<shared_ptr<ObjectClass>> SomObjects;
 			vector<shared_ptr<ObjectAttribute>> SomAttributes;
 
-			logger.log( "Trying to load SOM file in " + somFilePath, LevelInfo );
+			logger.log( "Trying to load SOM file to extract objects " + somFilePath, LevelInfo );
 
 			XMLDocument doc;
 			XMLError xmlError = doc.LoadFile( somFilePath.c_str() );
@@ -51,7 +51,7 @@ namespace ucef
 			vector<shared_ptr<InteractionClass>> SomInteractions;
 			vector<shared_ptr<InteractionParameter>> SomInteractionParams;
 
-			logger.log( "Trying to load SOM file in " + somFilePath, LevelInfo );
+			logger.log( "Trying to load SOM file to extract interactions  " + somFilePath, LevelInfo );
 
 			XMLDocument doc;
 			XMLError xmlError = doc.LoadFile( somFilePath.c_str() );
