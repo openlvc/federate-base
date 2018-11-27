@@ -456,14 +456,9 @@ public class FederateManager extends FederateBase {
         this.federateName = federateNameArg.value();
         this.federateType = federateTypeArg.value();
         
-		if( logicalSecondArg.isSet() )
-			this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
-
-		if( logicalStepGranularityArg.isSet() )
-			this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
-
-		if( realtimeMultiplierArg.isSet() )
-			this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
+		this.logicalSecond = Double.parseDouble( logicalSecondArg.value() );
+		this.logicalStepGranularity = Integer.parseInt( logicalStepGranularityArg.value(), 10 );
+		this.realTimeMultiplier = Double.parseDouble( realtimeMultiplierArg.value() );
 		
 		// this is a required argument, so we don't need to check if it's set, and we know
 		// it's validated so splitting on the comma and parsing the integer etc aren't

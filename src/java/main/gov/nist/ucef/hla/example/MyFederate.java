@@ -20,8 +20,6 @@
  */
 package gov.nist.ucef.hla.example;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -39,6 +37,9 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
+import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
+import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedRecord;
@@ -56,7 +57,7 @@ public class MyFederate extends FederateBase {
 		
 		try
 		{
-			new MyFederate().runFederate( makeConfig() );
+			new MyFederate( args ).runFederate( makeConfig() );
 		}
 		catch(Exception e)
 		{
@@ -71,8 +72,17 @@ public class MyFederate extends FederateBase {
 	}
 	
 	//----------------------------------------------------------
+	//                   STATIC VARIABLES
+	//----------------------------------------------------------
+	private static final String EXEC_NAME = "MyFederate";
+	// command line options
+	private static final String CMDLINE_ARG_FEDERATION_EXEC_NAME = "federation";
+	private static final char CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT = 'f';
+	
+	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	private String federationExecName;
 	// cache of object instances which we have registered with the RTI
 	protected Set<HLAObject> registeredObjects;
 	private EncoderFactory encoder;
@@ -80,12 +90,18 @@ public class MyFederate extends FederateBase {
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public MyFederate()
+	public MyFederate( String[] args )
 	{
 		super();
-		
+
 		registeredObjects = new HashSet<>();
 		this.encoder = HLACodecUtils.getEncoder();
+		
+		if( !validateAndProcessCmdLineArgs( args ) )
+		{
+			System.out.println( "Cannot proceed. Exiting now." );
+			System.exit( 1 );
+		}
 	}
 	
 	//----------------------------------------------------------
@@ -97,7 +113,9 @@ public class MyFederate extends FederateBase {
 	@Override
 	public void beforeFederationJoin()
 	{
-		// no preparation required before federation join
+		// update the federation execution name in accordance with the 
+		// value obtained from the command line args
+		configuration.setFederationName( this.federationExecName );
 	}
 
 	@Override
@@ -207,6 +225,49 @@ public class MyFederate extends FederateBase {
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Utility method for validating and processing of command line arguments/options
+	 * 
+	 * Does the following:
+	 * 
+	 *  - Sets up the command line arguments
+	 *  - validates and processes what the user provided
+	 *  - populate all necessary internal state information that 
+	 *    relies on information from command line arguments 
+	 * 
+	 * @param args the command line arguments
+	 * @return true if the arguments were all valid and correct, false otherwise (execution should
+	 *  	   not continue.
+	 */
+	private boolean validateAndProcessCmdLineArgs( String[] args )
+	{
+        ArgProcessor argProcessor = new ArgProcessor();
+        ValueArg federationExecNameArg = argProcessor
+        	.addValueArg( CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT, CMDLINE_ARG_FEDERATION_EXEC_NAME )
+        	.isRequired( true )
+        	.help( "Set the name of the federation execution the federate will join." )
+        	.hint( "FEDERATION_EXEC_NAME" );
+        
+        try
+		{
+			argProcessor.process( args );
+		}
+		catch( ArgException e )
+		{
+			System.err.println( e.getMessage() );
+			System.out.println( "======= Usage:\n" + argProcessor.getUsage( EXEC_NAME ) );
+			System.out.println( "===== Options:\n" + argProcessor.getHelp() );
+			return false;
+		}
+		
+		// At this stage we know that all command line arguments are valid,
+		// so we can use the values without checking them further
+        this.federationExecName = federationExecNameArg.value();
+		
+		// all command line arguments are present and correct!
+		return true;
+	}
+	
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
