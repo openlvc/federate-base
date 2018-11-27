@@ -235,7 +235,7 @@ public class MyFederate extends FederateBase {
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "Federate-" + new Date().getTime(),
+		FederateConfiguration config = new FederateConfiguration( "FederateX-" + new Date().getTime(),
 			                                                      "TestFederate", 
 																  "TheUnitedFederationOfPlanets" );
 		// set up maps with classes and corresponding lists of attributes to 

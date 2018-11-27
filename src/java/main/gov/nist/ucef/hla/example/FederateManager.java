@@ -223,7 +223,9 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToRun()
 	{
-		// no preparation required before ready to run
+		// update the configuration lookahead value so that it is the same
+		// logical step size as obtained from the command line args
+		configuration.setLookAhead( logicalStepSize );
 	}
 
 	@Override
