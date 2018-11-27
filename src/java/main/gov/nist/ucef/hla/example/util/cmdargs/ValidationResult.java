@@ -22,7 +22,6 @@ package gov.nist.ucef.hla.example.util.cmdargs;
 
 /**
  * A class to contain a command line argument validation result
- *
  */
 public class ValidationResult
 {

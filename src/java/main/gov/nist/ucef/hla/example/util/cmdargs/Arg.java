@@ -28,8 +28,8 @@ public abstract class Arg
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	public static final String SHORT_FORM_PREFIX = "-"; 
-	public static final String LONG_FORM_PREFIX = "--"; 
+	protected static final String SHORT_FORM_PREFIX = "-"; 
+	protected static final String LONG_FORM_PREFIX = "--"; 
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES

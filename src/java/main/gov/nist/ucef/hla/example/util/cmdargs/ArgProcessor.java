@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A simple command line argument parser class
@@ -39,13 +40,13 @@ import java.util.Set;
  *    CmdArgParser cmdArgParser = new CmdArgParser();
  *    SwitchArg theSwitch = cmdArgParser.addSwitchArg('a', "activate").help("Activate the thing.");
  *    ValueArg alphabetValue = cmdArgParser.addValueArg(null, "alphabet").isRequired(false).help("Define Alphabet").hint("ABCDEFG...");
- *    ValueArg bradshawValue = cmdArgParser.addValueArg('b', "bradshaw").isRequired(true).help("Set the bradshaw radius").hint("RADIUS");
+ *    ListArg bradshawValues = cmdArgParser.addValueArg('b', "bradshaw").isRequired(true).help("Set the bradshaw radii").hint("RADIUS");
  *    try
  *    {
  *        cmdArgParser.parse(args);
  *        System.out.println(theSwitch.value());
  *        System.out.println(alphabetValue.value());
- *        System.out.println(bradshawValue.value());
+ *        System.out.println(bradshawValues.valuesToString());
  *    }
  *    catch (ParseException e)
  *    {
@@ -441,14 +442,14 @@ public class ArgProcessor
 	private Arg[] collectRequiredArguments()
 	{
 		Set<Arg> required = new HashSet<>();
-		List<Arg> allCmdLineArguments = new ArrayList<>();
-		allCmdLineArguments.addAll( shortFormArgMap.values() );
-		allCmdLineArguments.addAll( longFormArgMap.values() );
-		for( Arg cmdLineArgument : allCmdLineArguments )
-		{
-			if( cmdLineArgument.isRequired() )
-				required.add( cmdLineArgument );
-		}
+		required.addAll( shortFormArgMap.values()
+		                 				.parallelStream()
+		                 				.filter( arg -> arg.isRequired() )
+		                 				.collect( Collectors.toList() ) );
+		required.addAll( longFormArgMap.values()
+		                 			   .parallelStream()
+		                 			   .filter( arg -> arg.isRequired() )
+		                 			   .collect( Collectors.toList() ) );
 		return required.toArray( new Arg[0] );
 	}
 	
@@ -556,7 +557,7 @@ public class ArgProcessor
 	/**
 	 * Example usage
 	 * 
-	 * @param args ignored!
+	 * @param args the command line arguments
 	 */
 	public static void main( String args[] )
 	{
@@ -567,12 +568,13 @@ public class ArgProcessor
 		ValueArg alphabetValue = cmdArgParser
 			.addValueArg( null, "alphabet" )
 			.isRequired( false )
+			.defaultValue( "ABCDEFGHIJKLMNOPQRSTUVWXYZ" )
 			.help( "Define Alphabet" )
 			.hint( "ABCDEFG..." );
-		ValueArg bradshawValue = cmdArgParser
-			.addValueArg( 'b', "bradshaw" )
+		ListArg bradshawValues = cmdArgParser
+			.addListArg( 'b', "bradshaw" )
 			.isRequired( true )
-			.help( "Set the bradshaw radius" )
+			.help( "Set the bradshaw radii" )
 			.hint( "RADIUS" );
 		
 		try
@@ -580,7 +582,7 @@ public class ArgProcessor
 			cmdArgParser.process( args );
 			System.out.println( theSwitch.value() );
 			System.out.println( alphabetValue.value() );
-			System.out.println( bradshawValue.value() );
+			System.out.println( bradshawValues.valuesToString( ", " ) );
 		}
 		catch( ArgException e )
 		{

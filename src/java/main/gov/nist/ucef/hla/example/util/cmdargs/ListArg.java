@@ -140,7 +140,7 @@ public class ListArg extends Arg
 	 * 
 	 * @return the current value for this value argument
 	 */
-	public String valueToString( String delimiter )
+	public String valuesToString( String delimiter )
 	{
 		List<String> val = isSet() ? this.actualValue : this.defaultValue;
 

@@ -26,7 +26,7 @@ import java.util.Comparator;
  * Utility class which simpy implements the {@link Comparator} interface to allow comparison of
  * {@link Arg} instances for the purposes of sorting
  */
-class ArgComparator implements Comparator<Arg>
+public class ArgComparator implements Comparator<Arg>
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -69,7 +69,7 @@ class ArgComparator implements Comparator<Arg>
 		// sort by type - SWITCH before VALUE before LIST
 		int ord1 = cla1.argKind().ordinal();
 		int ord2 = cla2.argKind().ordinal();
-		int diff = ord2 - ord1;
+		int diff = ord1 - ord2;
 		if( diff != 0 )
 			return diff;
 
