@@ -11,3 +11,8 @@ local.properties
 *.VC.opendb
 /dist/
 **/x64/
+**/Debug/
+**/Release/
+**/ExampleFederate/libFederateBase.so
+**/ExampleFederate/.gitignore
+
