@@ -226,24 +226,28 @@ public class FederateManager extends FederateBase {
 		preAnnounceSyncPoints();
 
 		System.out.println( configurationSummary() );
-		System.out.print( "beforeReadyToPopulate()\nWaiting for federates to join..." );
+		System.out.print( "Waiting for federates to join..." );
+
 		long count = 0;
 		int lastJoinedCount = -1;
 		int currentJoinedCount = joinedCount();
+		
 		while( !canStart() )
 		{
 			waitFor( 500 );
-			
+
 			if( ++count % 2 == 0 )
 			{
 				// show progress
 				System.out.print( '.' );
-				currentJoinedCount = joinedCount();
-				if(currentJoinedCount != lastJoinedCount)
-				{
-					System.out.println( "\n" + joinedCount() + " of " + totalFederatesRequired + " federates have joined.");
-					lastJoinedCount = currentJoinedCount;
-				}
+			}
+			
+			currentJoinedCount = joinedCount();
+			if( currentJoinedCount != lastJoinedCount )
+			{
+				System.out.println( String.format( "\n%d of %d federates have joined.",
+				                                   currentJoinedCount, totalFederatesRequired ) );
+				lastJoinedCount = currentJoinedCount;
 			}
 		}
 		
@@ -255,6 +259,7 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void beforeReadyToRun()
 	{
+		// no initialization tasks required
 	}
 
 	@Override
@@ -319,6 +324,7 @@ public class FederateManager extends FederateBase {
 		// WORKAROUND for the fact that the federate type is currently not correctly
 		//            propagated (and instead is actually the federate name)
 		//            see: https://github.com/openlvc/portico/issues/280
+		//                 https://github.com/openlvc/portico/pull/281
 		String federateType = joinedFederate.getFederateType();
 		for( String requiredType : startRequirements.keySet() )
 		{
@@ -342,12 +348,13 @@ public class FederateManager extends FederateBase {
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
+		// federate manager does not process this
 	}
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
 	{
-		receiveInteraction( hlaInteraction );
+		// federate manager does not process this
 	}
 
 	@Override
@@ -405,8 +412,8 @@ public class FederateManager extends FederateBase {
         	.isRequired( false )
         	.defaultValue( DEFAULT_FEDMAN_FEDERATE_TYPE )
         	.help( String.format( "Set the federate type for the Federate Manager to use. " +
-        		"If unspecified a value of '%s' will be used.",
-        		DEFAULT_FEDMAN_FEDERATE_TYPE ) )
+        						  "If unspecified a value of '%s' will be used.",
+        						  DEFAULT_FEDMAN_FEDERATE_TYPE ) )
         	.hint( "FEDMAN_TYPE" );
 		ValueArg logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
