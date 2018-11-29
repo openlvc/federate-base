@@ -28,7 +28,7 @@
 		<link>
 			<name>Main.cpp</name>
 			<type>1</type>
-			<location>/home/vagrant/Caly/ucefcodebase/federate-base/resources/visualstudio/ExampleFederate/Main.cpp</location>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Example/Main.cpp</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
