@@ -1,24 +1,13 @@
 #include "gov/nist/ucef/hla/FederateBase.h"
+#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/UCEFException.h"
 #include "gov/nist/ucef/hla/HLAObject.h"
 #include "gov/nist/ucef/hla/HLAInteraction.h"
 #include <iostream>
 
-#ifdef _WIN32
-	#ifdef UCEF_EXPORTS
-		#define UCEF_API __declspec(dllexport)
-	#else
-		#define UCEF_API __declspec(dllimport)
-	#endif
-#else
-	#define UCEF_API
-#endif
-
-
 using namespace std;
 using namespace ucef;
 using namespace ucef::util;
-
 
 class ExampleFederate : public FederateBase
 {
