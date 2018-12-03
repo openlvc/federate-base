@@ -30,8 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
@@ -41,12 +39,13 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
-import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
+import gov.nist.ucef.hla.example.util.StringUtils;
 import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
+import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
+import gov.nist.ucef.hla.example.util.cmdargs.IArgValidator;
+import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
-import gov.nist.ucef.hla.example.util.cmdargs.IArgValidator;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
 
 /**
@@ -66,10 +65,8 @@ import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
  * 		------------ Federate Manager ----------
  *
  */
-public class FederateManager extends FederateBase {
-
-
-
+public class FederateManager extends FederateBase
+{
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
@@ -80,7 +77,7 @@ public class FederateManager extends FederateBase {
 		"   / /_  / _ \\/ __  / /\\|_/ / __`/ __ \\\n" +
 		"  / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
 		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
-		"------------ Federate Manager ----------\n";
+		"─────────── Federate Manager ───────────\n";
 
 	// name of the Federate Manager executable
 	private static final String EXEC_NAME = "fedman";
@@ -119,6 +116,9 @@ public class FederateManager extends FederateBase {
 	private static final String FEDERATE_TYPE_HEADING = "Type";
 	private static final String NUMBER_REQUIRED_HEADING = "Required";
 	private static final String NUMBER_JOINED_HEADING = "Joined";
+	private static final String[] TABLE_HEADINGS = {FEDERATE_TYPE_HEADING, 
+	                                                NUMBER_REQUIRED_HEADING, 
+	                                                NUMBER_JOINED_HEADING};
 	private static final char NEWLINE = '\n';
 	
 	//----------------------------------------------------------
@@ -520,7 +520,7 @@ public class FederateManager extends FederateBase {
 	private String configurationSummary()
 	{
 		StringBuilder builder = new StringBuilder();
-		builder.append( center( " Federate Manager Details ", 80, '=' ) );
+		builder.append( StringUtils.center( " Federate Manager Details ", 80, '═' ) );
 		builder.append( NEWLINE );
 		builder.append( "Time:" );
 		builder.append( NEWLINE );
@@ -566,90 +566,21 @@ public class FederateManager extends FederateBase {
 		List<String> federateTypes = new ArrayList<>(startRequirements.keySet());
 		federateTypes.sort( null );
 		
-		// check the maximum length of federate type names so that we can
-		// format the summary table nicely
-		int col0width = federateTypes.parallelStream().mapToInt( str -> str.length() ).max().getAsInt();
-		col0width = Math.max( col0width, FEDERATE_TYPE_HEADING.length() );
+		List<List<Object>> tableContent = new ArrayList<>();
 		
-		int col1width = NUMBER_REQUIRED_HEADING.length();
-		int col2width = NUMBER_JOINED_HEADING.length();
+		List<Object> row = new ArrayList<Object>();
+		row.addAll( Arrays.asList( TABLE_HEADINGS ) );
+		tableContent.add( row );
 		
-		StringBuilder builder = new StringBuilder();
-		builder.append( repeat("-", col0width + 1) );
-		builder.append( "+" );
-		builder.append( repeat("-", NUMBER_REQUIRED_HEADING.length() + 2 ) );
-		builder.append( "+" );
-		builder.append( repeat("-", NUMBER_JOINED_HEADING.length() + 1 ) );
-		builder.append(NEWLINE);
-		String rowSeparator = builder.toString();
-		
-		// build the table
-		builder = new StringBuilder();
-		//      top border
-		builder.append( rowSeparator );
-		//      header row
-		builder.append( FEDERATE_TYPE_HEADING );
-		builder.append( repeat( " ", col0width - FEDERATE_TYPE_HEADING.length() ) );
-		builder.append( " | " ).append( NUMBER_REQUIRED_HEADING );
-		builder.append( repeat( " ", col1width - NUMBER_REQUIRED_HEADING.length() ) );
-		builder.append( " | " ).append( NUMBER_JOINED_HEADING );
-		builder.append( NEWLINE );
-		//      header row/data separator
-		builder.append( rowSeparator );
-		//      data
 		for( String federateType : federateTypes )
 		{
-			String requiredCount = Integer.toString( startRequirements.get( federateType ) );
-			String joinedCount = Integer.toString( joinedFederatesByType.getOrDefault( federateTypes, Collections.emptySet() ).size() );
-			
-			builder.append(federateType);
-			builder.append( repeat(" ", col0width - federateType.length()) );
-			builder.append(" | " );
-			builder.append(requiredCount);
-			builder.append( repeat(" ", col1width - requiredCount.length()) );
-			builder.append(" | " );
-			builder.append(joinedCount);
-			builder.append( repeat(" ", col2width - joinedCount.length()) );
-			builder.append( "\n" );
+			row = new ArrayList<>();
+			row.add(federateType);
+			row.add(Integer.toString( startRequirements.get( federateType ) ));
+			row.add(Integer.toString( joinedFederatesByType.getOrDefault( federateTypes, Collections.emptySet() ).size() ));
+			tableContent.add( row );
 		}
-		//      bottom border
-		builder.append( rowSeparator );
-		
-		return builder.toString();
-	}
-	
-	/**
-	 * Utility method to repeat a string a given number of times.
-	 * 
-	 * @param str the string to repeat
-	 * @param count the number of repetitions
-	 * @return the repeated string
-	 */
-	private String repeat( String str, int count )
-	{
-		return IntStream.range( 0, count ).mapToObj( i -> str ).collect( Collectors.joining( "" ) );
-	}
-	
-	/**
-	 * Utility class to center a string in a given width
-	 * 
-	 * @param str the string to center
-	 * @param width the width to center the string in
-	 * @param padding the padding character to use to the left and right of the string
-	 * @return the centered string
-	 */
-	private String center( String str, int width, char padding )
-	{
-		int count = width - str.length();
-		if( count <= 0)
-			return str;
-		
-		String padStr = Character.toString( padding );
-		String leftPad = repeat(padStr, count / 2); 
-		if(count %2 ==0)
-			return leftPad + str + leftPad;
-			
-		return leftPad + str + leftPad.substring( 0, count+1 );
+		return StringUtils.makeTable( tableContent );
 	}
 	
 	/**

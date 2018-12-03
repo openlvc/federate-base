@@ -512,17 +512,19 @@ public class ArgProcessor
 			{
 				while( line.length() > width )
 				{
-					// find the last space character within the width
-					// from the start of the string
+					// look backwards from the width index to find the
+					// last space character
 					int spacePos = line.substring( 0, width ).lastIndexOf( ' ' ) + 1;
 					if( spacePos == 0 )
 					{
-						// no space character found, look from the start of the string
+						// no space character found, look from the start of 
+						// the string instead and see how we go with that
 						spacePos = line.indexOf( ' ' ) + 1;
 					}
 					if( spacePos == 0 )
 					{
 						// still no space character found - can't split!
+						// just add the line as it is without a split
 						lines.add( line );
 						line = "";
 					}

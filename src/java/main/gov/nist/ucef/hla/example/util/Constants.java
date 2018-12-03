@@ -32,7 +32,7 @@ public class Constants
 		"         / \\   / \\   / \\   / \\\n" +
 		"        ( U )-( C )-( E )-( F )\n" +
 		"         \\_/   \\_/   \\_/   \\_/\n" +
-		"        <-+-> <-+-----+-----+->\n" +
+		"        <─┴─> <─┴─────┴─────┴─>\n" +
 		"       Universal CPS Environment\n" +
 		"             for Federation\n";
 
