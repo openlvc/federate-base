@@ -52,9 +52,9 @@ import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
  *		            ___
  *		          _/   \_     _     _
  *		         / \   / \   / \   / \
- *		        ( U )-( C )-( E )-( F )
+ *		        ( U )─( C )─( E )─( F )
  *		         \_/   \_/   \_/   \_/
- *		        <-+-> <-+-----+-----+->
+ *		        <─┴─> <─┴─────┴─────┴─>
  *		       Universal CPS Environment
  *		             for Federation
  * 		     ______         ____  ___
@@ -62,7 +62,7 @@ import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
  * 		   / /_  / _ \/ __  / /\|_/ / __`/ __ \
  * 		  / __/ /  __/ /_/ / /  / / /_/ / / / /
  * 		 /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
- * 		------------ Federate Manager ----------
+ * 		─────────── Federate Manager ───────────
  *
  */
 public class FederateManager extends FederateBase

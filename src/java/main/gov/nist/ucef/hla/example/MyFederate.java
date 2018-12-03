@@ -45,6 +45,15 @@ import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAfixedRecord;
 
 /**
+ *		            ___
+ *		          _/   \_     _     _
+ *		         / \   / \   / \   / \
+ *		        ( U )─( C )─( E )─( F )
+ *		         \_/   \_/   \_/   \_/
+ *		        <─┴─> <─┴─────┴─────┴─>
+ *		       Universal CPS Environment
+ *		             for Federation
+ * 
  * Example federate for testing
  */
 public class MyFederate extends FederateBase {
