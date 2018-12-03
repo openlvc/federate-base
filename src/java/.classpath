@@ -12,6 +12,6 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/dev/workspaces/UCEF_CALYTRIX/federate-base/external/java/lib/portico/2.1.0/portico.jar"/>
+	<classpathentry kind="lib" path="D:/dev/workspaces/UCEF_CALYTRIX/federate-base/external/java/lib/portico/2.1.0/portico.jar" sourcepath="D:/dev/workspaces/PORTICO/portico/codebase/src/java"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
