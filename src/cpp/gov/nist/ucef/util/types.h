@@ -25,7 +25,7 @@ namespace ucef
 		//-----------------------------------------
 
 		/**
-		 *  Represents the logging level of the logger
+		 *  Represents various logging levels of the logger
 		 *
 		 *  @see Logger#setLogLevel( LogLevel )
 		 */
@@ -41,7 +41,7 @@ namespace ucef
 		};
 
 		/**
-		 *  Represents the synchronization points of this federate
+		 *  Represents the valid synchronization points of this federate
 		 *
 		 *  @see FederateBase#synchronize( SynchPoint )
 		 */
@@ -59,7 +59,7 @@ namespace ucef
 		//-----------------------------------------
 
 		/**
-		 *  Represents an attribute of an object class given a Simulation Object Model
+		 *  Represents an attribute in an object class in a Simulation Object Model
 		 *
 		 *  @see ObjectClass
 		 */
@@ -77,7 +77,7 @@ namespace ucef
 			};
 
 		/**
-		 *  Represents an object class given a Simulation Object Model
+		 *  Represents an object class in a Simulation Object Model
 		 *
 		 *  @see SOMParser#getObjectClasses(string&)
 		 *  @see ObjectAttribute
@@ -98,7 +98,7 @@ namespace ucef
 		};
 
 		/**
-		 *  Represents a parameter of an interaction class a Simulation Object Model
+		 *  Represents a parameter in an interaction class in a Simulation Object Model
 		 *
 		 *  @see InteractionClass
 		 */
@@ -112,7 +112,7 @@ namespace ucef
 		};
 
 		/**
-		 *  Represents an interaction class given a Simulation Object Model
+		 *  Represents an interaction class in a Simulation Object Model
 		 *
 		 *  @see SOMParser#getInteractionClasses(string&)
 		 *  @see InteractionParameter
@@ -152,18 +152,18 @@ namespace ucef
 		// unordered_map because we do not need any ordering
 		// what we need is a faster way to get the object class
 
-		// to resolve object class data from a object class name of an incoming object
+		// to resolve ObjectClass from an object class name of an incoming object
 		typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
-		// to resolve object class data from a object class handle's hash of an incoming object
+		// to resolve ObjectClass from an object class handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
-		// to resolve object class data from a object instance handle's hash of an incoming object
+		// to resolve ObjectClass from an object instance handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance;
-		// to resolve object instance handle from the instance hash of an outgoing object
+		// to resolve ObjectInstanceHandle from an object instance handle's hash of an outgoing object
 		typedef std::unordered_map<long, std::shared_ptr<rti1516e::ObjectInstanceHandle>> ObjectInstanceStoreByHash;
 
-		// to resolve interaction class data from an interaction class name of an incoming object
+		// to resolve InteractionClass data from an interaction class name of an incoming object
 		typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
-		// to resolve interaction class data from an interaction class handle's hash of an incoming object
+		// to resolve InteractionClass data from an interaction class handle's hash of an incoming object
 		typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
 
 		//----------------------------------------

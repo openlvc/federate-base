@@ -174,7 +174,7 @@ namespace ucef
 		HLAObjectAttributes &store = *m_attributeDataStore;
 		for( auto kv : store)
 		{
-			attributeNameList.emplace_back(kv.first);
+			attributeNameList.emplace_back( kv.first );
 		}
 		return attributeNameList;
 	}

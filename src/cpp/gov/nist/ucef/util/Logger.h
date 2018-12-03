@@ -18,7 +18,6 @@ namespace ucef
 	{
 		/**
 		 * The {@link Logger} provides a simple logging framework for the system.
-		 * 
 		 */
 		class Logger
 		{

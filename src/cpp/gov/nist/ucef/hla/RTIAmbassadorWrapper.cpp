@@ -20,7 +20,6 @@ using namespace ucef::util;
 
 namespace ucef
 {
-
 	RTIAmbassadorWrapper::RTIAmbassadorWrapper()
 	{
 		RTIambassador* tmpAmbassador = RTIambassadorFactory().createRTIambassador().release();
@@ -106,7 +105,7 @@ namespace ucef
 		}
 		catch( TimeRegulationAlreadyEnabled& )
 		{
-
+			// we do not need to throw an exception for this
 		}
 		catch( Exception& e )
 		{
@@ -122,7 +121,7 @@ namespace ucef
 		}
 		catch( TimeRegulationIsNotEnabled& )
 		{
-
+			// we do not need to throw an exception for this
 		}
 		catch( Exception& e )
 		{
@@ -138,7 +137,7 @@ namespace ucef
 		}
 		catch( TimeConstrainedAlreadyEnabled& )
 		{
-
+			// we do not need to throw an exception for this
 		}
 		catch( Exception& e )
 		{
@@ -154,6 +153,7 @@ namespace ucef
 		}
 		catch( TimeConstrainedIsNotEnabled& )
 		{
+			// we do not need to throw an exception for this
 		}
 		catch( Exception& e )
 		{

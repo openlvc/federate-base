@@ -14,8 +14,8 @@ namespace ucef
 {
 	typedef std::map<std::string, util::VariableData> HLAObjectAttributes;
 	/**
-	 * The {@link HLAObject} represents a transient object that stores object class
-	 * data for publishing or data of a subscribed object class.
+	 * The {@link HLAObject} is a transient object that stores data of a either
+	 * publishing class or received object class update.
 	 *
 	 * @see RTIAmbassadorWrapper#updateObjectInstance(std::shared_ptr<HLAObject>&)
 	 * @see RTIAmbassadorWrapper#deleteObjectInstances(std::shared_ptr<HLAObject>&)
@@ -40,9 +40,9 @@ namespace ucef
 			//----------------------------------------------------------
 
 			/**
-			 * Determines if this instance knows the named attribute.
+			 * Checks if the named attribute is known to this instance
 			 * 
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @return true if the attribute is known by this instance, false otherwise
 			 */
 			bool isAttribute( const std::string& attributeName ) const;
@@ -53,7 +53,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, bool val );
@@ -64,7 +64,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, const char val );
@@ -75,7 +75,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, short val );
@@ -86,7 +86,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, int val );
@@ -97,7 +97,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, long val );
@@ -108,7 +108,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, float val );
@@ -119,7 +119,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, double val );
@@ -130,7 +130,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param val the value of the attribute
 			 */
 			void setValue( const std::string& attributeName, const std::string& val );
@@ -141,7 +141,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the attribute, this class doesn't check for
 			 * the validity of the named attribute against federate's SOM
 			 *
-			 * @param attributeName the name of the attribute
+			 * @param attributeName the name of the attribute as in SOM
 			 * @param data the value of the attribute
 			 * @param size size of the data
 			 */
@@ -272,10 +272,10 @@ namespace ucef
 			//                    Private members
 			//----------------------------------------------------------
 
-			// stores attribute names that required publising or
-			// attribute names of a received object class update.
+			// stores attribute names and values that required publising or
+			// received in an object update.
 			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
-			// holds the fully qulified name of the HLAObject
+			// holds the fully qulified name of this class
 			std::string m_className;
 			// holds the unique id of an instance of this class
 			long m_instanceId;

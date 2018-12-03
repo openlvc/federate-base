@@ -15,8 +15,8 @@ namespace ucef
 {
 	typedef std::map<std::string, util::VariableData> HLAInteractionParameters;
 	/**
-	 * The {@link HLAInteraction} represents a transient object that stores data for
-	 * interaction publishing or data of a received interaction.
+	 * The {@link HLAInteraction} is a transient object that stores data of a
+	 * either publishing interaction or received interaction.
 	 *
 	 * @see RTIAmbassadorWrapper#sendInteraction(std::shared_ptr<HLAInteraction>&)
 	 * @see deleteObjectInstances#receiveInteraction(std::shared_ptr<const HLAInteraction>&)
@@ -37,9 +37,9 @@ namespace ucef
 			//----------------------------------------------------------
 
 			/**
-			 * Determines if this instance knows the named parameter.
+			 * Checks if the named parameter is known to this instance.
 			 * 
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @return true if the parameter is known by this instance, false otherwise
 			 */
 			bool isParameter( const std::string& parameterName ) const;
@@ -50,7 +50,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, bool val );
@@ -61,7 +61,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, const char val );
@@ -72,7 +72,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, short val );
@@ -83,7 +83,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, int val );
@@ -94,7 +94,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, long val );
@@ -105,7 +105,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, float val );
@@ -116,7 +116,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, double val );
@@ -127,7 +127,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param val the value of the parameter
 			 */
 			void setValue( const std::string& parameterName, const std::string& val );
@@ -138,7 +138,7 @@ namespace ucef
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
 			 * the validity of the named parameter against federate's SOM
 			 *
-			 * @param parameterName the name of the parameter
+			 * @param parameterName the name of the parameter as in SOM
 			 * @param data the value of the parameter
 			 * @param size size of the data
 			 */
@@ -169,7 +169,7 @@ namespace ucef
 			/**
 			 * Returns the value of a named parameter as a short.
 			 * <p/>
-			 * If the named parameter cannot be found zero will be returned.
+			 * If the named parameter cannot be found value zero will be returned.
 			 *
 			 * @param parameterName the name of the parameter
 			 * @return the value of the parameter
@@ -179,7 +179,7 @@ namespace ucef
 			/**
 			 * Returns the value of a named parameter as a int.
 			 * <p/>
-			 * If the named parameter cannot be found zero will be returned.
+			 * If the named parameter cannot be found value zero will be returned.
 			 *
 			 * @param parameterName the name of the parameter
 			 * @return the value of the parameter
@@ -189,7 +189,7 @@ namespace ucef
 			/**
 			 * Returns the value of a named parameter as a long.
 			 * <p/>
-			 * If the named parameter cannot be found zero will be returned.
+			 * If the named parameter cannot be found value zero will be returned.
 			 *
 			 * @param parameterName the name of the parameter
 			 * @return the value of the parameter
@@ -199,7 +199,7 @@ namespace ucef
 			/**
 			 * Returns the value of a named parameter as a float.
 			 * <p/>
-			 * If the named parameter cannot be found zero will be returned.
+			 * If the named parameter cannot be found value zero will be returned.
 			 *
 			 * @param parameterName the name of the parameter
 			 * @return the value of the parameter
@@ -209,7 +209,7 @@ namespace ucef
 			/**
 			 * Returns the value of a named parameter as a double.
 			 * <p/>
-			 * If the named parameter cannot be found zero will be returned.
+			 * If the named parameter cannot be found value zero will be returned.
 			 *
 			 * @param parameterName the name of the parameter
 			 * @return the value of the parameter
@@ -253,7 +253,7 @@ namespace ucef
 			std::string getInteractionClassName() const;
 
 			/**
-			 * Clears all the parameters stored in this object
+			 * Clears all the parameters stored in this object.
 			 */
 			void clear();
 
@@ -262,10 +262,10 @@ namespace ucef
 			//                    Private members
 			//----------------------------------------------------------
 
-			// stores parameter names that required publising or
-			// parameter names of a received interaction.
+			// stores parameter names and values that required publising or
+			// received in an interaction.
 			std::shared_ptr<HLAInteractionParameters> m_parameterDataStore;
-			// holds the unique id of an instance of this class
+			// holds the fully qualified name of this class
 			std::string m_interactionClassName;
 	};
 }

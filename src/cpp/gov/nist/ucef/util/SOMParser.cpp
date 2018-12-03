@@ -232,9 +232,9 @@ namespace ucef
 					{
 						// set the sharing state of the interaction class (not the sharing state of params)
 						interactionClass->publish = 
-							ConversionHelper::isPublish(objectSharingElement->GetText());
+							ConversionHelper::isPublish( objectSharingElement->GetText() );
 						interactionClass->subscribe = 
-							ConversionHelper::isSubscribe(objectSharingElement->GetText());
+							ConversionHelper::isSubscribe( objectSharingElement->GetText() );
 					}
 
 					// collect params in this interaction class (traverse only the leaf params)

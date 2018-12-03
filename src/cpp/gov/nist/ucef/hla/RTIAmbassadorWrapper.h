@@ -33,7 +33,7 @@ namespace ucef
 	 * To publish an object class use the following steps.
 	 * <ul>
 	 *  <li> Register a class instance using {@link #registerObjectInstance(const std::string& )}
-	 *  <li> Populate the returned HLA object instance with attribute data {@link HLAObject#setValue()}
+	 *  <li> Populate the returned HLA object instance with attribute data and values {@link HLAObject#setValue()}
 	 *  <li> Send data out using {@link #updateAttributeValues( std::shared_ptr<HLAObject>& )}
 	 * </ul>
 	 * To publish an interaction class use the following steps.
@@ -44,7 +44,7 @@ namespace ucef
 	 * </ul>
 	 * To delete an instance from the RTI simply call
 	 * <ul>
-	 * <li> {@link #deleteObjectInstance( std::shared_ptr<HLAObject>& )} with a valid instance of a {@link HLAObject}
+	 *  <li> {@link #deleteObjectInstance( std::shared_ptr<HLAObject>& )} with a valid instance of a {@link HLAObject}
 	 * </ul>
 	 */
 	class UCEF_API RTIAmbassadorWrapper
@@ -95,10 +95,9 @@ namespace ucef
 			 * Informs RTI that this federate is time regulating federate.
 			 * <p/>
 			 * A federate that declares itself to be "regulating" is capable of
-			 * generating time-stamp-ordered (TSO) events. TSO events are said to
-			 * occur at a specific point in time.
+			 * generating time-stamp-ordered (TSO) events.
 			 * <p/>
-			 * The lookahead value, represents a contract between the regulating
+			 * The lookahead value, represents a contract between the regulating federate
 			 * and the federation. It establishes the earliest possible TSO event
 			 * the federate can generate relative to the current time.
 			 *
@@ -107,7 +106,7 @@ namespace ucef
 			void enableTimeRegulation( const float lookAhead );
 
 			/**
-			 * Informs RTI that this federate is not a time regulating federate.
+			 * Informs RTI that this federate is no longer a time regulating federate.
 			 */
 			void disableTimeRegulation();
 
@@ -120,25 +119,25 @@ namespace ucef
 			void enableTimeConstrained();
 
 			/**
-			 * Informs RTI that this federate is not a time constrained federate.
+			 * Informs RTI that this federate is no longer a time constrained federate.
 			 */
 			void disableTimeConstrained();
 
 			/**
-			 * Informs RTI about class attributes of a particular class that is going to be
+			 * Informs RTI about class attributes of a particular object class that is going to be
 			 * published by this federate.
 			 *
-			 * @param classHandle an identifier of the class who owns the publishing attributes
+			 * @param classHandle a valid handler to the class who owns the publishing attributes
 			 * @param pubAttributes attributes that are going to be published by this federate
 			 */
 			void publishObjectClassAttributes( rti1516e::ObjectClassHandle& classHandle,
 			                                   std::set<rti1516e::AttributeHandle>& pubAttributes);
 
 			/**
-			 * Informs RTI about class attributes of a particular class that is going to be
+			 * Informs RTI about class attributes of a particular object class that is going to be
 			 * subscribed by this federate.
 			 *
-			 * @param classHandle an identifier of the class who owns the subscribing attributes
+			 * @param classHandle a valid handler to the class who owns the subscribing attributes
 			 * @param subAttributes attributes that are going to be subscribed by this federate
 			 */
 			void subscribeObjectClassAttributes( rti1516e::ObjectClassHandle& classHandle,
@@ -147,7 +146,7 @@ namespace ucef
 			/**
 			 * Informs RTI about an interaction class that is going to be published by this federate.
 			 *
-			 * @param interactionHandle an identifier of an interaction class that is going
+			 * @param interactionHandle a valid handler to the interaction class that is going
 			 *        to be published by this federate
 			 */
 			void publishInteractionClass( rti1516e::InteractionClassHandle& interactionHandle );
@@ -155,8 +154,8 @@ namespace ucef
 			/**
 			 * Informs RTI about an interaction class that is going to be subscribed by this federate.
 			 *
-			 * @param interactionHandle an identifier of an interaction class that is going
-			 *        to be subscribed by this federate
+			 * @param interactionHandle a valid handler to the class that is going to be subscribed
+			 *        by this federate
 			 */
 			void subscribeInteractionClasses( rti1516e::InteractionClassHandle& interactionHandle );
 
@@ -180,7 +179,7 @@ namespace ucef
 			/**
 			 * Requests a time advancement from RTI
 			 *
-			 * @param requestedTime time advancement requested
+			 * @param requestedTime time requested to advance
 			 */
 			void timeAdvanceRequest( const double requestedTime );
 
@@ -217,6 +216,8 @@ namespace ucef
 
 			/**
 			 * Requests to delete a registered object class instance from RTI
+			 * <p/>
+			 * Federate can only deletes an object instance only if it owns the given instance.
 			 *
 			 * @param hlaObject object instance that needs to be deleted from RTI
 			 */
@@ -228,9 +229,9 @@ namespace ucef
 			void resign();
 
 			/**
-			 * Tick RTI for callbacks
+			 * Ticks RTI for callbacks
 			 * <p/>
-			 * The explicit ticking of RTI is required when callback mode is set to
+			 * Explicit ticking of RTI is required when callback mode is set to
 			 * HLA_EVOKED.
 			 *
 			 *  @see #connect()
@@ -252,7 +253,7 @@ namespace ucef
 			 * <p/>
 			 * If attrbiute handle could not be found an empty attrbiute handle is returned.
 			 *
-			 * @param classHandle a valid class handle to a object class
+			 * @param classHandle a valid class handle to an object class
 			 * @param name the fully qualified name of an attribute in that class
 			 * @return rti attrbiute handle to the given class attribute
 			 */
@@ -261,11 +262,11 @@ namespace ucef
 
 			/**
 			 * Returns the fully qualified name of an attrbiute given a valid class handle and
-			 * an attrbiute handle
+			 * an attrbiutde handle
 			 * <p/>
 			 * If the handles are invalid an empty string is returned.
 			 *
-			 * @param classHandle a valid class handle to a object class
+			 * @param classHandle a valid class handle to an object class
 			 * @param attributeHandle a valid attribute handle to an attribute in that object class
 			 * @return the fully qualified name of an attrbiute
 			 */
@@ -278,7 +279,7 @@ namespace ucef
 			 * If the interaction handle could not be found an empty interaction handle is returned.
 			 *
 			 * @param name the fully qualified name of an interaction class
-			 * @return rti interaction class handle to the given object class
+			 * @return rti interaction class handle to the given interaction class
 			 */
 			rti1516e::InteractionClassHandle getInteractionHandle( const std::string& name );
 
@@ -287,25 +288,25 @@ namespace ucef
 			 * <p/>
 			 * If parameter handle could not be found an empty parameter handle is returned.
 			 *
-			 * @param interactionHandle a valid interaction handle of an interaction class
+			 * @param interactionHandle a valid interaction handle to an interaction class
 			 * @param name the fully qualified name of a parameter in that class
-			 * @return rti parameter handle to the given class attribute
+			 * @return rti parameter handle to the given interaction parameter
 			 */
 			rti1516e::ParameterHandle getParameterHandle( const rti1516e::InteractionClassHandle& interactionHandle,
 			                                              const std::string& name );
 
 			/**
-			 * Returns the fully qualified name of a parameter given a valid interaction and 
+			 * Returns the fully qualified name of a parameter given a valid interaction and
 			 * a parameter handle.
 			 * <p/>
 			 * If the handles are invalid an empty string is returned.
 			 *
 			 * @param interactionHandle a valid interaction handle to an interaction class
-			 * @param parameterHandle a valid parameter handle to an parameter in that interaction class
-			 * @return the fully qualified name of an parameter
+			 * @param parameterHandle a valid parameter handle to a parameter in that interaction class
+			 * @return the fully qualified name of a parameter
 			 */
 			std::string getParameterName( const rti1516e::InteractionClassHandle& interactionHandle,
-			                               const rti1516e::ParameterHandle& parameterHandle );
+			                              const rti1516e::ParameterHandle& parameterHandle );
 	private:
 			//----------------------------------------------------------
 			//             Private members
@@ -315,4 +316,3 @@ namespace ucef
 			util::ObjectInstanceStoreByHash m_instanceStoreByHash;
 	};
 }
-

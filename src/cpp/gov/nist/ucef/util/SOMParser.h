@@ -24,8 +24,7 @@ namespace ucef
 				/*
 				 * Parse the given SOM file and extract the object classes
 				 *
-				 * @param SomFilePath the path to the federate's SOM file
-				 * @param SomFileName the name to the federate's SOM file
+				 * @param SomFilePath the full path to the federate's SOM file
 				 *
 				 * @return all the object classes found in the given SOM file
 				 */
@@ -34,8 +33,7 @@ namespace ucef
 				/*
 				 * Parse the given SOM file and extract the interaction classes
 				 *
-				 * @param SomFilePath the path to the federate's SOM file
-				 * @param SomFileName the name to the federate's SOM file
+				 * @param SomFilePath the full path to the federate's SOM file
 				 *
 				 * @return all the interaction classes found in the given SOM file
 				 */

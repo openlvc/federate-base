@@ -7,6 +7,9 @@ namespace ucef
 {
 	namespace util
 	{
+		/**
+		 * The {@link FederateConfiguration} provides the configuration options to this federate.
+		 */
 		class FederateConfiguration
 		{
 			public:
@@ -44,15 +47,15 @@ namespace ucef
 				std::vector<std::string> getFomPaths();
 
 				/**
-				 * Returns the path to a SOM file
+				 * Returns path to a SOM file
 				 * 
-				 * @return the path to a SOM file
+				 * @return path to a SOM file
 				 */
 				std::string getSomPath();
 
 				/**
 				 * Returns the lookahead value of a time regulating federate
-				 * 
+				 * <p/>
 				 * The default lookahead value is set to 1.
 				 *
 				 * @return the lookahead value
@@ -60,32 +63,32 @@ namespace ucef
 				float getLookAhead();
 
 				/**
-				 * Returns the size of the time step in this federate.
-				 *
+				 * Returns the size of the time step.
+				 * <p/>
 				 * The default time step size is set to 1.
 				 * 
-				 * @return the time step size of this federate
+				 * @return the time step size
 				 */
 				float getTimeStep();
 
 				/**
-				 * Returns the callback mode of this federate
+				 * Returns the callback mode
 				 * 
-				 * @return true if HLAImmediate to be used, false for HLAEvoked
+				 * @return true if HLAImmediate to be used, othrewise HLAEvoked is used
 				 */
 				bool isImmediate();
 
 				/**
-				 * Indicates whether this federate is a time regulated federate
+				 * Indicates whether this federate must be initialised as a time regulated federate
 				 * 
-				 * @return true if this federate is time regulated, false otherwise
+				 * @return true if this federate must be initiailsed as a time regulated, false otherwise
 				 */
 				bool isTimeRegulated();
 
 				/**
-				 * Indicates whether this federate is a time constrained federate
+				 * Indicates whether this federate must be initialised as a time constrained federate
 				 * 
-				 * @return true if this federate is time constrained, false otherwise
+				 * @return true if this federate must be initialised as a time constrained, false otherwise
 				 */
 				bool isTimeConstrained();
 

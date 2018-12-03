@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <memory>
 #include <mutex>
 #include <vector>
@@ -13,7 +12,11 @@
 namespace ucef
 {
 	class FederateAmbassador;
-
+	/**
+	 * The {@link FederateBase} implements some of the {@link IFederateBase} methods to provide
+	 * a simplified interface in order to create a functional federate that can participate in 
+	 * distributed simulation.
+	 */
 	class UCEF_API FederateBase : public IFederateBase
 	{
 		public:
@@ -47,7 +50,7 @@ namespace ucef
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI discovers a new object instance
 			 *
-			 * @param objectInstanceHash a unique hash of the discovered object instance
+			 * @param objectInstanceHash the unique hash of the discovered object instance
 			 * @param objectClassHash the unique hash of the discovered object class
 			 */
 			void incomingObjectRegistration( long objectInstanceHash,
@@ -55,10 +58,13 @@ namespace ucef
 
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI receives object instance update
-			 * of a discovered instance
+			 * of a discovered object instance
 			 *
-			 * @param objectInstanceHash a unique hash of the discovered object instance
-			 * @param attributeValues a map that contains attributes and the their values
+			 * @param objectInstanceHash the unique hash of the received object instance
+			 * @param attributeValues a map that contains attributes and values of the
+			 *                        received object instance
+			 *
+			 * @see #incomingObjectRegistration( long, long )
 			 */
 			void incomingAttributeReflection
 			       ( long objectInstanceHash,
@@ -67,8 +73,9 @@ namespace ucef
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI receives a new interaction
 			 *
-			 * @param interactionHash a unique hash of the received object interaction
-			 * @param parameterValues a map that contains parameters and the their values
+			 * @param interactionHash the unique hash of the received object interaction
+			 * @param parameterValues a map that contains parameters and values of the
+			 *                        received interaction
 			 */
 			void incomingInteraction
 			       ( long interactionHash,
@@ -77,7 +84,7 @@ namespace ucef
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI receives a object deletion call
 			 *
-			 * @param objectInstanceHash a unique hash of the deleted object instance
+			 * @param objectInstanceHash the unique hash of the deleted object instance
 			 */
 			void incomingObjectDeletion( long objectInstanceHash );
 
@@ -96,59 +103,64 @@ namespace ucef
 			void resignAndDestroy();
 
 			/**
-			 * Returns a object class that matches the provided hash identifier of a object class
+			 * Returns an ObjectClass that matches the provided hash identifier of a HLA object class
+			 * <p/>
+			 * If an ObjectClass cannot be found for the given identifier a nullptr is returned.
 			 *
-			 * @param hash hash identifier of a object class
+			 * @param hash hash identifier of a HLA object class
 			 */
 			std::shared_ptr<util::ObjectClass> getObjectClassByClassHandle( long hash );
 
 			/**
-			 * Returns a object class that matches the provided hash identifier of a object instance
+			 * Returns an ObjectClass that matches the provided hash identifier of a HLA object instance
+			 * <p/>
+			 * If an ObjectClass cannot be found for the given identifier a nullptr is returned.
 			 *
-			 * @param hash hash identifier of a object class
+			 * @param hash hash identifier of a HLA object class
 			 */
 			std::shared_ptr<util::ObjectClass> getObjectClassByInstanceHandle( long hash );
 
 			/**
-			 * Deletes an entry in object data store (by instance) that matches the provided hash
-			 * identifier of a object instance
+			 * Deletes an ObjectClass in data store that matches the provided hash
+			 * identifier of a HLA object instance
 			 *
-			 * @param hash hash identifier of a object class
+			 * @param hash hash identifier of an HLA object class
 			 */
 			bool deleteIncomingInstanceHandle( long hash );
 
 			/**
-			 * Returns a interaction class that matches the provided a hash identifier
+			 * Returns an Interactionclass that matches the provided hash identifier
+			 * of a HLA object interaction
 			 *
-			 * @param hash hash identifier of a object class
+			 * @param hash hash identifier of a HLA object interaction
 			 */
 			std::shared_ptr<util::InteractionClass> getInteractionClass( long hash );
 
 			/**
-			 * Cache information about the object classes in SOM file
+			 * Store ObjectClasses for faster access
 			 *
-			 * @param objectClasses object classes in the SOM
+			 * @param objectClasses ObjectClasses as in SOM file
 			 */
 			inline void storeObjectClassData( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses );
 
 			/**
-			 * Cache information about the interaction classes in SOM file
+			 * Store InteractionClasses for faster access
 			 *
-			 * @param intClasses interaction classes in the SOM
+			 * @param interactionClasses InteractionClasses as in SOM file
 			 */
-			inline void storeInteractionClassData( std::vector<std::shared_ptr<util::InteractionClass>>& intClasses );
+			inline void storeInteractionClassData( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses);
 
 			/**
 			 * Register publishing attributes with RTI
 			 *
-			 * @param objectClasses object classes in the SOM
+			 * @param objectClasses ObjectClasses as in SOM file
 			 */
 			inline void publishObjectClassAttributes( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses );
 
 			/**
 			 * Register subscribing attributes with RTI
 			 *
-			 * @param objectClasses object classes in the SOM
+			 * @param objectClasses ObjectClasses as in SOM file
 			 */
 			inline void subscribeObjectClassAttributes
 			                     ( std::vector<std::shared_ptr<util::ObjectClass>>& objectClasses );
@@ -156,7 +168,7 @@ namespace ucef
 			/**
 			 * Register publishing interactions with RTI
 			 *
-			 * @param intClasses interaction classes in the SOM
+			 * @param interactionClasses InteractionClasses as in SOM file
 			 */
 			inline void publishInteractionClasses
 			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses );
@@ -164,7 +176,7 @@ namespace ucef
 			/**
 			 * Register subscribing interactions with RTI
 			 *
-			 * @param intClasses interaction classes in the SOM
+			 * @param interactionClasses InteractionClasses as in SOM file
 			 */
 			inline void subscribeInteractionClasses
 			                     ( std::vector<std::shared_ptr<util::InteractionClass>>& interactionClasses );
@@ -173,7 +185,7 @@ namespace ucef
 			 * Ticks RTI for callbacks
 			 * <p/>
 			 * If HLA_IMMEDIATE callback mechanism is used the main thread will be blocked
-			 * for 10 milliseconds while explicit tikcing is used in HLA_EVOKED mode.
+			 * for a fixed time; while explicit tikcing is used in HLA_EVOKED mode.
 			 *
 			 */
 			inline void tickForCallBacks();

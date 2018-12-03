@@ -141,7 +141,7 @@ namespace ucef
 	vector<string> FederateBase::getAttributeNamesPublish( const string& className )
 	{
 		vector<string> attributeNamesPublish;
-		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find(className);
+		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
 		if( it != m_objectDataStoreByName.end() )
 		{
 			ObjectAttributes& attributes = it->second->objectAttributes;
@@ -149,9 +149,8 @@ namespace ucef
 			{
 				if( kv.second->publish )
 				{
-					attributeNamesPublish.push_back(kv.first);
+					attributeNamesPublish.push_back( kv.first );
 				}
-
 			}
 		}
 		return attributeNamesPublish;
@@ -160,7 +159,7 @@ namespace ucef
 	vector<string> FederateBase::getAttributeNamesSubscribe( const string& className  )
 	{
 		vector<string> attributeNamesSubscribe;
-		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find(className);
+		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
 		if( it != m_objectDataStoreByName.end() )
 		{
 			ObjectAttributes& attributes = it->second->objectAttributes;
@@ -168,9 +167,8 @@ namespace ucef
 			{
 				if( kv.second->subscribe )
 				{
-					attributeNamesSubscribe.push_back(kv.first);
+					attributeNamesSubscribe.push_back( kv.first );
 				}
-
 			}
 		}
 		return attributeNamesSubscribe;
@@ -179,18 +177,17 @@ namespace ucef
 	vector<string> FederateBase::getParameterNames( const string& interactionName  )
 	{
 		vector<string> parameterNames;
-		InteractionDataStoreByName::iterator it = m_interactionDataStoreByName.find(interactionName);
+		InteractionDataStoreByName::iterator it = m_interactionDataStoreByName.find( interactionName );
 		if( it != m_interactionDataStoreByName.end() )
 		{
 			InteractionParameters& parameters = it->second->parameters;
 			for( auto& kv : parameters )
 			{
-				parameterNames.push_back(kv.first);
+				parameterNames.push_back( kv.first );
 			}
 		}
 		return parameterNames;
 	}
-
 
 	void FederateBase::connectToRti()
 	{
@@ -321,8 +318,8 @@ namespace ucef
 		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
 		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
 
-		publishObjectClassAttributes(objectClasses );
-		subscribeObjectClassAttributes(objectClasses );
+		publishObjectClassAttributes( objectClasses );
+		subscribeObjectClassAttributes( objectClasses );
 		storeObjectClassData( objectClasses );
 
 		// parse the SOM file and build up the HLA object classes
@@ -417,7 +414,7 @@ namespace ucef
 			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelCritical );
 			m_objectDataStoreByInstance[objectInstanceHash] = objectClass;
 			receivedObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
-			                           m_federateAmbassador->getFederateTime());
+			                            m_federateAmbassador->getFederateTime() );
 
 		}
 		else
@@ -463,7 +460,7 @@ namespace ucef
 				hlaObject->setValue( attName, arr, size );
 			}
 			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
-			                            m_federateAmbassador->getFederateTime() );
+			                             m_federateAmbassador->getFederateTime() );
 		}
 		else
 		{
@@ -508,7 +505,7 @@ namespace ucef
 				hlaInteraction->setValue( paramName, arr, size );
 			}
 			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
-			                    m_federateAmbassador->getFederateTime() );
+			                     m_federateAmbassador->getFederateTime() );
 		}
 		else
 		{
@@ -621,12 +618,12 @@ namespace ucef
 	{
 		//----------------------------------------------------------
 		// Inform RTI about the classes and attributes that
-		// are published and subscribed by this federate
+		// are published by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
 		for( auto objectClass : objectClasses )
 		{
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle(objectClass->name);
+			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( !classHandle.isValid() )
 			{
 				continue;
@@ -638,7 +635,7 @@ namespace ucef
 			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
-				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle(classHandle, attribute->name);
+				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
 				if( !attHandle.isValid() )
 				{
 					continue;
@@ -647,11 +644,9 @@ namespace ucef
 				{
 					logger.log( "Federate publishes an attribute named " + attribute->name + " in " +
 					            objectClass->name , LevelInfo );
-					pubAttributes.insert(attHandle);
+					pubAttributes.insert( attHandle );
 				}
 			}
-
-
 			m_rtiAmbassadorWrapper->publishObjectClassAttributes( classHandle,
 			                                                      pubAttributes );
 		}
@@ -661,7 +656,7 @@ namespace ucef
 	{
 		//----------------------------------------------------------
 		// Inform RTI about the classes and attributes that
-		// are published and subscribed by this federate
+		// are subscribed by this federate
 		//----------------------------------------------------------
 		Logger& logger = Logger::getInstance();
 		for( auto objectClass : objectClasses )
@@ -680,7 +675,7 @@ namespace ucef
 			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
-				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle(classHandle, attribute->name);
+				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
 				if( !attHandle.isValid() )
 				{
 					logger.log( "Received an invalid attribute handle for " + attribute->name +
@@ -691,7 +686,7 @@ namespace ucef
 				{
 					logger.log( "Federate subscribed to an attribute named " + attribute->name + " in " +
 					            objectClass->name, LevelInfo );
-					subAttributes.insert(attHandle);
+					subAttributes.insert( attHandle );
 				}
 			}
 
@@ -725,10 +720,10 @@ namespace ucef
 
 	void FederateBase::publishInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClasses)
 	{
-		//----------------------------------------------------------
-		// Inform RTI about interaction that are published
-		// and subscribed by this federate
-		//----------------------------------------------------------
+		//--------------------------------------------
+		// Inform RTI about interactions that are
+		// published by this federate
+		//--------------------------------------------
 
 		Logger& logger = Logger::getInstance();
 		for( auto& interactionClass : interactionClasses )
@@ -746,8 +741,8 @@ namespace ucef
 	void FederateBase::subscribeInteractionClasses(vector<shared_ptr<InteractionClass>>& interactionClasses)
 	{
 		//----------------------------------------------------------
-		// Inform RTI about interaction that are published
-		// and subscribed by this federate
+		// Inform RTI about interactions that are subscribed
+		// by this federate
 		//----------------------------------------------------------
 
 		Logger& logger = Logger::getInstance();

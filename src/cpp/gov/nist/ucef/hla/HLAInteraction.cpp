@@ -40,7 +40,7 @@ namespace ucef
 
 	void HLAInteraction::setValue( const string& parameterName, short val )
 	{
-		setValue( parameterName, make_shared<short>(val), sizeof(short));
+		setValue( parameterName, make_shared<short>(val), sizeof(short) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, int val )

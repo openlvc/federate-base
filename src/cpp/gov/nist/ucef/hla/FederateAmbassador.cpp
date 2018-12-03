@@ -11,6 +11,7 @@
 using namespace rti1516e;
 using namespace std;
 using namespace ucef::util;
+
 namespace ucef
 {
 	FederateAmbassador::FederateAmbassador( FederateBase* federateBase ) : m_regulated( false ),
@@ -50,7 +51,7 @@ namespace ucef
 		lock_guard<mutex> lockGuard( m_threadSafeLock );
 		string sLabel = ConversionHelper::ws2s( label );
 		if( achievedSynchPoints.find(sLabel) == achievedSynchPoints.end() )
-			achievedSynchPoints.insert(sLabel);
+			achievedSynchPoints.insert( sLabel );
 	}
 
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
@@ -79,7 +80,7 @@ namespace ucef
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
 	                                                 ObjectClassHandle theObjectClass,
 	                                                 const wstring& theObjectName )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		m_federateBase->incomingObjectRegistration( theObject.hash(), theObjectClass.hash() );
 	}
@@ -88,7 +89,7 @@ namespace ucef
 	                                                 ObjectClassHandle theObjectClass,
 	                                                 const wstring& theObjectName,
 	                                                 FederateHandle producingFederate )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		discoverObjectInstance( theObject, theObjectClass, theObjectName );
 	}
@@ -99,7 +100,7 @@ namespace ucef
 	                                                 OrderType sentOrder,
 	                                                 TransportationType theType,
 	                                                 SupplementalReflectInfo theReflectInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		m_federateBase->incomingAttributeReflection( theObject.hash(), theAttributeValues );
 	}
@@ -112,7 +113,7 @@ namespace ucef
 	                                                 LogicalTime const& theTime,
 	                                                 OrderType receivedOrder,
 	                                                 SupplementalReflectInfo theReflectInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		reflectAttributeValues( theObject, theAttributeValues, theUserSuppliedTag, sentOrder, theType, theReflectInfo );
 	}
@@ -126,7 +127,7 @@ namespace ucef
 	                                                 OrderType receivedOrder,
 	                                                 MessageRetractionHandle theHandle,
 	                                                 SupplementalReflectInfo theReflectInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		reflectAttributeValues( theObject, theAttributeValues, theUserSuppliedTag, sentOrder, theType, theReflectInfo );
 	}
@@ -135,7 +136,7 @@ namespace ucef
 	                                               VariableLengthData const& theUserSuppliedTag,
 	                                               OrderType sentOrder,
 	                                               SupplementalRemoveInfo theRemoveInfo )
-	                                                              throw(FederateInternalError)
+	                                                              throw( FederateInternalError )
 	{
 		if( theObject.isValid() )
 		{
