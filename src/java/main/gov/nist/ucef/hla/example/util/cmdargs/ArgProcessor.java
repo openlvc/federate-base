@@ -63,12 +63,14 @@ public class ArgProcessor
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// used when printing usage and help messages to the console
-	private static final int CONSOLE_WIDTH = 80;
-	private static final String TAB_AS_SPACES = "    ";
+	private static final int CONSOLE_WIDTH_DEFAULT = 80;
+	private static final String INDENT = "    ";
+	private static final ArgComparator ARG_COMPARATOR = new ArgComparator();
 
 	//----------------------------------------------------------
 	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
+	private int consoleWidth;
 	// maps for looking up under short and long forms of command line arguments
 	private Map<Character,Arg> shortFormArgMap;
 	private Map<String,Arg> longFormArgMap;
@@ -81,8 +83,21 @@ public class ArgProcessor
 	 */
 	public ArgProcessor()
 	{
+		this( CONSOLE_WIDTH_DEFAULT );
+	}
+	
+	/**
+	 * Constructor - nothing special here
+	 * 
+	 * @param consoleWidth the width of the console (use when formatting messages intended for
+	 *            printing to the console). If the width is 0 or negative the default console
+	 *            width of 80 characters will be used instead.
+	 */
+	public ArgProcessor( int consoleWidth )
+	{
 		shortFormArgMap = new HashMap<>();
 		longFormArgMap = new HashMap<>();
+		setConsoleWidth( consoleWidth );
 	}
 
 	//----------------------------------------------------------
@@ -159,7 +174,33 @@ public class ArgProcessor
 
 		return listArgument;
 	}
+	
+	/**
+	 * Sets the width of the console - used when formatting help and error messages for printing
+	 * 
+	 * NOTE: if the width is 0 or negative, the default console width of 80 characters will be
+	 * used instead.
+	 * 
+	 * @param width the console width (in characters)
+	 * @return this instance
+	 */
+	public ArgProcessor setConsoleWidth( int width )
+	{
+		this.consoleWidth = width <= 0 ? CONSOLE_WIDTH_DEFAULT : width;
+		return this;
+	}
 
+	/**
+	 * Obtain the current console width setting used when formatting help and error messages for
+	 * printing
+	 * 
+	 * @return the current console width setting (in characters)
+	 */
+	public int getConsoleWidth()
+	{
+		return this.consoleWidth;
+	}
+	
 	/**
 	 * Parse the provided command line arguments using the defined {@link SwitchArg}s and
 	 * {@link ValueArg}s
@@ -297,10 +338,10 @@ public class ArgProcessor
 				String argName = cmdLineArgument.makePrefixedArg( true );
 				String validationMessage = validationResult.getMessage();
 				validationMessage = "The value for " + argName + " was not valid. " + validationMessage;
-				List<String> lines = wrap( validationMessage, CONSOLE_WIDTH - TAB_AS_SPACES.length() );
+				List<String> lines = wrap( validationMessage, this.consoleWidth - INDENT.length() );
 				for(String line : lines)
 				{
-					message.append( TAB_AS_SPACES ).append( line ).append( "\n" );
+					message.append( INDENT ).append( line ).append( "\n" );
 				}
 			}
 			throw new ArgException( message.toString() );
@@ -316,7 +357,7 @@ public class ArgProcessor
 	public String getUsage( String command )
 	{
 		Arg[] allCmdLineArguments = collectAllCommandLineArguments();
-		Arrays.sort( allCmdLineArguments, new ArgComparator() );
+		Arrays.sort( allCmdLineArguments, ARG_COMPARATOR );
 
 		StringBuilder usage = new StringBuilder( command );
 		for( Arg cmdLineArgument : allCmdLineArguments )
@@ -337,7 +378,7 @@ public class ArgProcessor
 	public String getHelp()
 	{
 		Arg[] allCmdLineArguments = collectAllCommandLineArguments();
-		Arrays.sort( allCmdLineArguments, new ArgComparator() );
+		Arrays.sort( allCmdLineArguments, ARG_COMPARATOR );
 
 		StringBuilder help = new StringBuilder();
 		for( Arg cmdLineArgument : allCmdLineArguments )
@@ -359,10 +400,10 @@ public class ArgProcessor
 				{
 					String helpText = cmdLineArgument.getHelp();
 					helpText = "(OPTIONAL) " + helpText;
-					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					List<String> helpLines = wrap(helpText, (this.consoleWidth - INDENT.length()) );
 					for(String line : helpLines)
 					{
-						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
+						help.append( "\n" ).append( INDENT ).append( line );
 					}
 				}
 			}
@@ -383,9 +424,9 @@ public class ArgProcessor
 					String helpText = cmdLineArgument.getHelp();
 					helpText = (cmdLineArgument.isRequired() ? "(REQUIRED) " 
 						                                     : "(OPTIONAL) ") + helpText;
-					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					List<String> helpLines = wrap(helpText, (this.consoleWidth - INDENT.length()) );
 					for(String line : helpLines)
-						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
+						help.append( "\n" ).append( INDENT ).append( line );
 				}
 			}
 			else if( ArgKind.LIST.equals( cmdLineArgument.argKind() ) )
@@ -405,9 +446,9 @@ public class ArgProcessor
 					String helpText = cmdLineArgument.getHelp();
 					helpText = (cmdLineArgument.isRequired() ? "(REQUIRED) " 
 						                                     : "(OPTIONAL) ") + helpText;
-					List<String> helpLines = wrap(helpText, (CONSOLE_WIDTH - TAB_AS_SPACES.length()) );
+					List<String> helpLines = wrap(helpText, (this.consoleWidth - INDENT.length()) );
 					for(String line : helpLines)
-						help.append( "\n" ).append( TAB_AS_SPACES ).append( line );
+						help.append( "\n" ).append( INDENT ).append( line );
 				}
 			}
 			help.append( "\n" );

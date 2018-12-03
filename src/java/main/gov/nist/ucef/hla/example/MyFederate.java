@@ -241,7 +241,7 @@ public class MyFederate extends FederateBase {
 	 */
 	private boolean validateAndProcessCmdLineArgs( String[] args )
 	{
-        ArgProcessor argProcessor = new ArgProcessor();
+		ArgProcessor argProcessor = new ArgProcessor( Constants.CONSOLE_WIDTH );
         ValueArg federationExecNameArg = argProcessor
         	.addValueArg( CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT, CMDLINE_ARG_FEDERATION_EXEC_NAME )
         	.isRequired( true )

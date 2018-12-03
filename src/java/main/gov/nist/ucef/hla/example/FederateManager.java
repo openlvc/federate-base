@@ -234,13 +234,15 @@ public class FederateManager extends FederateBase
 		
 		while( !canStart() )
 		{
-			waitFor( 500 );
+			waitFor( 1000 );
 
-			if( ++count % 2 == 0 )
+			// show progress
+			if( count >= Constants.CONSOLE_WIDTH )
 			{
-				// show progress
-				System.out.print( '.' );
+				System.out.print( '\n' );
+				count = 0;
 			}
+			System.out.print( '.' );
 			
 			currentJoinedCount = joinedCount();
 			if( currentJoinedCount != lastJoinedCount )
@@ -382,7 +384,7 @@ public class FederateManager extends FederateBase
 	 */
 	private boolean validateAndProcessCmdLineArgs( String[] args )
 	{
-        ArgProcessor argProcessor = new ArgProcessor();
+		ArgProcessor argProcessor = new ArgProcessor( Constants.CONSOLE_WIDTH );
         ValueArg federationExecNameArg = argProcessor
         	.addValueArg( CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT, CMDLINE_ARG_FEDERATION_EXEC_NAME )
         	.isRequired( true )
@@ -528,19 +530,15 @@ public class FederateManager extends FederateBase
 		                               this.logicalSecond, 1.0 ) );
 		builder.append( NEWLINE );
 		builder.append( "\tRunning " );
-		if(this.realTimeMultiplier > 1.0)
+		if( this.realTimeMultiplier != 1.0 )
 		{
-			builder.append( String.format( "%.2f× faster than ", 
-			                               (this.realTimeMultiplier)) );
-		}
-		else if(this.realTimeMultiplier < 1.0)
-		{
-			builder.append( String.format( "%.2f× slower than ", 
-			                               (1.0/this.realTimeMultiplier)) );
+			builder.append( String.format( "%.2f× %s than ",
+			                               this.realTimeMultiplier < 1.0 ? "slower" : "faster",
+			                               (this.realTimeMultiplier) ) );
 		}
 		else
 		{
-			builder.append( "in ");
+			builder.append( "in " );
 		}
 		builder.append( "real time (");
 		
