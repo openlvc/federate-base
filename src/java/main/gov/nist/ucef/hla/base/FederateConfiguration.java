@@ -70,7 +70,7 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private String federationName;
+	private String federationExecName;
 	private String federateName;
 	private String federateType;
 	private Set<URL> modules;
@@ -106,7 +106,7 @@ public class FederateConfiguration
 	{
 		this.federateName = federateName;
 		this.federateType = federateType;
-		this.federationName = federationName;
+		this.federationExecName = federationName;
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
@@ -140,7 +140,7 @@ public class FederateConfiguration
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append( dashRule );
-		builder.append( "Federation Name            : " + this.federationName + "\n" );
+		builder.append( "Federation Name            : " + this.federationExecName + "\n" );
 		builder.append( "Federate Name              : " + this.federateName + "\n" );
 		builder.append( "Federate Type              : " + this.federateType + "\n" );
 		
@@ -273,7 +273,7 @@ public class FederateConfiguration
 	 */
 	public String getFederationName()
 	{
-		return federationName;
+		return federationExecName;
 	}
 
 	/**
@@ -426,11 +426,42 @@ public class FederateConfiguration
 		return Collections.unmodifiableMap( subscribedAttributes );
 	}
 	
-	public void fromSOM()
+	/**
+	 * Set the federation execution name
+	 * 
+	 * @param federationExecName the federation execution name
+	 */
+	public FederateConfiguration setFederationName( String federationExecName )
 	{
-		
+		if( canWrite() )
+			this.federationExecName = federationExecName;
+		return this;
 	}
-
+	
+	/**
+	 * Set the federate name
+	 * 
+	 * @param federateName the federate name
+	 */
+	public FederateConfiguration setFederateName( String federateName )
+	{
+		if( canWrite() )
+			this.federateName = federateName;
+		return this;
+	}
+	
+	/**
+	 * Set the federate type
+	 * 
+	 * @param federateType the federate type
+	 */
+	public FederateConfiguration setFederateType( String federateType )
+	{
+		if( canWrite() )
+			this.federateType = federateType;
+		return this;
+	}
+	
 	/**
 	 * Configure the federate's maximum number of reconnection attempts
 	 * 

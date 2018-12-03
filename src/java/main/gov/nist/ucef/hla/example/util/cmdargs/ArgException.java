@@ -18,44 +18,38 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example.util;
+package gov.nist.ucef.hla.example.util.cmdargs;
 
-public class Constants
+import gov.nist.ucef.hla.base.UCEFException;
+
+/**
+ * An Exception to use when command line parsing fails for some reason
+ */
+public class ArgException extends UCEFException
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	
-	// the UCEF logo as ASCII art - may be shown on federate startup in console
-	public static final String UCEF_LOGO =
-		"            ___\n" +
-		"          _/   \\_     _     _\n" +
-		"         / \\   / \\   / \\   / \\\n" +
-		"        ( U )─( C )─( E )─( F )\n" +
-		"         \\_/   \\_/   \\_/   \\_/\n" +
-		"        <─┴─> <─┴─────┴─────┴─>\n" +
-		"       Universal CPS Environment\n" +
-		"             for Federation\n";
+	private static final long serialVersionUID = -1178320692138577859L;
 
-	// console width for wrapping text etc 
-	public static final int CONSOLE_WIDTH = 80;
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * Constructor
+	 * 
+	 * @param message the message describing the situation which caused this exception to occur
+	 */
+	public ArgException( String message )
+	{
+		super( message );
+	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
-	//----------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
 	//----------------------------------------------------------
 }

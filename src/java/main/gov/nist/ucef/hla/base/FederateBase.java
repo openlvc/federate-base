@@ -24,6 +24,7 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Set;
 
+import hla.rti1516e.AttributeHandleValueMap;
 import hla.rti1516e.ResignAction;
 
 public abstract class FederateBase
@@ -163,6 +164,29 @@ public abstract class FederateBase
 	}
 	
 	/**
+	 * Determine the type of an interaction (using the class name)
+	 * 
+	 * @param instance the instance to get the type for
+	 * @return the type (the interaction class name)
+	 */
+	protected String typeOf( HLAInteraction instance )
+	{
+		return rtiamb.getInteractionClassName( instance );
+	}
+	
+	/**
+	 * Check if an interaction is of the given type (using the class name)
+	 * 
+	 * @param instance the instance to get the type for
+	 * @param type the type (the interaction class name)
+	 * @return true if the type matches, false otherwise
+	 */
+	protected boolean isType( HLAInteraction instance, String type )
+	{
+		return type == null ? false : type.equals( typeOf(instance) );
+	}
+	
+	/**
 	 * Publish the provided interaction to the federation with a tag (which can be null).
 	 * 
 	 * @param interaction the interaction
@@ -219,6 +243,29 @@ public abstract class FederateBase
 	}
 	
 	/**
+	 * Determine the type of an object instance (using the class name)
+	 * 
+	 * @param instance the instance to get the type for
+	 * @return the type (the object class name)
+	 */
+	protected String typeOf( HLAObject instance )
+	{
+		return rtiamb.getObjectClassName( instance );
+	}
+	
+	/**
+	 * Check if an object instance is of the given type (using the class name)
+	 * 
+	 * @param instance the instance to get the type for
+	 * @param type the type (the object class name)
+	 * @return true if the type matches, false otherwise
+	 */
+	protected boolean isType( HLAObject instance, String type )
+	{
+		return type == null ? false : type.equals( typeOf(instance) );
+	}
+	
+	/**
 	 * Update the provided instance out to the federation with a tag (which can be null).
 	 * 
 	 * @param instance the object instance
@@ -243,7 +290,8 @@ public abstract class FederateBase
 	}
 	
 	/**
-	 * This method will attempt to delete (i.e., de-register) the object instance from the RTI.
+	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
+	 * a populated map containing attribute names and their associated byte values 
 	 * 
 	 * The object instance will most likely have been created in the first place by using the
 	 * {@link #makeObjectInstance(String)} or {@link #makeObjectInstance(String, Map)} method.
@@ -274,7 +322,7 @@ public abstract class FederateBase
 	{
 		return rtiamb.deleteObjectInstance( instance, tag );
 	}
-
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -285,13 +333,16 @@ public abstract class FederateBase
 	 */
 	private void createAndJoinFederation()
 	{
-		rtiamb.connect( fedamb );
+		beforeFederationJoin();
+
+		// no more configuration changes allowed
+		configuration.freeze();
+		
+		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
 		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederation( federationName, modules );
-
-		beforeFederationJoin();
 		
 		String federateName = configuration.getFederateName();
 		String federateType = configuration.getFederateType();
