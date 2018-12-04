@@ -120,6 +120,7 @@ public class FederateManager extends FederateBase
 	                                                NUMBER_REQUIRED_HEADING, 
 	                                                NUMBER_JOINED_HEADING};
 	private static final char NEWLINE = '\n';
+	private static final long ONE_SECOND = 1000;
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
@@ -226,35 +227,39 @@ public class FederateManager extends FederateBase
 		preAnnounceSyncPoints();
 
 		System.out.println( configurationSummary() );
-		System.out.print( "Waiting for federates to join..." );
+		System.out.println( "Waiting for federates to join..." );
 
-		long count = 0;
+		long count = 1;
 		int lastJoinedCount = -1;
 		int currentJoinedCount = joinedCount();
 		
 		while( !canStart() )
 		{
-			waitFor( 1000 );
-
-			// show progress
-			if( count >= Constants.CONSOLE_WIDTH )
-			{
-				System.out.print( '\n' );
-				count = 0;
-			}
-			System.out.print( '.' );
-			count++;
-			
 			currentJoinedCount = joinedCount();
 			if( currentJoinedCount != lastJoinedCount )
 			{
 				System.out.println( String.format( "\n%d of %d federates have joined.",
 				                                   currentJoinedCount, totalFederatesRequired ) );
 				lastJoinedCount = currentJoinedCount;
+				count = 1;
 			}
+			
+			waitFor( ONE_SECOND );
+			// show progress bar in seconds since last joined federate as...
+			//     5    10   15   20   25   30   35   40   45   50   55   60 seconds
+			// ─═─═┬═─═─┼─═─═┬═─═─┼─═─═┬═─═─╬─═─═┬═─═─┼─═─═┬═─═─┼─═─═┬═─═─╣
+			System.out.print( count % 60 == 0 ? '╣' : count % 30 == 0 ? '╬' : count % 10 == 0 ? '┼' : 
+							  count % 5 == 0 ?  '┬' : count % 2 == 0 ?  '═' : '─' );
+			if( count >= 60 )
+			{
+				System.out.print( '\n' );
+				count = 0;
+			}
+			count++;
 		}
 		
-		System.out.println();
+		System.out.println( String.format( "\n%d of %d federates have joined.",
+		                                   totalFederatesRequired, totalFederatesRequired ) );
 		System.out.println( String.format( "Start requirements met - we are now %s.",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
