@@ -243,6 +243,7 @@ public class FederateManager extends FederateBase
 				count = 0;
 			}
 			System.out.print( '.' );
+			count++;
 			
 			currentJoinedCount = joinedCount();
 			if( currentJoinedCount != lastJoinedCount )
