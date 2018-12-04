@@ -4,6 +4,8 @@
 #include <string>
 
 #include "gov/nist/ucef/util/Logger.h"
+#include "gov/nist/ucef/util/UCEFDataTypeException.h"
+
 #include "RTI/Handle.h"
 
 using namespace rti1516e;
@@ -91,7 +93,11 @@ namespace ucef
 	bool HLAInteraction::getAsBool( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(bool) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to a Bool type" );
+
+		if( data.data )
 			return *( (bool *)data.data.get() );
 		return false;
 	}
@@ -99,15 +105,24 @@ namespace ucef
 	char HLAInteraction::getAsChar( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(char) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to a Char type" );
+
+		if( data.data )
 			return *( (char *)data.data.get() );
+
 		return (char) 0;
 	}
 
 	short HLAInteraction::getAsShort( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(short) > data.size )
+			throw UCEFDataTypeException("Cannot convert to a Short type");
+
+		if( data.data )
 			return *( (short *)data.data.get() );
 		return 0;
 	}
@@ -115,39 +130,59 @@ namespace ucef
 	int HLAInteraction::getAsInt( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(int) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to an Int type" );
+
+		if( data.data )
 			return *( (int *)data.data.get() );
+
 		return 0;
 	}
 
 	long HLAInteraction::getAsLong( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(long) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to a Long type" );
+
+		if( data.data )
 			return *( (long *)data.data.get() );
+
 		return 0;
 	}
 
 	float HLAInteraction::getAsFloat( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(float) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to a Float type" );
+
+		if( data.data )
 			return *( (float *)data.data.get() );
+
 		return 0.0f;
 	}
 
 	double HLAInteraction::getAsDouble( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+
+		if( sizeof(double) > data.size )
+			throw UCEFDataTypeException( "Cannot convert to a Double type" );
+
+		if( data.data )
 			return *( (double *)data.data.get() );
+
 		return 0.0;
 	}
 
 	string HLAInteraction::getAsString( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
-		if(data.data)
+		if( data.data )
 			return string( (char *)data.data.get() );
 		return "";
 	}

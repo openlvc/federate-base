@@ -93,6 +93,7 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFDataTypeException.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +107,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\types.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\FederateConfiguration.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFDataTypeException.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFException.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h" />
   </ItemGroup>

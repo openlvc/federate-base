@@ -81,14 +81,14 @@ namespace ucef
 				/**
 				 * Indicates whether this federate must be initialised as a time regulated federate
 				 * 
-				 * @return true if this federate must be initiailsed as a time regulated, false otherwise
+				 * @return true if this federate must be initialised as a time regulated, false otherwise
 				 */
 				bool isTimeRegulated();
 
 				/**
-				 * Indicates whether this federate must be initialised as a time constrained federate
+				 * Indicates whether this federate must be initialised as a time-constrained federate
 				 * 
-				 * @return true if this federate must be initialised as a time constrained, false otherwise
+				 * @return true if this federate must be initialised as a time-constrained, false otherwise
 				 */
 				bool isTimeConstrained();
 

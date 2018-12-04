@@ -17,7 +17,7 @@ namespace ucef
 	 * There are three main aspects to IFederateBase. First, lifecycle hooks, provide the ability to inject
 	 * custom code at the initialisation, execution and resignation of the federate. Secondly,
 	 * the callback methods, provide the ability to communicate incoming object and interaction data to users
-	 * as they arrive. Finaly, helper methods, given for users to query the SOM data which may useful in
+	 * as they arrive. Finally, helper methods, given for users to query the SOM data which may useful in
 	 * object class and interaction class creation and update.
 	 */
 	class UCEF_API IFederateBase

@@ -28,6 +28,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\RTIAmbassadorWrapper.cpp">
       <Filter>gov\nist\ucef\hla</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFDataTypeException.cpp">
+      <Filter>gov\nist\ucef\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h">
@@ -65,6 +68,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h">
       <Filter>gov\nist\ucef</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\UCEFDataTypeException.h">
+      <Filter>gov\nist\ucef\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
