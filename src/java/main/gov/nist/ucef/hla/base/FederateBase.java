@@ -342,7 +342,7 @@ public abstract class FederateBase
 		
 		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
-		rtiamb.createFederation( federationName, modules );
+		rtiamb.createFederationExecution( federationName, modules );
 		
 		String federateName = configuration.getFederateName();
 		String federateType = configuration.getFederateType();

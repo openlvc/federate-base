@@ -127,7 +127,7 @@ public class RTIAmbassadorWrapper
 		}
 	}
 	
-	public void createFederation( String federationName, URL[] modules )
+	public void createFederationExecution( String federationName, URL[] modules )
 	{
 		try
 		{

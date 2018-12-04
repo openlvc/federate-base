@@ -512,7 +512,7 @@ public class MyFederate extends FederateBase {
 		}
 		catch( DecoderException e )
 		{
-			// ignore
+			summary += "\nERROR: Unable to decode value: " + e.getMessage();
 		}
 		return summary;
 	}
@@ -567,7 +567,7 @@ public class MyFederate extends FederateBase {
 				}
 				catch(Exception e)
 				{
-					builder.append( "Unable to decode value: " + e.getMessage() );
+					builder.append( "\nERROR: Unable to decode value: " + e.getMessage() );
 				}
 			}
 				
