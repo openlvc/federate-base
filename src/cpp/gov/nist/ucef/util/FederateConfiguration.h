@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "gov/nist/ucef/util/types.h"
+
 namespace ucef
 {
 	namespace util
@@ -92,6 +94,79 @@ namespace ucef
 				 */
 				bool isTimeConstrained();
 
+				//----------------------------------------------------------
+				//                 SOM data
+				//----------------------------------------------------------
+
+				/**
+				 * Adds an object class that may either publish or subscribe by this federate 
+				 *
+				 * @param objectClass object class as represented in SOM
+				 */
+				virtual void cacheObjectClass( std::shared_ptr<ObjectClass>& objectClass );
+
+				/**
+				 * Returns the fully qualified names of the object classes that
+				 * are published by this federate.
+				 *
+				 * @return the names of the publishing object classes
+				 */
+				virtual std::vector<std::string> getClassNamesPublished();
+
+				/**
+				 * Returns the fully qualified names of the object classes that
+				 * are subscribed by this federate.
+				 *
+				 * @return the names of the subscribed object classes
+				 */
+				virtual std::vector<std::string> getClassNamesSubscribed();
+
+				/**
+				 * Adds an interaction class that may either publish or subscribe by this federate
+				 *
+				 * @param interactionClass interaction class as represented in SOM
+				 */
+				virtual void cacheInteractionClass(std::shared_ptr<InteractionClass>& interactionClass);
+
+				/**
+				 * Returns the fully qualified names of the interaction classes that
+				 * are published by this federate.
+				 *
+				 * @return the names of the publishing interaction classes
+				 */
+				virtual std::vector<std::string> getInteractionNamesPublished();
+
+				/**
+				 * Returns the fully qualified names of the interaction classes that
+				 * are subscribed by this federate.
+				 *
+				 * @return the names of the subscribed interaction classes
+				 */
+				virtual std::vector<std::string> getInteractionNamesSubscribed();
+
+				/**
+				 * Returns the names of the publishing attributes of the given object class
+				 *
+				 * @param className the name of the class
+				 * @return publishing attributes of the given object class
+				 */
+				virtual std::vector<std::string> getAttributeNamesPublished(const std::string& className);
+
+				/**
+				 * Returns the names of the subscribed attributes of the given object class
+				 *
+				 * @param className the name of the class
+				 * @return subscribed attributes of the given object class
+				 */
+				virtual std::vector<std::string> getAttributeNamesSubscribed(const std::string& className);
+
+				/**
+				 * Returns the names of the parameters of the given interaction class
+				 *
+				 * @param interactionName the name of the interaction class
+				 */
+				virtual std::vector<std::string> getParameterNames(const std::string& interactionName);
+
 			private:
 				std::string m_federateName;
 				std::string m_federateType;
@@ -100,6 +175,8 @@ namespace ucef
 				bool m_immediateCallBacks;
 				bool m_timeRegulated;
 				bool m_timeConstrained;
+				util::ObjectDataStoreByName m_objectDataStoreByName;
+				util::InteractionDataStoreByName m_interactionDataStoreByName;
 		};
 	}
 }

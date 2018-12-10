@@ -3,6 +3,7 @@
 #include <memory>
 #include <mutex>
 
+#include "gov/nist/ucef/util/FederateConfiguration.h"
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/util/types.h"
 #include "gov/nist/ucef/hla/HLAObject.h"
@@ -123,63 +124,14 @@ namespace ucef
 			virtual void runFederate() = 0;
 
 			//----------------------------------------------------------
-			//                 SOM data
+			//            Helper methods
 			//----------------------------------------------------------
 
 			/**
-			 * Returns the fully qualified names of the object classes that
-			 * are published by this federate.
+			 * Allows to access federate's configuration parameters.
 			 *
-			 * @return the names of the publishing object classes
+			 * @return FederateConfiguration that allows to access configuration of this federate.
 			 */
-			virtual std::vector<std::string> getClassNamesPublish() = 0;
-
-			/**
-			 * Returns the fully qualified names of the object classes that
-			 * are subscribed by this federate.
-			 *
-			 * @return the names of the subscribed object classes
-			 */
-			virtual std::vector<std::string> getClassNamesSubscribe() = 0;
-
-			/**
-			 * Returns the fully qualified names of the interaction classes that
-			 * are published by this federate.
-			 *
-			 * @return the names of the publishing interaction classes
-			 */
-			virtual std::vector<std::string> getInteractionNamesPublish() = 0;
-
-			/**
-			 * Returns the fully qualified names of the interaction classes that
-			 * are subscribed by this federate.
-			 *
-			 * @return the names of the subscribed interaction classes
-			 */
-			virtual std::vector<std::string> getInteractionNamesSubscribe() = 0;
-
-			/**
-			 * Returns the names of the publishing attributes of the given object class
-			 *
-			 * @param className the name of the class
-			 * @return publishing attributes of the given object class
-			 */
-			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) = 0;
-
-			/**
-			 * Returns the names of the subscribed attributes of the given object class
-			 *
-			 * @param className the name of the class
-			 * @return subscribed attributes of the given object class
-			 */
-			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) = 0;
-
-			/**
-			 * Returns the names of the parameters of the given interaction class
-			 *
-			 * @param interactionName the name of the interaction class
-			 */
-			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) = 0;
+			virtual std::shared_ptr<util::FederateConfiguration> getFederateConfiguration() = 0;
 	};
 }
-

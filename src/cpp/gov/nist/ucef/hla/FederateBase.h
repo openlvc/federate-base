@@ -4,7 +4,7 @@
 #include <mutex>
 #include <vector>
 
-#include "gov/nist/ucef/util/types.h"
+#include "gov/nist/ucef/util/FederateConfiguration.h"
 #include "gov/nist/ucef/hla/HLAObject.h"
 #include "gov/nist/ucef/hla/IFederateBase.h"
 #include "RTIAmbassadorWrapper.h"
@@ -33,16 +33,7 @@ namespace ucef
 			//       IFederateBase interface implementation
 			//----------------------------------------------------------
 			virtual void runFederate() final;
-			virtual std::vector<std::string> getClassNamesPublish() override;
-			virtual std::vector<std::string> getClassNamesSubscribe() override;
-
-			virtual std::vector<std::string> getInteractionNamesSubscribe() override;
-			virtual std::vector<std::string> getInteractionNamesPublish() override;
-
-			virtual std::vector<std::string> getAttributeNamesPublish( const std::string& className ) override;
-			virtual std::vector<std::string> getAttributeNamesSubscribe( const std::string& className ) override;
-
-			virtual std::vector<std::string> getParameterNames( const std::string& interactionName ) override;
+			virtual std::shared_ptr<util::FederateConfiguration> getFederateConfiguration() final;
 
 			//----------------------------------------------------------
 			//                    Business Logic
@@ -194,8 +185,6 @@ namespace ucef
 			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
 
 		private:
-			util::ObjectDataStoreByName m_objectDataStoreByName;
-			util::InteractionDataStoreByName m_interactionDataStoreByName;
 			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
 			util::ObjectDataStoreByHash m_objectDataStoreByHash;
 			util::InteractionDataStoreByHash m_interactionDataStoreByHash;

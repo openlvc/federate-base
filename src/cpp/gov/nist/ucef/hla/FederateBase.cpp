@@ -86,107 +86,9 @@ namespace ucef
 		resignAndDestroy();
 	}
 
-	vector<string> FederateBase::getClassNamesPublish()
+	std::shared_ptr<util::FederateConfiguration> FederateBase::getFederateConfiguration()
 	{
-		vector<string> publishClassNames;
-		for( auto& kv : m_objectDataStoreByName )
-		{
-			if( kv.second->publish )
-			{
-				publishClassNames.push_back( kv.first );
-			}
-		}
-		return publishClassNames;
-	}
-
-	vector<string> FederateBase::getClassNamesSubscribe()
-	{
-		vector<string> subscribedClassNames;
-		for( auto& kv : m_objectDataStoreByName )
-		{
-			if( kv.second->subscribe )
-			{
-				subscribedClassNames.push_back( kv.first );
-			}
-		}
-		return subscribedClassNames;
-	}
-
-	vector<string> FederateBase::getInteractionNamesSubscribe()
-	{
-		vector<string> publishInteractionNames;
-		for( auto& kv : m_interactionDataStoreByName )
-		{
-			if( kv.second->publish )
-			{
-				publishInteractionNames.push_back( kv.first );
-			}
-		}
-		return publishInteractionNames;
-	}
-
-	vector<string> FederateBase::getInteractionNamesPublish()
-	{
-		vector<string> subscribedInteractionNames;
-		for( auto& kv : m_interactionDataStoreByName )
-		{
-			if( kv.second->publish )
-			{
-				subscribedInteractionNames.push_back( kv.first );
-			}
-		}
-		return subscribedInteractionNames;
-	}
-
-	vector<string> FederateBase::getAttributeNamesPublish( const string& className )
-	{
-		vector<string> attributeNamesPublish;
-		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
-		if( it != m_objectDataStoreByName.end() )
-		{
-			ObjectAttributes& attributes = it->second->objectAttributes;
-			for( auto& kv : attributes )
-			{
-				if( kv.second->publish )
-				{
-					attributeNamesPublish.push_back( kv.first );
-				}
-			}
-		}
-		return attributeNamesPublish;
-	}
-
-	vector<string> FederateBase::getAttributeNamesSubscribe( const string& className  )
-	{
-		vector<string> attributeNamesSubscribe;
-		ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
-		if( it != m_objectDataStoreByName.end() )
-		{
-			ObjectAttributes& attributes = it->second->objectAttributes;
-			for( auto& kv : attributes )
-			{
-				if( kv.second->subscribe )
-				{
-					attributeNamesSubscribe.push_back( kv.first );
-				}
-			}
-		}
-		return attributeNamesSubscribe;
-	}
-
-	vector<string> FederateBase::getParameterNames( const string& interactionName  )
-	{
-		vector<string> parameterNames;
-		InteractionDataStoreByName::iterator it = m_interactionDataStoreByName.find( interactionName );
-		if( it != m_interactionDataStoreByName.end() )
-		{
-			InteractionParameters& parameters = it->second->parameters;
-			for( auto& kv : parameters )
-			{
-				parameterNames.push_back( kv.first );
-			}
-		}
-		return parameterNames;
+		return m_ucefConfig;
 	}
 
 	void FederateBase::connectToRti()
@@ -602,8 +504,8 @@ namespace ucef
 		// try to update object classes with correct class and attribute rti handles
 		for( auto& objectClass : objectClasses )
 		{
-			// store the ObjectClass in m_objectCacheStoreByName for later use
-			m_objectDataStoreByName.insert( make_pair(objectClass->name, objectClass) );
+			// store ObjectClass in m_objectCacheStoreByName for later use
+			m_ucefConfig->cacheObjectClass( objectClass );
 
 			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( classHandle.isValid() )
@@ -705,8 +607,9 @@ namespace ucef
 		// try to update interaction classes with correct interaction and parameter rti handles
 		for( auto& interactionClass : interactionClasses )
 		{
-			// now store the interactionClass in m_interactionCacheStoreByName for later use
-			m_interactionDataStoreByName.insert( make_pair(interactionClass->name, interactionClass) );
+			// store interaction class in m_objectCacheStoreByName for later use
+			m_ucefConfig->cacheInteractionClass( interactionClass );
+
 			// now store the ObjectClass in m_objectCacheStoreByHash for later use
 			InteractionClassHandle interactionHandle =
 			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );

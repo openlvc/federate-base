@@ -73,5 +73,120 @@ namespace ucef
 		{
 			return m_timeConstrained;
 		}
+
+		void FederateConfiguration::cacheObjectClass( shared_ptr<ObjectClass>& objectClass )
+		{
+			// store the ObjectClass in m_objectCacheStoreByName for later use
+			m_objectDataStoreByName.insert( make_pair(objectClass->name, objectClass) );
+		}
+
+		vector<string> FederateConfiguration::getClassNamesPublished()
+		{
+			vector<string> publishClassNames;
+			for( auto& kv : m_objectDataStoreByName )
+			{
+				if( kv.second->publish )
+				{
+					publishClassNames.push_back( kv.first );
+				}
+			}
+			return publishClassNames;
+		}
+
+		vector<string> FederateConfiguration::getClassNamesSubscribed()
+		{
+			vector<string> subscribedClassNames;
+			for( auto& kv : m_objectDataStoreByName )
+			{
+				if( kv.second->subscribe )
+				{
+					subscribedClassNames.push_back( kv.first );
+				}
+			}
+			return subscribedClassNames;
+		}
+
+		void FederateConfiguration::cacheInteractionClass(std::shared_ptr<InteractionClass>& interactionClass)
+		{
+			// now store the interactionClass in m_interactionCacheStoreByName for later use
+			m_interactionDataStoreByName.insert( make_pair(interactionClass->name, interactionClass) );
+		}
+
+		vector<string> FederateConfiguration::getInteractionNamesSubscribed()
+		{
+			vector<string> publishInteractionNames;
+			for( auto& kv : m_interactionDataStoreByName )
+			{
+				if( kv.second->publish )
+				{
+					publishInteractionNames.push_back( kv.first );
+				}
+			}
+			return publishInteractionNames;
+		}
+
+		vector<string> FederateConfiguration::getInteractionNamesPublished()
+		{
+			vector<string> subscribedInteractionNames;
+			for( auto& kv : m_interactionDataStoreByName )
+			{
+				if( kv.second->publish )
+				{
+					subscribedInteractionNames.push_back( kv.first );
+				}
+			}
+			return subscribedInteractionNames;
+		}
+
+		vector<string> FederateConfiguration::getAttributeNamesPublished( const string& className )
+		{
+			vector<string> attributeNamesPublish;
+			ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
+			if( it != m_objectDataStoreByName.end() )
+			{
+				ObjectAttributes& attributes = it->second->objectAttributes;
+				for( auto& kv : attributes )
+				{
+					if( kv.second->publish )
+					{
+						attributeNamesPublish.push_back( kv.first );
+					}
+				}
+			}
+			return attributeNamesPublish;
+		}
+
+		vector<string> FederateConfiguration::getAttributeNamesSubscribed( const string& className )
+		{
+			vector<string> attributeNamesSubscribe;
+			ObjectDataStoreByName::iterator it = m_objectDataStoreByName.find( className );
+			if( it != m_objectDataStoreByName.end() )
+			{
+				ObjectAttributes& attributes = it->second->objectAttributes;
+				for( auto& kv : attributes )
+				{
+					if( kv.second->subscribe )
+					{
+						attributeNamesSubscribe.push_back( kv.first );
+					}
+				}
+			}
+			return attributeNamesSubscribe;
+		}
+
+		vector<string> FederateConfiguration::getParameterNames( const string& interactionName )
+		{
+			vector<string> parameterNames;
+			InteractionDataStoreByName::iterator it = m_interactionDataStoreByName.find( interactionName );
+			if( it != m_interactionDataStoreByName.end() )
+			{
+				InteractionParameters& parameters = it->second->parameters;
+				for( auto& kv : parameters )
+				{
+					parameterNames.push_back( kv.first );
+				}
+			}
+			return parameterNames;
+		}
 	}
 }

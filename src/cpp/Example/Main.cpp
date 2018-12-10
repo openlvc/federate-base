@@ -32,7 +32,7 @@ class ExampleFederate : public FederateBase
 			cout << "\'Ready to run\' hook" << endl;
 			cout << "Creating object instances for publishing" << endl;
 
-			vector<string> publishClassNames = getClassNamesPublish();
+			vector<string> publishClassNames =  getFederateConfiguration()->getClassNamesPublished();
 			try
 			{
 				for(auto className : publishClassNames )
@@ -85,12 +85,12 @@ class ExampleFederate : public FederateBase
 				if( i % 2 == 0 )
 				{
 					// send object interactions
-					vector<string> publishInteractionNames = getInteractionNamesPublish();
+					vector<string> publishInteractionNames = getFederateConfiguration()->getInteractionNamesPublished();
 					for( auto interactionName : publishInteractionNames )
 					{
 						shared_ptr<HLAInteraction> interaction = make_shared<HLAInteraction>( interactionName );
 
-						vector<string> parameterNames = getParameterNames( interactionName );
+						vector<string> parameterNames = getFederateConfiguration()->getParameterNames( interactionName );
 						for( auto name : parameterNames )
 						{
 							interaction->setValue( name, "parameter " + name + " : " + to_string( i ) );
@@ -106,7 +106,7 @@ class ExampleFederate : public FederateBase
 					{
 						// clear current attribute data
 						val->clear();
-						vector<string> attributeNames = getAttributeNamesPublish( val->getClassName() );
+						vector<string> attributeNames = getFederateConfiguration()->getAttributeNamesPublished( val->getClassName() );
 						// set new attribute values
 						for( auto attributeName : attributeNames )
 						{
@@ -153,7 +153,6 @@ class ExampleFederate : public FederateBase
 			{
 				cout << hlaInt->getAsString( parameter ) << endl;
 			}
-
 		}
 
 		virtual void receivedObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) override
