@@ -52,9 +52,12 @@
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.627736045" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" useByScannerDiscovery="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.878170447" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/tinyxml2/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.818076726" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="Tinyxml2d"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="fedtime1516e64d"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="rti1516e64d"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.942014352" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
