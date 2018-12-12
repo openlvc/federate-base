@@ -99,7 +99,7 @@ namespace ucef
 				//----------------------------------------------------------
 
 				/**
-				 * Adds an object class that may either publish or subscribe by this federate 
+				 * Adds an object class that may either publish or subscribe by this federate
 				 *
 				 * @param objectClass object class as represented in SOM
 				 */
