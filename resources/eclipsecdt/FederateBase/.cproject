@@ -20,7 +20,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.config.gnu.so.debug.707752834" name="Debug" parent="cdt.managedbuild.config.gnu.so.debug" postannouncebuildStep="" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${ProjDirPath}/../../resources/eclipsecdt/ExampleFederate&quot;;" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.config.gnu.so.debug.707752834" name="Debug" parent="cdt.managedbuild.config.gnu.so.debug" postannouncebuildStep="" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${ProjDirPath}/../../../resources/eclipsecdt/ExampleFederate&quot;;" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="cdt.managedbuild.config.gnu.so.debug.707752834." name="/" resourcePath="">
 						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.so.debug.246370450" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.so.debug">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.GNU_ELF" id="cdt.managedbuild.target.gnu.platform.so.debug.856948725" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.so.debug"/>
@@ -30,10 +30,10 @@
 								<option id="gnu.cpp.compiler.so.debug.option.optimization.level.183501522" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.1972418502" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1159219811" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/logger&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/ieee1516e&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/tinyxml2&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/tinyxml2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/ieee1516e&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/logger&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1053291196" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.898974593" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -43,6 +43,7 @@
 							<tool command="gcc" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.tool.gnu.c.compiler.so.debug.199541687" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.so.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.so.debug.option.optimization.level.1431014912" name="Optimization Level" superClass="gnu.c.compiler.so.debug.option.optimization.level" useByScannerDiscovery="false" valueType="enumerated"/>
 								<option id="gnu.c.compiler.so.debug.option.debugging.level.457374433" name="Debug Level" superClass="gnu.c.compiler.so.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.dialect.std.1647578605" name="Language standard" superClass="gnu.c.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.c.compiler.dialect.default" valueType="enumerated"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2049265093" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.so.debug.562965406" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.so.debug">
@@ -51,8 +52,8 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.1386939377" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug">
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.627736045" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" useByScannerDiscovery="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.878170447" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/tinyxml2/linux&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/tinyxml2/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.818076726" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="Tinyxml2d"/>
@@ -92,7 +93,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.config.gnu.so.release.721054034" name="Release" parent="cdt.managedbuild.config.gnu.so.release" postannouncebuildStep="" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${ProjDirPath}/../../resources/eclipsecdt/ExampleFederate&quot;;" preannouncebuildStep="" prebuildStep="">
+				<configuration artifactExtension="so" artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.sharedLib" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.sharedLib,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release" cleanCommand="rm -rf" description="" errorParsers="org.eclipse.cdt.core.GASErrorParser;org.eclipse.cdt.core.GmakeErrorParser;org.eclipse.cdt.core.GLDErrorParser;org.eclipse.cdt.core.CWDLocator;org.eclipse.cdt.core.GCCErrorParser" id="cdt.managedbuild.config.gnu.so.release.721054034" name="Release" parent="cdt.managedbuild.config.gnu.so.release" postannouncebuildStep="" postbuildStep="cp ${BuildArtifactFilePrefix}${BuildArtifactFileName} &quot;${ProjDirPath}/../../../resources/eclipsecdt/ExampleFederate&quot;;" preannouncebuildStep="" prebuildStep="">
 					<folderInfo id="cdt.managedbuild.config.gnu.so.release.721054034." name="/" resourcePath="">
 						<toolChain errorParsers="" id="cdt.managedbuild.toolchain.gnu.so.release.1451851966" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.so.release">
 							<targetPlatform binaryParser="org.eclipse.cdt.core.GNU_ELF" id="cdt.managedbuild.target.gnu.platform.so.release.341428305" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.so.release"/>
@@ -102,10 +103,10 @@
 								<option id="gnu.cpp.compiler.so.release.option.optimization.level.1328727377" name="Optimization Level" superClass="gnu.cpp.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.release.option.debugging.level.135161863" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1380765481" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/ieee1516e&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/logger&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/include/tinyxml2&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/tinyxml2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/ieee1516e&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/logger&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.963177738" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.732104799" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -124,8 +125,8 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.so.release.96015546" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.release">
 								<option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.491989309" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.1974201930" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/tinyxml2/linux&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/tinyxml2/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1916921019" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="Tinyxml2"/>
