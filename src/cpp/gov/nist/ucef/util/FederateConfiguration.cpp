@@ -8,7 +8,8 @@ namespace ucef
 {
 	namespace util
 	{
-		FederateConfiguration::FederateConfiguration() : m_federateName( "Federate" + to_string(rand()) ),
+		FederateConfiguration::FederateConfiguration() : m_federationName( "ExampleFederation" ),
+		                                                 m_federateName( "Federate" + to_string(rand()) ),
 		                                                 m_federateType( "FederateType" + to_string(rand()) ),
 		                                                 m_lookAhead( 1.0 ),
 		                                                 m_timeStep( 1.0 ),
@@ -16,18 +17,26 @@ namespace ucef
 		                                                 m_timeRegulated( true ),
 		                                                 m_timeConstrained( true )
 		{
-
-			m_federateName = ( "Federate" + to_string(std::time(0)));
 		}
 
 		string FederateConfiguration::getFederationName()
 		{
-			return "ExampleFederation";
+			return m_federationName;
+		}
+
+		void FederateConfiguration::setFederationName( string &federationName )
+		{
+			m_federationName = federationName;
 		}
 
 		string FederateConfiguration::getFederateName()
 		{
 			return m_federateName;
+		}
+
+		void FederateConfiguration::setFederateName( string &federationName )
+		{
+			m_federateName = federationName;
 		}
 
 		string FederateConfiguration::getFederateType()
@@ -37,16 +46,30 @@ namespace ucef
 
 		vector<string> FederateConfiguration::getFomPaths()
 		{
-			vector<string> foms;
-			foms.push_back( "restaurant/RestaurantFood.xml" );
-			foms.push_back( "restaurant/RestaurantDrinks.xml" );
-			foms.push_back( "restaurant/RestaurantProcesses.xml" );
-			return foms;
+			return m_foms;
 		}
 
-		string FederateConfiguration::getSomPath()
+		void FederateConfiguration::addFomPath( string &path )
 		{
-			return "restaurant/RestaurantProcesses.xml";
+			m_foms.push_back(path);
+		}
+
+		void FederateConfiguration::clearFomPaths()
+		{
+			m_foms.clear();
+		}
+
+		vector<string> FederateConfiguration::getSomPaths()
+		{
+			// this is to support multiple SOM usage without breaking the interface
+			vector<string> soms;
+			soms.push_back( m_som );
+			return soms;
+		}
+
+		void FederateConfiguration::addSomPath( string &path )
+		{
+			m_som = path;
 		}
 
 		float FederateConfiguration::getLookAhead()
@@ -54,9 +77,19 @@ namespace ucef
 			return m_lookAhead;
 		}
 
+		void FederateConfiguration::setLookAhead( float lookahead )
+		{
+			m_lookAhead = lookahead;
+		}
+
 		float FederateConfiguration::getTimeStep()
 		{
 			return m_timeStep;
+		}
+
+		void FederateConfiguration::setTimeStep( float timeStep )
+		{
+			m_timeStep = timeStep;
 		}
 
 		bool FederateConfiguration::isImmediate()
@@ -64,14 +97,29 @@ namespace ucef
 			return m_immediateCallBacks;
 		}
 
+		void FederateConfiguration::setImmediate( bool callbackMode )
+		{
+			m_immediateCallBacks = callbackMode;
+		}
+
 		bool FederateConfiguration::isTimeRegulated()
 		{
 			return m_timeRegulated;
 		}
 
+		void FederateConfiguration::setTimeRegulated( bool timeRegulated )
+		{
+			m_timeRegulated = timeRegulated;
+		}
+
 		bool FederateConfiguration::isTimeConstrained()
 		{
 			return m_timeConstrained;
+		}
+
+		void FederateConfiguration::setTimeConstrained( bool timeConstrained )
+		{
+			m_timeConstrained = timeConstrained;
 		}
 
 		void FederateConfiguration::cacheObjectClass( shared_ptr<ObjectClass>& objectClass )

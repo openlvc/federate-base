@@ -175,6 +175,13 @@ class ExampleFederate : public FederateBase
 int main()
 {
 	IFederateBase *x = new ExampleFederate();
+	std::shared_ptr<util::FederateConfiguration> federateConfig = x->getFederateConfiguration();
+	federateConfig->setFederationName( string("MyTestFeeration") );
+	federateConfig->setFederateName( string("MyTestFederate") + to_string(rand()) );
+	federateConfig->addFomPath( string("restaurant/RestaurantFood.xml") );
+	federateConfig->addFomPath( string("restaurant/RestaurantDrinks.xml") );
+	federateConfig->addFomPath( string("restaurant/RestaurantProcesses.xml") );
+	federateConfig->addSomPath( string("restaurant/RestaurantProcesses.xml") );
 	try
 	{
 		x->runFederate();

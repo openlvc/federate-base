@@ -216,22 +216,27 @@ namespace ucef
 	void FederateBase::publishAndSubscribe()
 	{
 		Logger& logger = Logger::getInstance();
-		// parse the SOM file and build up the HLA object classes
-		vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( m_ucefConfig->getSomPath() );
-		logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
+		std::vector<std::string> somPaths = m_ucefConfig->getSomPaths();
+		// note: currently SOM parser can only accommodate a single SOM file
+		if( somPaths.size() )
+		{
+			// parse the SOM file and build up the HLA object classes
+			vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( somPaths[0] );
+			logger.log(string("Inform RTI about publishing and subscribing classes"), LevelInfo);
 
-		publishObjectClassAttributes( objectClasses );
-		subscribeObjectClassAttributes( objectClasses );
-		storeObjectClassData( objectClasses );
+			publishObjectClassAttributes(objectClasses);
+			subscribeObjectClassAttributes(objectClasses);
+			storeObjectClassData(objectClasses);
 
-		// parse the SOM file and build up the HLA object classes
-		vector<shared_ptr<InteractionClass>> interactionClasses =
-			SOMParser::getInteractionClasses( m_ucefConfig->getSomPath() );
-		logger.log( string("Inform RTI about publishing and subscribing interactions"), LevelInfo );
+			// parse the SOM file and build up the HLA object classes
+			vector<shared_ptr<InteractionClass>> interactionClasses =
+				SOMParser::getInteractionClasses( somPaths[0] );
+			logger.log(string("Inform RTI about publishing and subscribing interactions"), LevelInfo);
 
-		publishInteractionClasses( interactionClasses );
-		subscribeInteractionClasses( interactionClasses );
-		storeInteractionClassData( interactionClasses );
+			publishInteractionClasses(interactionClasses);
+			subscribeInteractionClasses(interactionClasses);
+			storeInteractionClassData(interactionClasses);
+		}
 	}
 
 	void FederateBase::synchronize( SynchPoint point )
