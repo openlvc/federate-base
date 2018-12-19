@@ -204,7 +204,7 @@ namespace ucef
 				 *
 				 * @param interactionClass interaction class as represented in SOM
 				 */
-				virtual void cacheInteractionClass(std::shared_ptr<InteractionClass>& interactionClass);
+				virtual void cacheInteractionClass( std::shared_ptr<InteractionClass>& interactionClass );
 
 				/**
 				 * Returns the fully qualified names of the interaction classes that
@@ -228,7 +228,7 @@ namespace ucef
 				 * @param className the name of the class
 				 * @return publishing attributes of the given object class
 				 */
-				virtual std::vector<std::string> getAttributeNamesPublished(const std::string& className);
+				virtual std::vector<std::string> getAttributeNamesPublished( const std::string& className );
 
 				/**
 				 * Returns the names of the subscribed attributes of the given object class
@@ -236,14 +236,14 @@ namespace ucef
 				 * @param className the name of the class
 				 * @return subscribed attributes of the given object class
 				 */
-				virtual std::vector<std::string> getAttributeNamesSubscribed(const std::string& className);
+				virtual std::vector<std::string> getAttributeNamesSubscribed( const std::string& className );
 
 				/**
 				 * Returns the names of the parameters of the given interaction class
 				 *
 				 * @param interactionName the name of the interaction class
 				 */
-				virtual std::vector<std::string> getParameterNames(const std::string& interactionName);
+				virtual std::vector<std::string> getParameterNames( const std::string& interactionName );
 
 			private:
 				std::string m_federationName;

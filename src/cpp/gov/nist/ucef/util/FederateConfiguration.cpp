@@ -154,7 +154,7 @@ namespace ucef
 			return subscribedClassNames;
 		}
 
-		void FederateConfiguration::cacheInteractionClass(std::shared_ptr<InteractionClass>& interactionClass)
+		void FederateConfiguration::cacheInteractionClass( std::shared_ptr<InteractionClass>& interactionClass )
 		{
 			// now store the interactionClass in m_interactionCacheStoreByName for later use
 			m_interactionDataStoreByName.insert( make_pair(interactionClass->name, interactionClass) );
