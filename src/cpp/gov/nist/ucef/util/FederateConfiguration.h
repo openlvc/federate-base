@@ -11,7 +11,7 @@ namespace ucef
 	namespace util
 	{
 		/**
-		 * The {@link FederateConfiguration} provides the configuration options to this federate.
+		 * The {@link FederateConfiguration} class allows to configure a federate as required.
 		 */
 		class UCEF_API FederateConfiguration
 		{
@@ -21,29 +21,33 @@ namespace ucef
 				//----------------------------------------------------------
 				FederateConfiguration();
 
+				//----------------------------------------------------------
+				//                     Instance Methods
+				//----------------------------------------------------------
+
 				/**
-				 * Returns the name of the federation interested to this federate
+				 * Returns the name of the federation that this federate wants to join
 				 * 
 				 * @return the federation name
 				 */
 				std::string getFederationName();
 
 				/**
-				 * Sets the name of the federation interested to this federate
+				 * Sets the name of the federation that this federate wants to join
 				 *
-				 * @param federationName the name of the federation interested to this federate
+				 * @param federationName the name of the federation that this federate wants to join
 				 */
 				void setFederationName( std::string &federationName );
 
 				/**
-				 * Returns the name of this federate
+				 * Returns the name of the federate
 				 * 
 				 * @return the federate name
 				 */
 				std::string getFederateName();
 
 				/**
-				 * Sets the name of this federate
+				 * Sets the name of the federate
 				 *
 				 * @param federateName the name of this federate
 				 */
@@ -59,7 +63,7 @@ namespace ucef
 				/**
 				 * Returns paths to FOM files
 				 * 
-				 * @return paths to added FOM files
+				 * @return added FOM file paths
 				 */
 				std::vector<std::string> getFomPaths();
 
@@ -78,14 +82,14 @@ namespace ucef
 				/**
 				 * Returns paths to SOM files
 				 * 
-				 * @return paths to added SOM files
+				 * @return added SOM file paths
 				 */
 				std::vector<std::string> getSomPaths();
 
 				/**
 				 * Adds a SOM file path to federate configuration
 				 * <p/>
-				 * Note: Currently only a single SOM file get considered
+				 * Note: Currently only a single SOM file get processed
 				 *
 				 * @param path path to a SOM file
 				 */
@@ -130,7 +134,7 @@ namespace ucef
 				/**
 				 * Returns the callback mode
 				 * 
-				 * @return true if HLAImmediate to be used, othrewise HLAEvoked is used
+				 * @return true if HLAImmediate callback mode is set to use, othrewise HLAEvoked is used
 				 */
 				bool isImmediate();
 
@@ -143,14 +147,14 @@ namespace ucef
 				void setImmediate( bool callbackMode );
 
 				/**
-				 * Indicates whether this federate must be initialised as a time regulated federate
+				 * Indicates whether this federate is a time regulated federate
 				 * 
-				 * @return true if this federate must be initialised as a time regulated, false otherwise
+				 * @return true if this federate is a time regulated, false otherwise
 				 */
 				bool isTimeRegulated();
 
 				/**
-				 * Indicates whether this federate must be initialised as a time regulated federate
+				 * Sets this federate to be a time regulated federate
 				 *
 				 * @param timeRegulated set to true if this federate must be initialised as a
 				 *        time regulated, false otherwise
@@ -158,16 +162,16 @@ namespace ucef
 				void setTimeRegulated( bool timeRegulated );
 
 				/**
-				 * Indicates whether this federate must be initialised as a time-constrained federate
+				 * Indicates whether this federate is a time-constrained federate
 				 * 
-				 * @return true if this federate must be initialised as a time-constrained, false otherwise
+				 * @return true if this federate is a time-constrained, false otherwise
 				 */
 				bool isTimeConstrained();
 
 				/**
-				 * Indicates whether this federate must be initialised as a time-constrained federate
+				 * Sets this federate to be a time-constrained federate
 				 *
-				 * @param timeConstrained true if this federate must be initialised as a
+				 * @param timeConstrained set to true if this federate must be initialised as a
 				 *        time-constrained, false otherwise
 				 */
 				void setTimeConstrained( bool timeConstrained );
@@ -204,7 +208,7 @@ namespace ucef
 				 *
 				 * @param interactionClass interaction class as represented in SOM
 				 */
-				virtual void cacheInteractionClass(std::shared_ptr<InteractionClass>& interactionClass);
+				virtual void cacheInteractionClass( std::shared_ptr<InteractionClass>& interactionClass );
 
 				/**
 				 * Returns the fully qualified names of the interaction classes that
@@ -223,27 +227,27 @@ namespace ucef
 				virtual std::vector<std::string> getInteractionNamesSubscribed();
 
 				/**
-				 * Returns the names of the publishing attributes of the given object class
+				 * Returns the names of the publishing attributes of a given object class
 				 *
-				 * @param className the name of the class
+				 * @param className the name of a object class
 				 * @return publishing attributes of the given object class
 				 */
-				virtual std::vector<std::string> getAttributeNamesPublished(const std::string& className);
+				virtual std::vector<std::string> getAttributeNamesPublished( const std::string& className );
 
 				/**
-				 * Returns the names of the subscribed attributes of the given object class
+				 * Returns the names of the subscribed attributes of a given object class
 				 *
-				 * @param className the name of the class
+				 * @param className the name of a object class
 				 * @return subscribed attributes of the given object class
 				 */
-				virtual std::vector<std::string> getAttributeNamesSubscribed(const std::string& className);
+				virtual std::vector<std::string> getAttributeNamesSubscribed( const std::string& className );
 
 				/**
-				 * Returns the names of the parameters of the given interaction class
+				 * Returns the names of the parameters of a given interaction class
 				 *
-				 * @param interactionName the name of the interaction class
+				 * @param interactionName the name of a interaction class
 				 */
-				virtual std::vector<std::string> getParameterNames(const std::string& interactionName);
+				virtual std::vector<std::string> getParameterNames( const std::string& interactionName );
 
 			private:
 				std::string m_federationName;
