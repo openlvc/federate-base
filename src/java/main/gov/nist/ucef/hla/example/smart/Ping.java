@@ -18,23 +18,26 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.example.smart;
 
 import java.util.Map;
 
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
 
-public class SimResume extends UCEFSimulationControl
+public class Ping extends SmartInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
+	// HLA identifier of this type of interaction - must match FOM definition
+	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
+	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Ping";
 	
 	// interaction parameters and types
-	// ...none...
-
+	private static final String PARAM_KEY_COUNT = "count";
+	private static final ParameterType PARAM_TYPE_COUNT = ParameterType.Integer;
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -44,24 +47,28 @@ public class SimResume extends UCEFSimulationControl
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param count the count
 	 */
-	public  SimResume( RTIAmbassadorWrapper rtiamb )
+	public Ping( RTIAmbassadorWrapper rtiamb,
+	             int count)
 	{
-		super( rtiamb, null );
+		this( rtiamb, null );
+
+		count( count );
 	}
 
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 * @param parameters the parameters to populate the interaction with
 	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb,
-	                  Map<String,byte[]> parameters )
+	public Ping( RTIAmbassadorWrapper rtiamb,
+	             Map<String,byte[]> parameters )
 	{
 		super( rtiamb, interactionName(), parameters );
 		// populate parameter => type lookup
-		// ...no parameters...
+		this.typeLookup.put( PARAM_KEY_COUNT, PARAM_TYPE_COUNT );
 	}
-
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -69,6 +76,16 @@ public class SimResume extends UCEFSimulationControl
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+
+	public void count( int count )
+	{
+		setValue( PARAM_KEY_COUNT, count );
+	}
+
+	public int count()
+	{
+		return safeInt( getParameter( PARAM_KEY_COUNT ) );
+	}
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS

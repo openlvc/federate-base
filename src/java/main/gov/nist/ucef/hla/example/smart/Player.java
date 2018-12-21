@@ -18,23 +18,33 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.example.smart;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.base.UCEFException;
+import gov.nist.ucef.hla.ucef.interaction.SmartObject;
+import hla.rti1516e.ObjectClassHandle;
+import hla.rti1516e.ObjectInstanceHandle;
 
-public class SimResume extends UCEFSimulationControl
+public class Player extends SmartObject
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
+	// HLA identifier of this type of object - must match FOM definition
+	private static final String HLA_OBJECT_ROOT = "HLAobjectRoot.";
+	private static final String OBJECT_CLASS_NAME = HLA_OBJECT_ROOT+"Player";
 	
-	// interaction parameters and types
-	// ...none...
-
+	// object attributes and types
+	private static final String ATTRIBUTE_KEY_NAME = "name";
+	private static final AttributeType ATTRIBUTE_TYPE_COUNT = AttributeType.String;
+	
+	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_NAME };
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -44,24 +54,28 @@ public class SimResume extends UCEFSimulationControl
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param name the {@link Player} name
 	 */
-	public  SimResume( RTIAmbassadorWrapper rtiamb )
+	public Player( RTIAmbassadorWrapper rtiamb,
+	               String name )
 	{
-		super( rtiamb, null );
+		this( rtiamb, new HashMap<>() );
+		
+		name( name );
 	}
 
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
+	 * @param attributes the parameters to populate the {@link Player} instance with
 	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb,
-	                  Map<String,byte[]> parameters )
+	public Player( RTIAmbassadorWrapper rtiamb, 
+	               Map<String,byte[]> attributes )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		// ...no parameters...
+		super( rtiamb, objectClassName(), attributes );
+		// populate attribute => type lookup
+		this.typeLookup.put( ATTRIBUTE_KEY_NAME, ATTRIBUTE_TYPE_COUNT );
 	}
-
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -70,16 +84,36 @@ public class SimResume extends UCEFSimulationControl
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public void name( String name )
+	{
+		setValue( ATTRIBUTE_KEY_NAME, name );
+	}
+
+	public String name()
+	{
+		return safeString( getAttribute( ATTRIBUTE_KEY_NAME ) );
+	}
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Obtain the HLA interaction name identifying this type of interaction
+	 * Obtain the HLA object class name identifying this type of object
 	 * 
-	 * @return the HLA interaction name identifying this interaction
+	 * @return the HLA object class name identifying this type of object
 	 */
-	public static String interactionName()
+	public static String objectClassName()
 	{
-		return INTERACTION_NAME;
+		return OBJECT_CLASS_NAME;
+	}
+	
+	/**
+	 * Obtain the HLA object class name identifying this type of object
+	 * 
+	 * @return the HLA object class name identifying this type of object
+	 */
+	public static String[] attributeNames()
+	{
+		return ATTRIBUTE_NAMES;
 	}
 }

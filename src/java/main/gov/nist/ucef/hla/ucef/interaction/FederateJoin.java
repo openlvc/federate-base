@@ -20,21 +20,26 @@
  */
 package gov.nist.ucef.hla.ucef.interaction;
 
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import hla.rti1516e.InteractionClassHandle;
+import java.util.Map;
 
-public class FederateJoin extends AbstractInteraction
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+
+public class FederateJoin extends UCEFInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final String INTERACTION_NAME =
-	    "InteractionRoot.C2WInteractionRoot.FederateJoinInteraction";
-	private static final String PARAM_FEDERATE_ID = "FederateID";
-	private static final String PARAM_FEDERATE_TYPE = "FederateType";
-
-	private static InteractionClassHandle interactionClassHandle = null;
-
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = UCEF_INTERACTION_ROOT+"FederateJoinInteraction";
+	
+	// interaction parameters and types
+	private static final String PARAM_KEY_FEDERATE_ID = "FederateId";
+	private static final ParameterType PARAM_TYPE_FEDERATE_ID = ParameterType.String;
+	private static final String PARAM_KEY_FEDERATE_TYPE = "FederateType";
+	private static final ParameterType PARAM_TYPE_FEDERATE_TYPE = ParameterType.String;
+	private static final String PARAM_KEY_IS_LATE_JOINER = "IsLateJoiner";
+	private static final ParameterType PARAM_TYPE_IS_LATE_JOINER = ParameterType.Boolean;
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -42,16 +47,36 @@ public class FederateJoin extends AbstractInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private FederateJoin( InteractionClassHandle interactionClassHandle, String id, String type )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param federateID the federate ID
+	 * @param federateType the federate type
+	 * @param isLateJoiner true if the federate is a late joiner, false otherwise
+	 */
+	public FederateJoin( RTIAmbassadorWrapper rtiamb,
+	                     String federateID, String federateType, boolean isLateJoiner )
 	{
-		super( interactionClassHandle );
-		this.typeMap.put( PARAM_FEDERATE_ID, ParameterType.String );
-		this.typeMap.put( PARAM_FEDERATE_TYPE, ParameterType.String );
+		this( rtiamb, null );
 
-		setFederateID( id );
-		setFederateType( type );
+		federateID( federateID );
+		federateType( federateType );
+		isLateJoiner( isLateJoiner );
 	}
 
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param parameters the parameters to populate the interaction with
+	 */
+	public FederateJoin( RTIAmbassadorWrapper rtiamb,
+	                     Map<String,byte[]> parameters )
+	{
+		super( rtiamb, interactionName(), parameters );
+		// populate parameter => type lookup
+		this.typeLookup.put( PARAM_KEY_FEDERATE_ID, PARAM_TYPE_FEDERATE_ID );
+		this.typeLookup.put( PARAM_KEY_FEDERATE_TYPE, PARAM_TYPE_FEDERATE_TYPE );
+		this.typeLookup.put( PARAM_KEY_IS_LATE_JOINER, PARAM_TYPE_IS_LATE_JOINER );
+	}
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -60,34 +85,46 @@ public class FederateJoin extends AbstractInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public void setFederateID( String id )
+	public void federateID( String federateID )
 	{
-		setValue( PARAM_FEDERATE_ID, id );
+		setValue( PARAM_KEY_FEDERATE_ID, safeString( federateID ) );
 	}
 
-	public String getFederateID()
+	public String federateID()
 	{
-		return (String)getParameter( PARAM_FEDERATE_ID );
+		return safeString( getParameter( PARAM_KEY_FEDERATE_ID ) );
 	}
 
-	public void setFederateType( String type )
+	public void federateType( String federateType )
 	{
-		setValue( PARAM_FEDERATE_TYPE, type );
+		setValue( PARAM_KEY_FEDERATE_TYPE, safeString( federateType ) );
 	}
 
-	public String getFederateType()
+	public String federateType()
 	{
-		return (String)getParameter( PARAM_FEDERATE_TYPE );
+		return safeString( getParameter( PARAM_KEY_FEDERATE_TYPE ) );
 	}
 
+	public void isLateJoiner( boolean isLateJoiner )
+	{
+		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );
+	}
+	
+	public boolean isLateJoiner()
+	{
+		return safeBoolean( getParameter( PARAM_KEY_IS_LATE_JOINER ) );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	public static FederateJoin create( RTIAmbassadorWrapper rtiamb, String id, String type )
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
 	{
-		if( interactionClassHandle == null )
-			interactionClassHandle = rtiamb.getInteractionClassHandle( INTERACTION_NAME );
-
-		return new FederateJoin( interactionClassHandle, id, type );
+		return INTERACTION_NAME;
 	}
 }

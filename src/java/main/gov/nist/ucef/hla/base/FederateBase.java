@@ -164,26 +164,13 @@ public abstract class FederateBase
 	}
 	
 	/**
-	 * Determine the type of an interaction (using the class name)
+	 * Publish the provided interaction to the federation
 	 * 
-	 * @param instance the instance to get the type for
-	 * @return the type (the interaction class name)
+	 * @param interaction the interaction
 	 */
-	protected String typeOf( HLAInteraction instance )
+	protected void sendInteraction( HLAInteraction interaction)
 	{
-		return rtiamb.getInteractionClassName( instance );
-	}
-	
-	/**
-	 * Check if an interaction is of the given type (using the class name)
-	 * 
-	 * @param instance the instance to get the type for
-	 * @param type the type (the interaction class name)
-	 * @return true if the type matches, false otherwise
-	 */
-	protected boolean isType( HLAInteraction instance, String type )
-	{
-		return type == null ? false : type.equals( typeOf(instance) );
+		rtiamb.sendInteraction( interaction, null, null );
 	}
 	
 	/**
@@ -243,26 +230,14 @@ public abstract class FederateBase
 	}
 	
 	/**
-	 * Determine the type of an object instance (using the class name)
+	 * Update the provided instance out to the federation with a tag (which can be null).
 	 * 
-	 * @param instance the instance to get the type for
-	 * @return the type (the object class name)
+	 * @param instance the object instance
+	 * @param tag the tag (can be null)
 	 */
-	protected String typeOf( HLAObject instance )
+	protected void updateAttributeValues( HLAObject instance)
 	{
-		return rtiamb.getObjectClassName( instance );
-	}
-	
-	/**
-	 * Check if an object instance is of the given type (using the class name)
-	 * 
-	 * @param instance the instance to get the type for
-	 * @param type the type (the object class name)
-	 * @return true if the type matches, false otherwise
-	 */
-	protected boolean isType( HLAObject instance, String type )
-	{
-		return type == null ? false : type.equals( typeOf(instance) );
+		rtiamb.updateAttributeValues( instance, null, null );
 	}
 	
 	/**

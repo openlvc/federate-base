@@ -20,16 +20,20 @@
  */
 package gov.nist.ucef.hla.ucef.interaction;
 
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import hla.rti1516e.InteractionClassHandle;
+import java.util.Map;
 
-public class SimPause extends AbstractInteraction
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+
+public class SimPause extends UCEFSimulationControl
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final String INTERACTION_NAME = "InteractionRoot.C2WInteractionRoot.SimulationControl.SimPause";
-	private static InteractionClassHandle interactionClassHandle = null;
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimPause";
+	
+	// interaction parameters and types
+	// ...none...
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -38,9 +42,24 @@ public class SimPause extends AbstractInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private SimPause( InteractionClassHandle interactionClassHandle )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public  SimPause( RTIAmbassadorWrapper rtiamb )
 	{
-		super( interactionClassHandle );
+		this( rtiamb, null );
+	}
+
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param parameters the parameters to populate the interaction with
+	 */
+	public  SimPause( RTIAmbassadorWrapper rtiamb,
+	                  Map<String,byte[]> parameters )
+	{
+		super( rtiamb, interactionName(), parameters );
+		// populate parameter => type lookup
+		// ...no parameters...
 	}
 
 	//----------------------------------------------------------
@@ -54,11 +73,13 @@ public class SimPause extends AbstractInteraction
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	public static SimPause create( RTIAmbassadorWrapper rtiamb )
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
 	{
-		if(interactionClassHandle == null)
-			interactionClassHandle = rtiamb.getInteractionClassHandle( INTERACTION_NAME );
-		
-		return new SimPause( interactionClassHandle );
+		return INTERACTION_NAME;
 	}
 }

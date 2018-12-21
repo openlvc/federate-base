@@ -18,57 +18,57 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.example.smart;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import hla.rti1516e.InteractionClassHandle;
+import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
 
-public abstract class AbstractInteraction extends HLAInteraction
+public class Pong extends SmartInteraction
 {
-	//----------------------------------------------------------
-	//                    ENUMERATIONS
-	//----------------------------------------------------------
-	/**
-	 * An enumeration representing the various supported data types
-	 */
-	protected enum ParameterType
-	{
-		String, Character, 
-		Short, Integer, Long, 
-		Float, Double, 
-		Boolean, 
-		RAW // byte array - can be used for "non-primitive"/custom data structures 
-	}
-	
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-
+	// HLA identifier of this type of interaction - must match FOM definition
+	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
+	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Pong";
+	
+	// interaction parameters and types
+	private static final String PARAM_KEY_LETTER = "letter";
+	private static final ParameterType PARAM_TYPE_LETTER = ParameterType.Character;
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	protected Map<String, ParameterType> typeMap;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected AbstractInteraction( InteractionClassHandle interactionClassHandle )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param letter the letter
+	 */
+	public Pong( RTIAmbassadorWrapper rtiamb,
+	             char letter)
 	{
-		this( interactionClassHandle, null );
+		this( rtiamb, null );
+		
+		letter( letter );
 	}
 
-	protected AbstractInteraction( InteractionClassHandle interactionClassHandle,
-	                         Map<String,byte[]> parameters )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param parameters the parameters to populate the interaction with
+	 */
+	public Pong( RTIAmbassadorWrapper rtiamb,
+	             Map<String,byte[]> parameters )
 	{
-		super( interactionClassHandle, parameters );
-		this.typeMap = new HashMap<>();
+		super( rtiamb, interactionName(), parameters );
+		// populate parameter => type lookup
+		this.typeLookup.put( PARAM_KEY_LETTER, PARAM_TYPE_LETTER );
 	}
-
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -76,35 +76,27 @@ public abstract class AbstractInteraction extends HLAInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	protected Object getParameter( String parameterName )
+
+	public void letter( char letter )
 	{
-		if( isParameter( parameterName ) )
-			return null;
-		
-		ParameterType kind = this.typeMap.get( parameterName );
-		if(kind == ParameterType.Boolean)
-			return getAsBoolean( parameterName );
-		if(kind == ParameterType.Character)
-			return getAsChar( parameterName );
-		if(kind == ParameterType.String)
-			return getAsString( parameterName );
-		if(kind == ParameterType.Short)
-			return getAsShort( parameterName );
-		if(kind == ParameterType.Integer)
-			return getAsInt( parameterName );
-		if(kind == ParameterType.Long)
-			return getAsLong( parameterName );
-		if(kind == ParameterType.Float)
-			return getAsFloat( parameterName );
-		if(kind == ParameterType.Double)
-			return getAsDouble( parameterName );
-		if(kind == ParameterType.RAW)
-			return getRawValue( parameterName );
-		
-		return null;
+		setValue( PARAM_KEY_LETTER, letter );
+	}
+
+	public char letter()
+	{
+		return safeChar( getParameter( PARAM_KEY_LETTER ), ' ' );
 	}
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
+	{
+		return INTERACTION_NAME;
+	}
 }

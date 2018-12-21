@@ -24,16 +24,12 @@ import java.util.Map;
 
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimResume extends UCEFSimulationControl
+public abstract class UCEFSimulationControl extends UCEFInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
-	
-	// interaction parameters and types
-	// ...none...
+	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = UCEF_INTERACTION_ROOT+"SimulationControl.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -42,24 +38,16 @@ public class SimResume extends UCEFSimulationControl
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 */
-	public  SimResume( RTIAmbassadorWrapper rtiamb )
+	protected UCEFSimulationControl( RTIAmbassadorWrapper rtiamb, String interactionName )
 	{
-		super( rtiamb, null );
+		this( rtiamb, interactionName, null );
 	}
 
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
-	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb,
-	                  Map<String,byte[]> parameters )
+	protected UCEFSimulationControl( RTIAmbassadorWrapper rtiamb, 
+	                                 String interactionName,
+	                                 Map<String,byte[]> parameters )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		// ...no parameters...
+		super( rtiamb, interactionName, parameters );
 	}
 
 	//----------------------------------------------------------
@@ -70,16 +58,4 @@ public class SimResume extends UCEFSimulationControl
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	/**
-	 * Obtain the HLA interaction name identifying this type of interaction
-	 * 
-	 * @return the HLA interaction name identifying this interaction
-	 */
-	public static String interactionName()
-	{
-		return INTERACTION_NAME;
-	}
 }

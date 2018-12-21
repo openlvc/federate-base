@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -38,15 +39,16 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private InteractionClassHandle interactionClassHandle;
-	private Map<String, byte[]> parameters;
+	protected InteractionClassHandle interactionClassHandle;
+	protected Map<String, byte[]> parameters;
 	
 	// used for encoding/decoding byte array representations of interaction parameters
-	private EncoderFactory encoder;
+	protected EncoderFactory encoder;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -97,13 +99,13 @@ public class HLAInteraction
 		// delegate to the cached interaction class handle
 		return this.interactionClassHandle.hashCode();
 	}
-	
+
     ////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Obtain the underlying HLA handle associated with this interaction
-	 * @return the underlying HLA handle associated with this interaction
+	 * Obtain the underlying HLA interaction class handle associated with this instance
+	 * @return the underlying HLA interaction class associated with this instance
 	 */
 	protected InteractionClassHandle getInteractionClassHandle()
 	{
@@ -361,7 +363,21 @@ public class HLAInteraction
      */
     public Map<String, byte[]> getState()
     {
-		return Collections.unmodifiableMap( this.parameters );
+    	return Collections.unmodifiableMap( this.parameters );
+    	/*
+    	Map<String, byte[]> result = new HashMap<>(); 
+		synchronized( this.parameters )
+		{
+			for( Entry<String,byte[]> entry : this.parameters.entrySet())
+			{
+				byte[] src = entry.getValue();
+				byte[] value = new byte[src.length];
+				System.arraycopy( src, 0, value, 0, src.length );
+				result.put( entry.getKey(), value );
+			}
+		}
+		return result;
+		*/
     }
     
 	/**

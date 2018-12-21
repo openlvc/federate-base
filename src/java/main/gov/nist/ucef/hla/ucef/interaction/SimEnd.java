@@ -23,15 +23,18 @@ package gov.nist.ucef.hla.ucef.interaction;
 import java.util.Map;
 
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import hla.rti1516e.InteractionClassHandle;
 
-public class SimEnd extends AbstractInteraction
+public class SimEnd extends UCEFSimulationControl
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final String INTERACTION_NAME = "InteractionRoot.C2WInteractionRoot.SimulationControl.SimEnd";
-
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
+	
+	// interaction parameters and types
+	// ...none...
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -39,10 +42,24 @@ public class SimEnd extends AbstractInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	private SimEnd( InteractionClassHandle interactionClassHandle,
-	                                 Map<String,byte[]> parameters )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public  SimEnd( RTIAmbassadorWrapper rtiamb )
 	{
-		super( interactionClassHandle, parameters );
+		this( rtiamb, null );
+	}
+	
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param parameters the parameters to populate the interaction with
+	 */
+	public SimEnd( RTIAmbassadorWrapper rtiamb,
+	               Map<String,byte[]> parameters )
+	{
+		super( rtiamb, interactionName(), parameters );
+		// populate parameter => type lookup
+		// ...no parameters...
 	}
 
 	//----------------------------------------------------------
@@ -56,10 +73,13 @@ public class SimEnd extends AbstractInteraction
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	public static SimEnd create( RTIAmbassadorWrapper rtiamb )
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
 	{
-		InteractionClassHandle handle = rtiamb.getInteractionClassHandle( INTERACTION_NAME );
-		SimEnd interaction = new SimEnd( handle, null );
-		return interaction;
+		return INTERACTION_NAME;
 	}
 }
