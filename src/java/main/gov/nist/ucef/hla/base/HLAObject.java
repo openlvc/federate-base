@@ -38,6 +38,7 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	protected static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES

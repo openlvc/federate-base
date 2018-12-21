@@ -47,6 +47,12 @@ import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
+import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
+import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
 
 /**
  *		            ___
@@ -57,29 +63,29 @@ import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
  *		        <─┴─> <─┴─────┴─────┴─>
  *		       Universal CPS Environment
  *		             for Federation
- * 		     ______         ____  ___
- * 		    / ____/__  ____/ /  |/  /___ _____ 
- * 		   / /_  / _ \/ __  / /\|_/ / __`/ __ \
- * 		  / __/ /  __/ /_/ / /  / / /_/ / / / /
- * 		 /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
- * 		─────────── Federate Manager ───────────
+ * 		    ______         ____  ___
+ * 		   / ____/__  ____/ /  |/  /___ _____ 
+ * 		  / /_  / _ \/ __  / /\|_/ / __`/ __ \
+ * 		 / __/ /  __/ /_/ / /  / / /_/ / / / /
+ * 	    /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
+ * 	  ─────────── Federation Manager ───────────
  *
  */
-public class FederateManager extends FederateBase
+public class FederationManager extends FederateBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// the Federate Manager logo as ASCII art - shown on startup in console
 	private static final String FEDMAN_LOGO =
-		"     ______         ____  ___\n" +
-		"    / ____/__  ____/ /  |/  /___  ____\n" + 
-		"   / /_  / _ \\/ __  / /\\|_/ / __`/ __ \\\n" +
-		"  / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
-		" /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
-		"─────────── Federate Manager ───────────\n";
+		"      ______         ____  ___\n" +
+		"     / ____/__  ____/ /  |/  /___  ____\n" + 
+		"    / /_  / _ \\/ __  / /\\|_/ / __`/ __ \\\n" +
+		"   / __/ /  __/ /_/ / /  / / /_/ / / / /\n" +
+		"  /_/    \\___/\\__,_/_/  /_/\\__,_/_/ /_/\n" + 		
+		"─────────── Federation Manager ───────────\n";
 
-	// name of the Federate Manager executable
+	// name of the Federation Manager executable
 	private static final String EXEC_NAME = "fedman";
 	
 	// command line arguments and defaults
@@ -132,7 +138,7 @@ public class FederateManager extends FederateBase
 		
 		try
 		{
-			new FederateManager(args).runFederate( makeConfig() );
+			new FederationManager(args).runFederate( makeConfig() );
 		}
 		catch(Exception e)
 		{
@@ -165,6 +171,8 @@ public class FederateManager extends FederateBase
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
 
+	private UCEFInteractionRealizer ucefInteractionFactory;
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -173,7 +181,7 @@ public class FederateManager extends FederateBase
 	 * 
 	 * @param args command line arguments
 	 */
-	public FederateManager( String[] args )
+	public FederationManager( String[] args )
 	{
 		super();
 		
@@ -224,6 +232,8 @@ public class FederateManager extends FederateBase
 	@Override
 	public void beforeReadyToPopulate()
 	{
+		ucefInteractionFactory = new UCEFInteractionRealizer( rtiamb );
+		
 		preAnnounceSyncPoints();
 
 		System.out.println( configurationSummary() );
@@ -313,7 +323,7 @@ public class FederateManager extends FederateBase
 	@Override
 	public void receiveObjectRegistration( HLAObject hlaObject )
 	{
-		if( isType( hlaObject, HLAFEDERATE_OBJECT_CLASS_NAME ) )
+		if( rtiamb.isOfKind( hlaObject, HLAFEDERATE_OBJECT_CLASS_NAME ) )
 		{
 			rtiamb.requestAttributeValueUpdate( hlaObject, HLAFEDERATE_ATTRIBUTE_NAMES );
 		}
@@ -322,28 +332,30 @@ public class FederateManager extends FederateBase
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject )
 	{
-		JoinedFederate joinedFederate = new JoinedFederate( hlaObject );
-		if( FEDMAN_FEDERATE_TYPE.equals( joinedFederate.getFederateType() ) )
+		if( rtiamb.isOfKind( hlaObject, HLAFEDERATE_OBJECT_CLASS_NAME ) )
 		{
-			// ignore ourself joining...
-			return;
-		}
-
-		// WORKAROUND for the fact that the federate type is currently not correctly
-		//            propagated (and instead is actually the federate name)
-		//            see: https://github.com/openlvc/portico/issues/280
-		//                 https://github.com/openlvc/portico/pull/281
-		String federateType = joinedFederate.getFederateType();
-		for( String requiredType : startRequirements.keySet() )
-		{
-			if( federateType.startsWith( requiredType ) )
-			{
-				synchronized( joinedFederatesByType )
-				{
-					joinedFederatesByType.computeIfAbsent( requiredType,
-					                                       x -> new HashSet<>() ).add( joinedFederate );
-				}
-			}
+    		JoinedFederate joinedFederate = new JoinedFederate( hlaObject );
+    		if( FEDMAN_FEDERATE_TYPE.equals( joinedFederate.getFederateType() ) )
+    		{
+    			// ignore ourself joining...
+    			return;
+    		}
+    		// WORKAROUND for the fact that the federate type is currently not correctly
+    		//            propagated (and instead is actually the federate name)
+    		//            see: https://github.com/openlvc/portico/issues/280
+    		//                 https://github.com/openlvc/portico/pull/281
+    		String federateType = joinedFederate.getFederateType();
+    		for( String requiredType : startRequirements.keySet() )
+    		{
+    			if( federateType.startsWith( requiredType ) )
+    			{
+    				synchronized( joinedFederatesByType )
+    				{
+    					joinedFederatesByType.computeIfAbsent( requiredType,
+    					                                       x -> new HashSet<>() ).add( joinedFederate );
+    				}
+    			}
+    		}
 		}
 	}
 
@@ -356,13 +368,24 @@ public class FederateManager extends FederateBase
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		// federate manager does not process this
+		SmartInteraction ucefInteraction = ucefInteractionFactory.realize( hlaInteraction );
+		if( ucefInteraction != null )
+		{
+			if( ucefInteraction instanceof FederateJoin )
+				receive( (FederateJoin)ucefInteraction );
+			else if( ucefInteraction instanceof SimPause )
+				receive( (SimPause)ucefInteraction );
+			else if( ucefInteraction instanceof SimResume )
+				receive( (SimResume)ucefInteraction );
+			else if( ucefInteraction instanceof SimEnd )
+				receive( (SimEnd)ucefInteraction );
+		}
 	}
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
 	{
-		// federate manager does not process this
+		receiveInteraction( hlaInteraction );
 	}
 
 	@Override
@@ -374,6 +397,26 @@ public class FederateManager extends FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	private void receive( FederateJoin federateJoin )
+	{
+		System.out.println( federateJoin.toString() );
+	}
+
+	private void receive( SimPause simPause )
+	{
+		System.out.println( simPause.toString() );
+	}
+	
+	private void receive( SimResume simResume )
+	{
+		System.out.println( simResume.toString() );
+	}
+	
+	private void receive( SimEnd simEnd )
+	{
+		System.out.println( simEnd.toString() );
+	}
+	
 	/**
 	 * Utility method for validating and processing of command line arguments/options
 	 * 
@@ -684,10 +727,15 @@ public class FederateManager extends FederateBase
 	{
 		FederateConfiguration config = new FederateConfiguration( FEDMAN_FEDERATE_NAME, 
 		                                                          FEDMAN_FEDERATE_TYPE,
-		                                                          "TheUnitedFederationOfPlanets");
+		                                                          "ManagedFederation");
 		
 		// subscribe to reflections described in MIM to detected joining federates 
-		config.addSubscribedAtributes( HLAFEDERATE_OBJECT_CLASS_NAME, HLAFEDERATE_ATTRIBUTE_NAMES );
+		config.addSubscribedAttributes( HLAFEDERATE_OBJECT_CLASS_NAME, HLAFEDERATE_ATTRIBUTE_NAMES );
+		
+		// subscribed UCEF interactions
+		config.addSubscribedInteractions( FederateJoin.interactionName(), SimPause.interactionName(),
+		                                  SimResume.interactionName(), SimEnd.interactionName() );
+		
 		// here about callbacks *immediately*, rather than when evoked, otherwise
 		// we don't know about joined federates until after the ticking starts 
 		config.setCallbacksAreEvoked( false ); // use CallbackModel.HLA_IMMEDIATE
@@ -699,14 +747,12 @@ public class FederateManager extends FederateBase
 		{
 			String fomRootPath = "resources/foms/";
 			// modules
-			String[] moduleFoms = {fomRootPath+"RestaurantProcesses.xml", 
-			                       fomRootPath+"RestaurantFood.xml", 
-			                       fomRootPath+"RestaurantDrinks.xml",
-								   fomRootPath+"FedMan.xml"};
+			String[] moduleFoms = {fomRootPath+"FederationManager.xml",
+			                       fomRootPath+"PingPong.xml"};
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
-			String[] joinModuleFoms = {fomRootPath+"RestaurantSoup.xml"};
+			String[] joinModuleFoms = {};
 			config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
 		}
 		catch( Exception e )
@@ -730,11 +776,10 @@ public class FederateManager extends FederateBase
 			this.instance = instance;
 		}
 
-// TODO this method seems to be unnecessary...?
-//		public String getFederateName()
-//		{
-//			return instance.getAsString( HLAFEDERATE_NAME_ATTR );
-//		}
+		public String getFederateName()
+		{
+			return instance.getAsString( HLAFEDERATE_NAME_ATTR );
+		}
 		
 		public String getFederateType()
 		{

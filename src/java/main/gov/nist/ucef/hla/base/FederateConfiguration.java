@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
  * 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
  * 		                                                          "FederateName", 
  * 		                                                          "TestFederate" );
- * 		config.addPublishedAtributes( publishedAttributes )
- * 			  .addSubscribedAtributes( subscribedAttributes )
+ * 		config.addPublishedAttributes( publishedAttributes )
+ * 			  .addSubscribedAttributes( subscribedAttributes )
  * 			  .addPublishedInteractions( publishedInteractions )
  * 			  .addSubscribedInteractions( publishedInteractions )
  * 			  .setLookAhead(0.5)
@@ -635,10 +635,10 @@ public class FederateConfiguration
 	 * @param attributeName the identifier of the attribute on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtribute( String objectClassName,
-	                                                   String attributeName )
+	public FederateConfiguration addPublishedAttribute( String objectClassName,
+	                                                    String attributeName )
 	{
-		return addPublishedAtributes( objectClassName, new String[]{ attributeName } );
+		return addPublishedAttributes( objectClassName, new String[]{ attributeName } );
 	}
 
 	/**
@@ -648,10 +648,10 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( String objectClassName,
-	                                                    String[] attributeNames )
+	public FederateConfiguration addPublishedAttributes( String objectClassName,
+	                                                     String[] attributeNames )
 	{
-		return addPublishedAtributes( objectClassName, asCollection( attributeNames ) );
+		return addPublishedAttributes( objectClassName, asCollection( attributeNames ) );
 	}
 
 	/**
@@ -661,8 +661,8 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( String objectClassName,
-	                                                    Collection<String> attributeNames )
+	public FederateConfiguration addPublishedAttributes( String objectClassName,
+	                                                     Collection<String> attributeNames )
 	{
 		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
@@ -680,7 +680,7 @@ public class FederateConfiguration
 	 *            the class which are to be published
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAtributes( Map<String,Collection<String>> publishedAttributes )
+	public FederateConfiguration addPublishedAttributes( Map<String,Collection<String>> publishedAttributes )
 	{
 		if( canWrite( publishedAttributes ) )
 		{
@@ -696,10 +696,10 @@ public class FederateConfiguration
 	 * @param attributeIdentifier the identifier of the attribute on the class to subscribe to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtribute( String objectClassName,
-	                                                    String attributeIdentifier )
+	public FederateConfiguration addSubscribedAttribute( String objectClassName,
+	                                                     String attributeIdentifier )
 	{
-		return addSubscribedAtributes( objectClassName, new String[]{ attributeIdentifier } );
+		return addSubscribedAttributes( objectClassName, new String[]{ attributeIdentifier } );
 	}
 
 	/**
@@ -709,10 +709,10 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to subscribed to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtributes( String objectClassName,
+	public FederateConfiguration addSubscribedAttributes( String objectClassName,
 	                                                     String[] attributeNames )
 	{
-		return addSubscribedAtributes( objectClassName, asCollection( attributeNames ) );
+		return addSubscribedAttributes( objectClassName, asCollection( attributeNames ) );
 	}
 
 	/**
@@ -722,8 +722,8 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to subscribe to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtributes( String objectClassName,
-	                                                     Collection<String> attributeNames )
+	public FederateConfiguration addSubscribedAttributes( String objectClassName,
+	                                                      Collection<String> attributeNames )
 	{
 		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
@@ -741,7 +741,7 @@ public class FederateConfiguration
 	 *            the class which are to be subscribed to
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedAtributes( Map<String,Collection<String>> subscribedAttributes )
+	public FederateConfiguration addSubscribedAttributes( Map<String,Collection<String>> subscribedAttributes )
 	{
 		if( canWrite( subscribedAttributes ) )
 		{
@@ -767,7 +767,7 @@ public class FederateConfiguration
 	 * @param interactionIdentifiers the published interactions to add to the configuration
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedInteractions( String[] interactionIdentifiers )
+	public FederateConfiguration addPublishedInteractions( String ... interactionIdentifiers )
 	{
 		return addPublishedInteractions( asCollection( interactionIdentifiers ) );
 	}
@@ -804,7 +804,7 @@ public class FederateConfiguration
 	 * @param interactionIdentifiers the subscribed interactions to add to the configuration
 	 * @return this instance
 	 */
-	public FederateConfiguration addSubscribedInteractions( String[] interactionIdentifiers )
+	public FederateConfiguration addSubscribedInteractions( String ... interactionIdentifiers )
 	{
 		return addSubscribedInteractions( asCollection( interactionIdentifiers ) );
 	}

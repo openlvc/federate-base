@@ -442,7 +442,7 @@ public class RTIAmbassadorWrapper
 	 * Utility method to create an attribute handle set for an object class and a set of attribute
 	 * names
 	 * 
-	 * @param handle the hanlde for the object class with which the attributes are associated
+	 * @param handle the handle for the object class with which the attributes are associated
 	 * @param attributeNames the names of the attributes
 	 * @return the attribute handle set
 	 */
@@ -538,6 +538,76 @@ public class RTIAmbassadorWrapper
 			                         handle );
 		}
 	}
+	
+	/**
+	 * A "safe" way to get an object instance handle from an object instance.
+	 * 
+	 * @param handle the object instance obtain the object class handle for
+	 * @return the corresponding object class handle
+	 */
+	public ObjectClassHandle getKnownObjectClassHandle( HLAObject instance )
+	{
+		if( instance == null )
+			throw new UCEFException( "%s object instance. Cannot obtain object instance handle.",
+			                         NULL_TEXT );
+		
+		return getKnownObjectClassHandle( instance.getInstanceHandle() );
+	}
+	
+	/**
+	 * Determine if two {@link HLAObject} instances are of the same kind
+	 * 
+	 * @param a an {@link HLAObject} instance to compare
+	 * @param b the other {@link HLAObject} instance to compare
+	 * @return true if both {@link HLAObject} instances are the same kind of object, false
+	 *         otherwise
+	 */
+	public boolean isSameKind( HLAObject a, HLAObject b )
+	{
+		if( a == null || b == null )
+			return false;
+
+		return isOfKind(a, getKnownObjectClassHandle( b.getInstanceHandle() ) );
+	}
+	
+	/**
+	 * Determine if an {@link HLAObject} instance has the {@link ObjectClassHandle} corresponding
+	 * to the given object class name
+	 * 
+	 * @param interaction the {@link HLAInteraction} instance to check
+	 * @param objectClassName the name of the object class to check
+	 * @return true if the {@link HLAObject} instance has an {@link ObjectClassHandle}
+	 *         corresponding to the given object class name, false otherwise
+	 */
+	public boolean isOfKind( HLAObject object, String objectClassName )
+	{
+		try
+		{
+			return isOfKind( object, getObjectClassHandle( objectClassName ) );
+		}
+		catch( UCEFException e )
+		{
+			// ignore - this will occur if the object class name is unknown
+		}
+		return false;
+	}
+	
+	/**
+	 * Determine if an {@link HLAObject} instance has the given
+	 * {@link ObjectClassHandle}
+	 * 
+	 * @param object the {@link HLAObject} instance to check
+	 * @param handle the {@link ObjectClassHandle} to compare with
+	 * @return true if the {@link HLAObject} instance has the given
+	 *         {@link ObjectClassHandle}, false otherwise
+	 */
+	public boolean isOfKind( HLAObject object, ObjectClassHandle handle )
+	{
+		if( object == null || handle == null )
+			return false;
+		
+		return handle.equals( getKnownObjectClassHandle( object.getInstanceHandle() ) );
+	}
 
 	/**
 	 * A "safe" way to get an attribute name from an object class handle and attribute handle. If 
@@ -625,6 +695,22 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
+	 * A "safe" way to get an interaction class handle from an interaction.
+	 * 
+	 * @param interaction the interaction to obtain the handle for
+	 * @return the corresponding interaction class handle
+	 */
+	public InteractionClassHandle getInteractionClassHandle( HLAInteraction interaction )
+	{
+		if( interaction == null )
+			throw new UCEFException( "%s interaction instance. No interaction class handle " +
+									 "could be retrieved.",
+			                         NULL_TEXT );
+		
+		return interaction.getInteractionClassHandle();
+	}
+
+	/**
 	 * A "safe" way to get an interaction handle name from an interaction class name. If anything goes 
 	 * wrong, exceptions are absorbed and a null value is returned
 	 * 
@@ -645,7 +731,62 @@ public class RTIAmbassadorWrapper
 			                         name );
 		}
 	}
+	
+	/**
+	 * Determine if two {@link HLAInteraction} instances are of the same kind
+	 * 
+	 * @param a an {@link HLAInteraction} instance to compare
+	 * @param b the other {@link HLAInteraction} instance to compare
+	 * @return true if both {@link HLAInteraction} instances are the same kind of interaction,
+	 *         false otherwise
+	 */
+	public boolean isSameKind( HLAInteraction a, HLAInteraction b )
+	{
+		if( a == null || b == null )
+			return false;
 
+		return isOfKind(a, b.interactionClassHandle );
+	}
+	
+	/**
+	 * Determine if an {@link HLAInteraction} instance has the {@link InteractionClassHandle}
+	 * corresponding to the given interaction class name
+	 * 
+	 * @param interaction the {@link HLAInteraction} instance to check
+	 * @param interactionClassName the name of the interaction class to check
+	 * @return true if the {@link HLAInteraction} instance has an {@link InteractionClassHandle}
+	 *         corresponding to the given interaction class name, false otherwise
+	 */
+	public boolean isOfKind( HLAInteraction interaction, String interactionClassName )
+	{
+		try
+		{
+			return isOfKind( interaction, getInteractionClassHandle( interactionClassName ) );
+		}
+		catch( UCEFException e )
+		{
+			// ignore - this will occur if the interaction class name is unknown
+		}
+		return false;
+	}
+	
+	/**
+	 * Determine if an {@link HLAInteraction} instance has the given
+	 * {@link InteractionClassHandle}
+	 * 
+	 * @param interaction the {@link HLAInteraction} instance to check
+	 * @param handle the {@link InteractionClassHandle} to compare with
+	 * @return true if the {@link HLAInteraction} instance has the given
+	 *         {@link InteractionClassHandle}, false otherwise
+	 */
+	public boolean isOfKind( HLAInteraction interaction, InteractionClassHandle handle )
+	{
+		if( interaction == null || handle == null )
+			return false;
+		
+		return handle.equals( interaction.interactionClassHandle );
+	}
+	
 	/**
 	 * A "safe" way to get a parameter handle from an interaction class handle and parameter name. If
 	 * anything goes wrong, exceptions are absorbed and a null value is returned
@@ -716,6 +857,23 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
+	 * A "safe" way to get an object instance handle from an object instance. If anything goes
+	 * wrong, exceptions are absorbed and a null value is returned
+	 * 
+	 * @param name the object instance to obtain the handle for
+	 * @return the corresponding object instance handle, or null if anything went wrong
+	 */
+	public ObjectInstanceHandle getObjectInstanceHandle( HLAObject instance )
+	{
+		if( instance == null )
+			throw new UCEFException( "%s object instance. No object instance handle " +
+									 "could be retrieved.",
+			                         NULL_TEXT );
+		
+		return instance.getInstanceHandle();
+	}
+
+	/**
 	 * A "safe" way to get an object instance handle from an object instance name. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
 	 * 
@@ -744,7 +902,27 @@ public class RTIAmbassadorWrapper
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle)
+	public ObjectInstanceHandle registerObjectInstance( String objectClassName )
+	{
+		return registerObjectInstance( getObjectClassHandle( objectClassName ) );
+	}
+
+	/**
+	 * This method will register an instance of the class and will return the federation-wide
+	 * unique handle for that instance.
+	 */
+	public ObjectInstanceHandle registerObjectInstance( String objectClassName,
+	                                                    String instanceIdentifier )
+	{
+		return registerObjectInstance( getObjectClassHandle( objectClassName ),
+		                               instanceIdentifier );
+	}
+
+	/**
+	 * This method will register an instance of the class and will return the federation-wide
+	 * unique handle for that instance.
+	 */
+	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle )
 	{
 		return registerObjectInstance( handle, null );
 	}
@@ -753,7 +931,8 @@ public class RTIAmbassadorWrapper
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle, String instanceIdentifier )
+	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle, 
+	                                                    String instanceIdentifier )
 	{
 		if( handle == null )
 		{
@@ -976,7 +1155,7 @@ public class RTIAmbassadorWrapper
 	                                           AttributeHandleSet attributes )
 	{
 		if( handle == null )
-			throw new UCEFException( "%s object class handle. Cannot publish object class atributes.",
+			throw new UCEFException( "%s object class handle. Cannot publish object class attributes.",
 			                         NULL_TEXT );
 
 		if( attributes == null )
@@ -990,7 +1169,7 @@ public class RTIAmbassadorWrapper
 		catch( Exception e )
 		{
 			throw new UCEFException( e,
-			                         "Failed to publish object class atributes for object class %s.",
+			                         "Failed to publish object class attributes for object class %s.",
 			                         makeSummary( handle ) );
 		}
 	}

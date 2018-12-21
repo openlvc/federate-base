@@ -165,8 +165,8 @@ public class FederateConfigurationTest extends TestCase
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName);
 		config.addModules( expectedModules )
 			  .addJoinModules( expectedJoinModules )
-			  .addPublishedAtributes( expectedPublishedAttributes )
-			  .addSubscribedAtributes( expectedSubscribedAttributes )
+			  .addPublishedAttributes( expectedPublishedAttributes )
+			  .addSubscribedAttributes( expectedSubscribedAttributes )
 			  .addPublishedInteractions( expectedPublishedInteractions )
 			  .addSubscribedInteractions( expectedSubscribedInteractions)
 			  .setMaxReconnectAttempts( expectedMaxReconnectAttempts )
@@ -525,13 +525,13 @@ public class FederateConfigurationTest extends TestCase
 		extraPublishedAttributes.put( objectClass2, attributes2 );
 
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addPublishedAtributes( expectedPublishedAttributes );
+		config.addPublishedAttributes( expectedPublishedAttributes );
 		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size());
 		// add the same attributes again - shouldn't increase the size
-		config.addPublishedAtributes( expectedPublishedAttributes );
+		config.addPublishedAttributes( expectedPublishedAttributes );
 		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size());
 		// add more attributes - should increase the size
-		config.addPublishedAtributes( extraPublishedAttributes );
+		config.addPublishedAttributes( extraPublishedAttributes );
 		assertEquals( expectedPublishedAttributes.size() + extraPublishedAttributes.size(), config.getPublishedAttributes().size());
 
 		// start again with clean config
@@ -539,28 +539,28 @@ public class FederateConfigurationTest extends TestCase
 		// freeze it
 		config.freeze();
 		// try to add subscribed attributes - should have done nothing because config is frozen.
-		config.addPublishedAtributes( expectedPublishedAttributes );
+		config.addPublishedAttributes( expectedPublishedAttributes );
 		assertEquals( 0, config.getPublishedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single attribute - this actually ends up feeding through the adding
 		// a map of subscribed attributes method
-		config.addPublishedAtribute( objectClass1, attributes1.get( 0 ) );
+		config.addPublishedAttribute( objectClass1, attributes1.get( 0 ) );
 		assertEquals( 1, config.getPublishedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple attributes on single class with an array - this actually ends up feeding
 		// through the adding a map of subscribed attributes method
-		config.addPublishedAtributes( objectClass1, attributes1.toArray( new String[0] ) );
+		config.addPublishedAttributes( objectClass1, attributes1.toArray( new String[0] ) );
 		assertEquals( 1, config.getPublishedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple attributes on single class with a collection - this actually ends up
 		// feeding through the adding a map of subscribed attributes method
-		config.addPublishedAtributes( objectClass1, attributes1 );
+		config.addPublishedAttributes( objectClass1, attributes1 );
 		assertEquals( 1, config.getPublishedAttributes().size());
 	}
 	
@@ -589,13 +589,13 @@ public class FederateConfigurationTest extends TestCase
 		extraSubscribedAttributes.put( objectClass2, attributes2 );
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addSubscribedAtributes( expectedSubscribedAttributes );
+		config.addSubscribedAttributes( expectedSubscribedAttributes );
 		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size());
 		// add the same attributes again - shouldn't increase the size
-		config.addSubscribedAtributes( expectedSubscribedAttributes );
+		config.addSubscribedAttributes( expectedSubscribedAttributes );
 		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size());
 		// add more attributes - should increase the size
-		config.addSubscribedAtributes( extraSubscribedAttributes );
+		config.addSubscribedAttributes( extraSubscribedAttributes );
 		assertEquals( expectedSubscribedAttributes.size() + extraSubscribedAttributes.size(), config.getSubscribedAttributes().size());
 		
 		// start again with clean config
@@ -603,28 +603,28 @@ public class FederateConfigurationTest extends TestCase
 		// freeze it
 		config.freeze();
 		// try to add subscribed attributes - should have done nothing because config is frozen.
-		config.addSubscribedAtributes( expectedSubscribedAttributes );
+		config.addSubscribedAttributes( expectedSubscribedAttributes );
 		assertEquals( 0, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single attribute - this actually ends up feeding through the adding
 		// a map of subscribed attributes method
-		config.addSubscribedAtribute( objectClass1, attributes1.get( 0 ) );
+		config.addSubscribedAttribute( objectClass1, attributes1.get( 0 ) );
 		assertEquals( 1, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple attributes on single class with an array - this actually ends up feeding
 		// through the adding a map of subscribed attributes method
-		config.addSubscribedAtributes( objectClass1, attributes1.toArray( new String[0] ) );
+		config.addSubscribedAttributes( objectClass1, attributes1.toArray( new String[0] ) );
 		assertEquals( 1, config.getSubscribedAttributes().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple attributes on single class with a collection - this actually ends up
 		// feeding through the adding a map of subscribed attributes method
-		config.addSubscribedAtributes( objectClass1, attributes1 );
+		config.addSubscribedAttributes( objectClass1, attributes1 );
 		assertEquals( 1, config.getSubscribedAttributes().size());
 	}
 	
