@@ -1,5 +1,7 @@
 #include "gov/nist/ucef/hla/ucef/UCEFFederateBase.h"
 
+#include <cstring>
+
 #include "gov/nist/ucef/hla/base/FederateAmbassador.h"
 #include "gov/nist/ucef/util/Logger.h"
 

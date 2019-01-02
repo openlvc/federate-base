@@ -35,7 +35,7 @@ namespace base
 			 *
 			 * @param federationName the name of the federation that this federate wants to join
 			 */
-			void setFederationName( std::string &federationName );
+			void setFederationName( const std::string &federationName );
 
 			/**
 			 * Returns the name of the federate
@@ -49,7 +49,7 @@ namespace base
 			 *
 			 * @param federateName the name of this federate
 			 */
-			void setFederateName( std::string &federateName );
+			void setFederateName( const std::string &federateName );
 
 			/**
 			 * Returns the type of this federate
@@ -71,7 +71,7 @@ namespace base
 			 *
 			 * @param path path to a FOM file
 			 */
-			void addFomPath( std::string &path );
+			void addFomPath( const std::string &path );
 
 			/**
 			 * Clears FOM paths added to federate configuration
@@ -93,7 +93,7 @@ namespace base
 			 *
 			 * @param path path to a SOM file
 			 */
-			void addSomPath( std::string &path );
+			void addSomPath( const std::string &path );
 
 			/**
 			 * Returns lookahead value configured for time regulating federate

@@ -31,9 +31,9 @@
 								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.1972418502" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1159219811" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/tinyxml2&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/ieee1516e&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/logger&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1053291196" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.898974593" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -52,8 +52,8 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.so.debug.1386939377" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.debug">
 								<option defaultValue="true" id="gnu.cpp.link.so.debug.option.shared.627736045" name="Shared (-shared)" superClass="gnu.cpp.link.so.debug.option.shared" useByScannerDiscovery="false" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.878170447" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/tinyxml2/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/tinyxml2/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.818076726" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="Tinyxml2d"/>
@@ -104,9 +104,9 @@
 								<option id="gnu.cpp.compiler.so.release.option.debugging.level.135161863" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1380765481" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/tinyxml2&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/ieee1516e&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/include/logger&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.963177738" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.732104799" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -125,8 +125,8 @@
 							<tool command="g++" commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" errorParsers="org.eclipse.cdt.core.GLDErrorParser" id="cdt.managedbuild.tool.gnu.cpp.linker.so.release.96015546" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.so.release">
 								<option defaultValue="true" id="gnu.cpp.link.so.release.option.shared.491989309" name="Shared (-shared)" superClass="gnu.cpp.link.so.release.option.shared" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.link.option.paths.1974201930" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/portico-2.1.0/linux&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../external/cpp/lib/tinyxml2/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/portico-2.1.0/linux&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/tinyxml2/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.1916921019" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="Tinyxml2"/>

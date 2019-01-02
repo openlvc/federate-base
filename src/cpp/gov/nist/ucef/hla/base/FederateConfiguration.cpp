@@ -23,7 +23,7 @@ namespace base
 		return m_federationName;
 	}
 
-	void FederateConfiguration::setFederationName( string &federationName )
+	void FederateConfiguration::setFederationName( const string &federationName )
 	{
 		m_federationName = federationName;
 	}
@@ -33,9 +33,9 @@ namespace base
 		return m_federateName;
 	}
 
-	void FederateConfiguration::setFederateName( string &federationName )
+	void FederateConfiguration::setFederateName( const string &federateName )
 	{
-		m_federateName = federationName;
+		m_federateName = federateName;
 	}
 
 	string FederateConfiguration::getFederateType()
@@ -48,7 +48,7 @@ namespace base
 		return m_foms;
 	}
 
-	void FederateConfiguration::addFomPath( string &path )
+	void FederateConfiguration::addFomPath( const string &path )
 	{
 		m_foms.push_back(path);
 	}
@@ -66,7 +66,7 @@ namespace base
 		return soms;
 	}
 
-	void FederateConfiguration::addSomPath( string &path )
+	void FederateConfiguration::addSomPath( const string &path )
 	{
 		m_som = path;
 	}
