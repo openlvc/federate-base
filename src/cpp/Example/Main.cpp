@@ -1,15 +1,18 @@
-#include "gov/nist/ucef/hla/FederateBase.h"
-#include "gov/nist/ucef/config.h"
-#include "gov/nist/ucef/util/UCEFException.h"
-#include "gov/nist/ucef/hla/HLAObject.h"
-#include "gov/nist/ucef/hla/HLAInteraction.h"
 #include <iostream>
 
-using namespace std;
-using namespace ucef;
-using namespace ucef::util;
+#include "gov/nist/ucef/hla/ucef/UCEFFederateBase.h"
+#include "gov/nist/ucef/config.h"
+#include "gov/nist/ucef/hla/base/UCEFException.h"
+#include "gov/nist/ucef/hla/base/HLAObject.h"
+#include "gov/nist/ucef/hla/base/HLAInteraction.h"
 
-class ExampleFederate : public FederateBase
+
+using namespace std;
+using namespace base;
+using namespace base::ucef;
+using namespace base::util;
+
+class ExampleFederate : public UCEFFederateBase
 {
 	public:
 		//----------------------------------------------------------
@@ -129,35 +132,53 @@ class ExampleFederate : public FederateBase
 			cout << "Received an object registration callback " << hlaObject->getClassName() << endl;
 		}
 
-		virtual void receivedAttributeReflection( std::shared_ptr<const HLAObject> hlaObject,
+		virtual void receivedAttributeReflection( shared_ptr<const HLAObject> hlaObject,
 		                                          double federateTime ) override 
 		{
 			cout << "Received an object update " + hlaObject->getClassName();
 			cout << " at " << to_string( federateTime ) << endl;
 			cout << "Received attribute values are : " << endl;
-			std::vector<std::string> attributes = hlaObject->getAttributeNames();
+			vector<string> attributes = hlaObject->getAttributeNames();
 			for( string attribute : attributes )
 			{
 				cout << hlaObject->getAsString( attribute ) << endl;
 			}
 		}
 
-		virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInt,
+		virtual void receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
 		                                  double federateTime ) override
 		{
 			cout << "Received an object interaction callback " << hlaInt->getInteractionClassName();
 			cout <<	" at " << to_string( federateTime ) << endl;
 			cout << "Received parameter values are :" << endl;
-			std::vector<std::string> parameters = hlaInt->getParameterNames();
+			vector<string> parameters = hlaInt->getParameterNames();
 			for( string parameter : parameters )
 			{
 				cout << hlaInt->getAsString( parameter ) << endl;
 			}
 		}
 
-		virtual void receivedObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) override
+		virtual void receivedObjectDeletion( shared_ptr<const HLAObject> hlaObject ) override
 		{
 			cout << "Received an object deletion callback " << hlaObject->getClassName() << endl;
+		}
+
+		virtual void receivedSimEnd( shared_ptr<const SimEnd> hlaInt,
+		                             double federateTime) override
+		{
+			cout << "Received sim end interaction";
+		}
+
+		virtual void receivedSimPaused( shared_ptr<const SimPause> hlaInt,
+		                                double federateTime) override
+		{
+			cout << "Received sim paused interaction";
+		}
+
+		virtual void receivedSimResumed( shared_ptr<const SimResume> hlaInt,
+		                                 double federateTime) override
+		{
+			cout << "Received sim resumed interaction";
 		}
 
 	private:
@@ -169,13 +190,13 @@ class ExampleFederate : public FederateBase
 			} while (cin.get() != '\n');
 		}
 	private:
-		std::vector<std::shared_ptr<HLAObject>> federateObjects;
+		vector<shared_ptr<HLAObject>> federateObjects;
 };
 
 int main()
 {
 	IFederateBase *x = new ExampleFederate();
-	std::shared_ptr<util::FederateConfiguration> federateConfig = x->getFederateConfiguration();
+	shared_ptr<base::FederateConfiguration> federateConfig = x->getFederateConfiguration();
 	federateConfig->setFederationName( string("MyTestFeeration") );
 	federateConfig->setFederateName( string("MyTestFederate") + to_string(rand()) );
 	federateConfig->addFomPath( string("restaurant/RestaurantFood.xml") );

@@ -7,7 +7,7 @@
 using namespace std;
 using namespace tinyxml2;
 
-namespace ucef
+namespace base
 {
 	namespace util
 	{

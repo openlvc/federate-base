@@ -6,7 +6,7 @@
 using namespace spdlog;
 using namespace std;
 
-namespace ucef
+namespace base
 {
 	namespace util
 	{

@@ -2,10 +2,10 @@
 
 #include <vector>
 
-#include "gov/nist/ucef/util/types.h"
+#include "gov/nist/ucef/hla/types.h"
 #include "tinyxml2.h"
 
-namespace ucef
+namespace base
 {
 	namespace util
 	{

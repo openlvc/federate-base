@@ -4,15 +4,14 @@
 #include <string>
 
 #include "gov/nist/ucef/config.h"
-
-#include "types.h"
+#include "gov/nist/ucef/hla/types.h"
 
 namespace spdlog
 {
 	class logger;
 }
 
-namespace ucef
+namespace base
 {
 	namespace util
 	{
