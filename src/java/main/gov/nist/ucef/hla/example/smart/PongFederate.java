@@ -216,7 +216,7 @@ public class PongFederate extends NullFederateBase
 		System.out.println( "	|  |_> >  <_> )   |  \\/ /_/  >" );
 		System.out.println( "	|   __/ \\____/|___|  /\\___  /" );
 		System.out.println( "	|__|               \\//_____/" );
-		System.out.println( "	        Pong Federate" );
+		System.out.println( "	     Smart Pong Federate" );
 		System.out.println();
 		System.out.println( "Sends 'Pong' interactions.");
 		System.out.println( "Receives 'Ping' interactions.");

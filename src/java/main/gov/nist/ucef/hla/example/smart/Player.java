@@ -23,12 +23,8 @@ package gov.nist.ucef.hla.example.smart;
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.ucef.interaction.SmartObject;
-import hla.rti1516e.ObjectClassHandle;
-import hla.rti1516e.ObjectInstanceHandle;
 
 public class Player extends SmartObject
 {

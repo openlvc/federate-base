@@ -23,7 +23,6 @@ package gov.nist.ucef.hla.example;
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
@@ -32,6 +31,7 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -46,7 +46,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example federate for testing
  */
-public class PingFederate extends FederateBase
+public class PingFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

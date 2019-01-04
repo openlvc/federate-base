@@ -524,6 +524,46 @@ public abstract class FederateBase
 		rtiamb.subscribeObjectClassAttributes( className, attributes );
 	}
 	
+	/**
+	 * 
+	 * @param hlaObject
+	 */
+	public void incomingObjectRegistration( HLAObject hlaObject )
+	{
+		// just delegate to the default handler
+		receiveObjectRegistration( hlaObject );
+	}
+
+	public void incomingAttributeReflection( HLAObject hlaObject )
+	{
+		// just delegate to the default handler
+		receiveAttributeReflection( hlaObject );
+	}
+
+	public void incomingAttributeReflection( HLAObject hlaObject, double time )
+	{
+		// just delegate to the default handler
+		receiveAttributeReflection( hlaObject, time );
+	}
+
+	public void incomingInteraction( HLAInteraction hlaInteraction )
+	{
+		// just delegate to the default handler
+		receiveInteraction( hlaInteraction );
+	}
+
+	public void incomingInteraction( HLAInteraction hlaInteraction, double time )
+	{
+		// just delegate to the default handler
+		receiveInteraction( hlaInteraction, time );
+	}
+
+	public void incomingObjectDeleted( HLAObject hlaObject )
+	{
+		// just delegate to the default handler
+		receiveObjectDeleted( hlaObject );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

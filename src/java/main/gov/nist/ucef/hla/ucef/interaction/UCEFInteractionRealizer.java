@@ -87,7 +87,7 @@ public class UCEFInteractionRealizer
 	 * @return the {@link UCEFInteraction} instance, or null if the {@link HLAInteraction}
 	 *         instance does not correspond to a {@link HLAInteraction}.
 	 */
-	public SmartInteraction realize( HLAInteraction interaction )
+	public UCEFInteraction realize( HLAInteraction interaction )
 	{
 		if( interaction == null )
 			return null;
@@ -125,16 +125,16 @@ public class UCEFInteractionRealizer
 		InteractionClassHandle simEnd = rtiamb.getInteractionClassHandle( SimEnd.interactionName() );
 		
 		realizerLookup.put(federateJoin, new Realizer() { 
-			public SmartInteraction realize( HLAInteraction x ) { return new FederateJoin( rtiamb, x.getState() ); }
+			public UCEFInteraction realize( HLAInteraction x ) { return new FederateJoin( rtiamb, x.getState() ); }
 		});
 		realizerLookup.put(simPause, new Realizer() { 
-			public SmartInteraction realize( HLAInteraction x ) { return new SimPause( rtiamb, x.getState() ); } 
+			public UCEFInteraction realize( HLAInteraction x ) { return new SimPause( rtiamb, x.getState() ); } 
 		});
 		realizerLookup.put(simResume, new Realizer() { 
-			public SmartInteraction realize( HLAInteraction x ) { return new SimResume( rtiamb, x.getState() ); }
+			public UCEFInteraction realize( HLAInteraction x ) { return new SimResume( rtiamb, x.getState() ); }
 		});
 		realizerLookup.put(simEnd, new Realizer() {
-			public SmartInteraction realize( HLAInteraction x ) { return new SimEnd( rtiamb, x.getState() ); }
+			public UCEFInteraction realize( HLAInteraction x ) { return new SimEnd( rtiamb, x.getState() ); }
 		});
 	}
 
@@ -150,14 +150,14 @@ public class UCEFInteractionRealizer
 	private interface Realizer
 	{
 		/**
-		 * "Realize" a specific kind of {@link SmartInteraction} from a "generic"
+		 * "Realize" a specific kind of {@link UCEFInteraction} from a "generic"
 		 * {@link HLAInteraction} instance
 		 * 
 		 * @param param the {@link HLAInteraction} instance from which to create the
-		 *            {@link SmartInteraction}
-		 * @return the {@link SmartInteraction} instance
+		 *            {@link UCEFInteraction}
+		 * @return the {@link UCEFInteraction} instance
 		 */
-		SmartInteraction realize( HLAInteraction param );
+		UCEFInteraction realize( HLAInteraction param );
 	}
 	
 	//----------------------------------------------------------

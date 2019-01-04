@@ -52,7 +52,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private Set<String> announcedPoints;
 	private Set<String> achievedPoints;
 	
-	private FederateBase federate;
+	private FederateBase federateBase;
 	
 	private String currentSyncPoint;
 	private String announcedSyncPoint;
@@ -67,9 +67,9 @@ public class FederateAmbassador extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateAmbassador(FederateBase federate)
+	public FederateAmbassador(FederateBase federateBase)
 	{
-		this.federate = federate;
+		this.federateBase = federateBase;
 		
 		announcedPoints = new HashSet<>();
 		achievedPoints = new HashSet<>();
@@ -202,7 +202,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		if( UCEFSyncPoint.isUnknown( label ) )
 		{
 			// non-UCEF synchronization point - should probably just achieve it immediately
-			this.federate.rtiamb.synchronizationPointAchieved( label );
+			this.federateBase.rtiamb.synchronizationPointAchieved( label );
 		}
 	}
 
@@ -279,7 +279,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 			hlaObjectInstance = new HLAObject( objectInstanceHandle, null );
 			this.remoteHlaObjects.put( objectInstanceHandle, hlaObjectInstance );
 		}
-		this.federate.receiveObjectRegistration( hlaObjectInstance );
+		this.federateBase.incomingObjectRegistration( hlaObjectInstance );
 	}
 
 	/**
@@ -330,14 +330,14 @@ public class FederateAmbassador extends NullFederateAmbassador
 		}
 
 		// convert AttributeHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> attributes = federate.rtiamb.convert( objectInstanceHandle, attributeMap );
+		Map<String,byte[]> attributes = federateBase.rtiamb.convert( objectInstanceHandle, attributeMap );
 		hlaObjectInstance.setState( attributes );
 
 		// do the appropriate callback on the federate
 		if( time == null )
-			this.federate.receiveAttributeReflection( hlaObjectInstance );
+			this.federateBase.incomingAttributeReflection( hlaObjectInstance );
 		else
-			this.federate.receiveAttributeReflection( hlaObjectInstance, logicalTimeAsDouble( time ) );
+			this.federateBase.incomingAttributeReflection( hlaObjectInstance, logicalTimeAsDouble( time ) );
 	}
 	
 	/**
@@ -375,16 +375,16 @@ public class FederateAmbassador extends NullFederateAmbassador
 	    throws FederateInternalError
 	{
 		// convert ParameterHandleValueMap to Map<String, byte[]> 
-		Map<String,byte[]> parameters = federate.rtiamb.convert( interactionClassHandle, parameterMap );
+		Map<String,byte[]> parameters = federateBase.rtiamb.convert( interactionClassHandle, parameterMap );
 
 		// create the (transient) interaction
 		HLAInteraction interaction = new HLAInteraction( interactionClassHandle, parameters );
 
 		// do the appropriate callback on the federate
 		if( time == null )
-			this.federate.receiveInteraction( interaction );
+			this.federateBase.incomingInteraction( interaction );
 		else
-			this.federate.receiveInteraction( interaction, logicalTimeAsDouble( time ) );
+			this.federateBase.incomingInteraction( interaction, logicalTimeAsDouble( time ) );
 	}
 
 	/**
@@ -403,7 +403,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 			throw new UCEFException( "Deletion notification received for undiscovered object " +
 									 "instance with handle '%s'", objectInstanceHandle );
 		}
-		this.federate.receiveObjectDeleted( hlaObjectInstance );
+		this.federateBase.incomingObjectDeleted( hlaObjectInstance );
 	}
 	
 	/**

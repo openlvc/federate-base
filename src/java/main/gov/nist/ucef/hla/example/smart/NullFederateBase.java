@@ -20,9 +20,9 @@
  */
 package gov.nist.ucef.hla.example.smart;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 
 /**
  *		            ___
@@ -36,7 +36,7 @@ import gov.nist.ucef.hla.base.HLAObject;
  * 
  * Example federate for testing
  */
-public abstract class NullFederateBase extends FederateBase
+public abstract class NullFederateBase extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

@@ -219,7 +219,7 @@ public class PingFederate extends NullFederateBase
 		System.out.println( "	|  |_> >  |   |  \\/ /_/  >" );
 		System.out.println( "	|   __/|__|___|  /\\___  /" );
 		System.out.println( "	|__|           \\//_____/" );
-		System.out.println( "	      Ping Federate" );
+		System.out.println( "	   Smart Ping Federate" );
 		System.out.println();
 		System.out.println( "Sends 'Ping' interactions.");
 		System.out.println( "Receives 'Pong' interactions.");
