@@ -18,13 +18,13 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.example.smart.reflections;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.ucef.interaction.SmartObject;
+import gov.nist.ucef.hla.smart.SmartObject;
 
 public class Player extends SmartObject
 {

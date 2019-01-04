@@ -306,7 +306,7 @@ public abstract class FederateBase
 	 * Connects to the RTI and then creates and joins the federation (as per the provided
 	 * configuration)
 	 */
-	private void createAndJoinFederation()
+	protected void createAndJoinFederation()
 	{
 		beforeFederationJoin();
 
@@ -331,7 +331,7 @@ public abstract class FederateBase
 	 * 
 	 * @param syncPoint the UCEF standard synchronization point
 	 */
-	private void synchronize( UCEFSyncPoint syncPoint )
+	protected void synchronize( UCEFSyncPoint syncPoint )
 	{
 		synchronize( syncPoint.getLabel() );
 	}
@@ -388,7 +388,7 @@ public abstract class FederateBase
 	 * 
 	 * @param nextTime the time to advance to
 	 */
-	private void advanceTime( double nextTime )
+	protected void advanceTime( double nextTime )
 	{
 		rtiamb.timeAdvanceRequest( nextTime );
 		while( fedamb.getFederateTime() < nextTime )
@@ -402,7 +402,7 @@ public abstract class FederateBase
 	 * final implementation (i.e., probably not use the MIN_TIME/MAX_TIME parameters), so it will be
 	 * much simpler to update if it's only in one place.
 	 */
-	private void evokeMultipleCallbacks()
+	protected void evokeMultipleCallbacks()
 	{
 		rtiamb.evokeMultipleCallbacks( MIN_TIME, MAX_TIME );
 	}
@@ -410,7 +410,7 @@ public abstract class FederateBase
 	/**
 	 * Resign from the federation and destroy the federation execution
 	 */
-	private void resignAndDestroyFederation()
+	protected void resignAndDestroyFederation()
 	{
 		resignFromFederation( null );
 		destroyFederation();
@@ -419,7 +419,7 @@ public abstract class FederateBase
 	/**
 	 * Resign from the federation
 	 */
-	private void resignFromFederation( ResignAction resignAction )
+	protected void resignFromFederation( ResignAction resignAction )
 	{
 		if( resignAction == null )
 			resignAction = ResignAction.DELETE_OBJECTS_THEN_DIVEST;
@@ -430,7 +430,7 @@ public abstract class FederateBase
 	/**
 	 * Destroy the federation execution
 	 */
-	private void destroyFederation()
+	protected void destroyFederation()
 	{
 		rtiamb.destroyFederationExecution( configuration.getFederationName() );
 	}
@@ -438,7 +438,7 @@ public abstract class FederateBase
 	/**
 	 * Enable the time policy settings
 	 */
-	private void enableTimePolicy()
+	protected void enableTimePolicy()
 	{
 		// enable time regulation based on configuration
 		rtiamb.enableTimeRegulation( configuration.getLookAhead() );
@@ -460,7 +460,7 @@ public abstract class FederateBase
 	/**
 	 * Disable the time policy settings
 	 */
-	private void disableTimePolicy()
+	protected void disableTimePolicy()
 	{
 		// no waiting for callbacks when disabling time policies
 		rtiamb.disableTimeConstrained();
@@ -473,7 +473,7 @@ public abstract class FederateBase
 	/**
 	 * Publish and subscribe to all configured interactions and reflected attributes 
 	 */
-	private void publishAndSubscribe()
+	protected void publishAndSubscribe()
 	{
 		rtiamb.publishObjectClassAttributes( configuration.getPublishedAttributes() );
 		rtiamb.publishInteractionClasses( configuration.getPublishedInteractions() );

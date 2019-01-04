@@ -47,11 +47,11 @@ import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
+import gov.nist.ucef.hla.smart.SmartInteraction;
 import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
 import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
 
 /**

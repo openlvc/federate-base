@@ -25,10 +25,15 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
+import gov.nist.ucef.hla.example.smart.interactions.InteractionRealizer;
+import gov.nist.ucef.hla.example.smart.interactions.Ping;
+import gov.nist.ucef.hla.example.smart.interactions.Pong;
+import gov.nist.ucef.hla.example.smart.reflections.ObjectRealizer;
+import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
-import gov.nist.ucef.hla.ucef.interaction.SmartObject;
+import gov.nist.ucef.hla.smart.SmartInteraction;
+import gov.nist.ucef.hla.smart.SmartObject;
 
 /**
  *		            ___
@@ -109,7 +114,7 @@ public class PingFederate extends NullFederateBase
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		SmartInteraction smartInteraction = pingpongInteractionFactory.create( hlaInteraction );
+		SmartInteraction smartInteraction = pingpongInteractionFactory.realize( hlaInteraction );
 		if(smartInteraction != null && smartInteraction instanceof Pong )
 		{
 			receivePongInteraction( (Pong)smartInteraction );

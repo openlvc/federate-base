@@ -18,25 +18,25 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.smart;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 
 /**
- * An extension of the basic {@link HLAObject} class which primarily provides some "smarts"
- * with regards to data types for known attributes
+ * An extension of the basic {@link HLAInteraction} class which primarily provides some "smarts"
+ * with regards to data types for known parameters
  * 
  * This class is not instantiated directly, but instead used as a base for other classes to
  * extend.
  */
-public abstract class SmartObject extends HLAObject
+public abstract class SmartInteraction extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    ENUMERATIONS
@@ -44,7 +44,7 @@ public abstract class SmartObject extends HLAObject
 	/**
 	 * An enumeration representing the various supported data types
 	 */
-	protected enum AttributeType
+	protected enum ParameterType
 	{
 		String, Character,    // text
 		Short, Integer, Long, // integer numerics 
@@ -57,32 +57,32 @@ public abstract class SmartObject extends HLAObject
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// map to look up an appropriate retriever to obtain correctly typed value 
-	// for a known attribute type - this is a static map used by all objects
+	// for a known parameter type - this is a static map used by all interactions
 	// which extend this class 
-	private static Map<AttributeType, ValueGetter> GettersLookup;
+	private static Map<ParameterType, ValueGetter> GettersLookup;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of object - must match FOM definition 
-	protected String objectClassName;
-	// map to look up the attribute type of a named attribute
-	protected Map<String,AttributeType> typeLookup;
+	// HLA identifier of this type of interaction - must match FOM definition 
+	protected String interactionName;
+	// map to look up the parameter type of a named parameter
+	protected Map<String,ParameterType> typeLookup;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected SmartObject( RTIAmbassadorWrapper rtiamb,  String objectClassName )
+	protected SmartInteraction( RTIAmbassadorWrapper rtiamb, String interactionName )
 	{
-		this( rtiamb, objectClassName, null );
+		this( rtiamb, interactionName, null );
 	}
 
-	protected SmartObject( RTIAmbassadorWrapper rtiamb, String objectClassName,
-	                       Map<String,byte[]> attributes )
+	protected SmartInteraction( RTIAmbassadorWrapper rtiamb, String interactionName,
+	                            Map<String,byte[]> parameters )
 	{
-		super( rtiamb.registerObjectInstance( objectClassName ), attributes );
-		this.objectClassName = objectClassName;
-		
+		super( rtiamb.getInteractionClassHandle( interactionName ), parameters );
+		this.interactionName = interactionName;
+
 		this.typeLookup = new HashMap<>();
 		initializeGettersLookup();
 	}
@@ -91,13 +91,13 @@ public abstract class SmartObject extends HLAObject
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
-	 * Provides a stringified summary of the interaction and its attributes' values
+	 * Provides a stringified summary of the interaction and its parameters' values
 	 * 
 	 * Provided primarily for logging and debugging purposes.
 	 * 
 	 * Output format is along these lines:
 	 * <pre>
-	 * OBJECT_CLASS_NAME {ATTR1_NAME: ATTR1_VALUE, ATTR2_NAME: ATTR2_VALUE, ... }  
+	 * INTERACTION_NAME {PARAM1_NAME: PARAM1_VALUE, PARAM2_NAME: PARAM2_VALUE, ... }  
 	 * </pre>
 	 * 
 	 * Strings will be quoted.
@@ -105,20 +105,20 @@ public abstract class SmartObject extends HLAObject
 	@Override
 	public String toString()
 	{
-		// grab the attribute names and sort them alphabetically; after all, some 
+		// grab the parameter names and sort them alphabetically; after all, some 
 		// poor human is (presumably) going to have to read this and easily find
-		// the attribute/value they want to check
-		List<String> attributeNames = new ArrayList<>( this.typeLookup.keySet() );
-		attributeNames.sort( null );
+		// the parameter/value they want to check
+		List<String> parameterNames = new ArrayList<>( this.typeLookup.keySet() );
+		parameterNames.sort( null );
 		
-		StringBuilder builder = new StringBuilder( this.objectClassName ).append( " {" );
-		int paramCount = attributeNames.size();
+		StringBuilder builder = new StringBuilder( this.interactionName ).append( " {" );
+		int paramCount = parameterNames.size();
 		for( int idx = 0; idx < paramCount; idx++ )
 		{
-			String attributeName = attributeNames.get( idx );
-			builder.append( attributeName ).append( ":" );
+			String parameterName = parameterNames.get( idx );
+			builder.append( parameterName ).append( ":" );
 
-			Object value = getAttribute( attributeName );
+			Object value = getParameter( parameterName );
 			if( value instanceof String )
 				builder.append( '"' ).append( value ).append( '"' );
 			else if( value instanceof Character )
@@ -158,31 +158,31 @@ public abstract class SmartObject extends HLAObject
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Obtain the value of an object attribute by name
+	 * Obtain the value of an interaction parameter by name
 	 * 
-	 * @param attributeName the name of the object attribute
-	 * @return the value associated with the object attribute (may be null if there is no
-	 *         value associated with the named object attribute)
+	 * @param parameterName the name of the interaction parameter
+	 * @return the value associated with the interaction parameter (may be null if there is no
+	 *         value associated with the named interaction parameter)
 	 */
-	protected Object getAttribute( String attributeName )
+	protected Object getParameter( String parameterName )
 	{
-		return getAttribute( attributeName, null );
+		return getParameter( parameterName, null );
 	}
 
 	/**
-	 * Obtain the value of an object attribute by name
+	 * Obtain the value of an interaction parameter by name
 	 * 
-	 * @param attributeName the name of the object attribute
+	 * @param parameterName the name of the interaction parameter
 	 * @param defaultValue the value to use if there is no value associated with the named
-	 *            object attribute
-	 * @return the value associated with the attribute, or the default value if there is no value
-	 *         associated with the named object attribute)
+	 *            interaction parameter
+	 * @return the value associated with the parameter, or the default value if there is no value
+	 *         associated with the named interaction parameter)
 	 */
-	protected Object getAttribute( String attributeName, Object defaultValue )
+	protected Object getParameter( String parameterName, Object defaultValue )
 	{
-		AttributeType kind = this.typeLookup.get( attributeName );
+		ParameterType kind = this.typeLookup.get( parameterName );
 		ValueGetter c = GettersLookup.get( kind );
-		return c == null ? defaultValue : c.get( this, attributeName );
+		return c == null ? defaultValue : c.get( this, parameterName );
 	}
 
 	/**
@@ -365,9 +365,9 @@ public abstract class SmartObject extends HLAObject
 
 	/**
 	 * Internal method to populate a map which provides associations for "getters" for each of the
-	 * various attribute types.
+	 * various parameter types.
 	 * 
-	 * The populated map then used by the {@link #getAttribute(String, Object)} method.
+	 * The populated map then used by the {@link #getParameter(String, Object)} method.
 	 * 
 	 * NOTE: for those who like patterns, this is essentially the "Command Pattern"; check here
 	 * for more details: {@link https://en.wikipedia.org/wiki/Command_pattern}
@@ -379,26 +379,26 @@ public abstract class SmartObject extends HLAObject
 		if( GettersLookup != null )
 			return;
 		
-		GettersLookup = new HashMap<AttributeType, ValueGetter>();
+		GettersLookup = new HashMap<ParameterType, ValueGetter>();
 		
-		GettersLookup.put(AttributeType.String, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsString( x ); } });
-		GettersLookup.put(AttributeType.Character, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsChar( x ); } });
-		GettersLookup.put(AttributeType.Short, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsShort( x ); } });
-		GettersLookup.put(AttributeType.Integer, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsInt( x ); } });
-		GettersLookup.put(AttributeType.Long, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsLong( x ); } });
-		GettersLookup.put(AttributeType.Float, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsFloat( x ); } });
-		GettersLookup.put(AttributeType.Double, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsDouble( x ); } });
-		GettersLookup.put(AttributeType.Boolean, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getAsBoolean( x ); } });
-		GettersLookup.put(AttributeType.Bytes, 
-		               new ValueGetter() { public Object get(HLAObject i, String x) { return i.getRawValue( x ); } });
+		GettersLookup.put(ParameterType.String, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsString( x ); } });
+		GettersLookup.put(ParameterType.Character, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsChar( x ); } });
+		GettersLookup.put(ParameterType.Short, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsShort( x ); } });
+		GettersLookup.put(ParameterType.Integer, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsInt( x ); } });
+		GettersLookup.put(ParameterType.Long, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsLong( x ); } });
+		GettersLookup.put(ParameterType.Float, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsFloat( x ); } });
+		GettersLookup.put(ParameterType.Double, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsDouble( x ); } });
+		GettersLookup.put(ParameterType.Boolean, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getAsBoolean( x ); } });
+		GettersLookup.put(ParameterType.Bytes, 
+		               new ValueGetter() { public Object get(HLAInteraction i, String x) { return i.getRawValue( x ); } });
 	}
 
 	//----------------------------------------------------------
@@ -414,18 +414,17 @@ public abstract class SmartObject extends HLAObject
 		/**
 		 * Look up a value using the given key
 		 * 
-		 * @param attributeName {@link String} the key corresponding to the desired value
+		 * @param parameterName {@link String} the key corresponding to the desired value
 		 * @return the value (possibly null) if the key does not correspond to a value
 		 */
-		Object get( HLAObject object, String attributeName );
+		Object get( HLAInteraction interaction, String parameterName );
 	}
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	
-	public static String objectClassName()
+	public static String interactionName()
 	{
-		throw new UCEFException("objectClassName() method has not been overidden");
+		throw new UCEFException("interactionName() method has not been overidden");
 	}
 }

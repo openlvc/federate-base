@@ -18,12 +18,12 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.example.smart.interactions;
 
 import java.util.Map;
 
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
+import gov.nist.ucef.hla.smart.SmartInteraction;
 
 public class Ping extends SmartInteraction
 {

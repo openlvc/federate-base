@@ -18,11 +18,12 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example;
+package gov.nist.ucef.hla.example.base;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
@@ -31,7 +32,6 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -46,7 +46,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example federate for testing
  */
-public class PingFederate extends UCEFFederateBase
+public class PongFederate extends FederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -56,16 +56,16 @@ public class PingFederate extends UCEFFederateBase
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private EncoderFactory encoder;
-	private int count;
+	private char letter;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public PingFederate( String[] args )
+	public PongFederate( String[] args )
 	{
 		super();
 		this.encoder = HLACodecUtils.getEncoder();
-		this.count = 0;
+		this.letter = 'a';
 	}
 
 	//----------------------------------------------------------
@@ -98,16 +98,16 @@ public class PingFederate extends UCEFFederateBase
 	@Override
 	public void beforeFirstStep()
 	{
-		// initialise the counter
-		this.count =  0;
+		// initialise the letter
+		this.letter = 'a';
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
 		// here we end out our interaction
-		System.out.println( "Sending Ping interaction at time " + currentTime + "..." );
-		sendInteraction( makePingInteraction( count++ ), null );
+		System.out.println( "Sending Pong interaction at time " + currentTime + "..." );
+		sendInteraction( makePongInteraction( letter++ ), null );
 		// keep going until time 10.0
 		return (currentTime < 10.0);
 	}
@@ -155,12 +155,12 @@ public class PingFederate extends UCEFFederateBase
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
-		if( PONG_INTERACTION_ID.equals( interactionName ) )
+		if( PING_INTERACTION_ID.equals( interactionName ) )
 		{
 			// Pong interaction received
-			char letter = hlaInteraction.getAsChar( PONG_PARAM_LETTER );
-			System.out.println( String.format( "Received Pong interaction - letter is %s",
-			                                    letter ) );
+			int count = hlaInteraction.getAsInt( PING_PARAM_COUNT );
+			System.out.println( String.format( "Received Ping interaction - count is %d",
+			                                    count ) );
 		}
 		else
 		{
@@ -181,12 +181,12 @@ public class PingFederate extends UCEFFederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	private HLAInteraction makePingInteraction( int count )
+	private HLAInteraction makePongInteraction( char letter )
 	{
 		Map<String,byte[]> parameters = new HashMap<>();
-		parameters.put( PING_PARAM_COUNT, 
-		                HLACodecUtils.encode( encoder, count ) );
-		return makeInteraction( PING_INTERACTION_ID, parameters );
+		parameters.put( PONG_PARAM_LETTER, 
+		                HLACodecUtils.encode( encoder, letter ) );
+		return makeInteraction( PONG_INTERACTION_ID, parameters );
 	}
 
 	//----------------------------------------------------------
@@ -205,13 +205,13 @@ public class PingFederate extends UCEFFederateBase
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
+		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
 		                                                          "PingPongFederate",     // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( PING_INTERACTION_ID );
-		config.addSubscribedInteraction( PONG_INTERACTION_ID );
+		config.addPublishedInteraction( PONG_INTERACTION_ID );
+		config.addSubscribedInteraction( PING_INTERACTION_ID );
 
 		// somebody set us up the FOM...
 		try
@@ -241,21 +241,20 @@ public class PingFederate extends UCEFFederateBase
 	{
 		System.out.println( Constants.UCEF_LOGO );
 		System.out.println();
-		System.out.println( "	       .__                " );
-		System.out.println( "	______ |__| ____    ____" );
-		System.out.println( "	\\____ \\|  |/    \\  / ___\\" );
-		System.out.println( "	|  |_> >  |   |  \\/ /_/  >" );
-		System.out.println( "	|   __/|__|___|  /\\___  /" );
-		System.out.println( "	|__|           \\//_____/" );
-		System.out.println( "	      Ping Federate" );
+		System.out.println( "	______   ____   ____    ____  " );
+		System.out.println( "	\\____ \\ /  _ \\ /    \\  / ___\\" );
+		System.out.println( "	|  |_> >  <_> )   |  \\/ /_/  >" );
+		System.out.println( "	|   __/ \\____/|___|  /\\___  /" );
+		System.out.println( "	|__|               \\//_____/" );
+		System.out.println( "	        Pong Federate" );
 		System.out.println();
-		System.out.println( "Sends 'Ping' interactions.");
-		System.out.println( "Receives 'Pong' interactions.");
+		System.out.println( "Sends 'Pong' interactions.");
+		System.out.println( "Receives 'Ping' interactions.");
 		System.out.println();
 
 		try
 		{
-			new PingFederate( args ).runFederate( makeConfig() );
+			new PongFederate( args ).runFederate( makeConfig() );
 		}
 		catch( Exception e )
 		{

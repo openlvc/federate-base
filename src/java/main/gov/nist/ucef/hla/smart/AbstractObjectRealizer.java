@@ -18,19 +18,31 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.smart;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.ucef.interaction.SmartObject;
+import gov.nist.ucef.hla.example.smart.reflections.Player;
+import gov.nist.ucef.hla.smart.AbstractInteractionRealizer.Realizer;
 import hla.rti1516e.ObjectClassHandle;
 
-
-public class ObjectRealizer
+/**
+ * An abstract class providing the base functionality for "realizing" concrete types of
+ * {@link HLAObject} instances.
+ * 
+ * This class is not instantiated directly, but instead used as a base for other classes to
+ * extend.
+ * 
+ * Classes extending this will need to provide an implementation for
+ * {@link #initializeRealizers()} to populate the realizer lookup table. Refer to the comments for
+ * that method for further details
+ */
+public abstract class AbstractObjectRealizer
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -39,13 +51,13 @@ public class ObjectRealizer
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private RTIAmbassadorWrapper rtiamb;
-	private HashMap<ObjectClassHandle,Realizer> realizerLookup;
+	protected RTIAmbassadorWrapper rtiamb;
+	protected HashMap<ObjectClassHandle,Realizer> realizerLookup;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public ObjectRealizer( RTIAmbassadorWrapper rtiamb )
+	public AbstractObjectRealizer( RTIAmbassadorWrapper rtiamb )
 	{
 		this.rtiamb = rtiamb;
 		initializeRealizers();
@@ -73,28 +85,23 @@ public class ObjectRealizer
 	}
 
 	/**
-	 * Create a specific interaction type from a generic {@HLAObject}. Possible instances are:
+	 * Create a specific attribute reflection type from a generic {@HLAObject}
 	 * 
-	 * <ul>
-	 * <li>{@link Ping}</li>
-	 * <li>{@link Pong}</li>
-	 * </ul>
-	 * 
-	 * if the {@link HLAObject} instance does not correspond to one of these, a null will be
-	 * returned.
+	 * If the {@link HLAObject} instance does not correspond a known attribute refelction, a null
+	 * will be returned.
 	 * 
 	 * @param object the {@link HLAObject} instance from which to create the
 	 *            {@link SmartObject}
 	 * @return the {@link SmartObject} instance, or null if the {@link HLAObject}
-	 *         instance does not correspond to a {@link HLAObject}.
+	 *         instance does not correspond to a known {@link HLAObject}.
 	 */
 	public SmartObject realize( HLAObject object )
 	{
 		if( object == null )
 			return null;
 		
-		ObjectClassHandle interactionKind = rtiamb.getKnownObjectClassHandle( object );
-		Realizer creator = realizerLookup.get( interactionKind );
+		ObjectClassHandle objectKind = rtiamb.getKnownObjectClassHandle( object );
+		Realizer creator = realizerLookup.get( objectKind );
 		SmartObject smartObject = creator == null ? null : creator.realize( object ); 
 		return smartObject;
 	}
@@ -103,28 +110,43 @@ public class ObjectRealizer
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Internal method to populate a map which provides associations for "creators" for each of
+	 * Base method to populate a map which provides associations for "creators" for each of
 	 * the {@link SmartObject} types.
 	 * 
 	 * The populated map then used by the {@link #realize(HLAObject)} method.
+	 * 
+	 * Classes extending this class will need to provide a fuller implementation for this 
+	 * method - the below is a simple example of what needs to be done:
+	 * 
+	 * <code>
+	 * @Override
+	 * protected void initializeRealizers()
+	 * {
+	 *      if( realizerLookup != null )
+	 *          return;
+	 * 		super.initializeRealizers();
+	 * 		
+	 * 		// get handles for attribute reflections we deal with
+	 * 		ObjectClassHandle playerObjectHandle = rtiamb.getObjectClassHandle( Player.objectClassName() );
+	 * 		
+	 * 		// associate handles with Realizer implementations
+	 * 		realizerLookup.put( playerObjectHandle, new Realizer() {
+	 *      	public SmartObject realize( HLAObject x ) { return new Player( rtiamb, mapCopy(x.getState())); }
+	 *      });
+	 * 	}
+	 * </code>
 	 * 
 	 * NOTE: for those who like patterns, this is essentially the "Command Pattern"; check here
 	 * for more details: {@link https://en.wikipedia.org/wiki/Command_pattern}
 	 * 
 	 * See {@link Realizer} interface definition.
 	 */
-	private void initializeRealizers()
+	protected void initializeRealizers()
 	{
 		if( realizerLookup != null )
 			return;
 		
 		realizerLookup = new HashMap<ObjectClassHandle, Realizer>();
-		
-		ObjectClassHandle testObjectHandle = rtiamb.getObjectClassHandle( Player.objectClassName() );
-		
-		realizerLookup.put( testObjectHandle, new Realizer() {
-			public SmartObject realize( HLAObject x ) { return new Player( rtiamb, mapCopy(x.getState()) ); }
-		});
 	}
 
 	/**
@@ -133,7 +155,7 @@ public class ObjectRealizer
 	 * @param original the original map
 	 * @return a separate, independent copy of the original map
 	 */
-	private Map<String,byte[]> mapCopy( Map<String,byte[]> original )
+	protected Map<String,byte[]> mapCopy( Map<String,byte[]> original )
 	{
 		Map<String,byte[]> copy = new HashMap<>();
 		for( Entry<String,byte[]> x : original.entrySet() )
@@ -155,7 +177,7 @@ public class ObjectRealizer
 	 * 
 	 * NOTE: Command Pattern - {@link https://en.wikipedia.org/wiki/Command_pattern}
 	 */
-	private interface Realizer
+	protected interface Realizer
 	{
 		/**
 		 * Create a {@link SmartObject} from a "generic" {@link HLAObject} instance

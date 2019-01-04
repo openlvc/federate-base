@@ -18,17 +18,27 @@
  *   specific language governing permissions and limitations
  *   under the License.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.smart;
 
 import java.util.HashMap;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.ucef.interaction.SmartInteraction;
 import hla.rti1516e.InteractionClassHandle;
 
 
-public class InteractionRealizer
+/**
+ * An abstract class providing the base functionality for "realizing" concrete types of
+ * {@link HLAInteraction} instances.
+ * 
+ * This class is not instantiated directly, but instead used as a base for other classes to
+ * extend.
+ * 
+ * Classes extending this will need to provide an implementation for
+ * {@link #initializeRealizers()} to populate the realizer lookup table. Refer to the comments for
+ * that method for further details
+ */
+public abstract class AbstractInteractionRealizer
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -37,13 +47,13 @@ public class InteractionRealizer
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private RTIAmbassadorWrapper rtiamb;
-	private HashMap<InteractionClassHandle,Realizer> realizerLookup;
+	protected RTIAmbassadorWrapper rtiamb;
+	protected HashMap<InteractionClassHandle,Realizer> realizerLookup;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public InteractionRealizer( RTIAmbassadorWrapper rtiamb )
+	public AbstractInteractionRealizer( RTIAmbassadorWrapper rtiamb )
 	{
 		this.rtiamb = rtiamb;
 		initializeRealizers();
@@ -71,22 +81,17 @@ public class InteractionRealizer
 	}
 
 	/**
-	 * Create a specific interaction type from a generic {@HLAInteraction}. Possible instances are:
+	 * Create a specific interaction type from a generic {@HLAInteraction}
 	 * 
-	 * <ul>
-	 * <li>{@link Ping}</li>
-	 * <li>{@link Pong}</li>
-	 * </ul>
-	 * 
-	 * if the {@link HLAInteraction} instance does not correspond to one of these, a null will be
-	 * returned.
+	 * If the {@link HLAInteraction} instance does not correspond a known interaction, a null will
+	 * be returned.
 	 * 
 	 * @param interaction the {@link HLAInteraction} instance from which to create the
 	 *            {@link SmartInteraction}
 	 * @return the {@link SmartInteraction} instance, or null if the {@link HLAInteraction}
-	 *         instance does not correspond to a {@link HLAInteraction}.
+	 *         instance does not correspond to a known {@link HLAInteraction}.
 	 */
-	public SmartInteraction create( HLAInteraction interaction )
+	public SmartInteraction realize( HLAInteraction interaction )
 	{
 		if( interaction == null )
 			return null;
@@ -101,32 +106,47 @@ public class InteractionRealizer
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Internal method to populate a map which provides associations for "creators" for each of
+	 * Base method to populate a map which provides associations for "creators" for each of
 	 * the {@link SmartInteraction} types.
 	 * 
-	 * The populated map then used by the {@link #create(HLAInteraction)} method.
+	 * The populated map then used by the {@link #realize(HLAInteraction)} method.
+	 * 
+	 * Classes extending this class will need to provide a fuller implementation for this 
+	 * method - the below is a simple example of what needs to be done:
+	 * 
+	 * <code>
+	 * @Override
+	 * protected void initializeRealizers()
+	 * {
+	 *      if( realizerLookup != null )
+	 *          return;
+	 * 		super.initializeRealizers();
+	 * 		
+	 * 		// get handles for interactions we deal with
+	 * 		InteractionClassHandle pingHandle = rtiamb.getInteractionClassHandle( Ping.interactionName() );
+	 * 		InteractionClassHandle pongHandle = rtiamb.getInteractionClassHandle( Pong.interactionName() );
+	 * 		
+	 * 		// associate handles with Realizer implementations
+	 * 		realizerLookup.put( pingHandle, new Realizer() {
+	 *      	public SmartInteraction realize( HLAInteraction x ) { return new Ping( rtiamb, x.getState() ); }
+	 *      });
+	 * 		realizerLookup.put( pongHandle, new Realizer() {
+	 * 			public SmartInteraction realize( HLAInteraction x ) { return new Pong( rtiamb, x.getState() ); } 
+	 * 		});
+	 * 	}
+	 * </code>
 	 * 
 	 * NOTE: for those who like patterns, this is essentially the "Command Pattern"; check here
 	 * for more details: {@link https://en.wikipedia.org/wiki/Command_pattern}
 	 * 
 	 * See {@link Realizer} interface definition.
 	 */
-	private void initializeRealizers()
+	protected void initializeRealizers()
 	{
 		if( realizerLookup != null )
 			return;
 		
 		realizerLookup = new HashMap<InteractionClassHandle, Realizer>();
-		
-		InteractionClassHandle pingHandle = rtiamb.getInteractionClassHandle( Ping.interactionName() );
-		InteractionClassHandle pongHandle = rtiamb.getInteractionClassHandle( Pong.interactionName() );
-		
-		realizerLookup.put( pingHandle, new Realizer() {
-			public SmartInteraction realize( HLAInteraction x ) { return new Ping( rtiamb, x.getState() ); }
-		});
-		realizerLookup.put( pongHandle, new Realizer() {
-			public SmartInteraction realize( HLAInteraction x ) { return new Pong( rtiamb, x.getState() ); } 
-		});
 	}
 
 	//----------------------------------------------------------
@@ -138,7 +158,7 @@ public class InteractionRealizer
 	 * 
 	 * NOTE: Command Pattern - {@link https://en.wikipedia.org/wiki/Command_pattern}
 	 */
-	private interface Realizer
+	protected interface Realizer
 	{
 		/**
 		 * Create a {@link SmartInteraction} from a "generic" {@link HLAInteraction} instance

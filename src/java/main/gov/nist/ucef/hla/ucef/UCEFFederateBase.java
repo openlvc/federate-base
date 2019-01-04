@@ -20,8 +20,13 @@
  */
 package gov.nist.ucef.hla.ucef;
 
+import gov.nist.ucef.hla.base.FederateAmbassador;
 import gov.nist.ucef.hla.base.FederateBase;
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.base.UCEFException;
+import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
@@ -45,12 +50,70 @@ public abstract class UCEFFederateBase extends FederateBase
 	public UCEFFederateBase()
 	{
 		super();
-		this.ucefInteractionRealizer = new UCEFInteractionRealizer( rtiamb );
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	/**
+	 * This is the main method which carries out the life cycle of the federate
+	 * 
+	 * @param configuration the configuration for the federate
+	 */
+	public void runFederate( FederateConfiguration configuration )
+	{
+		// sanity check
+		if(configuration == null)
+			throw new UCEFException("Federate configuration cannot be null.");
+			
+		this.configuration = configuration;
+
+		this.rtiamb = new RTIAmbassadorWrapper();
+		this.fedamb = new FederateAmbassador( this );
+		
+		this.ucefInteractionRealizer = new UCEFInteractionRealizer( rtiamb );
+
+		super.createAndJoinFederation();
+		enableTimePolicy();
+		
+		publishAndSubscribe();
+
+		beforeReadyToPopulate();
+		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
+
+		beforeReadyToRun();
+		synchronize( UCEFSyncPoint.READY_TO_RUN );
+		
+		beforeFirstStep();
+
+		double currentTime = 0.0;
+		double timeStep = configuration.getLookAhead();
+		while( true )
+		{
+			currentTime = fedamb.getFederateTime();
+
+			// next step
+			if( step( currentTime ) == false )
+				break;
+
+			// advance, or tick, or nothing!
+			if( configuration.isTimeStepped() )
+				advanceTime( currentTime + timeStep );
+			else if( configuration.callbacksAreEvoked() )
+				evokeMultipleCallbacks();
+			else
+				;
+		}
+
+		disableTimePolicy();
+
+		beforeReadyToResign();
+		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
+		beforeExit();
+
+		resignAndDestroyFederation();
+	}
+	
 	/**
 	 * Override to provide handling for UCEF specific interaction types
 	 */
