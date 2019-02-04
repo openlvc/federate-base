@@ -14,10 +14,10 @@ using namespace base::util;
 
 namespace base
 {
-	FederateAmbassador::FederateAmbassador( FederateBase* federateBase ) : m_regulated( false ),
-	                                                                       m_constrained( false ),
-	                                                                       m_federateTime( 0.0 ),
-	                                                                       m_federateBase( federateBase )
+	FederateAmbassador::FederateAmbassador( FederateBase* federateBase ) : regulated( false ),
+	                                                                       constrained( false ),
+	                                                                       federateTime( 0.0 ),
+	                                                                       federateBase( federateBase )
 	{
 	}
 
@@ -36,7 +36,7 @@ namespace base
 			// may be we can achieve this immediately
 			return;
 		}
-		lock_guard<mutex> lock( m_threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 
 		string sLabel = ConversionHelper::ws2s( label );
 		if( announcedSynchPoints.find(sLabel) == announcedSynchPoints.end() )
@@ -48,7 +48,7 @@ namespace base
 	                                                 const FederateHandleSet& failedSet )
 	                                                             throw( FederateInternalError )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		string sLabel = ConversionHelper::ws2s( label );
 		if( achievedSynchPoints.find(sLabel) == achievedSynchPoints.end() )
 			achievedSynchPoints.insert( sLabel );
@@ -57,24 +57,24 @@ namespace base
 	void FederateAmbassador::timeRegulationEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		setTimeRegulatedFlag( true );
-		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
+		this->federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
 	void FederateAmbassador::timeConstrainedEnabled( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		setTimeConstrainedFlag( true );
-		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
+		this->federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
 	void FederateAmbassador::timeAdvanceGrant( const LogicalTime& theFederateTime )
 	                                                              throw( FederateInternalError )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		this->m_federateTime = logicalTimeAsDouble( theFederateTime );
+		lock_guard<mutex> lockGuard( threadSafeLock );
+		this->federateTime = logicalTimeAsDouble( theFederateTime );
 	}
 
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
@@ -82,7 +82,7 @@ namespace base
 	                                                 const wstring& theObjectName )
 	                                                              throw( FederateInternalError )
 	{
-		m_federateBase->incomingObjectRegistration( theObject.hash(), theObjectClass.hash() );
+		federateBase->incomingObjectRegistration( theObject.hash(), theObjectClass.hash() );
 	}
 
 	void FederateAmbassador::discoverObjectInstance( ObjectInstanceHandle theObject,
@@ -102,7 +102,7 @@ namespace base
 	                                                 SupplementalReflectInfo theReflectInfo )
 	                                                              throw( FederateInternalError )
 	{
-		m_federateBase->incomingAttributeReflection( theObject.hash(), theAttributeValues );
+		federateBase->incomingAttributeReflection( theObject.hash(), theAttributeValues );
 	}
 
 	void FederateAmbassador::reflectAttributeValues( ObjectInstanceHandle theObject,
@@ -140,7 +140,7 @@ namespace base
 	{
 		if( theObject.isValid() )
 		{
-			m_federateBase->incomingObjectDeletion( theObject.hash() );
+			federateBase->incomingObjectDeletion( theObject.hash() );
 		}
 		else
 		{
@@ -180,7 +180,7 @@ namespace base
 	                                             SupplementalReceiveInfo theReceiveInfo )
 	                                                               throw( FederateInternalError )
 	{
-		m_federateBase->incomingInteraction( theInteraction.hash(), theParameters );
+		federateBase->incomingInteraction( theInteraction.hash(), theParameters );
 	}
 
 	void FederateAmbassador::receiveInteraction( InteractionClassHandle theInteraction,
@@ -212,44 +212,44 @@ namespace base
 
 	bool FederateAmbassador::isAnnounced( string& announcedPoint )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		bool announced = announcedSynchPoints.find( announcedPoint ) == announcedSynchPoints.end() ? false : true;
 		return announced;
 	}
 
 	bool FederateAmbassador::isAchieved( string& achievedPoint )
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
+		lock_guard<mutex> lockGuard( threadSafeLock );
 		bool achieved = achievedSynchPoints.find( achievedPoint ) == achievedSynchPoints.end() ? false : true;
 		return achieved;
 	}
 
 	bool FederateAmbassador::isTimeRegulated()
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		return m_regulated;
+		lock_guard<mutex> lockGuard( threadSafeLock );
+		return regulated;
 	}
 
 	void FederateAmbassador::setTimeRegulatedFlag( bool flag )
 	{
-		m_regulated = flag;
+		regulated = flag;
 	}
 
 	bool FederateAmbassador::isTimeConstrained()
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		return m_constrained;
+		lock_guard<mutex> lockGuard( threadSafeLock );
+		return constrained;
 	}
 
 	void FederateAmbassador::setTimeConstrainedFlag( bool flag )
 	{
-		m_constrained = flag;
+		constrained = flag;
 	}
 
 	double FederateAmbassador::getFederateTime()
 	{
-		lock_guard<mutex> lockGuard( m_threadSafeLock );
-		return m_federateTime;
+		lock_guard<mutex> lockGuard( threadSafeLock );
+		return federateTime;
 	}
 	
 	double FederateAmbassador::logicalTimeAsDouble( const LogicalTime& time )

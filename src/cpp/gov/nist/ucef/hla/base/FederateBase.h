@@ -185,14 +185,14 @@ namespace base
 			inline void tickForCallBacks();
 
 		protected:
-			std::unique_ptr<RTIAmbassadorWrapper> m_rtiAmbassadorWrapper;
-			std::shared_ptr<FederateAmbassador> m_federateAmbassador;
+			std::unique_ptr<RTIAmbassadorWrapper> rtiAmbassadorWrapper;
+			std::shared_ptr<FederateAmbassador> federateAmbassador;
 			std::mutex m_threadSafeLock;
 
 		private:
-			base::ObjectDataStoreByHash m_objectDataStoreByHash;
-			base::InteractionDataStoreByHash m_interactionDataStoreByHash;
-			base::ObjectDataStoreByInstance m_objectDataStoreByInstance;
-			std::shared_ptr<base::FederateConfiguration> m_ucefConfig;
+			base::ObjectDataStoreByHash objectDataStoreByHash;
+			base::InteractionDataStoreByHash interactionDataStoreByHash;
+			base::ObjectDataStoreByInstance objectDataStoreByInstance;
+			std::shared_ptr<base::FederateConfiguration> ucefConfig;
 	};
 }

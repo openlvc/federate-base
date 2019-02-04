@@ -248,17 +248,17 @@ namespace base
 			virtual std::vector<std::string> getParameterNames( const std::string& interactionName );
 
 		private:
-			std::string m_federationName;
-			std::string m_federateName;
-			std::string m_federateType;
-			std::vector<std::string> m_foms;
-			std::string m_som;
-			float m_lookAhead;
-			float m_stepSize;
-			bool m_immediateCallBacks;
-			bool m_timeRegulated;
-			bool m_timeConstrained;
-			ObjectDataStoreByName m_objectDataStoreByName;
-			InteractionDataStoreByName m_interactionDataStoreByName;
+			std::string federationName;
+			std::string federateName;
+			std::string federateType;
+			std::vector<std::string> foms;
+			std::string som;
+			float lookAhead;
+			float stepSize;
+			bool immediateCallBacks;
+			bool timeRegulated;
+			bool timeConstrained;
+			ObjectDataStoreByName objectDataStoreByName;
+			InteractionDataStoreByName interactionDataStoreByName;
 	};
 }

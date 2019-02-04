@@ -15,10 +15,10 @@ using namespace base::util;
 namespace base
 {
 	HLAObject::HLAObject( const string& objectClassName,
-	                      long instanceId ) : m_className( objectClassName ),
-	                                          m_instanceId( instanceId )
+	                      long id ) : className( objectClassName ),
+	                                          instanceId( id )
 	{
-		m_attributeDataStore = make_shared<HLAObjectAttributes>();
+		attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
 
 	HLAObject::~HLAObject()
@@ -28,7 +28,7 @@ namespace base
 	
 	bool HLAObject::isAttribute( const string& attributeName ) const
 	{
-		bool flag = m_attributeDataStore->find( attributeName ) == m_attributeDataStore->end() ? false : true;
+		bool flag = attributeDataStore->find( attributeName ) == attributeDataStore->end() ? false : true;
 		return flag;
 	}
 
@@ -78,8 +78,8 @@ namespace base
 	                          shared_ptr<void> data,
 	                          const size_t size )
 	{
-		auto it = m_attributeDataStore->find( attributeName );
-		if( it != m_attributeDataStore->end() )
+		auto it = attributeDataStore->find( attributeName );
+		if( it != attributeDataStore->end() )
 		{
 			it->second.data = data;
 			it->second.size = size;
@@ -89,7 +89,7 @@ namespace base
 			VariableData variableData;
 			variableData.data = data;
 			variableData.size = size;
-			m_attributeDataStore->insert( pair<string, VariableData>( attributeName, variableData) );
+			attributeDataStore->insert( pair<string, VariableData>( attributeName, variableData) );
 		}
 	}
 
@@ -192,8 +192,8 @@ namespace base
 		VariableData data;
 		data.data = nullptr;
 		data.size = 0;
-		auto it = m_attributeDataStore->find( attributeName );
-		if( it != m_attributeDataStore->end() )
+		auto it = attributeDataStore->find( attributeName );
+		if( it != attributeDataStore->end() )
 		{
 			data = it->second;
 		}
@@ -203,7 +203,7 @@ namespace base
 	vector<string> HLAObject::getAttributeNames() const
 	{
 		vector<string> attributeNameList;
-		HLAObjectAttributes &store = *m_attributeDataStore;
+		HLAObjectAttributes &store = *attributeDataStore;
 		for( auto kv : store)
 		{
 			attributeNameList.emplace_back( kv.first );
@@ -213,16 +213,16 @@ namespace base
 
 	void HLAObject::clear()
 	{
-		m_attributeDataStore->clear();
+		attributeDataStore->clear();
 	}
 
 	std::string HLAObject::getClassName() const
 	{
-		return m_className;
+		return className;
 	}
 
 	long HLAObject::getInstanceId()
 	{
-		return m_instanceId;
+		return instanceId;
 	}
 }

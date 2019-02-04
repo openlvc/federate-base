@@ -274,11 +274,11 @@ namespace base
 
 			// stores attribute names and values that required publising or
 			// received in an object update.
-			std::shared_ptr<HLAObjectAttributes> m_attributeDataStore;
+			std::shared_ptr<HLAObjectAttributes> attributeDataStore;
 			// holds the fully qulified name of this class
-			std::string m_className;
+			std::string className;
 			// holds the unique id of an instance of this class
-			long m_instanceId;
+			long instanceId;
 	};
 }
 

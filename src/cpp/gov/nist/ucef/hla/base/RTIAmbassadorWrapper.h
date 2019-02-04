@@ -311,8 +311,8 @@ namespace base
 			//----------------------------------------------------------
 			//             Private members
 			//----------------------------------------------------------
-			std::unique_ptr<rti1516e::RTIambassador> m_rtiAmbassador;
+			std::unique_ptr<rti1516e::RTIambassador> rtiAmbassador;
 			// to resolve object instance handle from the instance hash of an outgoing object
-			base::ObjectInstanceStoreByHash m_instanceStoreByHash;
+			base::ObjectInstanceStoreByHash instanceStoreByHash;
 	};
 }

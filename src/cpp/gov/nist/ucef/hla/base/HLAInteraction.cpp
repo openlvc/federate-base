@@ -15,9 +15,9 @@ using namespace base::util;
 namespace base
 {
 	HLAInteraction::HLAInteraction
-	                    ( const string& interactionClassName ) : m_interactionClassName( interactionClassName )
+	                    ( const string& className ) : interactionClassName( className )
 	{
-		m_parameterDataStore = make_shared<HLAInteractionParameters>();
+		this->parameterDataStore = make_shared<HLAInteractionParameters>();
 	}
 
 	HLAInteraction::~HLAInteraction()
@@ -26,7 +26,7 @@ namespace base
 
 	bool HLAInteraction::isParameter( const string& attributeName ) const
 	{
-		bool flag = m_parameterDataStore->find( attributeName ) == m_parameterDataStore->end() ? false : true;
+		bool flag = parameterDataStore->find( attributeName ) == parameterDataStore->end() ? false : true;
 		return flag;
 	}
 
@@ -76,17 +76,17 @@ namespace base
 	                               shared_ptr<void> data,
 	                               const size_t size )
 	{
-		if( m_parameterDataStore->find( parameterName ) != m_parameterDataStore->end() )
+		if( parameterDataStore->find( parameterName ) != parameterDataStore->end() )
 		{
-			(*m_parameterDataStore)[parameterName].data = data;
-			(*m_parameterDataStore)[parameterName].size = size;
+			(*parameterDataStore)[parameterName].data = data;
+			(*parameterDataStore)[parameterName].size = size;
 		}
 		else
 		{
 			VariableData variableData;
 			variableData.data = data;
 			variableData.size = size;
-			m_parameterDataStore->insert( pair<string, VariableData>( parameterName, variableData) );
+			parameterDataStore->insert( pair<string, VariableData>( parameterName, variableData) );
 		}
 	}
 
@@ -192,8 +192,8 @@ namespace base
 		VariableData data;
 		data.data = nullptr;
 		data.size = 0;
-		auto it = m_parameterDataStore->find( parameterName );
-		if( it != m_parameterDataStore->end() )
+		auto it = parameterDataStore->find( parameterName );
+		if( it != parameterDataStore->end() )
 		{
 			data = it->second;
 		}
@@ -203,7 +203,7 @@ namespace base
 	vector<string> HLAInteraction::getParameterNames() const
 	{
 		vector<string> paramNameList;
-		HLAInteractionParameters &store = *m_parameterDataStore;
+		HLAInteractionParameters &store = *parameterDataStore;
 		for( auto kv : store)
 		{
 			paramNameList.emplace_back(kv.first);
@@ -213,11 +213,11 @@ namespace base
 
 	std::string HLAInteraction::getInteractionClassName() const
 	{
-		return m_interactionClassName;
+		return interactionClassName;
 	}
 
 	void HLAInteraction::clear()
 	{
-		m_parameterDataStore->clear();
+		parameterDataStore->clear();
 	}
 }

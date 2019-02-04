@@ -24,9 +24,9 @@ using namespace base::util;
 namespace base
 {
 
-	FederateBase::FederateBase() : m_rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
-	                               m_federateAmbassador( make_shared<FederateAmbassador>(this) ),
-	                               m_ucefConfig( make_shared<FederateConfiguration>() )
+	FederateBase::FederateBase() : rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
+	                               federateAmbassador( make_shared<FederateAmbassador>(this) ),
+	                               ucefConfig( make_shared<FederateConfiguration>() )
 	{
 
 	}
@@ -67,7 +67,7 @@ namespace base
 
 		while( true )
 		{
-			if( step( m_federateAmbassador->getFederateTime() ) == false )
+			if( step( federateAmbassador->getFederateTime() ) == false )
 				break;
 			advanceTime();
 		}
@@ -89,15 +89,15 @@ namespace base
 
 	shared_ptr<FederateConfiguration> FederateBase::getFederateConfiguration()
 	{
-		return m_ucefConfig;
+		return ucefConfig;
 	}
 
 	void FederateBase::connectToRti()
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->connect( m_federateAmbassador, m_ucefConfig->isImmediate() );
-			Logger::getInstance().log( m_ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
+			rtiAmbassadorWrapper->connect( federateAmbassador, ucefConfig->isImmediate() );
+			Logger::getInstance().log( ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
 		} 
 		catch( UCEFException& )
 		{
@@ -109,8 +109,8 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->createFederation( m_ucefConfig->getFederationName(),  m_ucefConfig->getFomPaths() );
-			Logger::getInstance().log( "Federation " + m_ucefConfig->getFederationName() + " created.", LevelInfo );
+			rtiAmbassadorWrapper->createFederation( ucefConfig->getFederationName(),  ucefConfig->getFomPaths() );
+			Logger::getInstance().log( "Federation " + ucefConfig->getFederationName() + " created.", LevelInfo );
 		}
 		catch( UCEFException& )
 		{
@@ -122,11 +122,11 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassadorWrapper->joinFederation( m_ucefConfig->getFederateName(),
-			                                        m_ucefConfig->getFederateType(),
-			                                        m_ucefConfig->getFederationName());
-			Logger::getInstance().log( m_ucefConfig->getFederateName() + " joined the federation " +
-			                           m_ucefConfig->getFederationName() + ".", LevelInfo );
+			rtiAmbassadorWrapper->joinFederation( ucefConfig->getFederateName(),
+			                                      ucefConfig->getFederateType(),
+			                                      ucefConfig->getFederationName() );
+			Logger::getInstance().log( ucefConfig->getFederateName() + " joined the federation " +
+			                           ucefConfig->getFederationName() + ".", LevelInfo );
 		}
 		catch( UCEFException& )
 		{
@@ -138,40 +138,40 @@ namespace base
 	{
 		Logger& logger = Logger::getInstance();
 
-		if( m_ucefConfig->isTimeRegulated() )
+		if( ucefConfig->isTimeRegulated() )
 		{
 			logger.log( string("Inform time policy - regulated to RTI."), LevelInfo );
 
 			try
 			{
-				m_rtiAmbassadorWrapper->enableTimeRegulation( m_ucefConfig->getLookAhead() );
+				rtiAmbassadorWrapper->enableTimeRegulation( ucefConfig->getLookAhead() );
 			}
 			catch( UCEFException& )
 			{
 				throw;
 			}
 
-			while( !m_federateAmbassador->isTimeRegulated() )
+			while( !federateAmbassador->isTimeRegulated() )
 			{
 				tickForCallBacks();
 			}
 			logger.log( string("RTI acknowledged time policy - regulated"), LevelInfo );
 		}
 
-		if( m_ucefConfig->isTimeConstrained() )
+		if( ucefConfig->isTimeConstrained() )
 		{
 			logger.log( string("Inform time policy - constrain to RTI."), LevelInfo );
 
 			try
 			{
-				m_rtiAmbassadorWrapper->enableTimeConstrained();
+				rtiAmbassadorWrapper->enableTimeConstrained();
 			}
 			catch( UCEFException& )
 			{
 				throw;
 			}
 
-			while( !m_federateAmbassador->isTimeConstrained() )
+			while( !federateAmbassador->isTimeConstrained() )
 			{
 				tickForCallBacks();
 			}
@@ -183,14 +183,14 @@ namespace base
 	{
 		Logger& logger = Logger::getInstance();
 
-		if( m_ucefConfig->isTimeRegulated() )
+		if( ucefConfig->isTimeRegulated() )
 		{
 			logger.log( string("Disable time policy - regulated"), LevelInfo );
 
 			try
 			{
-				m_rtiAmbassadorWrapper->disableTimeRegulation();
-				m_federateAmbassador->setTimeRegulatedFlag( false );
+				rtiAmbassadorWrapper->disableTimeRegulation();
+				federateAmbassador->setTimeRegulatedFlag( false );
 			}
 			catch( UCEFException& )
 			{
@@ -198,14 +198,14 @@ namespace base
 			}
 		}
 
-		if( m_ucefConfig->isTimeConstrained() )
+		if( ucefConfig->isTimeConstrained() )
 		{
 			logger.log( string("Disable time policy - constrained"), LevelInfo );
 
 			try
 			{
-				m_rtiAmbassadorWrapper->disableTimeConstrained();
-				m_federateAmbassador->setTimeConstrainedFlag( false );
+				rtiAmbassadorWrapper->disableTimeConstrained();
+				federateAmbassador->setTimeConstrainedFlag( false );
 			}
 			catch( UCEFException& )
 			{
@@ -217,26 +217,26 @@ namespace base
 	void FederateBase::publishAndSubscribe()
 	{
 		Logger& logger = Logger::getInstance();
-		vector<string> somPaths = m_ucefConfig->getSomPaths();
+		vector<string> somPaths = ucefConfig->getSomPaths();
 		// note: currently SOM parser can only accommodate a single SOM file
 		if( somPaths.size() )
 		{
 			// parse the SOM file and build up the HLA object classes
 			vector<shared_ptr<ObjectClass>> objectClasses = SOMParser::getObjectClasses( somPaths[0] );
-			logger.log(string("Inform RTI about publishing and subscribing classes"), LevelInfo);
+			logger.log( string("Inform RTI about publishing and subscribing classes"), LevelInfo );
 
-			publishObjectClassAttributes(objectClasses);
-			subscribeObjectClassAttributes(objectClasses);
-			storeObjectClassData(objectClasses);
+			publishObjectClassAttributes( objectClasses );
+			subscribeObjectClassAttributes (objectClasses );
+			storeObjectClassData( objectClasses );
 
 			// parse the SOM file and build up the HLA object classes
 			vector<shared_ptr<InteractionClass>> interactionClasses =
 				SOMParser::getInteractionClasses( somPaths[0] );
 			logger.log(string("Inform RTI about publishing and subscribing interactions"), LevelInfo);
 
-			publishInteractionClasses(interactionClasses);
-			subscribeInteractionClasses(interactionClasses);
-			storeInteractionClassData(interactionClasses);
+			publishInteractionClasses( interactionClasses );
+			subscribeInteractionClasses( interactionClasses );
+			storeInteractionClassData( interactionClasses );
 		}
 	}
 
@@ -247,14 +247,14 @@ namespace base
 		// announce synch point
 		try
 		{
-			m_rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPointStr );
+			rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPointStr );
 		}
 		catch( UCEFException& )
 		{
 			throw;
 		}
 
-		while( !m_federateAmbassador->isAnnounced(synchPointStr) )
+		while( !federateAmbassador->isAnnounced(synchPointStr) )
 		{
 			logger.log( "Waiting for the announcement of synchronization Point " +
 			            ConversionHelper::SynchPointToString(point), LevelInfo );
@@ -267,14 +267,14 @@ namespace base
 		// immedietly acheive the announced synch point
 		try
 		{
-			m_rtiAmbassadorWrapper->synchronizationPointAchieved( synchPointStr );
+			rtiAmbassadorWrapper->synchronizationPointAchieved( synchPointStr );
 		}
 		catch( UCEFException& )
 		{
 			throw;
 		}
 
-		while( !m_federateAmbassador->isAchieved(synchPointStr) )
+		while( !federateAmbassador->isAchieved(synchPointStr) )
 		{
 			logger.log( "Waiting for the federation to synchronise to " +
 			            ConversionHelper::SynchPointToString(point), LevelInfo );
@@ -289,10 +289,10 @@ namespace base
 	{
 		Logger& logger = Logger::getInstance();
 
-		double requestedTime = m_federateAmbassador->getFederateTime() + m_ucefConfig->getTimeStep();
+		double requestedTime = federateAmbassador->getFederateTime() + ucefConfig->getTimeStep();
 		try
 		{
-			m_rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
+			rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
 		}
 		catch( UCEFException& )
 		{
@@ -300,7 +300,7 @@ namespace base
 		}
 
 		// wait for the rti grant the requested time advancement
-		while( m_federateAmbassador->getFederateTime() < requestedTime )
+		while( federateAmbassador->getFederateTime() < requestedTime )
 		{
 			logger.log( "Waiting for the logical time of this federate to advance to " +
 			            to_string( requestedTime ), LevelInfo );
@@ -320,9 +320,9 @@ namespace base
 		{
 			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
 			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelInfo );
-			m_objectDataStoreByInstance[objectInstanceHash] = objectClass;
+			objectDataStoreByInstance[objectInstanceHash] = objectClass;
 			receivedObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
-			                            m_federateAmbassador->getFederateTime() );
+			                            federateAmbassador->getFederateTime() );
 
 		}
 		else
@@ -343,7 +343,7 @@ namespace base
 			logger.log( "Received attribute update for " + objectClass->name, LevelInfo );
 			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name , objectInstanceHash );
 
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( !classHandle.isValid() )
 			{
 				logger.log( "No valid class handle found for the received attribute update of " +
@@ -353,7 +353,7 @@ namespace base
 
 			for( auto& incomingAttributeValue : attributeValues )
 			{
-				string attName = m_rtiAmbassadorWrapper->getAttributeName( classHandle, incomingAttributeValue.first );
+				string attName = rtiAmbassadorWrapper->getAttributeName( classHandle, incomingAttributeValue.first );
 				if( attName == "" )
 				{
 					logger.log( "No valid attribute name found for the received attribute with id : " +
@@ -368,7 +368,7 @@ namespace base
 				hlaObject->setValue( attName, arr, size );
 			}
 			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
-			                             m_federateAmbassador->getFederateTime() );
+			                             federateAmbassador->getFederateTime() );
 		}
 		else
 		{
@@ -387,7 +387,7 @@ namespace base
 		{
 			shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
 			InteractionClassHandle interactionHandle =
-				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+				rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( !interactionHandle.isValid() )
 			{
 				logger.log( "No valid interaction handle found for the received interaction of " +
@@ -398,7 +398,7 @@ namespace base
 			for( auto& incomingParameterValue : parameterValues )
 			{
 				string paramName =
-					m_rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
+					rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
 				if( paramName == "" )
 				{
 					logger.log( "No valid parameter name found for the received parameter with id : " +
@@ -413,7 +413,7 @@ namespace base
 				hlaInteraction->setValue( paramName, arr, size );
 			}
 			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
-			                     m_federateAmbassador->getFederateTime() );
+			                     federateAmbassador->getFederateTime() );
 		}
 		else
 		{
@@ -446,34 +446,34 @@ namespace base
 	
 	shared_ptr<ObjectClass> FederateBase::getObjectClassByClassHandle( long hash )
 	{
-		if( m_objectDataStoreByHash.find( hash ) != m_objectDataStoreByHash.end() )
+		if( objectDataStoreByHash.find( hash ) != objectDataStoreByHash.end() )
 		{
-			return m_objectDataStoreByHash[hash];
+			return objectDataStoreByHash[hash];
 		}
 		return nullptr;
 	}
 
 	shared_ptr<ObjectClass> FederateBase::getObjectClassByInstanceHandle( long hash )
 	{
-		if( m_objectDataStoreByInstance.find( hash ) != m_objectDataStoreByInstance.end() )
+		if( objectDataStoreByInstance.find( hash ) != objectDataStoreByInstance.end() )
 		{
-			return m_objectDataStoreByInstance[hash];
+			return objectDataStoreByInstance[hash];
 		}
 		return nullptr;
 	}
 
 	bool FederateBase::deleteIncomingInstanceHandle( long hash )
 	{
-		size_t deletedCount = m_objectDataStoreByInstance.erase( hash );
+		size_t deletedCount = objectDataStoreByInstance.erase( hash );
 		bool success = deletedCount ? true : false;
 		return success;
 	}
 
 	shared_ptr<InteractionClass> FederateBase::getInteractionClass( long hash )
 	{
-		if( m_interactionDataStoreByHash.find( hash ) != m_interactionDataStoreByHash.end() )
+		if( interactionDataStoreByHash.find( hash ) != interactionDataStoreByHash.end() )
 		{
-			return m_interactionDataStoreByHash[hash];
+			return interactionDataStoreByHash[hash];
 		}
 		return nullptr;
 	}
@@ -484,18 +484,18 @@ namespace base
 		//----------------------------------------------------------
 		//            delete object instance handles
 		//----------------------------------------------------------
-		logger.log( string("Federate ") + m_ucefConfig->getFederateName()  + " resigning from federation " +
-		            m_ucefConfig->getFederationName(), LevelInfo );
+		logger.log( string("Federate ") + ucefConfig->getFederateName()  + " resigning from federation " +
+		            ucefConfig->getFederationName(), LevelInfo );
 		try
 		{
-			m_rtiAmbassadorWrapper->resign();
+			rtiAmbassadorWrapper->resign();
 		}
 		catch( UCEFException& )
 		{
 			throw;
 		}
-		logger.log( string("Federate ") + m_ucefConfig->getFederateName() + " resigned from federation " +
-		            m_ucefConfig->getFederationName(), LevelInfo );
+		logger.log( string("Federate ") + ucefConfig->getFederateName() + " resigned from federation " +
+		            ucefConfig->getFederationName(), LevelInfo );
 	}
 
 	//----------------------------------------------------------
@@ -511,13 +511,13 @@ namespace base
 		for( auto& objectClass : objectClasses )
 		{
 			// store ObjectClass in m_objectCacheStoreByName for later use
-			m_ucefConfig->cacheObjectClass( objectClass );
+			ucefConfig->cacheObjectClass( objectClass );
 
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( classHandle.isValid() )
 			{
 				// store the ObjectClass in m_objectCacheStoreByHash for later use
-				m_objectDataStoreByHash.insert( make_pair( classHandle.hash(), objectClass ) );
+				objectDataStoreByHash.insert( make_pair( classHandle.hash(), objectClass ) );
 			}
 		}
 	}
@@ -531,7 +531,7 @@ namespace base
 		Logger& logger = Logger::getInstance();
 		for( auto objectClass : objectClasses )
 		{
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( !classHandle.isValid() )
 			{
 				continue;
@@ -543,7 +543,7 @@ namespace base
 			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
-				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
+				AttributeHandle attHandle = rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
 				if( !attHandle.isValid() )
 				{
 					continue;
@@ -555,8 +555,8 @@ namespace base
 					pubAttributes.insert( attHandle );
 				}
 			}
-			m_rtiAmbassadorWrapper->publishObjectClassAttributes( classHandle,
-			                                                      pubAttributes );
+			rtiAmbassadorWrapper->publishObjectClassAttributes( classHandle,
+			                                                    pubAttributes );
 		}
 	}
 
@@ -569,7 +569,7 @@ namespace base
 		Logger& logger = Logger::getInstance();
 		for( auto objectClass : objectClasses )
 		{
-			ObjectClassHandle classHandle = m_rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
 			if( !classHandle.isValid() )
 			{
 				logger.log( "Received an invalid handle for " + objectClass->name  + ", something went wrong.",
@@ -583,7 +583,7 @@ namespace base
 			for( auto& attributePair : objectAtributes )
 			{
 				shared_ptr<ObjectAttribute> attribute = attributePair.second;
-				AttributeHandle attHandle = m_rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
+				AttributeHandle attHandle = rtiAmbassadorWrapper->getAttributeHandle( classHandle, attribute->name );
 				if( !attHandle.isValid() )
 				{
 					logger.log( "Received an invalid attribute handle for " + attribute->name +
@@ -598,8 +598,8 @@ namespace base
 				}
 			}
 
-			m_rtiAmbassadorWrapper->subscribeObjectClassAttributes( classHandle,
-			                                                        subAttributes );
+			rtiAmbassadorWrapper->subscribeObjectClassAttributes( classHandle,
+			                                                      subAttributes );
 
 		}
 	}
@@ -614,14 +614,14 @@ namespace base
 		for( auto& interactionClass : interactionClasses )
 		{
 			// store interaction class in m_objectCacheStoreByName for later use
-			m_ucefConfig->cacheInteractionClass( interactionClass );
+			ucefConfig->cacheInteractionClass( interactionClass );
 
 			// now store the ObjectClass in m_objectCacheStoreByHash for later use
 			InteractionClassHandle interactionHandle =
-			                     m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+			                     rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionHandle.isValid() )
 			{
-				m_interactionDataStoreByHash.insert(
+				interactionDataStoreByHash.insert(
 				                make_pair( interactionHandle.hash(), interactionClass ) );
 			}
 		}
@@ -638,11 +638,11 @@ namespace base
 		for( auto& interactionClass : interactionClasses )
 		{
 			InteractionClassHandle interactionHandle =
-				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+				rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionClass->publish )
 			{
 				logger.log( "Federate publishes interaction class " + interactionClass->name, LevelInfo);
-				m_rtiAmbassadorWrapper->publishInteractionClass( interactionHandle );
+				rtiAmbassadorWrapper->publishInteractionClass( interactionHandle );
 			}
 		}
 	}
@@ -658,24 +658,24 @@ namespace base
 		for( auto& interactionClass : interactionClasses )
 		{
 			InteractionClassHandle interactionHandle =
-				m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+				rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 			if( interactionClass->subscribe )
 			{
 				logger.log( "Federate subscribed to Interaction class " + interactionClass->name, LevelInfo);
-				m_rtiAmbassadorWrapper->subscribeInteractionClasses( interactionHandle );
+				rtiAmbassadorWrapper->subscribeInteractionClasses( interactionHandle );
 			}
 		}
 	}
 
 	void FederateBase::tickForCallBacks()
 	{
-		if( m_ucefConfig->isImmediate() )
+		if( ucefConfig->isImmediate() )
 		{
 			this_thread::sleep_for( chrono::microseconds( 10 ) );
 		}
 		else
 		{
-			m_rtiAmbassadorWrapper->evokeMultipleCallbacks( 0.1, 1.0 );
+			rtiAmbassadorWrapper->evokeMultipleCallbacks( 0.1, 1.0 );
 		}
 	}
 }

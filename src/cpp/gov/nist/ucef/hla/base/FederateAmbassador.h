@@ -219,10 +219,10 @@ namespace base
 		private:
 			std::set<std::string> announcedSynchPoints;
 			std::set<std::string> achievedSynchPoints;
-			bool m_regulated;
-			bool m_constrained;
-			double m_federateTime;
-			FederateBase* m_federateBase;
-			std::mutex m_threadSafeLock;
+			bool regulated;
+			bool constrained;
+			double federateTime;
+			FederateBase* federateBase;
+			std::mutex threadSafeLock;
 	};
 }

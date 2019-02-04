@@ -23,7 +23,7 @@ namespace base
 	RTIAmbassadorWrapper::RTIAmbassadorWrapper()
 	{
 		RTIambassador* tmpAmbassador = RTIambassadorFactory().createRTIambassador().release();
-		m_rtiAmbassador.reset(tmpAmbassador);
+		rtiAmbassador.reset(tmpAmbassador);
 	}
 
 	RTIAmbassadorWrapper::~RTIAmbassadorWrapper()
@@ -41,7 +41,7 @@ namespace base
 		try
 		{
 			CallbackModel callBackModel = isImmediate ? HLA_IMMEDIATE : HLA_EVOKED;
-			m_rtiAmbassador->connect( *federateAmbassador, callBackModel );
+			rtiAmbassador->connect( *federateAmbassador, callBackModel );
 		}
 		catch( AlreadyConnected& )
 		{
@@ -64,7 +64,7 @@ namespace base
 				wFomPaths.push_back( ConversionHelper::s2ws( path ) );
 			}
 
-			m_rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(federationName),
+			rtiAmbassador->createFederationExecution( ConversionHelper::s2ws(federationName),
 			                                            wFomPaths );
 
 		}
@@ -85,7 +85,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(federateName),
+			rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(federateName),
 			                                          ConversionHelper::s2ws(federateType),
 			                                          ConversionHelper::s2ws(federationName) );
 		}
@@ -101,7 +101,7 @@ namespace base
 		HLAfloat64Interval lookAheadInterval( lookAhead );
 		try
 		{
-			m_rtiAmbassador->enableTimeRegulation( lookAheadInterval );
+			rtiAmbassador->enableTimeRegulation( lookAheadInterval );
 		}
 		catch( TimeRegulationAlreadyEnabled& )
 		{
@@ -117,7 +117,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->disableTimeRegulation();
+			rtiAmbassador->disableTimeRegulation();
 		}
 		catch( TimeRegulationIsNotEnabled& )
 		{
@@ -133,7 +133,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->enableTimeConstrained();
+			rtiAmbassador->enableTimeConstrained();
 		}
 		catch( TimeConstrainedAlreadyEnabled& )
 		{
@@ -149,7 +149,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->disableTimeConstrained();
+			rtiAmbassador->disableTimeConstrained();
 		}
 		catch( TimeConstrainedIsNotEnabled& )
 		{
@@ -168,7 +168,7 @@ namespace base
 		{
 			try
 			{
-				m_rtiAmbassador->publishObjectClassAttributes( classHandle, pubAttributes );
+				rtiAmbassador->publishObjectClassAttributes( classHandle, pubAttributes );
 			}
 			catch( Exception& e )
 			{
@@ -184,7 +184,7 @@ namespace base
 		{
 			try
 			{
-				m_rtiAmbassador->subscribeObjectClassAttributes( classHandle, subAttributes );
+				rtiAmbassador->subscribeObjectClassAttributes( classHandle, subAttributes );
 			}
 			catch( Exception& e )
 			{
@@ -197,7 +197,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->publishInteractionClass( interactionHandle );
+			rtiAmbassador->publishInteractionClass( interactionHandle );
 		}
 		catch( Exception& e )
 		{
@@ -209,7 +209,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->subscribeInteractionClass( interactionHandle );
+			rtiAmbassador->subscribeInteractionClass( interactionHandle );
 		}
 		catch( Exception& e )
 		{
@@ -222,7 +222,7 @@ namespace base
 		try
 		{
 			const VariableLengthData tag( (void*)"", 1 );
-			m_rtiAmbassador->registerFederationSynchronizationPoint( ConversionHelper::s2ws(synchPoint), tag );
+			rtiAmbassador->registerFederationSynchronizationPoint( ConversionHelper::s2ws(synchPoint), tag );
 		}
 		catch( Exception& e )
 		{
@@ -234,7 +234,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->synchronizationPointAchieved( ConversionHelper::s2ws(synchPoint) );
+			rtiAmbassador->synchronizationPointAchieved( ConversionHelper::s2ws(synchPoint) );
 		}
 		catch( Exception& e )
 		{
@@ -247,7 +247,7 @@ namespace base
 		unique_ptr<HLAfloat64Time> newTime( new HLAfloat64Time(requestedTime) );
 		try
 		{
-			m_rtiAmbassador->timeAdvanceRequest( *newTime );
+			rtiAmbassador->timeAdvanceRequest( *newTime );
 		}
 		catch( InTimeAdvancingState& )
 		{
@@ -266,13 +266,13 @@ namespace base
 		try
 		{
 			ObjectClassHandle objectHandle =
-				m_rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws( className ) );
+				rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws( className ) );
 			try
 			{
-				ObjectInstanceHandle instanceHandle = m_rtiAmbassador->registerObjectInstance( objectHandle );
+				ObjectInstanceHandle instanceHandle = rtiAmbassador->registerObjectInstance( objectHandle );
 				hlaObject = make_shared<HLAObject>( className, instanceHandle.hash() );
 
-				m_instanceStoreByHash[instanceHandle.hash()] = make_shared<ObjectInstanceHandle>(instanceHandle);
+				instanceStoreByHash[instanceHandle.hash()] = make_shared<ObjectInstanceHandle>(instanceHandle);
 			}
 			catch( Exception& )
 			{
@@ -313,11 +313,11 @@ namespace base
 			VariableLengthData tag( (void*)"", 1 );
 			try
 			{
-				ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
-				if( it != m_instanceStoreByHash.end() )
+				ObjectInstanceStoreByHash::iterator it = instanceStoreByHash.find( hlaObject->getInstanceId() );
+				if( it != instanceStoreByHash.end() )
 				{
 					auto handle = it->second;
-					m_rtiAmbassador->updateAttributeValues( *handle, rtiAttributeMap, tag );
+					rtiAmbassador->updateAttributeValues( *handle, rtiAttributeMap, tag );
 					logger.log( "Successfully published the updated attributes of " + hlaObject->getClassName() +
 					            ".", LevelDebug );
 				}
@@ -364,7 +364,7 @@ namespace base
 		VariableLengthData tag( (void*)"", 4 );
 		try
 		{
-			m_rtiAmbassador->sendInteraction( interactionHandle, rtiParameterMap, tag );
+			rtiAmbassador->sendInteraction( interactionHandle, rtiParameterMap, tag );
 			logger.log( "Successfully published an interaction named " +
 			            hlaInteraction->getInteractionClassName() + ".", LevelDebug );
 		}
@@ -378,15 +378,15 @@ namespace base
 	{
 
 		Logger& logger = Logger::getInstance();
-		ObjectInstanceStoreByHash::iterator it = m_instanceStoreByHash.find( hlaObject->getInstanceId() );
-		if( it != m_instanceStoreByHash.end() )
+		ObjectInstanceStoreByHash::iterator it = instanceStoreByHash.find( hlaObject->getInstanceId() );
+		if( it != instanceStoreByHash.end() )
 		{
 			VariableLengthData tag( (void*)"", 1 );
 			auto handle = it->second;
-			m_instanceStoreByHash.erase( hlaObject->getInstanceId() );
+			instanceStoreByHash.erase( hlaObject->getInstanceId() );
 			try
 			{
-				m_rtiAmbassador->deleteObjectInstance( *handle, tag );
+				rtiAmbassador->deleteObjectInstance( *handle, tag );
 			}
 			catch( Exception& e )
 			{
@@ -405,7 +405,7 @@ namespace base
 	{
 		try
 		{
-			m_rtiAmbassador->resignFederationExecution( DELETE_OBJECTS_THEN_DIVEST );
+			rtiAmbassador->resignFederationExecution( DELETE_OBJECTS_THEN_DIVEST );
 		}
 		catch( Exception& e )
 		{
@@ -415,7 +415,7 @@ namespace base
 
 	void RTIAmbassadorWrapper::evokeMultipleCallbacks( double min, double max )
 	{
-		m_rtiAmbassador->evokeMultipleCallbacks( min, max );
+		rtiAmbassador->evokeMultipleCallbacks( min, max );
 	}
 
 	ObjectClassHandle RTIAmbassadorWrapper::getClassHandle( const string& name )
@@ -424,7 +424,7 @@ namespace base
 		ObjectClassHandle classHandle = {};
 		try
 		{
-			classHandle =  m_rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws(name) );
+			classHandle =  rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
@@ -440,7 +440,7 @@ namespace base
 		AttributeHandle attHandle = {};
 		try
 		{
-			attHandle = m_rtiAmbassador->getAttributeHandle( classHandle, ConversionHelper::s2ws(name) );
+			attHandle = rtiAmbassador->getAttributeHandle( classHandle, ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
@@ -456,7 +456,7 @@ namespace base
 		wstring attName = L"";
 		try
 		{
-			attName = m_rtiAmbassador->getAttributeName( classHandle, attributeHandle );
+			attName = rtiAmbassador->getAttributeName( classHandle, attributeHandle );
 		}
 		catch( Exception& )
 		{
@@ -473,7 +473,7 @@ namespace base
 		InteractionClassHandle interactionhandle = {};
 		try
 		{
-			interactionhandle =  m_rtiAmbassador->getInteractionClassHandle(  ConversionHelper::s2ws(name) );
+			interactionhandle =  rtiAmbassador->getInteractionClassHandle(  ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
@@ -490,7 +490,7 @@ namespace base
 		ParameterHandle paramHandle = {};
 		try
 		{
-			paramHandle = m_rtiAmbassador->getParameterHandle( interactionHandle, ConversionHelper::s2ws(name) );
+			paramHandle = rtiAmbassador->getParameterHandle( interactionHandle, ConversionHelper::s2ws(name) );
 		}
 		catch( Exception& )
 		{
@@ -506,7 +506,7 @@ namespace base
 		wstring paramName = L"";
 		try
 		{
-			paramName = m_rtiAmbassador->getParameterName( interactionHandle, parameterHandle );
+			paramName = rtiAmbassador->getParameterName( interactionHandle, parameterHandle );
 		}
 		catch( Exception& )
 		{

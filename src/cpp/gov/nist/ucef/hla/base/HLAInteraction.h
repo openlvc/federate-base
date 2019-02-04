@@ -264,9 +264,9 @@ namespace base
 
 			// stores parameter names and values that required publising or
 			// received in an interaction.
-			std::shared_ptr<HLAInteractionParameters> m_parameterDataStore;
+			std::shared_ptr<HLAInteractionParameters> parameterDataStore;
 			// holds the fully qualified name of this class
-			std::string m_interactionClassName;
+			std::string interactionClassName;
 	};
 }
 

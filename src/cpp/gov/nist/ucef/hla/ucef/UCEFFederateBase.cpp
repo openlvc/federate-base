@@ -53,7 +53,7 @@ namespace base
 				}
 
 				InteractionClassHandle interactionHandle =
-					m_rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+					rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
 
 				if( !interactionHandle.isValid() )
 				{
@@ -65,7 +65,7 @@ namespace base
 				for( auto& incomingParameterValue : parameterValues )
 				{
 					string paramName =
-						m_rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
+						rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
 					if( paramName == "" )
 					{
 						logger.log( "No valid parameter name found for the received parameter with id : " +
@@ -83,22 +83,22 @@ namespace base
 				if (interactionClass->name == SimEnd::INTERACTION_NAME )
 				{
 					receivedSimEnd( dynamic_pointer_cast<SimEnd>(hlaInteraction),
-					                m_federateAmbassador->getFederateTime() );
+					                federateAmbassador->getFederateTime() );
 				}
 				else if( interactionClass->name == SimPause::INTERACTION_NAME )
 				{
 					receivedSimPaused( dynamic_pointer_cast<SimPause>(hlaInteraction),
-					                   m_federateAmbassador->getFederateTime() );
+					                   federateAmbassador->getFederateTime() );
 				}
 				else if( interactionClass->name == SimResume::INTERACTION_NAME )
 				{
 					receivedSimResumed( dynamic_pointer_cast<SimResume>(hlaInteraction),
-					                    m_federateAmbassador->getFederateTime() );
+					                    federateAmbassador->getFederateTime() );
 				}
 				else
 				{
 					receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
-					                     m_federateAmbassador->getFederateTime() );
+					                     federateAmbassador->getFederateTime() );
 				}
 			}
 			else
