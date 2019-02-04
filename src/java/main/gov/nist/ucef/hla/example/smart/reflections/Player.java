@@ -37,7 +37,7 @@ public class Player extends SmartObject
 	
 	// object attributes and types
 	private static final String ATTRIBUTE_KEY_NAME = "name";
-	private static final AttributeType ATTRIBUTE_TYPE_COUNT = AttributeType.String;
+	private static final AttributeType ATTRIBUTE_TYPE_NAME = AttributeType.String;
 	
 	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_NAME };
 	
@@ -69,7 +69,7 @@ public class Player extends SmartObject
 	{
 		super( rtiamb, objectClassName(), attributes );
 		// populate attribute => type lookup
-		this.typeLookup.put( ATTRIBUTE_KEY_NAME, ATTRIBUTE_TYPE_COUNT );
+		this.typeLookup.put( ATTRIBUTE_KEY_NAME, ATTRIBUTE_TYPE_NAME );
 	}
 	
 	//----------------------------------------------------------
