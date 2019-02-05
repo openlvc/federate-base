@@ -15,7 +15,7 @@ namespace base
 	namespace ucef
 	{
 
-		UCEFFederateBase::UCEFFederateBase()
+		UCEFFederateBase::UCEFFederateBase() : simEndReceived( false )
 		{
 
 		}
@@ -28,7 +28,7 @@ namespace base
 		void UCEFFederateBase::incomingInteraction( long interactionHash,
 		                                            const ParameterHandleValueMap& parameterValues )
 		{
-			lock_guard<mutex> lock( m_threadSafeLock );
+			lock_guard<mutex> lock( threadSafeLock );
 			Logger& logger = Logger::getInstance();
 			shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
 			logger.log( "Received interaction update for " + interactionClass->name, LevelInfo );
@@ -44,6 +44,8 @@ namespace base
 					// call the right hook so users can do whatever they want to do with this interaction
 					receivedSimEnd( dynamic_pointer_cast<SimEnd>(hlaInteraction),
 					                federateAmbassador->getFederateTime() );
+					// this execure receivedSimEnd call at least once before ending the sim
+					simEndReceived = true;
 				}
 				else if( interactionClass->name == SimPause::INTERACTION_NAME )
 				{
@@ -78,6 +80,16 @@ namespace base
 			{
 				logger.log( "Received an unknown interation with interaction id " +
 				            to_string(interactionHash), LevelWarn );
+			}
+		}
+
+		void UCEFFederateBase::federateExecute()
+		{
+			while( !simEndReceived )
+			{
+				if( step(federateAmbassador->getFederateTime()) == false )
+					break;
+				advanceTime();
 			}
 		}
 	}

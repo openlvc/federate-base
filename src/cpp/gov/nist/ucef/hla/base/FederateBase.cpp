@@ -37,53 +37,12 @@ namespace base
 
 	void FederateBase::runFederate()
 	{
-		// initialise rti ambassador
-		connectToRti();
-
-		// create federation
-		createFederation();
-		// join the federation
-		joinFederation();
-		// enables time management policy for this federate
-		enableTimePolicy();
-
-		// inform RTI about the data we are going publish and subscribe
-		publishAndSubscribe();
-
-		// lifecycle hook
-		beforeReadyToPopulate();
-
-		// now we are ready to populate the federation
-		synchronize( READY_TO_POPULATE );
-
-		// before federate run hook
-		beforeReadyToRun();
-		// now we are ready to run this federate
-		synchronize( READY_TO_RUN );
-
-		// just before the first update hook
-		beforeFirstStep();
-
-		while( true )
-		{
-			if( step( federateAmbassador->getFederateTime() ) == false )
-				break;
-			advanceTime();
-		}
-
-		disableTimePolicy();
-
-		// before resigning the federation hook
-		beforeReadyToResign();
-
-		// now we are ready to resign from this federation
-		synchronize( READY_TO_RESIGN );
-
-		// before exit hook for cleanup
-		beforeExit();
-
-		// resign from this federation
-		resignAndDestroy();
+		// Prepare this federate for execution
+		federateSetup();
+		// The main execution of the federate
+		federateExecute();
+		// Teardown of the federate
+		federateTeardown();
 	}
 
 	shared_ptr<FederateConfiguration> FederateBase::getFederateConfiguration()
@@ -284,34 +243,9 @@ namespace base
 		            ConversionHelper::SynchPointToString(point), LevelInfo );
 	}
 
-	void FederateBase::advanceTime()
-	{
-		Logger& logger = Logger::getInstance();
-
-		double requestedTime = federateAmbassador->getFederateTime() + ucefConfig->getTimeStep();
-		try
-		{
-			rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
-
-		// wait for the rti grant the requested time advancement
-		while( federateAmbassador->getFederateTime() < requestedTime )
-		{
-			logger.log( "Waiting for the logical time of this federate to advance to " +
-			            to_string( requestedTime ), LevelInfo );
-
-			tickForCallBacks();
-		}
-		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
-	}
-
 	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
 	{
-		lock_guard<mutex> lock( m_threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 		Logger& logger = Logger::getInstance();
 
 		shared_ptr<ObjectClass> objectClass = getObjectClassByClassHandle( objectClassHash );
@@ -334,7 +268,7 @@ namespace base
 	void FederateBase::incomingAttributeReflection( long objectInstanceHash,
 	                                                map<AttributeHandle, VariableLengthData> const& attributeValues )
 	{
-		lock_guard<mutex> lock( m_threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 		Logger& logger = Logger::getInstance();
 		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
 		if( objectClass )
@@ -378,7 +312,7 @@ namespace base
 	void FederateBase::incomingInteraction( long interactionHash,
 	                                        const ParameterHandleValueMap& parameterValues )
 	{
-		lock_guard<mutex> lock( m_threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 		Logger& logger = Logger::getInstance();
 		shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
 		logger.log( "Received interaction update for " + interactionClass->name, LevelInfo );
@@ -398,7 +332,7 @@ namespace base
 
 	void FederateBase::incomingObjectDeletion( long objectInstanceHash )
 	{
-		lock_guard<mutex> lock( m_threadSafeLock );
+		lock_guard<mutex> lock( threadSafeLock );
 		Logger& logger = Logger::getInstance();
 
 		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
@@ -450,6 +384,88 @@ namespace base
 			return interactionDataStoreByHash[hash];
 		}
 		return nullptr;
+	}
+
+	void FederateBase::federateSetup()
+	{
+		// initialise rti ambassador
+		connectToRti();
+
+		// create federation
+		createFederation();
+		// join the federation
+		joinFederation();
+		// enables time management policy for this federate
+		enableTimePolicy();
+
+		// inform RTI about the data we are going publish and subscribe
+		publishAndSubscribe();
+
+		// lifecycle hook
+		beforeReadyToPopulate();
+
+		// now we are ready to populate the federation
+		synchronize( READY_TO_POPULATE );
+
+		// before federate run hook
+		beforeReadyToRun();
+		// now we are ready to run this federate
+		synchronize( READY_TO_RUN );
+
+		// just before the first update hook
+		beforeFirstStep();
+	}
+
+	void FederateBase::federateExecute()
+	{
+		while( true )
+		{
+			if( step(federateAmbassador->getFederateTime()) == false )
+				break;
+			advanceTime();
+		}
+	}
+
+	void FederateBase::federateTeardown()
+	{
+		disableTimePolicy();
+
+		// before resigning the federation hook
+		beforeReadyToResign();
+
+		// now we are ready to resign from this federation
+		synchronize( READY_TO_RESIGN );
+
+		// before exit hook for cleanup
+		beforeExit();
+
+		// resign from this federation
+		resignAndDestroy();
+	}
+
+	void FederateBase::advanceTime()
+	{
+		Logger& logger = Logger::getInstance();
+
+		double requestedTime = federateAmbassador->getFederateTime() + ucefConfig->getTimeStep();
+		try
+		{
+			rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+
+		// wait for the rti grant the requested time advancement
+		while( federateAmbassador->getFederateTime() < requestedTime )
+		{
+			logger.log( "Waiting for the logical time of this federate to advance to " +
+			            to_string( requestedTime ), LevelInfo );
+
+			tickForCallBacks();
+		}
+		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
 	}
 
 	void FederateBase::populateInteraction( const string& interactionClassName,

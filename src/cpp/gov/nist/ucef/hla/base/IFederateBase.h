@@ -146,7 +146,7 @@ namespace base
 			 * Starts the execution of the federate.
 			 * <p/>
 			 * This method must be called after creating an instance of
-			 * {@link IFederateBase} to start the life-cycle execution.
+			 * {@link IFederateBase} to start the execution of federate life-cycle.
 			 */
 			virtual void runFederate() = 0;
 

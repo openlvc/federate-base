@@ -121,6 +121,13 @@ namespace base
 			 */
 			virtual void receivedSimResumed( std::shared_ptr<const SimResume> hlaInteraction,
 			                                 double federateTime ) = 0;
+		protected:
+			/**
+			 * The main execution loop of the UCEF federate
+			 */
+			virtual void federateExecute() override;
+		private:
+			bool simEndReceived;
 		};
 	}
 }
