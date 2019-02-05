@@ -21,29 +21,19 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.ucef.interaction;
 
-import gov.nist.ucef.hla.base.FederateBase;
+import java.util.Map;
+
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-/**
- *		            ___
- *		          _/   \_     _     _
- *		         / \   / \   / \   / \
- *		        ( U )─( C )─( E )─( F )
- *		         \_/   \_/   \_/   \_/
- *		        <─┴─> <─┴─────┴─────┴─>
- *		       Universal CPS Environment
- *		             for Federation
- * 
- * Example federate for testing
- */
-public abstract class NullFederateBase extends FederateBase
+public abstract class UCEFSimControlInteraction extends UCEFInteraction
 {
 	//----------------------------------------------------------
-	//                   STATIC VARIABLES
+	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = UCEF_INTERACTION_ROOT+"SimulationControl.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -52,57 +42,29 @@ public abstract class NullFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public NullFederateBase()
+	protected UCEFSimControlInteraction( RTIAmbassadorWrapper rtiamb, String interactionName )
 	{
-		super();
+		this( rtiamb, interactionName, null );
 	}
 
+	protected UCEFSimControlInteraction( RTIAmbassadorWrapper rtiamb, 
+	                                     String interactionName,
+	                                     Map<String,byte[]> parameters )
+	{
+		super( rtiamb, interactionName, parameters );
+	}
+
+	protected UCEFSimControlInteraction( String interactionName, HLAInteraction interaction )
+	{
+		super( interactionName, interaction );
+	}
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void beforeFederationJoin() { }
-
-	@Override
-	public void beforeReadyToPopulate() { }
-
-	@Override
-	public void beforeReadyToRun() { }
-
-	@Override
-	public void beforeFirstStep() { }
-
-	@Override
-	public void beforeReadyToResign() { }
-
-	@Override
-	public void beforeExit() { }
 
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
+	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void receiveObjectRegistration( HLAObject hlaObject ) { }
 
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject ) { }
-
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject, double time ) {
-		receiveAttributeReflection( hlaObject );
-	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject ) { }
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction ) { }
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction, double time ) {
-		receiveInteraction( hlaInteraction );
-	}
 }

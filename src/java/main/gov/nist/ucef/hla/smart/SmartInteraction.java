@@ -90,6 +90,12 @@ public abstract class SmartInteraction extends HLAInteraction
 		initializeGettersLookup();
 	}
 
+	protected SmartInteraction( String interactionName, HLAInteraction interaction )
+	{
+		super( interaction );
+		this.interactionName = interactionName;
+	}
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------

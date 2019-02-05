@@ -21,16 +21,15 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.base;
+package gov.nist.ucef.hla.example.noopbase;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
@@ -49,7 +48,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example base federate for testing
  */
-public class PongFederate extends FederateBase
+public class NoOpPingFederate extends NoOpFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -59,16 +58,16 @@ public class PongFederate extends FederateBase
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private EncoderFactory encoder;
-	private char letter;
+	private int count;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public PongFederate( String[] args )
+	public NoOpPingFederate( String[] args )
 	{
 		super();
 		this.encoder = HLACodecUtils.getEncoder();
-		this.letter = 'a';
+		this.count = 0;
 	}
 
 	//----------------------------------------------------------
@@ -78,98 +77,48 @@ public class PongFederate extends FederateBase
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void beforeFederationJoin()
-	{
-		// nothing to do here 
-	}
-
-	@Override
 	public void beforeReadyToPopulate()
 	{
-		// allow the user to control when we are ready to populate
-		// waitForUser("beforeReadyToPopulate() - press ENTER to continue");
 		System.out.println( String.format( "Waiting for '%s' synchronization point...",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
 
 	@Override
-	public void beforeReadyToRun()
-	{
-		// no setup required before being ready to run
-	}
-
-	@Override
 	public void beforeFirstStep()
 	{
-		// initialise the letter
-		this.letter = 'a';
+		// initialise the counter
+		this.count =  0;
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
 		// here we end out our interaction
-		System.out.println( "Sending Pong interaction at time " + currentTime + "..." );
-		sendInteraction( makePongInteraction( letter++ ), null );
+		System.out.println( "Sending Ping interaction at time " + currentTime + "..." );
+		sendInteraction( makePingInteraction( count++ ), null );
 		// keep going until time 10.0
 		return (currentTime < 10.0);
-	}
-
-	@Override
-	public void beforeReadyToResign()
-	{
-		// no cleanup required before resignation
-	}
-
-	@Override
-	public void beforeExit()
-	{
-		// no cleanup required before exiting  
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void receiveObjectRegistration( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject, double time )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
-	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
-		if( PING_INTERACTION_ID.equals( interactionName ) )
+		if( PONG_INTERACTION_ID.equals( interactionName ) )
 		{
-			// Ping interaction received
-			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
+			// Pong interaction received
+			if( hlaInteraction.isPresent( PONG_PARAM_LETTER ) )
 			{
-				int count = hlaInteraction.getAsInt( PING_PARAM_COUNT );
-				System.out.println( String.format( "Received Ping interaction - 'count' is %d",
-				                                   count ) );
+    			char letter = hlaInteraction.getAsChar( PONG_PARAM_LETTER );
+    			System.out.println( String.format( "Received Pong interaction - 'letter' is %s",
+    			                                    letter ) );
 			}
 			else
 			{
-				System.out.println( String.format( "Received Ping interaction - no 'count' was present" ) );
+				System.out.println( String.format( "Received Pong interaction - no 'letter' was present" ) );
 			}
 		}
 		else
@@ -180,23 +129,15 @@ public class PongFederate extends FederateBase
 		}
 	}
 
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
-	{
-		// delegate to other receiveInteraction method because 
-		// we ignore time in this example 
-		receiveInteraction( hlaInteraction );
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	private HLAInteraction makePongInteraction( char letter )
+	private HLAInteraction makePingInteraction( int count )
 	{
 		Map<String,byte[]> parameters = new HashMap<>();
-		parameters.put( PONG_PARAM_LETTER, 
-		                HLACodecUtils.encode( encoder, letter ) );
-		return makeInteraction( PONG_INTERACTION_ID, parameters );
+		parameters.put( PING_PARAM_COUNT, 
+		                HLACodecUtils.encode( encoder, count ) );
+		return makeInteraction( PING_INTERACTION_ID, parameters );
 	}
 
 	//----------------------------------------------------------
@@ -215,13 +156,13 @@ public class PongFederate extends FederateBase
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
+		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
 		                                                          "PingPongFederate",     // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( PONG_INTERACTION_ID );
-		config.addSubscribedInteraction( PING_INTERACTION_ID );
+		config.addPublishedInteraction( PING_INTERACTION_ID );
+		config.addSubscribedInteraction( PONG_INTERACTION_ID );
 
 		// somebody set us up the FOM...
 		try
@@ -251,20 +192,21 @@ public class PongFederate extends FederateBase
 	{
 		System.out.println( Constants.UCEF_LOGO );
 		System.out.println();
-		System.out.println( "	______   ____   ____    ____  " );
-		System.out.println( "	\\____ \\ /  _ \\ /    \\  / ___\\" );
-		System.out.println( "	|  |_> >  <_> )   |  \\/ /_/  >" );
-		System.out.println( "	|   __/ \\____/|___|  /\\___  /" );
-		System.out.println( "	|__|               \\//_____/" );
-		System.out.println( "	        Pong Federate" );
+		System.out.println( "	       .__                " );
+		System.out.println( "	______ |__| ____    ____" );
+		System.out.println( "	\\____ \\|  |/    \\  / ___\\" );
+		System.out.println( "	|  |_> >  |   |  \\/ /_/  >" );
+		System.out.println( "	|   __/|__|___|  /\\___  /" );
+		System.out.println( "	|__|           \\//_____/" );
+		System.out.println( "	   No-Op Ping Federate" );
 		System.out.println();
-		System.out.println( "Sends 'Pong' interactions.");
-		System.out.println( "Receives 'Ping' interactions.");
+		System.out.println( "Sends 'Ping' interactions.");
+		System.out.println( "Receives 'Pong' interactions.");
 		System.out.println();
 
 		try
 		{
-			new PongFederate( args ).runFederate( makeConfig() );
+			new NoOpPingFederate( args ).runFederate( makeConfig() );
 		}
 		catch( Exception e )
 		{

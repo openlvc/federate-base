@@ -86,6 +86,24 @@ public class HLAInteraction
 		this.encoder = HLACodecUtils.getEncoder();
 	}
 
+	/**
+	 * Construct from another {@link HLAInteraction} instance.
+	 * 
+	 * NOTE: this will result in an instance which is "linked" to the original instance.
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
+	 * to create a new {@link HLAInteraction}
+	 * 
+	 * @param interaction the interaction to use as the base
+	 */
+	protected HLAInteraction( HLAInteraction interaction )
+	{
+		this.interactionClassHandle = interaction.interactionClassHandle;
+		this.parameters = interaction.parameters;
+		
+		this.encoder = interaction.encoder;
+	}
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------

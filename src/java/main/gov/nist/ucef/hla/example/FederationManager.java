@@ -34,9 +34,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.StringTokenizer;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
@@ -50,12 +48,11 @@ import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
-import gov.nist.ucef.hla.smart.SmartInteraction;
+import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
 
 /**
  *		            ___
@@ -74,7 +71,7 @@ import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
  * 	  ─────────── Federation Manager ───────────
  *
  */
-public class FederationManager extends FederateBase
+public class FederationManager extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -174,8 +171,6 @@ public class FederationManager extends FederateBase
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
 
-	private UCEFInteractionRealizer ucefInteractionFactory;
-
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -235,8 +230,6 @@ public class FederationManager extends FederateBase
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		ucefInteractionFactory = new UCEFInteractionRealizer( rtiamb );
-		
 		preAnnounceSyncPoints();
 
 		System.out.println( configurationSummary() );
@@ -364,61 +357,34 @@ public class FederationManager extends FederateBase
 		}
 	}
 
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject, double time )
-	{
-		receiveAttributeReflection( hlaObject );
-	}
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction )
-	{
-		SmartInteraction ucefInteraction = ucefInteractionFactory.realize( hlaInteraction );
-		if( ucefInteraction != null )
-		{
-			if( ucefInteraction instanceof FederateJoin )
-				receive( (FederateJoin)ucefInteraction );
-			else if( ucefInteraction instanceof SimPause )
-				receive( (SimPause)ucefInteraction );
-			else if( ucefInteraction instanceof SimResume )
-				receive( (SimResume)ucefInteraction );
-			else if( ucefInteraction instanceof SimEnd )
-				receive( (SimEnd)ucefInteraction );
-		}
-	}
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
-	{
-		receiveInteraction( hlaInteraction );
-	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject )
-	{
-		// federate manager does not process this
-	}
-	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	private void receive( FederateJoin federateJoin )
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin )
 	{
+		super.receiveFederateJoin( federateJoin );
 		System.out.println( federateJoin.toString() );
 	}
 
-	private void receive( SimPause simPause )
+	@Override
+	protected void receiveSimPause( SimPause simPause )
 	{
+		super.receiveSimPause( simPause );
 		System.out.println( simPause.toString() );
 	}
-	
-	private void receive( SimResume simResume )
+
+	@Override
+	protected void receiveSimResume( SimResume simResume )
 	{
+		super.receiveSimResume( simResume );
 		System.out.println( simResume.toString() );
 	}
 	
-	private void receive( SimEnd simEnd )
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
 	{
+		super.receiveSimEnd( simEnd );
 		System.out.println( simEnd.toString() );
 	}
 	

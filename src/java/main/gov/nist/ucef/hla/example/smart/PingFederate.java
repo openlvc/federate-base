@@ -26,6 +26,7 @@ package gov.nist.ucef.hla.example.smart;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.smart.interactions.InteractionRealizer;
@@ -50,7 +51,7 @@ import gov.nist.ucef.hla.smart.SmartObject;
  * 
  * Example federate for testing
  */
-public class PingFederate extends NullFederateBase
+public class PingFederate extends NoOpFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

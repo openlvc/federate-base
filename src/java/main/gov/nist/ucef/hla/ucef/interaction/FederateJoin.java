@@ -25,6 +25,7 @@ package gov.nist.ucef.hla.ucef.interaction;
 
 import java.util.Map;
 
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
 public class FederateJoin extends UCEFInteraction
@@ -79,6 +80,19 @@ public class FederateJoin extends UCEFInteraction
 		this.typeLookup.put( PARAM_KEY_FEDERATE_TYPE, PARAM_TYPE_FEDERATE_TYPE );
 		this.typeLookup.put( PARAM_KEY_IS_LATE_JOINER, PARAM_TYPE_IS_LATE_JOINER );
 	}
+	
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public FederateJoin( HLAInteraction interaction )
+	{
+		super( interactionName(), interaction );
+		// populate parameter => type lookup
+		this.typeLookup.put( PARAM_KEY_FEDERATE_ID, PARAM_TYPE_FEDERATE_ID );
+		this.typeLookup.put( PARAM_KEY_FEDERATE_TYPE, PARAM_TYPE_FEDERATE_TYPE );
+		this.typeLookup.put( PARAM_KEY_IS_LATE_JOINER, PARAM_TYPE_IS_LATE_JOINER );
+	}
+
 	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS

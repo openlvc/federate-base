@@ -47,7 +47,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  *		       Universal CPS Environment
  *		             for Federation
  * 
- * Example federate for testing
+ * Example base federate for testing
  */
 public class PingFederate extends FederateBase
 {

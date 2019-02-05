@@ -25,6 +25,7 @@ package gov.nist.ucef.hla.ucef.interaction;
 
 import java.util.Map;
 
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.smart.SmartInteraction;
 
@@ -47,6 +48,11 @@ public abstract class UCEFInteraction extends SmartInteraction
 		this( rtiamb, interactionName, null );
 	}
 
+	protected UCEFInteraction( String interactionName, HLAInteraction interaction )
+	{
+		super( interactionName, interaction );
+	}
+	
 	protected UCEFInteraction( RTIAmbassadorWrapper rtiamb, 
 	                           String interactionName,
 	                           Map<String,byte[]> parameters )

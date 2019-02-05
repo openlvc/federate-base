@@ -25,9 +25,10 @@ package gov.nist.ucef.hla.ucef.interaction;
 
 import java.util.Map;
 
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimEnd extends UCEFSimulationControl
+public class SimEnd extends UCEFSimControlInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -61,8 +62,14 @@ public class SimEnd extends UCEFSimulationControl
 	               Map<String,byte[]> parameters )
 	{
 		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		// ...no parameters...
+	}
+
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public SimEnd( HLAInteraction interaction )
+	{
+		super( interactionName(), interaction );
 	}
 
 	//----------------------------------------------------------

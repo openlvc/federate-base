@@ -21,18 +21,20 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.base;
 
-import java.util.Map;
+import gov.nist.ucef.hla.base.FederateBase;
+import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.HLAObject;
 
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-
-public abstract class UCEFSimulationControl extends UCEFInteraction
+/**
+ * An abstract class with "no-op" implementation of all abstract methods in {@link FederateBase}
+ */
+public abstract class NoOpFederateBase extends FederateBase
 {
 	//----------------------------------------------------------
-	//                    STATIC VARIABLES
+	//                   STATIC VARIABLES
 	//----------------------------------------------------------
-	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = UCEF_INTERACTION_ROOT+"SimulationControl.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -41,24 +43,57 @@ public abstract class UCEFSimulationControl extends UCEFInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected UCEFSimulationControl( RTIAmbassadorWrapper rtiamb, String interactionName )
+	public NoOpFederateBase()
 	{
-		this( rtiamb, interactionName, null );
-	}
-
-	protected UCEFSimulationControl( RTIAmbassadorWrapper rtiamb, 
-	                                 String interactionName,
-	                                 Map<String,byte[]> parameters )
-	{
-		super( rtiamb, interactionName, parameters );
+		super();
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public void beforeFederationJoin() { }
+
+	@Override
+	public void beforeReadyToPopulate() { }
+
+	@Override
+	public void beforeReadyToRun() { }
+
+	@Override
+	public void beforeFirstStep() { }
+
+	@Override
+	public void beforeReadyToResign() { }
+
+	@Override
+	public void beforeExit() { }
 
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public void receiveObjectRegistration( HLAObject hlaObject ) { }
 
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject ) { }
+
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject, double time ) {
+		receiveAttributeReflection( hlaObject );
+	}
+
+	@Override
+	public void receiveObjectDeleted( HLAObject hlaObject ) { }
+
+	@Override
+	public void receiveInteraction( HLAInteraction hlaInteraction ) { }
+
+	@Override
+	public void receiveInteraction( HLAInteraction hlaInteraction, double time ) {
+		receiveInteraction( hlaInteraction );
+	}
 }

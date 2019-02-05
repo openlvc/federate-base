@@ -96,6 +96,22 @@ public abstract class FederateBase
 			
 		this.configuration = configuration;
 
+		// create and join the Federation, publish and subscribe
+		// call beforeReadyToPopulate(), beforeReadyToRun() and beforeFirstStep()
+		federateSetup();
+		// repeatedly call step() until simulation ends
+		federateExecution();
+		// disable any time policy
+		// call readyToResign() and beforeExit()
+		// resign and destroy the federation
+		federateTeardown();
+	}
+	
+	/**
+	 * Carry out all steps required to get the federate ready to run through its main simulation loop
+	 */
+	protected void federateSetup()
+	{
 		this.rtiamb = new RTIAmbassadorWrapper();
 		this.fedamb = new FederateAmbassador( this );
 
@@ -111,26 +127,42 @@ public abstract class FederateBase
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
 		
 		beforeFirstStep();
-
+	}
+	
+	/**
+	 * Run the federate through its main simulation loop
+	 */
+	protected void federateExecution()
+	{
 		double currentTime = 0.0;
-		double timeStep = configuration.getLookAhead();
+		double timeStep = this.configuration.getLookAhead();
+		
 		while( true )
 		{
 			currentTime = fedamb.getFederateTime();
 
 			// next step
 			if( step( currentTime ) == false )
+			{
+				// cease simulation loop when step() returns false
 				break;
+			}
 
 			// advance, or tick, or nothing!
-			if( configuration.isTimeStepped() )
+			if( this.configuration.isTimeStepped() )
 				advanceTime( currentTime + timeStep );
-			else if( configuration.callbacksAreEvoked() )
+			else if( this.configuration.callbacksAreEvoked() )
 				evokeMultipleCallbacks();
 			else
 				;
 		}
-
+	}
+	
+	/**
+	 * Carry out all steps required to clean up and exit the federate
+	 */
+	protected void federateTeardown()
+	{
 		disableTimePolicy();
 
 		beforeReadyToResign();
@@ -138,11 +170,12 @@ public abstract class FederateBase
 		beforeExit();
 
 		resignAndDestroyFederation();
-	}
+	}	
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Create an interaction (with no parameter values)
 	 * 

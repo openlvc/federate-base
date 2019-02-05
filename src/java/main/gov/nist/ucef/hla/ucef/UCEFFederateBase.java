@@ -23,20 +23,31 @@
  */
 package gov.nist.ucef.hla.ucef;
 
-import gov.nist.ucef.hla.base.FederateAmbassador;
 import gov.nist.ucef.hla.base.FederateBase;
-import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.base.UCEFException;
-import gov.nist.ucef.hla.base.UCEFSyncPoint;
+import gov.nist.ucef.hla.base.NoOpFederateBase;
+import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.UCEFInteraction;
-import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
+import hla.rti1516e.InteractionClassHandle;
 
-public abstract class UCEFFederateBase extends FederateBase
+/**
+ * An abstract implementation for a UCEF Federate which is aware of certain
+ * UCEF specific simulation control interactions.
+ * 
+ * It provides default handlers for them, but more notably provides a
+ * {@link #federateExecution()} implementation which is aware of the
+ * receipt of {@link SimEnd} simulation control interactions.
+ * 
+ * It terminates the simulation loop when...
+ * <ul>
+ * <li>a {@link SimEnd} is received, or...</li>  
+ * <li>when the {@link #step(double)} method returns false</li>  
+ * </ul>
+ * ... whichever comes first.
+ */
+public abstract class UCEFFederateBase extends NoOpFederateBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -45,131 +56,119 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private UCEFInteractionRealizer ucefInteractionRealizer;
+	// cached handles for determination of received interaction types
+	private InteractionClassHandle federateJoinHandle;
+	private InteractionClassHandle simPauseHandle;
+	private InteractionClassHandle simResumeHandle;
+	private InteractionClassHandle simEndHandle;
 
+	// flag for storing whether a SimEnd interaction has been received
+	protected boolean simEndReceived;
+	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	public UCEFFederateBase()
 	{
 		super();
+		
+		this.simEndReceived = false;
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	/**
-	 * This is the main method which carries out the life cycle of the federate
-	 * 
-	 * @param configuration the configuration for the federate
-	 */
-	public void runFederate( FederateConfiguration configuration )
+	@Override
+	public void beforeReadyToPopulate()
 	{
-		// sanity check
-		if(configuration == null)
-			throw new UCEFException("Federate configuration cannot be null.");
-			
-		this.configuration = configuration;
+		super.beforeReadyToPopulate();
 
-		this.rtiamb = new RTIAmbassadorWrapper();
-		this.fedamb = new FederateAmbassador( this );
-		
-		this.ucefInteractionRealizer = new UCEFInteractionRealizer( rtiamb );
-
-		super.createAndJoinFederation();
-		enableTimePolicy();
-		
-		publishAndSubscribe();
-
-		beforeReadyToPopulate();
-		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
-
-		beforeReadyToRun();
-		synchronize( UCEFSyncPoint.READY_TO_RUN );
-		
-		beforeFirstStep();
-
+		// cache UCEF simulation control handles to avoid looking 
+		// them up repeatedly later on. Note that we can't do this
+		// any earlier (in the constructor, for example) since the
+		// RTI Ambassador is not initialized until the federation
+		// has been joined.
+		federateJoinHandle = rtiamb.getInteractionClassHandle( FederateJoin.interactionName() );
+		simPauseHandle = rtiamb.getInteractionClassHandle( SimPause.interactionName() );
+		simResumeHandle = rtiamb.getInteractionClassHandle( SimResume.interactionName() );
+		simEndHandle = rtiamb.getInteractionClassHandle( SimEnd.interactionName() );		
+	}
+	
+	/**
+	 * We override the this method here so that we can react to
+	 * the arrival of a {@link SimEnd} interaction by terminating
+	 * the simulation loop.
+	 * 
+	 * Apart from this difference, {@link #federateExecution()} is 
+	 * identical to the {@link FederateBase#federateExecution()}
+	 * implementation. 
+	 */
+	@Override
+	protected void federateExecution()
+	{
 		double currentTime = 0.0;
-		double timeStep = configuration.getLookAhead();
-		while( true )
+		double timeStep = this.configuration.getLookAhead();
+
+		// the while loop will continue until a SimEnd is received, or
+		// the `step()` (method called within the loop) returns false		
+		while( this.simEndReceived == false )
 		{
 			currentTime = fedamb.getFederateTime();
 
 			// next step
 			if( step( currentTime ) == false )
+			{
+				// cease simulation loop when step() returns false
 				break;
+			}
 
 			// advance, or tick, or nothing!
-			if( configuration.isTimeStepped() )
+			if( this.configuration.isTimeStepped() )
 				advanceTime( currentTime + timeStep );
-			else if( configuration.callbacksAreEvoked() )
+			else if( this.configuration.callbacksAreEvoked() )
 				evokeMultipleCallbacks();
 			else
 				;
 		}
-
-		disableTimePolicy();
-
-		beforeReadyToResign();
-		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
-		beforeExit();
-
-		resignAndDestroyFederation();
 	}
 	
 	/**
-	 * Override to provide handling for UCEF specific interaction types
+	 * Override to provide handling for specific UCEF simulation control interaction types
 	 */
 	@Override
 	public void incomingInteraction( HLAInteraction interaction, double time )
 	{
-		UCEFInteraction realizedInteraction = this.ucefInteractionRealizer.realize( interaction );
-		if( realizedInteraction == null )
-		{
-			// generic interaction
-			receiveInteraction( interaction, time );
-		}
-		else if( realizedInteraction instanceof SimPause )
-		{
-			// delegate to handler for UCEF SimPause interactions
-			receiveSimPause( (SimPause)realizedInteraction, time );
-		}
-		else if( realizedInteraction instanceof SimResume )
-		{
-			// delegate to handler for UCEF SimResume interactions
-			receiveSimResume( (SimResume)realizedInteraction, time );
-		}
-		else if( realizedInteraction instanceof SimEnd )
-		{
-			// delegate to handler for UCEF SimEnd interactions
-			receiveSimEnd( (SimEnd)realizedInteraction, time );
-		}
+		InteractionClassHandle interactionKind = rtiamb.getInteractionClassHandle( interaction );
+		// delegate to handlers for UCEF Simulation control interactions as required
+		if( interactionKind.equals( simPauseHandle ) )
+			receiveSimPause( new SimPause( interaction ), time );
+		else if( interactionKind.equals( simResumeHandle ) )
+			receiveSimResume( new SimResume( interaction ), time );
+		else if( interactionKind.equals( simEndHandle ) )
+			receiveSimEnd( new SimEnd( interaction ), time );
+		else if( interactionKind.equals( federateJoinHandle ) )
+			receiveFederateJoin( new FederateJoin( interaction ), time );
+
+		// anything else gets generic interaction receipt handling
+		receiveInteraction( interaction, time );
 	}
 	
 	@Override
 	public void incomingInteraction( HLAInteraction interaction )
 	{
-		UCEFInteraction realizedInteraction = this.ucefInteractionRealizer.realize( interaction );
-		if( realizedInteraction == null )
-		{
-			// generic interaction
-			receiveInteraction( interaction );
-		}
-		else if( realizedInteraction instanceof SimPause )
-		{
-			// delegate to handler for UCEF SimPause interactions
-			receiveSimPause( (SimPause)realizedInteraction );
-		}
-		else if( realizedInteraction instanceof SimResume )
-		{
-			// delegate to handler for UCEF SimResume interactions
-			receiveSimResume( (SimResume)realizedInteraction );
-		}
-		else if( realizedInteraction instanceof SimEnd )
-		{
-			// delegate to handler for UCEF SimEnd interactions
-			receiveSimEnd( (SimEnd)realizedInteraction );
-		}
+		InteractionClassHandle interactionKind = rtiamb.getInteractionClassHandle( interaction );
+		// delegate to handlers for UCEF Simulation control interactions as required
+		if( interactionKind.equals( simPauseHandle ) )
+			receiveSimPause( new SimPause( interaction ) );
+		else if( interactionKind.equals( simResumeHandle ) )
+			receiveSimResume( new SimResume( interaction ) );
+		else if( interactionKind.equals( simEndHandle ) )
+			receiveSimEnd( new SimEnd( interaction ) );
+		else if( interactionKind.equals( federateJoinHandle ) )
+			receiveFederateJoin( new FederateJoin( interaction ) );
+
+		// anything else gets generic interaction receipt handling
+		receiveInteraction( interaction );
 	}
 
 	//----------------------------------------------------------
@@ -183,9 +182,9 @@ public abstract class UCEFFederateBase extends FederateBase
 	 *
 	 * @param simPause the {@link SimPause} interaction
 	 */
-	public void receiveSimPause( SimPause simPause )
+	protected void receiveSimPause( SimPause simPause )
 	{
-		// ignored by default - override this method to provide specific handling
+		// override this method to provide specific handling
 	}
 
 	/**
@@ -197,7 +196,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param simPause the {@link SimPause} interaction
 	 * @param federateTime the current logical time of the federate
 	 */
-	public void receiveSimPause( SimPause simPause, double time )
+	protected void receiveSimPause( SimPause simPause, double time )
 	{
 		// delegate to handler with no time parameter as the default behaviour
 		// override this method to provide specific handling
@@ -213,9 +212,9 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param simResume the {@link SimResume} interaction
 	 * @param federateTime the current logical time of the federate
 	 */
-	public void receiveSimResume( SimResume simResume )
+	protected void receiveSimResume( SimResume simResume )
 	{
-		// ignored by default - override this method to provide specific handling
+		// override this method to provide specific handling
 	}
 
 	/**
@@ -227,7 +226,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param simResume the {@link SimResume} interaction
 	 * @param federateTime the current logical time of the federate
 	 */
-	public void receiveSimResume( SimResume simResume, double time )
+	protected void receiveSimResume( SimResume simResume, double time )
 	{
 		// delegate to handler with no time parameter as the default behaviour
 		// override this method to provide specific handling
@@ -242,9 +241,9 @@ public abstract class UCEFFederateBase extends FederateBase
 	 *
 	 * @param simEnd the {@link SimEnd} interaction
 	 */
-	public void receiveSimEnd( SimEnd simEnd )
+	protected void receiveSimEnd( SimEnd simEnd )
 	{
-		// ignored by default - override this method to provide specific handling
+		this.simEndReceived = true;
 	}
 
 	/**
@@ -256,13 +255,42 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param simEnd the {@link SimEnd} interaction
 	 * @param time the current logical time of the federate
 	 */
-	public void receiveSimEnd( SimEnd simEnd, double time )
+	protected void receiveSimEnd( SimEnd simEnd, double time )
 	{
 		// delegate to handler with no time parameter as the default behaviour
 		// override this method to provide specific handling
 		receiveSimEnd( simEnd );
 	}
 
+	/**
+	 * Called whenever the UCEF specific "federate join" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param federateJoin the {@link FederateJoin} interaction
+	 */
+	protected void receiveFederateJoin( FederateJoin federateJoin )
+	{
+		// override this method to provide specific handling
+	}
+	
+	/**
+	 * Called whenever the UCEF specific "federate join" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param federateJoin the {@link FederateJoin} interaction
+	 * @param time the current logical time of the federate
+	 */
+	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
+	{
+		// delegate to handler with no time parameter as the default behaviour
+		// override this method to provide specific handling
+		receiveFederateJoin( federateJoin );
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
