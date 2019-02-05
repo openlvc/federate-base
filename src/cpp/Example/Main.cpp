@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "gov/nist/ucef/hla/ucef/UCEFFederateBase.h"
+#include "gov/nist/ucef/hla/ucef/UCEFNullFederate.h"
 #include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/base/UCEFException.h"
 #include "gov/nist/ucef/hla/base/HLAObject.h"
@@ -12,7 +12,7 @@ using namespace base;
 using namespace base::ucef;
 using namespace base::util;
 
-class ExampleFederate : public UCEFFederateBase
+class ExampleFederate : public UCEFNullFederate
 {
 	public:
 		//----------------------------------------------------------

@@ -71,6 +71,7 @@ namespace base
 			                     ( long interactionHash,
 			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 
+		protected:
 			//----------------------------------------------------------
 			//                     Callback Methods
 			//----------------------------------------------------------
@@ -121,7 +122,6 @@ namespace base
 			 */
 			virtual void receivedSimResumed( std::shared_ptr<const SimResume> hlaInteraction,
 			                                 double federateTime ) = 0;
-		protected:
 			/**
 			 * The main execution loop of the UCEF federate
 			 */
