@@ -26,11 +26,10 @@ package gov.nist.ucef.hla.ucef;
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.NoOpFederateBase;
-import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import hla.rti1516e.InteractionClassHandle;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  * An abstract implementation for a UCEF Federate which is aware of certain
@@ -56,12 +55,6 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	// cached handles for determination of received interaction types
-	private InteractionClassHandle federateJoinHandle;
-	private InteractionClassHandle simPauseHandle;
-	private InteractionClassHandle simResumeHandle;
-	private InteractionClassHandle simEndHandle;
-
 	// flag for storing whether a SimEnd interaction has been received
 	protected boolean simEndReceived;
 	
@@ -78,22 +71,6 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	@Override
-	public void beforeReadyToPopulate()
-	{
-		super.beforeReadyToPopulate();
-
-		// cache UCEF simulation control handles to avoid looking 
-		// them up repeatedly later on. Note that we can't do this
-		// any earlier (in the constructor, for example) since the
-		// RTI Ambassador is not initialized until the federation
-		// has been joined.
-		federateJoinHandle = rtiamb.getInteractionClassHandle( FederateJoin.interactionName() );
-		simPauseHandle = rtiamb.getInteractionClassHandle( SimPause.interactionName() );
-		simResumeHandle = rtiamb.getInteractionClassHandle( SimResume.interactionName() );
-		simEndHandle = rtiamb.getInteractionClassHandle( SimEnd.interactionName() );		
-	}
-	
 	/**
 	 * We override the this method here so that we can react to
 	 * the arrival of a {@link SimEnd} interaction by terminating
@@ -138,15 +115,14 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 	@Override
 	public void incomingInteraction( HLAInteraction interaction, double time )
 	{
-		InteractionClassHandle interactionKind = rtiamb.getInteractionClassHandle( interaction );
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( interactionKind.equals( simPauseHandle ) )
+		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
 			receiveSimPause( new SimPause( interaction ), time );
-		else if( interactionKind.equals( simResumeHandle ) )
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
 			receiveSimResume( new SimResume( interaction ), time );
-		else if( interactionKind.equals( simEndHandle ) )
+		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
 			receiveSimEnd( new SimEnd( interaction ), time );
-		else if( interactionKind.equals( federateJoinHandle ) )
+		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
 			receiveFederateJoin( new FederateJoin( interaction ), time );
 
 		// anything else gets generic interaction receipt handling
@@ -156,15 +132,14 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 	@Override
 	public void incomingInteraction( HLAInteraction interaction )
 	{
-		InteractionClassHandle interactionKind = rtiamb.getInteractionClassHandle( interaction );
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( interactionKind.equals( simPauseHandle ) )
+		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
 			receiveSimPause( new SimPause( interaction ) );
-		else if( interactionKind.equals( simResumeHandle ) )
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
 			receiveSimResume( new SimResume( interaction ) );
-		else if( interactionKind.equals( simEndHandle ) )
+		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
 			receiveSimEnd( new SimEnd( interaction ) );
-		else if( interactionKind.equals( federateJoinHandle ) )
+		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
 			receiveFederateJoin( new FederateJoin( interaction ) );
 
 		// anything else gets generic interaction receipt handling

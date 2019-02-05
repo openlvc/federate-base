@@ -21,21 +21,21 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
-
-import java.util.Map;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.SmartInteraction;
 
-public abstract class UCEFInteraction extends SmartInteraction
+public class SimEnd extends UCEFSimControlInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	protected static final String UCEF_INTERACTION_ROOT = "HLAInteractionRoot.C2WInteractionRoot.";
-
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
+	
+	// interaction parameters and types
+	// ...none...
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -43,21 +43,12 @@ public abstract class UCEFInteraction extends SmartInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected UCEFInteraction( RTIAmbassadorWrapper rtiamb, String interactionName )
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public SimEnd( HLAInteraction interaction )
 	{
-		this( rtiamb, interactionName, null );
-	}
-
-	protected UCEFInteraction( String interactionName, HLAInteraction interaction )
-	{
-		super( interactionName, interaction );
-	}
-	
-	protected UCEFInteraction( RTIAmbassadorWrapper rtiamb, 
-	                           String interactionName,
-	                           Map<String,byte[]> parameters )
-	{
-		super( rtiamb, interactionName, parameters );
+		super( interaction );
 	}
 
 	//----------------------------------------------------------
@@ -67,5 +58,17 @@ public abstract class UCEFInteraction extends SmartInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
+	
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
+	{
+		return INTERACTION_NAME;
+	}
 }

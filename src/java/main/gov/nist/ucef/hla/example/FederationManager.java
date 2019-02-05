@@ -49,10 +49,10 @@ import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
-import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  *		            ___
@@ -718,8 +718,8 @@ public class FederationManager extends UCEFFederateBase
 		{
 			String fomRootPath = "resources/foms/";
 			// modules
-			String[] moduleFoms = {fomRootPath+"FederationManager.xml",
-			                       fomRootPath+"PingPong.xml"};
+			String[] moduleFoms = { fomRootPath + "FederationManager.xml", 
+			                        fomRootPath + "SmartPingPong.xml" };
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules

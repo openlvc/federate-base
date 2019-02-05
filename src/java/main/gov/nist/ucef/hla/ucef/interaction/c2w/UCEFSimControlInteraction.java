@@ -21,24 +21,17 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
-
-import java.util.Map;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimEnd extends UCEFSimControlInteraction
+public abstract class UCEFSimControlInteraction extends C2WInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
-	
-	// interaction parameters and types
-	// ...none...
-	
+	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = C2W_INTERACTION_ROOT+"SimulationControl.";
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -46,32 +39,11 @@ public class SimEnd extends UCEFSimControlInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 */
-	public  SimEnd( RTIAmbassadorWrapper rtiamb )
+	protected UCEFSimControlInteraction( HLAInteraction interaction )
 	{
-		this( rtiamb, null );
+		super( interaction );
 	}
 	
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
-	 */
-	public SimEnd( RTIAmbassadorWrapper rtiamb,
-	               Map<String,byte[]> parameters )
-	{
-		super( rtiamb, interactionName(), parameters );
-	}
-
-	/**
-	 * @param interaction the {@link HLAInteraction} instance
-	 */
-	public SimEnd( HLAInteraction interaction )
-	{
-		super( interactionName(), interaction );
-	}
-
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -79,17 +51,5 @@ public class SimEnd extends UCEFSimControlInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	/**
-	 * Obtain the HLA interaction name identifying this type of interaction
-	 * 
-	 * @return the HLA interaction name identifying this interaction
-	 */
-	public static String interactionName()
-	{
-		return INTERACTION_NAME;
-	}
+
 }

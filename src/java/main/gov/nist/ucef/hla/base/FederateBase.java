@@ -271,7 +271,7 @@ public abstract class FederateBase
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 */
-	protected void updateAttributeValues( HLAObject instance)
+	protected void updateAttributeValues( HLAObject instance )
 	{
 		rtiamb.updateAttributeValues( instance, null, null );
 	}

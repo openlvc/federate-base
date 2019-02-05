@@ -21,23 +21,16 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
-
-import java.util.Map;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimResume extends UCEFSimControlInteraction
+public abstract class C2WInteraction extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
-	
-	// interaction parameters and types
-	// ...none...
+	protected static final String C2W_INTERACTION_ROOT = "HLAInteractionRoot.C2WInteractionRoot.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -46,32 +39,9 @@ public class SimResume extends UCEFSimControlInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 */
-	public  SimResume( RTIAmbassadorWrapper rtiamb )
+	protected C2WInteraction( HLAInteraction interaction )
 	{
-		super( rtiamb, null );
-	}
-
-	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
-	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb,
-	                  Map<String,byte[]> parameters )
-	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		// ...no parameters...
-	}
-
-	/**
-	 * @param interaction the {@link HLAInteraction} instance
-	 */
-	public SimResume( HLAInteraction interaction )
-	{
-		super( interactionName(), interaction );
+		super( interaction );
 	}
 
 	//----------------------------------------------------------
@@ -82,16 +52,4 @@ public class SimResume extends UCEFSimControlInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	/**
-	 * Obtain the HLA interaction name identifying this type of interaction
-	 * 
-	 * @return the HLA interaction name identifying this interaction
-	 */
-	public static String interactionName()
-	{
-		return INTERACTION_NAME;
-	}
 }

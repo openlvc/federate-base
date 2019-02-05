@@ -29,15 +29,11 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.example.smart.interactions.InteractionRealizer;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.interactions.Pong;
-import gov.nist.ucef.hla.example.smart.reflections.ObjectRealizer;
 import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.smart.SmartInteraction;
-import gov.nist.ucef.hla.smart.SmartObject;
 
 /**
  *		            ___
@@ -51,25 +47,22 @@ import gov.nist.ucef.hla.smart.SmartObject;
  * 
  * Example federate for testing
  */
-public class PingFederate extends NoOpFederateBase
+public class SmartPongFederate extends NoOpFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
 	//----------------------------------------------------------
-	private static String[] PLAYER_NAMES= {"Alice Ping", "Bob Ping", "Carol Ping", "David Ping"};
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private InteractionRealizer pingpongInteractionFactory;
-	private ObjectRealizer pingpongObjectFactory;
-	private int count;
+	private char letter;
 	private Player player;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public PingFederate( String[] args )
+	public SmartPongFederate( String[] args )
 	{
 		super();
 	}
@@ -83,9 +76,6 @@ public class PingFederate extends NoOpFederateBase
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		pingpongInteractionFactory = new InteractionRealizer( rtiamb );
-		pingpongObjectFactory = new ObjectRealizer( rtiamb );
-
 		System.out.println( String.format( "Waiting for '%s' synchronization point...",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
@@ -93,19 +83,19 @@ public class PingFederate extends NoOpFederateBase
 	@Override
 	public void beforeFirstStep()
 	{
-		this.count =  0;
-		this.player = new Player( rtiamb, "PingPlayer" );
+		this.letter = 'a';
+		this.player = new Player( rtiamb, "PongPlayer" );
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
 		// here we end out our interaction and attribute update
-		sendInteraction( new Ping( rtiamb, this.count ) );
+		sendInteraction( new Pong( rtiamb, this.letter ) );
 		updateAttributeValues( this.player );
 		// update the values
-		this.count++;
-		String nextPlayerName = PLAYER_NAMES[this.count % PLAYER_NAMES.length];
+		this.letter++;
+		String nextPlayerName = this.player.name() + this.letter;
 		this.player.name( nextPlayerName );
 		// keep going until time 10.0
 		return (currentTime < 10.0);
@@ -114,30 +104,27 @@ public class PingFederate extends NoOpFederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		SmartInteraction smartInteraction = pingpongInteractionFactory.realize( hlaInteraction );
-		if(smartInteraction != null && smartInteraction instanceof Pong )
+		if( rtiamb.isOfKind( hlaInteraction, Ping.interactionName() ) )
 		{
-			receivePongInteraction( (Pong)smartInteraction );
+			receivePingInteraction( new Ping( hlaInteraction ) );
 		}
 		else
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                    rtiamb.getInteractionClassName( hlaInteraction ) ) );
+			                                   rtiamb.getInteractionClassName( hlaInteraction ) ) );
 		}
 	}
-	
+
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject ) 
 	{ 
-		SmartObject smartObject = pingpongObjectFactory.realize( hlaObject );
-		if( smartObject != null && smartObject instanceof Player )
+		if( rtiamb.isOfKind( hlaObject, Player.objectClassName() ) )
 		{
-			receivePlayerUpdate( (Player)smartObject );
+			receivePlayerUpdate( new Player( hlaObject ) );
 		}
 		else
 		{
@@ -151,14 +138,14 @@ public class PingFederate extends NoOpFederateBase
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Handle receipt of a {@link Pong}
+	 * Handle receipt of a {@link Ping}
 	 * 
-	 * @param pong the interaction to handle
+	 * @param ping the interaction to handle
 	 */
-	private void receivePongInteraction( Pong pong )
+	private void receivePingInteraction( Ping ping )
 	{
-		System.out.println( String.format( "Received Pong interaction - letter is '%s'.",
-		                                   pong.letter() ) );
+		System.out.println( String.format( "Received Ping interaction - count is %s",
+		                                   ping.count() ) );
 	}
 
 	/**
@@ -171,7 +158,7 @@ public class PingFederate extends NoOpFederateBase
 		System.out.println( String.format( "Received Player update - name is %s",
 		                                   player.name() ) );
 	}
-
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -182,7 +169,7 @@ public class PingFederate extends NoOpFederateBase
 	 */
 	private static FederateConfiguration makeConfig()
 	{
-		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
+		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
 		                                                          "PingPongFederate",     // type
 		                                                          "PingPongFederation" ); // execution
 
@@ -190,8 +177,8 @@ public class PingFederate extends NoOpFederateBase
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
 		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Ping.interactionName() );
-		config.addSubscribedInteraction( Pong.interactionName() );
+		config.addPublishedInteraction( Pong.interactionName() );
+		config.addSubscribedInteraction( Ping.interactionName() );
 
 		// somebody set us up the FOM...
 		try
@@ -222,21 +209,20 @@ public class PingFederate extends NoOpFederateBase
 	{
 		System.out.println( Constants.UCEF_LOGO );
 		System.out.println();
-		System.out.println( "	       .__                " );
-		System.out.println( "	______ |__| ____    ____" );
-		System.out.println( "	\\____ \\|  |/    \\  / ___\\" );
-		System.out.println( "	|  |_> >  |   |  \\/ /_/  >" );
-		System.out.println( "	|   __/|__|___|  /\\___  /" );
-		System.out.println( "	|__|           \\//_____/" );
-		System.out.println( "	   Smart Ping Federate" );
+		System.out.println( "	______   ____   ____    ____  " );
+		System.out.println( "	\\____ \\ /  _ \\ /    \\  / ___\\" );
+		System.out.println( "	|  |_> >  <_> )   |  \\/ /_/  >" );
+		System.out.println( "	|   __/ \\____/|___|  /\\___  /" );
+		System.out.println( "	|__|               \\//_____/" );
+		System.out.println( "	     Smart Pong Federate" );
 		System.out.println();
-		System.out.println( "Sends 'Ping' interactions.");
-		System.out.println( "Receives 'Pong' interactions.");
+		System.out.println( "Sends 'Pong' interactions.");
+		System.out.println( "Receives 'Ping' interactions.");
 		System.out.println();
 
 		try
 		{
-			new PingFederate( args ).runFederate( makeConfig() );
+			new SmartPongFederate( args ).runFederate( makeConfig() );
 		}
 		catch( Exception e )
 		{
