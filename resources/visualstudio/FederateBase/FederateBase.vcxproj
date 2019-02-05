@@ -96,6 +96,7 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimEnd.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimPause.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimResume.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\UCEFFederateBase.cpp" />
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
@@ -115,6 +116,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimEnd.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimPause.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimResume.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\UCEFFederateBase.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />

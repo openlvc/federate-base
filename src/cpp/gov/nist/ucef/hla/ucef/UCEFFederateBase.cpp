@@ -59,6 +59,13 @@ namespace base
 					receivedSimResumed( dynamic_pointer_cast<SimResume>(hlaInteraction),
 					                    federateAmbassador->getFederateTime() );
 				}
+				else if( interactionClass->name == SimStart::INTERACTION_NAME )
+				{
+					hlaInteraction = make_shared<SimStart>( interactionClass->name );
+					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+					receivedSimStart( dynamic_pointer_cast<SimStart>(hlaInteraction),
+					                  federateAmbassador->getFederateTime() );
+				}
 				else
 				{
 					hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );

@@ -46,6 +46,9 @@
     <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.cpp">
       <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.cpp">
+      <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h">
@@ -100,6 +103,9 @@
       <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.h">
+      <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.h">
       <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
     </ClInclude>
   </ItemGroup>

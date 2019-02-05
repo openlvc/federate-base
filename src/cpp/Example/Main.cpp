@@ -163,8 +163,14 @@ class ExampleFederate : public UCEFFederateBase
 			cout << "Received an object deletion callback " << hlaObject->getClassName() << endl;
 		}
 
+		virtual void receivedSimStart( shared_ptr<const SimStart> hlaInt,
+		                               double federateTime ) override
+		{
+			cout << "Received sim start interaction";
+		}
+
 		virtual void receivedSimEnd( shared_ptr<const SimEnd> hlaInt,
-		                             double federateTime) override
+		                             double federateTime ) override
 		{
 			cout << "Received sim end interaction";
 		}
@@ -176,7 +182,7 @@ class ExampleFederate : public UCEFFederateBase
 		}
 
 		virtual void receivedSimResumed( shared_ptr<const SimResume> hlaInt,
-		                                 double federateTime) override
+		                                 double federateTime ) override
 		{
 			cout << "Received sim resumed interaction";
 		}
