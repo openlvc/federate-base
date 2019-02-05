@@ -40,7 +40,7 @@ class ExampleFederate : public UCEFFederateBase
 			{
 				for(auto className : publishClassNames )
 				{
-					shared_ptr<HLAObject> obj = m_rtiAmbassadorWrapper->registerObjectInstance( className );
+					shared_ptr<HLAObject> obj = rtiAmbassadorWrapper->registerObjectInstance( className );
 					if( obj )
 					{
 						federateObjects.push_back( obj );
@@ -74,7 +74,7 @@ class ExampleFederate : public UCEFFederateBase
 
 			for( auto object : federateObjects )
 			{
-				m_rtiAmbassadorWrapper->deleteObjectInstance( object );
+				rtiAmbassadorWrapper->deleteObjectInstance( object );
 			}
 		}
 
@@ -99,7 +99,7 @@ class ExampleFederate : public UCEFFederateBase
 							interaction->setValue( name, "parameter " + name + " : " + to_string( i ) );
 						}
 						cout << "Sending an interaction " + interactionName << endl;
-						m_rtiAmbassadorWrapper->sendInteraction( interaction );
+						rtiAmbassadorWrapper->sendInteraction( interaction );
 					}
 				}
 				else
@@ -116,7 +116,7 @@ class ExampleFederate : public UCEFFederateBase
 							val->setValue( attributeName, "attribute " + attributeName + " : " + to_string( i ) );
 						}
 						cout << "Sending an object update " + val->getClassName() << endl;
-						m_rtiAmbassadorWrapper->updateAttributeValues( val );
+						rtiAmbassadorWrapper->updateAttributeValues( val );
 					}
 				}
 			}

@@ -32,7 +32,7 @@
 #include <vector>
 
 #include "gov/nist/ucef/hla/base/FederateConfiguration.h"
-#include "gov/nist/ucef/hla/base/HLAObject.h"
+#include "gov/nist/ucef/hla/base/HLAInteraction.h"
 #include "gov/nist/ucef/hla/base/IFederateBase.h"
 #include "RTIAmbassadorWrapper.h"
 
@@ -92,7 +92,7 @@ namespace base
 			 * Called by {@link FederateAmbassador} whenever RTI receives a new interaction
 			 *
 			 * @param interactionHash the unique hash of the received object interaction
-			 * @param parameterValues a map that contains parameters and values of the
+			 * @param parameterValues a map that holds parameters and values of the
 			 *                        received interaction
 			 */
 			virtual void incomingInteraction
@@ -117,6 +117,19 @@ namespace base
 			 * @param hash hash identifier of a HLA object interaction class
 			 */
 			std::shared_ptr<base::InteractionClass> getInteractionClass(long hash);
+
+			/**
+			 * Populates a given interaction with received parameter values
+			 *
+			 * @param interactionClassName the name of the interaction class
+			 * @param hlaInteraction HLA interaction instance that needs to be
+			 *                       populated
+			 * @param parameterValues a map that holds parameters and values of the
+			 *                        received interaction
+			 */
+			void populateInteraction( const std::string& interactionClassName,
+			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
+			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 
 		private:
 			//----------------------------------------------------------

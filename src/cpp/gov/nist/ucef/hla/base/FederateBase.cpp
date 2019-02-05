@@ -14,7 +14,6 @@
 #include "RTI/RTIambassador.h"
 #include "RTI/RTIambassadorFactory.h"
 #include "RTI/time/HLAfloat64Interval.h"
-#include "RTI/Typedefs.h"
 
 using namespace rti1516e;
 using namespace std;
@@ -386,32 +385,7 @@ namespace base
 		if( interactionClass )
 		{
 			shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
-			InteractionClassHandle interactionHandle =
-				rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
-			if( !interactionHandle.isValid() )
-			{
-				logger.log( "No valid interaction handle found for the received interaction of " +
-				            interactionClass->name, LevelWarn);
-				return;
-			}
-
-			for( auto& incomingParameterValue : parameterValues )
-			{
-				string paramName =
-					rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
-				if( paramName == "" )
-				{
-					logger.log( "No valid parameter name found for the received parameter with id : " +
-				                to_string(incomingParameterValue.first.hash()), LevelWarn);
-					continue;
-				}
-
-				size_t size = incomingParameterValue.second.size();
-				const void* data = incomingParameterValue.second.data();
-				shared_ptr<void> arr( new char[size](), [](char *p) { delete [] p; } );
-				memcpy( arr.get(), data, size );
-				hlaInteraction->setValue( paramName, arr, size );
-			}
+			populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
 			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
 			                     federateAmbassador->getFederateTime() );
 		}
@@ -476,6 +450,40 @@ namespace base
 			return interactionDataStoreByHash[hash];
 		}
 		return nullptr;
+	}
+
+	void FederateBase::populateInteraction( const string& interactionClassName,
+	                                        shared_ptr<HLAInteraction>& hlaInteraction,
+	                                        const ParameterHandleValueMap& parameterValues )
+	{
+		Logger& logger = Logger::getInstance();
+		InteractionClassHandle interactionHandle =
+			rtiAmbassadorWrapper->getInteractionHandle( interactionClassName );
+
+		if( !interactionHandle.isValid() )
+		{
+			logger.log( "No valid interaction handle found for the received interaction of " +
+			            interactionClassName, LevelWarn );
+			return;
+		}
+
+		for( auto& incomingParameterValue : parameterValues )
+		{
+			string paramName =
+				rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
+			if( paramName == "" )
+			{
+				logger.log( "No valid parameter name found for the received parameter with id : " +
+				            to_string(incomingParameterValue.first.hash()), LevelWarn);
+				continue;
+			}
+
+			size_t size = incomingParameterValue.second.size();
+			const void* data = incomingParameterValue.second.data();
+			shared_ptr<void> arr(new char[size](), [](char *p) { delete[] p; });
+			memcpy( arr.get(), data, size );
+			hlaInteraction->setValue( paramName, arr, size );
+		}
 	}
 
 	void FederateBase::resignAndDestroy()
