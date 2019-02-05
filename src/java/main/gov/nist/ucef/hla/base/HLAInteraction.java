@@ -115,12 +115,16 @@ public class HLAInteraction
 	}
 	
 	/**
-	 * Determine if this instance has the named parameter 
+	 * Determine if this instance has a parameter with the given name.
+	 * 
+	 * NOTE: this does not mean that the named parameter is initialized, only that a parameter value
+	 * could be queried using the given name. See {@link #isPresent(String)} for checking whether the
+	 * value for the named parameter has actually been initialized.
 	 * 
 	 * @param parameterName the name of the parameter
 	 * @return true if the parameter is known by this instance, false otherwise
 	 */
-	public boolean isParameter( String parameterName )
+	public boolean hasParameter( String parameterName )
 	{
 		return this.parameters.containsKey( parameterName );
 	}
@@ -136,12 +140,11 @@ public class HLAInteraction
 	 * @param parameterName the name of the attribute
 	 * @return true if the parameter as a value defined for it, false otherwise
 	 */
-	public boolean isInitialized( String parameterName )
+	public boolean isPresent( String parameterName )
 	{
 		byte[] rawValue = getRawValue( parameterName );
 		return rawValue != null && rawValue.length != 0;
 	}
-	
 	
 	/**
 	 * Obtain the value for the named parameter as a short

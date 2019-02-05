@@ -80,6 +80,11 @@ public class Ping extends SmartInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public boolean isCountPresent()
+	{
+		return isPresent( PARAM_KEY_COUNT );
+	}
+	
 	public void count( int count )
 	{
 		setValue( PARAM_KEY_COUNT, count );

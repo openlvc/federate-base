@@ -113,12 +113,15 @@ public class HLAObject
 	}
 	
 	/**
-	 * Determine if this instance has the named attribute 
+	 * Determine if this instance has a attribute with the given name.
+	 * 
+	 * NOTE: this does not mean that the named attribute is initialized, only that an attribute value
+	 * could be queried using the given name. See {@link #isPresent(String)} for checking whether the
+	 * value for the named attribute has actually been initialized.
 	 * 
 	 * @param attributeName the name of the attribute
 	 * @return true if the attribute is known by this instance, false otherwise
-	 */
-	public boolean isAttribute( String attributeName )
+	 */	public boolean isAttribute( String attributeName )
 	{
 		return this.attributes.containsKey( attributeName );
 	}
@@ -134,7 +137,7 @@ public class HLAObject
 	 * @param attributeName the name of the attribute
 	 * @return true if the attribute as a value defined for it, false otherwise
 	 */
-	public boolean isInitialized( String attributeName )
+	public boolean isPresent( String attributeName )
 	{
 		byte[] rawValue = getRawValue( attributeName );
 		return rawValue != null && rawValue.length != 0;

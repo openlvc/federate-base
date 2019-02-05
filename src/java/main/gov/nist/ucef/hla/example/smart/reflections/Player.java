@@ -83,6 +83,11 @@ public class Player extends SmartObject
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public void isNamePresent( String name )
+	{
+		isPresent( ATTRIBUTE_KEY_NAME );
+	}
+	
 	public void name( String name )
 	{
 		setValue( ATTRIBUTE_KEY_NAME, name );
