@@ -24,7 +24,7 @@ namespace base
 	{
 	}
 
-	bool HLAInteraction::isParameter( const string& attributeName ) const
+	bool HLAInteraction::isPresent( const string& attributeName ) const
 	{
 		bool flag = parameterDataStore->find( attributeName ) == parameterDataStore->end() ? false : true;
 		return flag;

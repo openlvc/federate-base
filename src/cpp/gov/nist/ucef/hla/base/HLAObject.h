@@ -67,12 +67,12 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
-			 * Checks if the named attribute is known to this instance
+			 * Checks if the given attribute is known to this instance
 			 * 
 			 * @param attributeName the name of the attribute as in SOM
 			 * @return true if the attribute is known by this instance, false otherwise
 			 */
-			bool isAttribute( const std::string& attributeName ) const;
+			bool isPresent( const std::string& attributeName ) const;
 
 			/**
 			 * Sets the value of a named attribute to a bool.

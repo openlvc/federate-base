@@ -26,7 +26,7 @@ namespace base
 	}
 
 	
-	bool HLAObject::isAttribute( const string& attributeName ) const
+	bool HLAObject::isPresent( const string& attributeName ) const
 	{
 		bool flag = attributeDataStore->find( attributeName ) == attributeDataStore->end() ? false : true;
 		return flag;

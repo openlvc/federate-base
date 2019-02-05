@@ -64,12 +64,12 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
-			 * Checks if the named parameter is known to this instance.
+			 * Checks if the given parameter is known to this instance
 			 * 
 			 * @param parameterName the name of the parameter as in SOM
 			 * @return true if the parameter is known by this instance, false otherwise
 			 */
-			bool isParameter( const std::string& parameterName ) const;
+			bool isPresent( const std::string& parameterName ) const;
 
 			/**
 			 * Sets the value of a named parameter to a bool.
