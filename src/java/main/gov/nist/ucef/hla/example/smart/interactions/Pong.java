@@ -80,6 +80,11 @@ public class Pong extends SmartInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public boolean isLetterPresent()
+	{
+		return isPresent( PARAM_KEY_LETTER );
+	}
+	
 	public void letter( char letter )
 	{
 		setValue( PARAM_KEY_LETTER, letter );

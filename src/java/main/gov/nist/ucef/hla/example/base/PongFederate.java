@@ -160,10 +160,17 @@ public class PongFederate extends FederateBase
 		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
 		if( PING_INTERACTION_ID.equals( interactionName ) )
 		{
-			// Pong interaction received
-			int count = hlaInteraction.getAsInt( PING_PARAM_COUNT );
-			System.out.println( String.format( "Received Ping interaction - count is %d",
-			                                    count ) );
+			// Ping interaction received
+			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
+			{
+				int count = hlaInteraction.getAsInt( PING_PARAM_COUNT );
+				System.out.println( String.format( "Received Ping interaction - 'count' is %d",
+				                                   count ) );
+			}
+			else
+			{
+				System.out.println( String.format( "Received Ping interaction - no 'count' was present" ) );
+			}
 		}
 		else
 		{

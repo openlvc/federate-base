@@ -253,6 +253,7 @@ public class FederationManager extends FederateBase
 			{
 				System.out.println( String.format( "\n%d of %d federates have joined.",
 				                                   currentJoinedCount, totalFederatesRequired ) );
+				System.out.println( startRequirementsSummary() );
 				lastJoinedCount = currentJoinedCount;
 				count = 1;
 			}
@@ -338,16 +339,17 @@ public class FederationManager extends FederateBase
 		if( rtiamb.isOfKind( hlaObject, HLAFEDERATE_OBJECT_CLASS_NAME ) )
 		{
     		JoinedFederate joinedFederate = new JoinedFederate( hlaObject );
-    		if( FEDMAN_FEDERATE_TYPE.equals( joinedFederate.getFederateType() ) )
+    		String federateType = joinedFederate.getFederateType();
+    		if( FEDMAN_FEDERATE_TYPE.equals( federateType ) )
     		{
     			// ignore ourself joining...
     			return;
     		}
+    		
     		// WORKAROUND for the fact that the federate type is currently not correctly
     		//            propagated (and instead is actually the federate name)
     		//            see: https://github.com/openlvc/portico/issues/280
     		//                 https://github.com/openlvc/portico/pull/281
-    		String federateType = joinedFederate.getFederateType();
     		for( String requiredType : startRequirements.keySet() )
     		{
     			if( federateType.startsWith( requiredType ) )
@@ -627,7 +629,7 @@ public class FederationManager extends FederateBase
 			row = new ArrayList<>();
 			row.add(federateType);
 			row.add(Integer.toString( startRequirements.get( federateType ) ));
-			row.add(Integer.toString( joinedFederatesByType.getOrDefault( federateTypes, Collections.emptySet() ).size() ));
+			row.add(Integer.toString( joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size() ));
 			tableContent.add( row );
 		}
 		return StringUtils.makeTable( tableContent );

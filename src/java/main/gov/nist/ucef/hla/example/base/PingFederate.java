@@ -161,9 +161,16 @@ public class PingFederate extends FederateBase
 		if( PONG_INTERACTION_ID.equals( interactionName ) )
 		{
 			// Pong interaction received
-			char letter = hlaInteraction.getAsChar( PONG_PARAM_LETTER );
-			System.out.println( String.format( "Received Pong interaction - letter is %s",
-			                                    letter ) );
+			if( hlaInteraction.isPresent( PONG_PARAM_LETTER ) )
+			{
+    			char letter = hlaInteraction.getAsChar( PONG_PARAM_LETTER );
+    			System.out.println( String.format( "Received Pong interaction - 'letter' is %s",
+    			                                    letter ) );
+			}
+			else
+			{
+				System.out.println( String.format( "Received Pong interaction - no 'letter' was present" ) );
+			}
 		}
 		else
 		{
