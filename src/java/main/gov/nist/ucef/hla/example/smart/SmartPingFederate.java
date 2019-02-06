@@ -144,24 +144,19 @@ public class SmartPingFederate extends NoOpFederate
 	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
-		// stop advancing - we are paused
 		System.out.println( "Simulation has been paused." );
 	}
 
 	@Override
 	protected void receiveSimResume( SimResume simResume )
 	{
-		// simulation should continue on to advance to the 
-		// next time step or the end of the simulation
 		System.out.println( "Simulation has been resumed." );
 	}
 	
 	@Override
 	protected void receiveSimEnd( SimEnd simEnd )
 	{
-		// simulation should continue on to advance to the 
-		// next time step or the end of the simulation
-		System.out.println( "SimEnd signal received. Terminating simulation..." );
+		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

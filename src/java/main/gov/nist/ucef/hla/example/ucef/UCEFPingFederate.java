@@ -29,11 +29,16 @@ import java.util.Map;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.ucef.NoOpFederate;
+import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -48,7 +53,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example UCEF federate for testing
  */
-public class UCEFPingFederate extends NoOpFederate
+public class UCEFPingFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -77,10 +82,22 @@ public class UCEFPingFederate extends NoOpFederate
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void beforeFederationJoin()
+	{
+		// no action required in this example
+	}
+
+	@Override
 	public void beforeReadyToPopulate()
 	{
 		System.out.println( String.format( "Waiting for '%s' synchronization point...",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
+	}
+
+	@Override
+	protected void beforeReadyToRun()
+	{
+		// no action required in this example
 	}
 
 	@Override
@@ -100,14 +117,32 @@ public class UCEFPingFederate extends NoOpFederate
 		return (currentTime < 10.0);
 	}
 
+	@Override
+	protected void beforeReadyToResign()
+	{
+		// no action required in this example
+	}
+
+	@Override
+	protected void beforeExit()
+	{
+		// no action required in this example
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
+	{
+		// delegate to method ignoring time
+		receiveInteraction(hlaInteraction);
+	}
+
+	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
-		if( PONG_INTERACTION_ID.equals( interactionName ) )
+		if( rtiamb.isOfKind( hlaInteraction, PONG_INTERACTION_NAME ) )
 		{
 			// Pong interaction received
 			if( hlaInteraction.isPresent( PONG_PARAM_LETTER ) )
@@ -125,8 +160,88 @@ public class UCEFPingFederate extends NoOpFederate
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                    interactionName ) );
+			                                    rtiamb.getInteractionClassName( hlaInteraction ) ) );
 		}
+	}
+
+	@Override
+	public void receiveObjectRegistration( HLAObject hlaObject )
+	{
+		// no action required in this example
+	}
+	
+	@Override
+	public void receiveObjectDeleted( HLAObject hlaObject )
+	{
+		// no action required in this example
+	}
+
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject )
+	{
+		// does not occur in this example
+	}
+
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject, double time )
+	{
+		// does not occur in this example
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	protected void receiveSimPause( SimPause simPause, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimPause(simPause);
+	}
+	
+	@Override
+	protected void receiveSimPause( SimPause simPause )
+	{
+		System.out.println( "Simulation has been paused." );
+	}
+
+	@Override
+	protected void receiveSimResume( SimResume simResume, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimResume(simResume);
+	}
+	
+	@Override
+	protected void receiveSimResume( SimResume simResume )
+	{
+		System.out.println( "Simulation has been resumed." );
+	}
+	
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimEnd(simEnd);
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Terminating simulation..." );
+	}
+
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
+	{
+		// delegate to method ignoring time
+		receiveFederateJoin(federateJoin);
+	}
+	
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin )
+	{
+		// ignored in this example
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,16 +252,16 @@ public class UCEFPingFederate extends NoOpFederate
 		Map<String,byte[]> parameters = new HashMap<>();
 		parameters.put( PING_PARAM_COUNT, 
 		                HLACodecUtils.encode( encoder, count ) );
-		return makeInteraction( PING_INTERACTION_ID, parameters );
+		return makeInteraction( PING_INTERACTION_NAME, parameters );
 	}
 
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final String INTERACTION_ROOT = "HLAinteractionRoot.";
-	private static final String PING_INTERACTION_ID = INTERACTION_ROOT+"Ping";
+	private static final String PING_INTERACTION_NAME = INTERACTION_ROOT+"Ping";
 	private static final String PING_PARAM_COUNT = "count";
-	private static final String PONG_INTERACTION_ID = INTERACTION_ROOT+"Pong";
+	private static final String PONG_INTERACTION_NAME = INTERACTION_ROOT+"Pong";
 	private static final String PONG_PARAM_LETTER = "letter";
 	
 	/**
@@ -161,8 +276,8 @@ public class UCEFPingFederate extends NoOpFederate
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( PING_INTERACTION_ID );
-		config.addSubscribedInteraction( PONG_INTERACTION_ID );
+		config.addPublishedInteraction( PING_INTERACTION_NAME );
+		config.addSubscribedInteraction( PONG_INTERACTION_NAME );
 
 		// somebody set us up the FOM...
 		try

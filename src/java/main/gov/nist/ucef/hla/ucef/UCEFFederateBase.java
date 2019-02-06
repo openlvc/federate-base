@@ -74,6 +74,94 @@ public abstract class UCEFFederateBase extends FederateBase
 	}
 
 	//----------------------------------------------------------
+	//         UCEF SPECIFIC INTERACTION CALLBACK METHODS
+	//----------------------------------------------------------
+	/**
+	 * Called whenever the UCEF specific "simulation pause" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simPause the {@link SimPause} interaction
+	 */
+	protected abstract void receiveSimPause( SimPause simPause );
+
+	/**
+	 * Called whenever the UCEF specific "simulation pause" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simPause the {@link SimPause} interaction
+	 * @param federateTime the current logical time of the federate
+	 */
+	protected abstract void receiveSimPause( SimPause simPause, double time );
+
+	/**
+	 * Called whenever the UCEF specific "simulation resume" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simResume the {@link SimResume} interaction
+	 * @param federateTime the current logical time of the federate
+	 */
+	protected abstract void receiveSimResume( SimResume simResume );
+
+	/**
+	 * Called whenever the UCEF specific "simulation resume" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simResume the {@link SimResume} interaction
+	 * @param federateTime the current logical time of the federate
+	 */
+	protected abstract void receiveSimResume( SimResume simResume, double time );
+
+	/**
+	 * Called whenever the UCEF specific "simulation end" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simEnd the {@link SimEnd} interaction
+	 */
+	protected abstract void receiveSimEnd( SimEnd simEnd );
+
+	/**
+	 * Called whenever the UCEF specific "simulation end" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simEnd the {@link SimEnd} interaction
+	 * @param time the current logical time of the federate
+	 */
+	protected abstract void receiveSimEnd( SimEnd simEnd, double time );
+
+	/**
+	 * Called whenever the UCEF specific "federate join" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param federateJoin the {@link FederateJoin} interaction
+	 */
+	protected abstract void receiveFederateJoin( FederateJoin federateJoin );
+	
+	/**
+	 * Called whenever the UCEF specific "federate join" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param federateJoin the {@link FederateJoin} interaction
+	 * @param time the current logical time of the federate
+	 */
+	protected abstract void receiveFederateJoin( FederateJoin federateJoin, double time );
+	
+	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
@@ -96,127 +184,6 @@ public abstract class UCEFFederateBase extends FederateBase
 			if( simShouldEnd == false)
 				advanceTime();
 		}
-		System.out.println( "Federate execution has finished.");
-	}
-	
-	//----------------------------------------------------------
-	//         UCEF SPECIFIC INTERACTION CALLBACK METHODS
-	//----------------------------------------------------------
-	/**
-	 * Called whenever the UCEF specific "simulation pause" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simPause the {@link SimPause} interaction
-	 */
-	protected void receiveSimPause( SimPause simPause )
-	{
-		// override this method to provide specific handling
-	}
-
-	/**
-	 * Called whenever the UCEF specific "simulation pause" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simPause the {@link SimPause} interaction
-	 * @param federateTime the current logical time of the federate
-	 */
-	protected void receiveSimPause( SimPause simPause, double time )
-	{
-		// delegate to handler with no time parameter as the default behaviour
-		// override this method to provide specific handling
-		receiveSimPause( simPause );
-	}
-
-	/**
-	 * Called whenever the UCEF specific "simulation resume" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simResume the {@link SimResume} interaction
-	 * @param federateTime the current logical time of the federate
-	 */
-	protected void receiveSimResume( SimResume simResume )
-	{
-		// override this method to provide specific handling
-	}
-
-	/**
-	 * Called whenever the UCEF specific "simulation resume" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simResume the {@link SimResume} interaction
-	 * @param federateTime the current logical time of the federate
-	 */
-	protected void receiveSimResume( SimResume simResume, double time )
-	{
-		// delegate to handler with no time parameter as the default behaviour
-		// override this method to provide specific handling
-		receiveSimResume( simResume );
-	}
-
-	/**
-	 * Called whenever the UCEF specific "simulation end" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simEnd the {@link SimEnd} interaction
-	 */
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		// override this method to provide specific handling
-	}
-
-	/**
-	 * Called whenever the UCEF specific "simulation end" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simEnd the {@link SimEnd} interaction
-	 * @param time the current logical time of the federate
-	 */
-	protected void receiveSimEnd( SimEnd simEnd, double time )
-	{
-		// delegate to handler with no time parameter as the default behaviour
-		// override this method to provide specific handling
-		receiveSimEnd( simEnd );
-	}
-
-	/**
-	 * Called whenever the UCEF specific "federate join" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param federateJoin the {@link FederateJoin} interaction
-	 */
-	protected void receiveFederateJoin( FederateJoin federateJoin )
-	{
-		// override this method to provide specific handling
-	}
-	
-	/**
-	 * Called whenever the UCEF specific "federate join" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param federateJoin the {@link FederateJoin} interaction
-	 * @param time the current logical time of the federate
-	 */
-	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
-	{
-		// delegate to handler with no time parameter as the default behaviour
-		// override this method to provide specific handling
-		receiveFederateJoin( federateJoin );
 	}
 	
 	/**

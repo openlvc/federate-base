@@ -463,17 +463,6 @@ public class FederationManager extends NoOpFederate
         	.isRequired( true )
         	.help( "Set the name of the federation execution the Federate Manager will join." )
         	.hint( "FEDERATION_EXEC_NAME" );
-        ListArg requiredFederateTypes = argProcessor
-        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
-        	.isRequired(true)
-		    .validator( new RequiredFedValidator() )
-		    .help( String.format( "Define required federate types and counts. For example, " +
-		                          "'-%s FedABC,2' would require two 'FedABC' federates to join. " +
-		                          "Multiple requirements can be specified by repeated use " +
-		                          "of -%s.",
-		                          CMDLINEARG_REQUIRE_SHORT,
-		                          CMDLINEARG_REQUIRE_SHORT ) )
-		    .hint( "FEDERATE_TYPE,COUNT" );
         ValueArg federateNameArg = argProcessor
         	.addValueArg( null, CMDLINEARG_FEDMAN_FEDERATE_NAME )
         	.isRequired( false )
@@ -490,6 +479,17 @@ public class FederationManager extends NoOpFederate
         						  "If unspecified a value of '%s' will be used.",
         						  DEFAULT_FEDMAN_FEDERATE_TYPE ) )
         	.hint( "FEDMAN_TYPE" );
+        ListArg requiredFederateTypes = argProcessor
+        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
+        	.isRequired(true)
+		    .validator( new RequiredFedValidator() )
+		    .help( String.format( "Define required federate types and minimum counts. For example, " +
+		                          "'-%s FedABC,2' would require at least two 'FedABC' type federates " +
+		                          "to join. Multiple requirements can be specified by repeated use " +
+		                          "of -%s.",
+		                          CMDLINEARG_REQUIRE_SHORT,
+		                          CMDLINEARG_REQUIRE_SHORT ) )
+		    .hint( "FEDERATE_TYPE,COUNT" );
 		ValueArg logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
 			.isRequired( false )

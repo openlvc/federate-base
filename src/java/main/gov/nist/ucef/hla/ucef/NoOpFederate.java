@@ -23,13 +23,16 @@
  */
 package gov.nist.ucef.hla.ucef;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
- * An abstract class with all required method implementations in {@link FederateBase} which
- * perform no operation (no-op)
+ * An abstract class with all required method implementations in which perform no operation
+ * (no-op)
  * 
  * This makes it simpler to create a federate, since only the methods which contain actual
  * functional code need be over-ridden.
@@ -83,6 +86,9 @@ public abstract class NoOpFederate extends UCEFFederateBase
 	public void receiveObjectRegistration( HLAObject hlaObject ) { }
 
 	@Override
+	public void receiveObjectDeleted( HLAObject hlaObject ) { }
+
+	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject ) { }
 
 	@Override
@@ -92,9 +98,6 @@ public abstract class NoOpFederate extends UCEFFederateBase
 	}
 
 	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject ) { }
-
-	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction ) { }
 
 	@Override
@@ -102,4 +105,46 @@ public abstract class NoOpFederate extends UCEFFederateBase
 		// delegate to method ignoring time parameter
 		receiveInteraction( hlaInteraction );
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	protected void receiveSimPause( SimPause simPause ) { }
+
+	@Override
+	protected void receiveSimPause( SimPause simPause, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimPause( simPause );
+	}
+
+	@Override
+	protected void receiveSimResume( SimResume simResume ) { }
+
+	@Override
+	protected void receiveSimResume( SimResume simResume, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimResume( simResume );
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd ) { }
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimEnd( simEnd );
+	}
+
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin ) { }
+	
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin, double time ) {
+		// delegate to method ignoring time parameter
+		receiveFederateJoin( federateJoin );
+	}		
 }
