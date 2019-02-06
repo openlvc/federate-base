@@ -24,6 +24,7 @@
 package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
 public class FederateJoin extends C2WInteraction
 {
@@ -46,6 +47,14 @@ public class FederateJoin extends C2WInteraction
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public FederateJoin( RTIAmbassadorWrapper rtiamb )
+	{
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+	}
+
+	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
 	public FederateJoin( HLAInteraction interaction )
@@ -62,6 +71,11 @@ public class FederateJoin extends C2WInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public boolean federateIDIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_ID );
+	}
+	
 	public void federateID( String federateID )
 	{
 		setValue( PARAM_KEY_FEDERATE_ID, federateID );
@@ -72,6 +86,11 @@ public class FederateJoin extends C2WInteraction
 		return getAsString( PARAM_KEY_FEDERATE_ID );
 	}
 
+	public boolean federateTypeIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_TYPE );
+	}
+	
 	public void federateType( String federateType )
 	{
 		setValue( PARAM_KEY_FEDERATE_TYPE, federateType );
@@ -82,6 +101,11 @@ public class FederateJoin extends C2WInteraction
 		return getAsString( PARAM_KEY_FEDERATE_TYPE );
 	}
 
+	public boolean isLateJoinerIsPresent()
+	{
+		return isPresent( PARAM_KEY_IS_LATE_JOINER );
+	}
+	
 	public void isLateJoiner( boolean isLateJoiner )
 	{
 		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );

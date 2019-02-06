@@ -24,6 +24,7 @@
 package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
 public class SimPause extends UCEFSimControlInteraction
 {
@@ -43,6 +44,14 @@ public class SimPause extends UCEFSimControlInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public SimPause( RTIAmbassadorWrapper rtiamb )
+	{
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+	}
+	
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */

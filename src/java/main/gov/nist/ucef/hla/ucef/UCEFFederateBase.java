@@ -54,8 +54,13 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	// flag for storing whether a SimEnd interaction has been received
-	protected boolean simEndReceived;
+	// flag which becomes true after a SimEnd interaction has
+	// been received (begins as false)
+	protected volatile boolean simShouldEnd;
+	// flag which becomes true after a SimPause interaction has
+	// been received, and false after a SimResume interaction
+	// has been received (begins as false)
+	protected volatile boolean simShouldPause;
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -64,7 +69,8 @@ public abstract class UCEFFederateBase extends FederateBase
 	{
 		super();
 		
-		this.simEndReceived = false;
+		simShouldEnd = false;
+		simShouldPause = false;
 	}
 
 	//----------------------------------------------------------
@@ -73,7 +79,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	/**
 	 * We override the this method here so that we can react to
 	 * the arrival of a {@link SimEnd} interaction by terminating
-	 * the simulation loop.
+	 * the simulation loop
 	 * 
 	 * Apart from this difference, {@link #federateExecution()} is 
 	 * identical to the {@link FederateBase#federateExecution()}
@@ -82,13 +88,15 @@ public abstract class UCEFFederateBase extends FederateBase
 	@Override
 	protected void federateExecution()
 	{
-		while( this.simEndReceived == false )
+		while( simShouldEnd == false )
 		{
 			// next step, and cease simulation loop if step() returns false
-			if( step( fedamb.getFederateTime() ) == false )
+			if( simShouldEnd || step( fedamb.getFederateTime() ) == false )
 				break;
-			advanceTime();
+			if( simShouldEnd == false)
+				advanceTime();
 		}
+		System.out.println( "Federate execution has finished.");
 	}
 	
 	//----------------------------------------------------------
@@ -163,7 +171,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 */
 	protected void receiveSimEnd( SimEnd simEnd )
 	{
-		this.simEndReceived = true;
+		// override this method to provide specific handling
 	}
 
 	/**
@@ -218,34 +226,60 @@ public abstract class UCEFFederateBase extends FederateBase
 	public void incomingInteraction( HLAInteraction interaction, double time )
 	{
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-			receiveSimPause( new SimPause( interaction ), time );
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-			receiveSimResume( new SimResume( interaction ), time );
-		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		{
+			simShouldEnd = true;
 			receiveSimEnd( new SimEnd( interaction ), time );
+		}
+		else if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
+		{
+			simShouldPause = true;
+			receiveSimPause( new SimPause( interaction ), time );
+		}
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
+		{
+			simShouldPause = false;
+			receiveSimResume( new SimResume( interaction ), time );
+		}
 		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
+		{
 			receiveFederateJoin( new FederateJoin( interaction ), time );
-
-		// anything else gets generic interaction receipt handling
-		receiveInteraction( interaction, time );
+		}
+		else
+		{
+			// anything else gets generic interaction receipt handling
+			receiveInteraction( interaction, time );
+		}
 	}
 	
 	@Override
 	public void incomingInteraction( HLAInteraction interaction )
 	{
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-			receiveSimPause( new SimPause( interaction ) );
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-			receiveSimResume( new SimResume( interaction ) );
-		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		{
+			simShouldEnd = true;
 			receiveSimEnd( new SimEnd( interaction ) );
+		}
+		else if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
+		{
+			simShouldPause = true;
+			receiveSimPause( new SimPause( interaction ) );
+		}
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
+		{
+			simShouldPause = false;
+			receiveSimResume( new SimResume( interaction ) );
+		}
 		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
+		{
 			receiveFederateJoin( new FederateJoin( interaction ) );
-
-		// anything else gets generic interaction receipt handling
-		receiveInteraction( interaction );
+		}
+		else
+		{
+			// anything else gets generic interaction receipt handling
+			receiveInteraction( interaction );
+		}
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

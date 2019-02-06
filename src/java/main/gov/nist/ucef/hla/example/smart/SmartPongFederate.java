@@ -34,6 +34,9 @@ import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  *		            ___
@@ -135,6 +138,32 @@ public class SmartPongFederate extends NoOpFederate
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////// UCEF Simulation Control Interaction Callbacks ///////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	protected void receiveSimPause( SimPause simPause )
+	{
+		// stop advancing - we are paused
+		System.out.println( "Simulation has been paused." );
+	}
+
+	@Override
+	protected void receiveSimResume( SimResume simResume )
+	{
+		// simulation should continue on to advance to the 
+		// next time step or the end of the simulation
+		System.out.println( "Simulation has been resumed." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		// simulation should continue on to advance to the 
+		// next time step or the end of the simulation
+		System.out.println( "SimEnd signal received. Terminating simulation..." );
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
@@ -179,6 +208,9 @@ public class SmartPongFederate extends NoOpFederate
 		// set up lists of interactions to be published and subscribed to
 		config.addPublishedInteraction( Pong.interactionName() );
 		config.addSubscribedInteraction( Ping.interactionName() );
+		// subscribed UCEF simulation control interactions
+		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
+		                                  SimEnd.interactionName() );
 
 		// somebody set us up the FOM...
 		try

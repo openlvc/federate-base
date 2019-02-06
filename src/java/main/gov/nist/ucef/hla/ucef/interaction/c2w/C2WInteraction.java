@@ -24,6 +24,7 @@
 package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
+import hla.rti1516e.InteractionClassHandle;
 
 public abstract class C2WInteraction extends HLAInteraction
 {
@@ -39,6 +40,11 @@ public abstract class C2WInteraction extends HLAInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	protected C2WInteraction( InteractionClassHandle handle )
+	{
+		super( handle );
+	}
+	
 	protected C2WInteraction( HLAInteraction interaction )
 	{
 		super( interaction );
