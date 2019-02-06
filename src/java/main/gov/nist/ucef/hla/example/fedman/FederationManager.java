@@ -21,7 +21,7 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example;
+package gov.nist.ucef.hla.example.fedman;
 
 import java.util.ArrayList;
 import java.util.Arrays;
