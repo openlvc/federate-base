@@ -53,7 +53,7 @@ public class Player extends HLAObject
 	 */
 	public Player( RTIAmbassadorWrapper rtiamb, String name )
 	{
-		super( rtiamb.getObjectInstanceHandle( OBJECT_CLASS_NAME ), null );
+		super( rtiamb.registerObjectInstance( OBJECT_CLASS_NAME ), null );
 		
 		name( name );
 	}

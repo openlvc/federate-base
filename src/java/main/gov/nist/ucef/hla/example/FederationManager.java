@@ -48,7 +48,7 @@ import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
-import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
@@ -69,9 +69,8 @@ import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
  * 		 / __/ /  __/ /_/ / /  / / /_/ / / / /
  * 	    /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
  * 	  ─────────── Federation Manager ───────────
- *
  */
-public class FederationManager extends UCEFFederateBase
+public class FederationManager extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -343,6 +342,7 @@ public class FederationManager extends UCEFFederateBase
     		//            propagated (and instead is actually the federate name)
     		//            see: https://github.com/openlvc/portico/issues/280
     		//                 https://github.com/openlvc/portico/pull/281
+    		/*
     		for( String requiredType : startRequirements.keySet() )
     		{
     			if( federateType.startsWith( requiredType ) )
@@ -354,6 +354,15 @@ public class FederationManager extends UCEFFederateBase
     				}
     			}
     		}
+    		*/
+			if( startRequirements.containsKey( federateType ) )
+			{
+				synchronized( joinedFederatesByType )
+				{
+					joinedFederatesByType.computeIfAbsent( federateType,
+					                                       x -> new HashSet<>() ).add( joinedFederate );
+				}
+			}
 		}
 	}
 

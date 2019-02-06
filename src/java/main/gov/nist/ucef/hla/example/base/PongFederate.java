@@ -216,7 +216,7 @@ public class PongFederate extends FederateBase
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
-		                                                          "PingPongFederate",     // type
+		                                                          "PongFederate",         // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to

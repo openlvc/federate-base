@@ -134,27 +134,12 @@ public abstract class FederateBase
 	 */
 	protected void federateExecution()
 	{
-		double currentTime = 0.0;
-		double timeStep = this.configuration.getLookAhead();
-		
 		while( true )
 		{
-			currentTime = fedamb.getFederateTime();
-
-			// next step
-			if( step( currentTime ) == false )
-			{
-				// cease simulation loop when step() returns false
+			// next step, and cease simulation loop if step() returns false
+			if( step( fedamb.getFederateTime() ) == false )
 				break;
-			}
-
-			// advance, or tick, or nothing!
-			if( this.configuration.isTimeStepped() )
-				advanceTime( currentTime + timeStep );
-			else if( this.configuration.callbacksAreEvoked() )
-				evokeMultipleCallbacks();
-			else
-				;
+			advanceTime();
 		}
 	}
 	
@@ -419,6 +404,20 @@ public abstract class FederateBase
 		}
 	}
 
+	/**
+	 * Advance time according to configuration
+	 */
+	protected void advanceTime()
+	{
+		// advance, or tick, or nothing!
+		if( this.configuration.isTimeStepped() )
+			advanceTime( fedamb.getFederateTime() + this.configuration.getLookAhead() );
+		else if( this.configuration.callbacksAreEvoked() )
+			evokeMultipleCallbacks();
+		else
+			;
+	}
+	
 	/**
 	 * Request a time advance and wait for the advancement
 	 * 

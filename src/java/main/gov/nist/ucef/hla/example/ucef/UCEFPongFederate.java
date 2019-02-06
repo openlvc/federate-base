@@ -33,7 +33,7 @@ import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -48,7 +48,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example UCEF federate for testing
  */
-public class UCEFPongFederate extends UCEFFederateBase
+public class UCEFPongFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

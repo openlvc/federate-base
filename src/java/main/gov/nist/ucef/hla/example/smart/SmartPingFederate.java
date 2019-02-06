@@ -26,7 +26,6 @@ package gov.nist.ucef.hla.example.smart;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
@@ -34,6 +33,7 @@ import gov.nist.ucef.hla.example.smart.interactions.Pong;
 import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 
 /**
  *		            ___
@@ -47,7 +47,7 @@ import gov.nist.ucef.hla.example.util.FileUtils;
  * 
  * Example federate for testing
  */
-public class SmartPingFederate extends NoOpFederateBase
+public class SmartPingFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -172,7 +172,7 @@ public class SmartPingFederate extends NoOpFederateBase
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingPongFederate",     // type
+		                                                          "PingFederate",         // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of objects/attributes to be published and subscribed to

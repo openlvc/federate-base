@@ -29,11 +29,11 @@ import java.util.Map;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -48,7 +48,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example base federate for testing
  */
-public class NoOpPingFederate extends NoOpFederateBase
+public class NoOpPingFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -157,7 +157,7 @@ public class NoOpPingFederate extends NoOpFederateBase
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingPongFederate",     // type
+		                                                          "PingFederate",         // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to

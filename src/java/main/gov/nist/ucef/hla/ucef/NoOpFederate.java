@@ -21,16 +21,20 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.base;
+package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 
 /**
- * An abstract class with "no-op" implementation of all abstract methods in {@link FederateBase}
+ * An abstract class with all required method implementations in {@link FederateBase} which
+ * perform no operation (no-op)
+ * 
+ * This makes it simpler to create a federate, since only the methods which contain actual
+ * functional code need be over-ridden.
  */
-public abstract class NoOpFederateBase extends FederateBase
+public abstract class NoOpFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -43,7 +47,7 @@ public abstract class NoOpFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public NoOpFederateBase()
+	public NoOpFederate()
 	{
 		super();
 	}
@@ -83,6 +87,7 @@ public abstract class NoOpFederateBase extends FederateBase
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject, double time ) {
+		// delegate to method ignoring time parameter
 		receiveAttributeReflection( hlaObject );
 	}
 
@@ -94,6 +99,7 @@ public abstract class NoOpFederateBase extends FederateBase
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time ) {
+		// delegate to method ignoring time parameter
 		receiveInteraction( hlaInteraction );
 	}
 }

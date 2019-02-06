@@ -25,7 +25,6 @@ package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.NoOpFederateBase;
 import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
@@ -46,7 +45,7 @@ import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
  * </ul>
  * ... whichever comes first.
  */
-public abstract class UCEFFederateBase extends NoOpFederateBase
+public abstract class UCEFFederateBase extends FederateBase
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -83,69 +82,15 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 	@Override
 	protected void federateExecution()
 	{
-		double currentTime = 0.0;
-		double timeStep = this.configuration.getLookAhead();
-
-		// the while loop will continue until a SimEnd is received, or
-		// the `step()` (method called within the loop) returns false		
 		while( this.simEndReceived == false )
 		{
-			currentTime = fedamb.getFederateTime();
-
-			// next step
-			if( step( currentTime ) == false )
-			{
-				// cease simulation loop when step() returns false
+			// next step, and cease simulation loop if step() returns false
+			if( step( fedamb.getFederateTime() ) == false )
 				break;
-			}
-
-			// advance, or tick, or nothing!
-			if( this.configuration.isTimeStepped() )
-				advanceTime( currentTime + timeStep );
-			else if( this.configuration.callbacksAreEvoked() )
-				evokeMultipleCallbacks();
-			else
-				;
+			advanceTime();
 		}
 	}
 	
-	/**
-	 * Override to provide handling for specific UCEF simulation control interaction types
-	 */
-	@Override
-	public void incomingInteraction( HLAInteraction interaction, double time )
-	{
-		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-			receiveSimPause( new SimPause( interaction ), time );
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-			receiveSimResume( new SimResume( interaction ), time );
-		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
-			receiveSimEnd( new SimEnd( interaction ), time );
-		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
-			receiveFederateJoin( new FederateJoin( interaction ), time );
-
-		// anything else gets generic interaction receipt handling
-		receiveInteraction( interaction, time );
-	}
-	
-	@Override
-	public void incomingInteraction( HLAInteraction interaction )
-	{
-		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-			receiveSimPause( new SimPause( interaction ) );
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-			receiveSimResume( new SimResume( interaction ) );
-		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
-			receiveSimEnd( new SimEnd( interaction ) );
-		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
-			receiveFederateJoin( new FederateJoin( interaction ) );
-
-		// anything else gets generic interaction receipt handling
-		receiveInteraction( interaction );
-	}
-
 	//----------------------------------------------------------
 	//         UCEF SPECIFIC INTERACTION CALLBACK METHODS
 	//----------------------------------------------------------
@@ -264,6 +209,43 @@ public abstract class UCEFFederateBase extends NoOpFederateBase
 		// delegate to handler with no time parameter as the default behaviour
 		// override this method to provide specific handling
 		receiveFederateJoin( federateJoin );
+	}
+	
+	/**
+	 * Override to provide handling for specific UCEF simulation control interaction types
+	 */
+	@Override
+	public void incomingInteraction( HLAInteraction interaction, double time )
+	{
+		// delegate to handlers for UCEF Simulation control interactions as required
+		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
+			receiveSimPause( new SimPause( interaction ), time );
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
+			receiveSimResume( new SimResume( interaction ), time );
+		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+			receiveSimEnd( new SimEnd( interaction ), time );
+		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
+			receiveFederateJoin( new FederateJoin( interaction ), time );
+
+		// anything else gets generic interaction receipt handling
+		receiveInteraction( interaction, time );
+	}
+	
+	@Override
+	public void incomingInteraction( HLAInteraction interaction )
+	{
+		// delegate to handlers for UCEF Simulation control interactions as required
+		if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
+			receiveSimPause( new SimPause( interaction ) );
+		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
+			receiveSimResume( new SimResume( interaction ) );
+		else if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+			receiveSimEnd( new SimEnd( interaction ) );
+		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
+			receiveFederateJoin( new FederateJoin( interaction ) );
+
+		// anything else gets generic interaction receipt handling
+		receiveInteraction( interaction );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
