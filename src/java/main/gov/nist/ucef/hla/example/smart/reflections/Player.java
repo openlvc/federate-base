@@ -23,13 +23,10 @@
  */
 package gov.nist.ucef.hla.example.smart.reflections;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.SmartObject;
 
-public class Player extends SmartObject
+public class Player extends HLAObject
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -40,7 +37,6 @@ public class Player extends SmartObject
 	
 	// object attributes and types
 	private static final String ATTRIBUTE_KEY_NAME = "name";
-	private static final AttributeType ATTRIBUTE_TYPE_NAME = AttributeType.String;
 	
 	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_NAME };
 	
@@ -55,24 +51,19 @@ public class Player extends SmartObject
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 * @param name the {@link Player} name
 	 */
-	public Player( RTIAmbassadorWrapper rtiamb,
-	               String name )
+	public Player( RTIAmbassadorWrapper rtiamb, String name )
 	{
-		this( rtiamb, new HashMap<>() );
+		super( rtiamb.registerObjectInstance( OBJECT_CLASS_NAME ), null );
 		
 		name( name );
 	}
 
 	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param attributes the parameters to populate the {@link Player} instance with
+	 * @param instance the {@link HLAObject} instance
 	 */
-	public Player( RTIAmbassadorWrapper rtiamb, 
-	               Map<String,byte[]> attributes )
+	public Player( HLAObject instance )
 	{
-		super( rtiamb, objectClassName(), attributes );
-		// populate attribute => type lookup
-		this.typeLookup.put( ATTRIBUTE_KEY_NAME, ATTRIBUTE_TYPE_NAME );
+		super( instance );
 	}
 	
 	//----------------------------------------------------------
@@ -95,7 +86,7 @@ public class Player extends SmartObject
 
 	public String name()
 	{
-		return safeString( getAttribute( ATTRIBUTE_KEY_NAME ) );
+		return getAsString( ATTRIBUTE_KEY_NAME );
 	}
 
 	//----------------------------------------------------------

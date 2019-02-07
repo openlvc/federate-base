@@ -24,10 +24,13 @@
 package gov.nist.ucef.hla.base;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Set;
 
 import hla.rti1516e.AttributeHandle;
@@ -1172,8 +1175,9 @@ public class RTIAmbassadorWrapper
 		catch( Exception e )
 		{
 			throw new UCEFException( e,
-			                         "Failed to publish object class attributes for object class %s.",
-			                         makeSummary( handle ) );
+			                         "Failed to publish object class attributes for object class %s. " +
+			                         "Attributes were: [%s]",
+			                         makeSummary( handle ), makeSummary( handle, attributes ) );
 		}
 	}
 	
@@ -1322,8 +1326,9 @@ public class RTIAmbassadorWrapper
 		catch( Exception e )
 		{
 			throw new UCEFException( e,
-			                         "Failed to subscribe to object class attributes for object class %s.",
-			                         makeSummary( handle ) );
+			                         "Failed to subscribe to object class attributes for object class %s. " +
+			                         "Attributes were: [%s]",
+			                         makeSummary( handle ), makeSummary( handle, attributes ) );
 		}
 	}
 	
@@ -1643,6 +1648,35 @@ public class RTIAmbassadorWrapper
 		StringBuilder details =
 		    new StringBuilder( "'" + (className == null ? NULL_TEXT : className) + "' " );
 		details.append( "(handle '" + (handle == null ? NULL_TEXT : handle) + "')" );
+
+		return details.toString();
+	}
+	
+	private String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandleSet attributes )
+	{
+		List<String> details = new ArrayList<>(attributes.size());
+		for(AttributeHandle attributeHandle : attributes)
+		{
+			details.add( makeSummary( objectClassHandle, attributeHandle ) );
+		}
+		return details.stream().collect( Collectors.joining( ", " ) );
+	}
+
+	private String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandle attributeHandle )
+	{
+		String attributeName = NULL_TEXT;
+		try
+		{
+			attributeName = getAttributeName( objectClassHandle, attributeHandle );
+		}
+		catch( Exception e )
+		{
+			// ignore - null is OK as a result here
+		}
+
+		StringBuilder details =
+		    new StringBuilder( "'" + (attributeName == null ? NULL_TEXT : attributeName) + "' " );
+		details.append( "(handle '" + (attributeHandle == null ? NULL_TEXT : attributeHandle) + "')" );
 
 		return details.toString();
 	}

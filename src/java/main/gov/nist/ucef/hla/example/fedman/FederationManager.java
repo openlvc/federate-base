@@ -21,7 +21,7 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example;
+package gov.nist.ucef.hla.example.fedman;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,13 +31,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
+import gov.nist.ucef.hla.base.FederateAmbassador;
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
@@ -50,12 +55,10 @@ import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
 import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
 import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
 import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
-import gov.nist.ucef.hla.smart.SmartInteraction;
-import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  *		            ___
@@ -72,9 +75,8 @@ import gov.nist.ucef.hla.ucef.interaction.UCEFInteractionRealizer;
  * 		 / __/ /  __/ /_/ / /  / / /_/ / / / /
  * 	    /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
  * 	  ─────────── Federation Manager ───────────
- *
  */
-public class FederationManager extends FederateBase
+public class FederationManager extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -130,7 +132,7 @@ public class FederationManager extends FederateBase
 	                                                NUMBER_JOINED_HEADING};
 	private static final char NEWLINE = '\n';
 	private static final long ONE_SECOND = 1000;
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -173,8 +175,12 @@ public class FederationManager extends FederateBase
 	private Map<String, Set<JoinedFederate>> joinedFederatesByType; 
 	private Map<String, Integer> startRequirements;
 	private int totalFederatesRequired = 0;
-
-	private UCEFInteractionRealizer ucefInteractionFactory;
+	
+	volatile boolean simShouldStart = false;
+	volatile boolean simIsPaused = false;
+	Lock lock = new ReentrantLock();
+	Condition simIsPausedCondition = lock.newCondition();
+	Condition simShouldStartCondition = lock.newCondition();
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -211,6 +217,36 @@ public class FederationManager extends FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * We override this method to provide a wait on the command to start
+	 */
+	@Override
+	protected void federateSetup()
+	{
+		this.rtiamb = new RTIAmbassadorWrapper();
+		this.fedamb = new FederateAmbassador( this );
+
+		createAndJoinFederation();
+		enableTimePolicy();
+		
+		publishAndSubscribe();
+
+		beforeReadyToPopulate();
+		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
+
+		//--------------------------------------------------------
+		// wait for start command
+		System.out.println( "Waiting for SimStart command..." );
+		new Thread(new KeyboardReader()).start();
+		waitUntilSimShouldStart();
+		//--------------------------------------------------------
+		
+		beforeReadyToRun();
+		synchronize( UCEFSyncPoint.READY_TO_RUN );
+		
+		beforeFirstStep();
+	}
+	
 	@Override
 	public void beforeFederationJoin()
 	{
@@ -235,8 +271,6 @@ public class FederationManager extends FederateBase
 	@Override
 	public void beforeReadyToPopulate()
 	{
-		ucefInteractionFactory = new UCEFInteractionRealizer( rtiamb );
-		
 		preAnnounceSyncPoints();
 
 		System.out.println( configurationSummary() );
@@ -279,16 +313,37 @@ public class FederationManager extends FederateBase
 	}
 
 	@Override
-	public void beforeReadyToRun()
-	{
-		// no initialization tasks required
-	}
-
-	@Override
 	public void beforeFirstStep()
 	{
 		this.nextTimeAdvance = System.currentTimeMillis();
 	}
+	
+	/**
+	 * We override the this method here so that we can react to
+	 * the arrival of a {@link SimEnd} interaction by terminating
+	 * the simulation loop, and {@link SimPause}/{@link SimResume}
+	 * by halting/resuming the time advancement.
+	 * 
+	 * Apart from this difference, {@link #federateExecution()} is 
+	 * identical to the {@link FederateBase#federateExecution()}
+	 * implementation. 
+	 */
+	@Override
+	protected void federateExecution()
+	{
+		while( simShouldEnd == false )
+		{
+			// next step, and cease simulation loop if step() returns false
+			if( simShouldEnd || step( fedamb.getFederateTime() ) == false )
+				break;
+			
+			waitWhileSimIsPaused();
+			
+			if( simShouldEnd == false )
+				advanceTime();
+		}
+		System.out.println( "Federate execution has finished.");
+	}	
 	
 	@Override
 	public boolean step( double currentTime )
@@ -300,25 +355,16 @@ public class FederationManager extends FederateBase
 		{
 			this.nextTimeAdvance += wallClockStepDelay;
 			waitUntil( this.nextTimeAdvance );
-			System.out.println( String.format( "Advancing time to %.3f...",
-			                                   (federateTime + this.logicalStepSize) ) );
-			return true;
+			if(!simShouldEnd)
+			{
+				System.out.println( String.format( "Advancing time to %.3f...",
+				                                   (federateTime + this.logicalStepSize) ) );
+			}
+			return !simShouldEnd;
 		}
 		
 		System.out.println( "Maximum simulation time reached.");
 		return false;
-	}
-
-	@Override
-	public void beforeReadyToResign()
-	{
-		// no cleanup required before resignation
-	}
-
-	@Override
-	public void beforeExit()
-	{
-		// no cleanup required before exit
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,6 +396,7 @@ public class FederationManager extends FederateBase
     		//            propagated (and instead is actually the federate name)
     		//            see: https://github.com/openlvc/portico/issues/280
     		//                 https://github.com/openlvc/portico/pull/281
+    		/*
     		for( String requiredType : startRequirements.keySet() )
     		{
     			if( federateType.startsWith( requiredType ) )
@@ -361,67 +408,39 @@ public class FederationManager extends FederateBase
     				}
     			}
     		}
+    		*/
+			if( startRequirements.containsKey( federateType ) )
+			{
+				synchronized( joinedFederatesByType )
+				{
+					joinedFederatesByType.computeIfAbsent( federateType,
+					                                       x -> new HashSet<>() ).add( joinedFederate );
+				}
+			}
 		}
 	}
 
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject, double time )
+	////////////////////////////////////////////////////////////////////////////////////////////
+	//////////////////// UCEF Simulation Control Interaction Transmission //////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	private void sendSimPause()
 	{
-		receiveAttributeReflection( hlaObject );
+		sendInteraction( new SimPause( rtiamb ) );
 	}
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction )
+	
+	private void sendSimResume()
 	{
-		SmartInteraction ucefInteraction = ucefInteractionFactory.realize( hlaInteraction );
-		if( ucefInteraction != null )
-		{
-			if( ucefInteraction instanceof FederateJoin )
-				receive( (FederateJoin)ucefInteraction );
-			else if( ucefInteraction instanceof SimPause )
-				receive( (SimPause)ucefInteraction );
-			else if( ucefInteraction instanceof SimResume )
-				receive( (SimResume)ucefInteraction );
-			else if( ucefInteraction instanceof SimEnd )
-				receive( (SimEnd)ucefInteraction );
-		}
+		sendInteraction( new SimResume( rtiamb ) );
 	}
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
+	
+	private void sendSimEnd()
 	{
-		receiveInteraction( hlaInteraction );
-	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject )
-	{
-		// federate manager does not process this
+		sendInteraction( new SimEnd( rtiamb ) );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	private void receive( FederateJoin federateJoin )
-	{
-		System.out.println( federateJoin.toString() );
-	}
-
-	private void receive( SimPause simPause )
-	{
-		System.out.println( simPause.toString() );
-	}
-	
-	private void receive( SimResume simResume )
-	{
-		System.out.println( simResume.toString() );
-	}
-	
-	private void receive( SimEnd simEnd )
-	{
-		System.out.println( simEnd.toString() );
-	}
-	
 	/**
 	 * Utility method for validating and processing of command line arguments/options
 	 * 
@@ -444,17 +463,6 @@ public class FederationManager extends FederateBase
         	.isRequired( true )
         	.help( "Set the name of the federation execution the Federate Manager will join." )
         	.hint( "FEDERATION_EXEC_NAME" );
-        ListArg requiredFederateTypes = argProcessor
-        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
-        	.isRequired(true)
-		    .validator( new RequiredFedValidator() )
-		    .help( String.format( "Define required federate types and counts. For example, " +
-		                          "'-%s FedABC,2' would require two 'FedABC' federates to join. " +
-		                          "Multiple requirements can be specified by repeated use " +
-		                          "of -%s.",
-		                          CMDLINEARG_REQUIRE_SHORT,
-		                          CMDLINEARG_REQUIRE_SHORT ) )
-		    .hint( "FEDERATE_TYPE,COUNT" );
         ValueArg federateNameArg = argProcessor
         	.addValueArg( null, CMDLINEARG_FEDMAN_FEDERATE_NAME )
         	.isRequired( false )
@@ -471,6 +479,17 @@ public class FederationManager extends FederateBase
         						  "If unspecified a value of '%s' will be used.",
         						  DEFAULT_FEDMAN_FEDERATE_TYPE ) )
         	.hint( "FEDMAN_TYPE" );
+        ListArg requiredFederateTypes = argProcessor
+        	.addListArg(CMDLINEARG_REQUIRE_SHORT, CMDLINEARG_REQUIRE)
+        	.isRequired(true)
+		    .validator( new RequiredFedValidator() )
+		    .help( String.format( "Define required federate types and minimum counts. For example, " +
+		                          "'-%s FedABC,2' would require at least two 'FedABC' type federates " +
+		                          "to join. Multiple requirements can be specified by repeated use " +
+		                          "of -%s.",
+		                          CMDLINEARG_REQUIRE_SHORT,
+		                          CMDLINEARG_REQUIRE_SHORT ) )
+		    .hint( "FEDERATE_TYPE,COUNT" );
 		ValueArg logicalSecondArg = argProcessor
 			.addValueArg( null, CMDLINEARG_LOGICAL_SECOND )
 			.isRequired( false )
@@ -680,6 +699,17 @@ public class FederationManager extends FederateBase
 	}
 	
 	/**
+	 * Pre-announce all UCEF synchronization points.
+	 */
+	private void preAnnounceSyncPoints()
+	{
+		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
+		{
+			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+		}
+	}
+	
+	/**
 	 * Utility method to cause execution to wait for the given duration
 	 * 
 	 * @param duration the duration to wait in milliseconds
@@ -710,13 +740,89 @@ public class FederationManager extends FederateBase
 	}
 	
 	/**
-	 * Pre-announce all UCEF synchronization points.
+	 * Wait until the simulation should start (see also
+	 * {@link FederationManager#requestSimStart()}
 	 */
-	private void preAnnounceSyncPoints()
+	private void waitUntilSimShouldStart()
 	{
-		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
+		lock.lock();
+		try
 		{
-			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+			while( !simShouldStart )
+				simShouldStartCondition.await();
+		}
+		catch(InterruptedException e)
+		{
+			// ignore and continue
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+	
+	/**
+	 * Wait until the simulation should continue (see also
+	 * {@link FederationManager#requestSimResume()}
+	 */
+	private void waitWhileSimIsPaused()
+	{
+		lock.lock();
+		try
+		{
+			while( simIsPaused )
+				simIsPausedCondition.await();
+		}
+		catch(InterruptedException e)
+		{
+			// ignore and continue
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+
+	/**
+	 * Signal that the simulation should start.
+	 * 
+	 * Has no effect if the simulation has already started)
+	 */
+	public void requestSimStart()
+	{
+		lock.lock();
+		try
+		{
+			this.simShouldStart = true;
+			this.simShouldStartCondition.signal();
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+	
+	/**
+	 * Signal that the simulation should continue after being paused.
+	 * 
+	 * Has no effect if the simulation is already continuing (i.e. is not paused) or if the
+	 * simulation has already finished due to maximum time being reached or the simulation being
+	 * (forcibly) exited.
+	 */
+	public void requestSimResume()
+	{
+		lock.lock();
+		try
+		{
+			this.simIsPaused = false;
+			// reset time advancing baseline, otherwise it's left back at the
+			// point we paused
+			this.nextTimeAdvance = System.currentTimeMillis();
+			this.simIsPausedCondition.signal();
+		}
+		finally
+		{
+			lock.unlock();	
 		}
 	}
 	
@@ -737,9 +843,9 @@ public class FederationManager extends FederateBase
 		// subscribe to reflections described in MIM to detected joining federates 
 		config.addSubscribedAttributes( HLAFEDERATE_OBJECT_CLASS_NAME, HLAFEDERATE_ATTRIBUTE_NAMES );
 		
-		// subscribed UCEF interactions
-		config.addSubscribedInteractions( FederateJoin.interactionName(), SimPause.interactionName(),
-		                                  SimResume.interactionName(), SimEnd.interactionName() );
+		// published UCEF interactions
+		config.addPublishedInteractions( SimPause.interactionName(), SimResume.interactionName(),
+		                                 SimEnd.interactionName() );
 		
 		// here about callbacks *immediately*, rather than when evoked, otherwise
 		// we don't know about joined federates until after the ticking starts 
@@ -752,8 +858,8 @@ public class FederationManager extends FederateBase
 		{
 			String fomRootPath = "resources/foms/";
 			// modules
-			String[] moduleFoms = {fomRootPath+"FederationManager.xml",
-			                       fomRootPath+"PingPong.xml"};
+			String[] moduleFoms = { fomRootPath + "FederationManager.xml", 
+			                        fomRootPath + "SmartPingPong.xml" };
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
@@ -862,4 +968,99 @@ public class FederationManager extends FederateBase
 			                             lastCheckedItem );
 		}
 	};
+	
+	private class KeyboardReader implements Runnable
+	{
+		@Override
+		public void run()
+		{
+			Scanner sc = new Scanner( System.in );
+			while( !simShouldEnd )
+			{
+				System.out.print("> ");
+				String input = sc.nextLine();
+
+				if( input.length() == 0 )
+				{
+					if( !simShouldStart )
+						startSim();
+					else
+						toggleSimPause();
+				}
+				else
+				{
+					char cmdChar = input.charAt( 0 );
+					switch( cmdChar )
+					{
+						case 's':
+							startSim();
+							break;
+						case 'p':
+						case ' ':
+							toggleSimPause();
+							break;
+						case 'x':
+						case 'q':
+							endSim();
+							break;
+						default:
+							System.out.println( "Unknown command " + cmdChar );
+					}
+				}
+			}
+			sc.close();
+		}
+		
+		private void startSim()
+		{
+			if( !simShouldStart )
+			{
+				System.out.println( "Starting..." );
+				requestSimStart();
+			}
+			else
+			{
+    			System.out.println( "Simulation has already started." );
+			}
+		}
+		
+		private void endSim()
+		{
+			if( simShouldStart )
+			{
+    			System.out.println( "Terminating..." );
+    			simShouldEnd = true;
+    			if( simIsPaused )
+    				requestSimResume();
+    			sendSimEnd();
+			}
+			else
+			{
+    			System.out.println( "Cannot terminate - simulation has not yet started." );
+			}
+		}
+		
+		private void toggleSimPause()
+		{
+			if( simShouldStart )
+			{
+    			if( simIsPaused )
+    			{
+    				System.out.println( "Resuming..." );
+    				requestSimResume();
+    				sendSimResume();
+    			}
+    			else
+    			{
+    				System.out.println( "Pausing..." );
+    				simIsPaused = true;
+    				sendSimPause();
+    			}
+			}
+			else
+			{
+    			System.out.println( "Cannot pause/resume - simulation has not yet started." );
+			}
+		}
+	}
 }

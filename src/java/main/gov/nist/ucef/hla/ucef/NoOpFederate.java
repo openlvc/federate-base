@@ -21,25 +21,23 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.ucef;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
- *		            ___
- *		          _/   \_     _     _
- *		         / \   / \   / \   / \
- *		        ( U )─( C )─( E )─( F )
- *		         \_/   \_/   \_/   \_/
- *		        <─┴─> <─┴─────┴─────┴─>
- *		       Universal CPS Environment
- *		             for Federation
+ * An abstract class with all required method implementations in which perform no operation
+ * (no-op)
  * 
- * Example federate for testing
+ * This makes it simpler to create a federate, since only the methods which contain actual
+ * functional code need be over-ridden.
  */
-public abstract class NullFederateBase extends FederateBase
+public abstract class NoOpFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -52,7 +50,7 @@ public abstract class NullFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public NullFederateBase()
+	public NoOpFederate()
 	{
 		super();
 	}
@@ -88,21 +86,65 @@ public abstract class NullFederateBase extends FederateBase
 	public void receiveObjectRegistration( HLAObject hlaObject ) { }
 
 	@Override
+	public void receiveObjectDeleted( HLAObject hlaObject ) { }
+
+	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject ) { }
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject, double time ) {
+		// delegate to method ignoring time parameter
 		receiveAttributeReflection( hlaObject );
 	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject ) { }
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction ) { }
 
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time ) {
+		// delegate to method ignoring time parameter
 		receiveInteraction( hlaInteraction );
 	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	protected void receiveSimPause( SimPause simPause ) { }
+
+	@Override
+	protected void receiveSimPause( SimPause simPause, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimPause( simPause );
+	}
+
+	@Override
+	protected void receiveSimResume( SimResume simResume ) { }
+
+	@Override
+	protected void receiveSimResume( SimResume simResume, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimResume( simResume );
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd ) { }
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimEnd( simEnd );
+	}
+
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin ) { }
+	
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin, double time ) {
+		// delegate to method ignoring time parameter
+		receiveFederateJoin( federateJoin );
+	}		
 }

@@ -21,20 +21,17 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.interactions;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.AbstractInteractionRealizer;
-import gov.nist.ucef.hla.smart.SmartInteraction;
 import hla.rti1516e.InteractionClassHandle;
 
-
-public class InteractionRealizer extends AbstractInteractionRealizer
+public abstract class UCEFSimControlInteraction extends C2WInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = C2W_INTERACTION_ROOT+"SimulationControl.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -43,11 +40,16 @@ public class InteractionRealizer extends AbstractInteractionRealizer
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public InteractionRealizer( RTIAmbassadorWrapper rtiamb )
+	protected UCEFSimControlInteraction( InteractionClassHandle handle )
 	{
-		super( rtiamb );
+		super( handle );
 	}
-
+	
+	protected UCEFSimControlInteraction( HLAInteraction interaction )
+	{
+		super( interaction );
+	}
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -55,37 +57,5 @@ public class InteractionRealizer extends AbstractInteractionRealizer
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Internal method to populate a map which provides associations for "creators" for each of
-	 * the {@link SmartInteraction} types.
-	 * 
-	 * The populated map then used by the {@link #create(HLAInteraction)} method.
-	 * 
-	 * NOTE: for those who like patterns, this is essentially the "Command Pattern"; check here
-	 * for more details: {@link https://en.wikipedia.org/wiki/Command_pattern}
-	 * 
-	 * See {@link Realizer} interface definition.
-	 */
-	@Override
-	protected void initializeRealizers()
-	{
-		if( realizerLookup != null )
-			return;
-		
-		super.initializeRealizers();
-		
-		InteractionClassHandle pingHandle = rtiamb.getInteractionClassHandle( Ping.interactionName() );
-		InteractionClassHandle pongHandle = rtiamb.getInteractionClassHandle( Pong.interactionName() );
-		
-		realizerLookup.put( pingHandle, new Realizer() {
-			public SmartInteraction realize( HLAInteraction x ) { return new Ping( rtiamb, x.getState() ); }
-		});
-		realizerLookup.put( pongHandle, new Realizer() {
-			public SmartInteraction realize( HLAInteraction x ) { return new Pong( rtiamb, x.getState() ); } 
-		});
-	}
 
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
 }

@@ -21,23 +21,22 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimEnd extends UCEFSimulationControl
+public class SimResume extends UCEFSimControlInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
+	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
 	
 	// interaction parameters and types
 	// ...none...
-	
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -48,21 +47,17 @@ public class SimEnd extends UCEFSimulationControl
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public  SimEnd( RTIAmbassadorWrapper rtiamb )
+	public SimResume( RTIAmbassadorWrapper rtiamb )
 	{
-		this( rtiamb, null );
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
 	
 	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
+	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public SimEnd( RTIAmbassadorWrapper rtiamb,
-	               Map<String,byte[]> parameters )
+	public SimResume( HLAInteraction interaction )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		// ...no parameters...
+		super( interaction );
 	}
 
 	//----------------------------------------------------------
@@ -72,7 +67,7 @@ public class SimEnd extends UCEFSimulationControl
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

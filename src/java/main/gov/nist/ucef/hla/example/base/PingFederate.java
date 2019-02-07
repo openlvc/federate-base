@@ -47,7 +47,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  *		       Universal CPS Environment
  *		             for Federation
  * 
- * Example federate for testing
+ * Example base federate for testing
  */
 public class PingFederate extends FederateBase
 {
@@ -216,7 +216,7 @@ public class PingFederate extends FederateBase
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingPongFederate",     // type
+		                                                          "PingFederate",         // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to

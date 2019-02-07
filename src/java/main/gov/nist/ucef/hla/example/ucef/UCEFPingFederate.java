@@ -21,22 +21,25 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart;
+package gov.nist.ucef.hla.example.ucef;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.example.smart.interactions.InteractionRealizer;
-import gov.nist.ucef.hla.example.smart.interactions.Ping;
-import gov.nist.ucef.hla.example.smart.interactions.Pong;
-import gov.nist.ucef.hla.example.smart.reflections.ObjectRealizer;
-import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.smart.SmartInteraction;
-import gov.nist.ucef.hla.smart.SmartObject;
+import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
+import hla.rti1516e.encoding.EncoderFactory;
 
 /**
  *		            ___
@@ -48,29 +51,28 @@ import gov.nist.ucef.hla.smart.SmartObject;
  *		       Universal CPS Environment
  *		             for Federation
  * 
- * Example federate for testing
+ * Example UCEF federate for testing
  */
-public class PingFederate extends NullFederateBase
+public class UCEFPingFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
 	//----------------------------------------------------------
-	private static String[] PLAYER_NAMES= {"Alice Ping", "Bob Ping", "Carol Ping", "David Ping"};
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private InteractionRealizer pingpongInteractionFactory;
-	private ObjectRealizer pingpongObjectFactory;
+	private EncoderFactory encoder;
 	private int count;
-	private Player player;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public PingFederate( String[] args )
+	public UCEFPingFederate( String[] args )
 	{
 		super();
+		this.encoder = HLACodecUtils.getEncoder();
+		this.count = 0;
 	}
 
 	//----------------------------------------------------------
@@ -80,47 +82,79 @@ public class PingFederate extends NullFederateBase
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void beforeFederationJoin()
+	{
+		// no action required in this example
+	}
+
+	@Override
 	public void beforeReadyToPopulate()
 	{
-		pingpongInteractionFactory = new InteractionRealizer( rtiamb );
-		pingpongObjectFactory = new ObjectRealizer( rtiamb );
-
 		System.out.println( String.format( "Waiting for '%s' synchronization point...",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
 	}
 
 	@Override
+	protected void beforeReadyToRun()
+	{
+		// no action required in this example
+	}
+
+	@Override
 	public void beforeFirstStep()
 	{
+		// initialise the counter
 		this.count =  0;
-		this.player = new Player( rtiamb, "PingPlayer" );
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction and attribute update
-		sendInteraction( new Ping( rtiamb, this.count ) );
-		updateAttributeValues( this.player );
-		// update the values
-		this.count++;
-		String nextPlayerName = PLAYER_NAMES[this.count % PLAYER_NAMES.length];
-		this.player.name( nextPlayerName );
+		// here we end out our interaction
+		System.out.println( "Sending Ping interaction at time " + currentTime + "..." );
+		sendInteraction( makePingInteraction( count++ ), null );
 		// keep going until time 10.0
 		return (currentTime < 10.0);
 	}
 
+	@Override
+	protected void beforeReadyToResign()
+	{
+		// no action required in this example
+	}
+
+	@Override
+	protected void beforeExit()
+	{
+		// no action required in this example
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+	@Override
+	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
+	{
+		// delegate to method ignoring time
+		receiveInteraction(hlaInteraction);
+	}
+
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		SmartInteraction smartInteraction = pingpongInteractionFactory.realize( hlaInteraction );
-		if(smartInteraction != null && smartInteraction instanceof Pong )
+		if( rtiamb.isOfKind( hlaInteraction, PONG_INTERACTION_NAME ) )
 		{
-			receivePongInteraction( (Pong)smartInteraction );
+			// Pong interaction received
+			if( hlaInteraction.isPresent( PONG_PARAM_LETTER ) )
+			{
+    			char letter = hlaInteraction.getAsChar( PONG_PARAM_LETTER );
+    			System.out.println( String.format( "Received Pong interaction - 'letter' is %s",
+    			                                    letter ) );
+			}
+			else
+			{
+				System.out.println( String.format( "Received Pong interaction - no 'letter' was present" ) );
+			}
 		}
 		else
 		{
@@ -129,51 +163,107 @@ public class PingFederate extends NullFederateBase
 			                                    rtiamb.getInteractionClassName( hlaInteraction ) ) );
 		}
 	}
+
+	@Override
+	public void receiveObjectRegistration( HLAObject hlaObject )
+	{
+		// no action required in this example
+	}
 	
 	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject ) 
-	{ 
-		SmartObject smartObject = pingpongObjectFactory.realize( hlaObject );
-		if( smartObject != null && smartObject instanceof Player )
-		{
-			receivePlayerUpdate( (Player)smartObject );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
-			                                   rtiamb.getObjectClassName( hlaObject ) ) );
-		}
+	public void receiveObjectDeleted( HLAObject hlaObject )
+	{
+		// no action required in this example
+	}
+
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject )
+	{
+		// does not occur in this example
+	}
+
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject, double time )
+	{
+		// does not occur in this example
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	protected void receiveSimPause( SimPause simPause, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimPause(simPause);
+	}
+	
+	@Override
+	protected void receiveSimPause( SimPause simPause )
+	{
+		System.out.println( "Simulation has been paused." );
+	}
+
+	@Override
+	protected void receiveSimResume( SimResume simResume, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimResume(simResume);
+	}
+	
+	@Override
+	protected void receiveSimResume( SimResume simResume )
+	{
+		System.out.println( "Simulation has been resumed." );
+	}
+	
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimEnd(simEnd);
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Terminating simulation..." );
+	}
+
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
+	{
+		// delegate to method ignoring time
+		receiveFederateJoin(federateJoin);
+	}
+	
+	@Override
+	protected void receiveFederateJoin( FederateJoin federateJoin )
+	{
+		// ignored in this example
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Handle receipt of a {@link Pong}
-	 * 
-	 * @param pong the interaction to handle
-	 */
-	private void receivePongInteraction( Pong pong )
+	private HLAInteraction makePingInteraction( int count )
 	{
-		System.out.println( String.format( "Received Pong interaction - letter is '%s'.",
-		                                   pong.letter() ) );
-	}
-
-	/**
-	 * Handle receipt of a {@link Player}
-	 * 
-	 * @param player the object to handle
-	 */
-	private void receivePlayerUpdate( Player player )
-	{
-		System.out.println( String.format( "Received Player update - name is %s",
-		                                   player.name() ) );
+		Map<String,byte[]> parameters = new HashMap<>();
+		parameters.put( PING_PARAM_COUNT, 
+		                HLACodecUtils.encode( encoder, count ) );
+		return makeInteraction( PING_INTERACTION_NAME, parameters );
 	}
 
 	//----------------------------------------------------------
-	//                     STATIC METHODS
+	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final String INTERACTION_ROOT = "HLAinteractionRoot.";
+	private static final String PING_INTERACTION_NAME = INTERACTION_ROOT+"Ping";
+	private static final String PING_PARAM_COUNT = "count";
+	private static final String PONG_INTERACTION_NAME = INTERACTION_ROOT+"Pong";
+	private static final String PONG_PARAM_LETTER = "letter";
+	
 	/**
 	 * Utility function to set up some useful configuration
 	 * 
@@ -185,19 +275,16 @@ public class PingFederate extends NullFederateBase
 		                                                          "PingPongFederate",     // type
 		                                                          "PingPongFederation" ); // execution
 
-		// set up lists of objects/attributes to be published and subscribed to
-		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
-		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Ping.interactionName() );
-		config.addSubscribedInteraction( Pong.interactionName() );
+		config.addPublishedInteraction( PING_INTERACTION_NAME );
+		config.addSubscribedInteraction( PONG_INTERACTION_NAME );
 
 		// somebody set us up the FOM...
 		try
 		{
 			String fomRootPath = "resources/foms/";
 			// modules
-			String[] moduleFoms = { fomRootPath + "SmartPingPong.xml" };
+			String[] moduleFoms = { fomRootPath + "PingPong.xml" };
 			config.addModules( FileUtils.urlsFromPaths( moduleFoms ) );
 
 			// join modules
@@ -212,11 +299,10 @@ public class PingFederate extends NullFederateBase
 		return config;
 	}
 
-	/**
-	 * Main method
-	 * 
-	 * @param args ignored
-	 */
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	
 	public static void main( String[] args )
 	{
 		System.out.println( Constants.UCEF_LOGO );
@@ -227,7 +313,7 @@ public class PingFederate extends NullFederateBase
 		System.out.println( "	|  |_> >  |   |  \\/ /_/  >" );
 		System.out.println( "	|   __/|__|___|  /\\___  /" );
 		System.out.println( "	|__|           \\//_____/" );
-		System.out.println( "	   Smart Ping Federate" );
+		System.out.println( "	    UCEF Ping Federate" );
 		System.out.println();
 		System.out.println( "Sends 'Ping' interactions.");
 		System.out.println( "Receives 'Pong' interactions.");
@@ -235,7 +321,7 @@ public class PingFederate extends NullFederateBase
 
 		try
 		{
-			new PingFederate( args ).runFederate( makeConfig() );
+			new UCEFPingFederate( args ).runFederate( makeConfig() );
 		}
 		catch( Exception e )
 		{

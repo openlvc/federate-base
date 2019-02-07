@@ -21,27 +21,21 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class FederateJoin extends UCEFInteraction
+public class SimEnd extends UCEFSimControlInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_INTERACTION_ROOT+"FederateJoinInteraction";
+	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
 	
 	// interaction parameters and types
-	private static final String PARAM_KEY_FEDERATE_ID = "FederateId";
-	private static final ParameterType PARAM_TYPE_FEDERATE_ID = ParameterType.String;
-	private static final String PARAM_KEY_FEDERATE_TYPE = "FederateType";
-	private static final ParameterType PARAM_TYPE_FEDERATE_TYPE = ParameterType.String;
-	private static final String PARAM_KEY_IS_LATE_JOINER = "IsLateJoiner";
-	private static final ParameterType PARAM_TYPE_IS_LATE_JOINER = ParameterType.Boolean;
+	// ...none...
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -52,34 +46,20 @@ public class FederateJoin extends UCEFInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param federateID the federate ID
-	 * @param federateType the federate type
-	 * @param isLateJoiner true if the federate is a late joiner, false otherwise
 	 */
-	public FederateJoin( RTIAmbassadorWrapper rtiamb,
-	                     String federateID, String federateType, boolean isLateJoiner )
+	public SimEnd( RTIAmbassadorWrapper rtiamb )
 	{
-		this( rtiamb, null );
-
-		federateID( federateID );
-		federateType( federateType );
-		isLateJoiner( isLateJoiner );
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
 
 	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
+	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public FederateJoin( RTIAmbassadorWrapper rtiamb,
-	                     Map<String,byte[]> parameters )
+	public SimEnd( HLAInteraction interaction )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		this.typeLookup.put( PARAM_KEY_FEDERATE_ID, PARAM_TYPE_FEDERATE_ID );
-		this.typeLookup.put( PARAM_KEY_FEDERATE_TYPE, PARAM_TYPE_FEDERATE_TYPE );
-		this.typeLookup.put( PARAM_KEY_IS_LATE_JOINER, PARAM_TYPE_IS_LATE_JOINER );
+		super( interaction );
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -87,36 +67,6 @@ public class FederateJoin extends UCEFInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
-	public void federateID( String federateID )
-	{
-		setValue( PARAM_KEY_FEDERATE_ID, safeString( federateID ) );
-	}
-
-	public String federateID()
-	{
-		return safeString( getParameter( PARAM_KEY_FEDERATE_ID ) );
-	}
-
-	public void federateType( String federateType )
-	{
-		setValue( PARAM_KEY_FEDERATE_TYPE, safeString( federateType ) );
-	}
-
-	public String federateType()
-	{
-		return safeString( getParameter( PARAM_KEY_FEDERATE_TYPE ) );
-	}
-
-	public void isLateJoiner( boolean isLateJoiner )
-	{
-		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );
-	}
-	
-	public boolean isLateJoiner()
-	{
-		return safeBoolean( getParameter( PARAM_KEY_IS_LATE_JOINER ) );
-	}
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS

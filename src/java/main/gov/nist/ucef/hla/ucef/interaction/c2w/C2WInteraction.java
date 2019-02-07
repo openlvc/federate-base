@@ -21,20 +21,17 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.reflections;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
-import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.AbstractObjectRealizer;
-import gov.nist.ucef.hla.smart.SmartObject;
-import hla.rti1516e.ObjectClassHandle;
+import gov.nist.ucef.hla.base.HLAInteraction;
+import hla.rti1516e.InteractionClassHandle;
 
-
-public class ObjectRealizer extends AbstractObjectRealizer
+public abstract class C2WInteraction extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	protected static final String C2W_INTERACTION_ROOT = "HLAInteractionRoot.C2WInteractionRoot.";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -43,9 +40,14 @@ public class ObjectRealizer extends AbstractObjectRealizer
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public ObjectRealizer( RTIAmbassadorWrapper rtiamb )
+	protected C2WInteraction( InteractionClassHandle handle )
 	{
-		super( rtiamb );
+		super( handle );
+	}
+	
+	protected C2WInteraction( HLAInteraction interaction )
+	{
+		super( interaction );
 	}
 
 	//----------------------------------------------------------
@@ -55,33 +57,5 @@ public class ObjectRealizer extends AbstractObjectRealizer
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Internal method to populate a map which provides associations for "creators" for each of
-	 * the {@link SmartObject} types.
-	 * 
-	 * The populated map then used by the {@link #realize(HLAObject)} method.
-	 * 
-	 * NOTE: for those who like patterns, this is essentially the "Command Pattern"; check here
-	 * for more details: {@link https://en.wikipedia.org/wiki/Command_pattern}
-	 * 
-	 * See {@link Realizer} interface definition.
-	 */
-	@Override
-	protected void initializeRealizers()
-	{
-		if( realizerLookup != null )
-			return;
 
-		super.initializeRealizers();
-		
-		ObjectClassHandle playerHandle = rtiamb.getObjectClassHandle( Player.objectClassName() );
-		
-		realizerLookup.put( playerHandle, new Realizer() {
-			public SmartObject realize( HLAObject x ) { return new Player( rtiamb, mapCopy(x.getState()) ); }
-		});
-	}
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
 }

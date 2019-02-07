@@ -23,12 +23,10 @@
  */
 package gov.nist.ucef.hla.example.smart.interactions;
 
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.SmartInteraction;
 
-public class Pong extends SmartInteraction
+public class Pong extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -39,7 +37,6 @@ public class Pong extends SmartInteraction
 	
 	// interaction parameters and types
 	private static final String PARAM_KEY_LETTER = "letter";
-	private static final ParameterType PARAM_TYPE_LETTER = ParameterType.Character;
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -52,24 +49,19 @@ public class Pong extends SmartInteraction
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 * @param letter the letter
 	 */
-	public Pong( RTIAmbassadorWrapper rtiamb,
-	             char letter)
+	public Pong( RTIAmbassadorWrapper rtiamb, char letter )
 	{
-		this( rtiamb, null );
-		
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ), null );
+
 		letter( letter );
 	}
 
 	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
+	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public Pong( RTIAmbassadorWrapper rtiamb,
-	             Map<String,byte[]> parameters )
+	public Pong( HLAInteraction interaction )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		this.typeLookup.put( PARAM_KEY_LETTER, PARAM_TYPE_LETTER );
+		super( interaction );
 	}
 	
 	//----------------------------------------------------------
@@ -92,7 +84,7 @@ public class Pong extends SmartInteraction
 
 	public char letter()
 	{
-		return safeChar( getParameter( PARAM_KEY_LETTER ), ' ' );
+		return getAsChar( PARAM_KEY_LETTER );
 	}
 
 	//----------------------------------------------------------

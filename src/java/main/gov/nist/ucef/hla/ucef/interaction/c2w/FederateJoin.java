@@ -21,20 +21,24 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction;
+package gov.nist.ucef.hla.ucef.interaction.c2w;
 
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.SmartInteraction;
 
-public abstract class UCEFInteraction extends SmartInteraction
+public class FederateJoin extends C2WInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	protected static final String UCEF_INTERACTION_ROOT = "HLAInteractionRoot.C2WInteractionRoot.";
-
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = C2W_INTERACTION_ROOT+"FederateJoinInteraction";
+	
+	// interaction parameters and types
+	private static final String PARAM_KEY_FEDERATE_ID = "FederateId";
+	private static final String PARAM_KEY_FEDERATE_TYPE = "FederateType";
+	private static final String PARAM_KEY_IS_LATE_JOINER = "IsLateJoiner";
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -42,18 +46,23 @@ public abstract class UCEFInteraction extends SmartInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected UCEFInteraction( RTIAmbassadorWrapper rtiamb, String interactionName )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public FederateJoin( RTIAmbassadorWrapper rtiamb )
 	{
-		this( rtiamb, interactionName, null );
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
 
-	protected UCEFInteraction( RTIAmbassadorWrapper rtiamb, 
-	                           String interactionName,
-	                           Map<String,byte[]> parameters )
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public FederateJoin( HLAInteraction interaction )
 	{
-		super( rtiamb, interactionName, parameters );
+		super( interaction );
 	}
 
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -62,4 +71,61 @@ public abstract class UCEFInteraction extends SmartInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public boolean federateIDIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_ID );
+	}
+	
+	public void federateID( String federateID )
+	{
+		setValue( PARAM_KEY_FEDERATE_ID, federateID );
+	}
+
+	public String federateID()
+	{
+		return getAsString( PARAM_KEY_FEDERATE_ID );
+	}
+
+	public boolean federateTypeIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_TYPE );
+	}
+	
+	public void federateType( String federateType )
+	{
+		setValue( PARAM_KEY_FEDERATE_TYPE, federateType );
+	}
+
+	public String federateType()
+	{
+		return getAsString( PARAM_KEY_FEDERATE_TYPE );
+	}
+
+	public boolean isLateJoinerIsPresent()
+	{
+		return isPresent( PARAM_KEY_IS_LATE_JOINER );
+	}
+	
+	public void isLateJoiner( boolean isLateJoiner )
+	{
+		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );
+	}
+	
+	public boolean isLateJoiner()
+	{
+		return getAsBoolean( PARAM_KEY_IS_LATE_JOINER );
+	}
+	
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
+	{
+		return INTERACTION_NAME;
+	}
 }

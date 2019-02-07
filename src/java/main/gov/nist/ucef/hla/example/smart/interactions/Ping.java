@@ -23,12 +23,10 @@
  */
 package gov.nist.ucef.hla.example.smart.interactions;
 
-import java.util.Map;
-
+import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
-import gov.nist.ucef.hla.smart.SmartInteraction;
 
-public class Ping extends SmartInteraction
+public class Ping extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -39,7 +37,6 @@ public class Ping extends SmartInteraction
 	
 	// interaction parameters and types
 	private static final String PARAM_KEY_COUNT = "count";
-	private static final ParameterType PARAM_TYPE_COUNT = ParameterType.Integer;
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -52,24 +49,19 @@ public class Ping extends SmartInteraction
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 * @param count the count
 	 */
-	public Ping( RTIAmbassadorWrapper rtiamb,
-	             int count)
+	public Ping( RTIAmbassadorWrapper rtiamb, int count)
 	{
-		this( rtiamb, null );
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ), null );
 
 		count( count );
 	}
 
 	/**
-	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param parameters the parameters to populate the interaction with
+	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public Ping( RTIAmbassadorWrapper rtiamb,
-	             Map<String,byte[]> parameters )
+	public Ping( HLAInteraction interaction )
 	{
-		super( rtiamb, interactionName(), parameters );
-		// populate parameter => type lookup
-		this.typeLookup.put( PARAM_KEY_COUNT, PARAM_TYPE_COUNT );
+		super( interaction );
 	}
 	
 	//----------------------------------------------------------
@@ -92,7 +84,7 @@ public class Ping extends SmartInteraction
 
 	public int count()
 	{
-		return safeInt( getParameter( PARAM_KEY_COUNT ) );
+		return getAsInt( PARAM_KEY_COUNT );
 	}
 
 	//----------------------------------------------------------

@@ -21,20 +21,19 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.base;
+package gov.nist.ucef.hla.example.noopbase;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -49,7 +48,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example base federate for testing
  */
-public class PongFederate extends FederateBase
+public class NoOpPongFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -64,7 +63,7 @@ public class PongFederate extends FederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public PongFederate( String[] args )
+	public NoOpPongFederate( String[] args )
 	{
 		super();
 		this.encoder = HLACodecUtils.getEncoder();
@@ -78,24 +77,10 @@ public class PongFederate extends FederateBase
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
-	public void beforeFederationJoin()
-	{
-		// nothing to do here 
-	}
-
-	@Override
 	public void beforeReadyToPopulate()
 	{
-		// allow the user to control when we are ready to populate
-		// waitForUser("beforeReadyToPopulate() - press ENTER to continue");
 		System.out.println( String.format( "Waiting for '%s' synchronization point...",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );
-	}
-
-	@Override
-	public void beforeReadyToRun()
-	{
-		// no setup required before being ready to run
 	}
 
 	@Override
@@ -115,45 +100,9 @@ public class PongFederate extends FederateBase
 		return (currentTime < 10.0);
 	}
 
-	@Override
-	public void beforeReadyToResign()
-	{
-		// no cleanup required before resignation
-	}
-
-	@Override
-	public void beforeExit()
-	{
-		// no cleanup required before exiting  
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void receiveObjectRegistration( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject, double time )
-	{
-		// will not occur in this example
-	}
-
-	@Override
-	public void receiveObjectDeleted( HLAObject hlaObject )
-	{
-		// will not occur in this example
-	}
-
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
@@ -178,14 +127,6 @@ public class PongFederate extends FederateBase
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
 			                                    interactionName ) );
 		}
-	}
-
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
-	{
-		// delegate to other receiveInteraction method because 
-		// we ignore time in this example 
-		receiveInteraction( hlaInteraction );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +197,7 @@ public class PongFederate extends FederateBase
 		System.out.println( "	|  |_> >  <_> )   |  \\/ /_/  >" );
 		System.out.println( "	|   __/ \\____/|___|  /\\___  /" );
 		System.out.println( "	|__|               \\//_____/" );
-		System.out.println( "	        Pong Federate" );
+		System.out.println( "	     No-Op Pong Federate" );
 		System.out.println();
 		System.out.println( "Sends 'Pong' interactions.");
 		System.out.println( "Receives 'Ping' interactions.");
@@ -264,7 +205,7 @@ public class PongFederate extends FederateBase
 
 		try
 		{
-			new PongFederate( args ).runFederate( makeConfig() );
+			new NoOpPongFederate( args ).runFederate( makeConfig() );
 		}
 		catch( Exception e )
 		{

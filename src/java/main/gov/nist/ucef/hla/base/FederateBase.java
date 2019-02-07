@@ -96,6 +96,22 @@ public abstract class FederateBase
 			
 		this.configuration = configuration;
 
+		// create and join the Federation, publish and subscribe
+		// call beforeReadyToPopulate(), beforeReadyToRun() and beforeFirstStep()
+		federateSetup();
+		// repeatedly call step() until simulation ends
+		federateExecution();
+		// disable any time policy
+		// call readyToResign() and beforeExit()
+		// resign and destroy the federation
+		federateTeardown();
+	}
+	
+	/**
+	 * Carry out all steps required to get the federate ready to run through its main simulation loop
+	 */
+	protected void federateSetup()
+	{
 		this.rtiamb = new RTIAmbassadorWrapper();
 		this.fedamb = new FederateAmbassador( this );
 
@@ -111,26 +127,27 @@ public abstract class FederateBase
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
 		
 		beforeFirstStep();
-
-		double currentTime = 0.0;
-		double timeStep = configuration.getLookAhead();
+	}
+	
+	/**
+	 * Run the federate through its main simulation loop
+	 */
+	protected void federateExecution()
+	{
 		while( true )
 		{
-			currentTime = fedamb.getFederateTime();
-
-			// next step
-			if( step( currentTime ) == false )
+			// next step, and cease simulation loop if step() returns false
+			if( step( fedamb.getFederateTime() ) == false )
 				break;
-
-			// advance, or tick, or nothing!
-			if( configuration.isTimeStepped() )
-				advanceTime( currentTime + timeStep );
-			else if( configuration.callbacksAreEvoked() )
-				evokeMultipleCallbacks();
-			else
-				;
+			advanceTime();
 		}
-
+	}
+	
+	/**
+	 * Carry out all steps required to clean up and exit the federate
+	 */
+	protected void federateTeardown()
+	{
 		disableTimePolicy();
 
 		beforeReadyToResign();
@@ -138,11 +155,12 @@ public abstract class FederateBase
 		beforeExit();
 
 		resignAndDestroyFederation();
-	}
+	}	
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	
 	/**
 	 * Create an interaction (with no parameter values)
 	 * 
@@ -238,7 +256,7 @@ public abstract class FederateBase
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 */
-	protected void updateAttributeValues( HLAObject instance)
+	protected void updateAttributeValues( HLAObject instance )
 	{
 		rtiamb.updateAttributeValues( instance, null, null );
 	}
@@ -386,6 +404,20 @@ public abstract class FederateBase
 		}
 	}
 
+	/**
+	 * Advance time according to configuration
+	 */
+	protected void advanceTime()
+	{
+		// advance, or tick, or nothing!
+		if( this.configuration.isTimeStepped() )
+			advanceTime( fedamb.getFederateTime() + this.configuration.getLookAhead() );
+		else if( this.configuration.callbacksAreEvoked() )
+			evokeMultipleCallbacks();
+		else
+			;
+	}
+	
 	/**
 	 * Request a time advance and wait for the advancement
 	 * 
