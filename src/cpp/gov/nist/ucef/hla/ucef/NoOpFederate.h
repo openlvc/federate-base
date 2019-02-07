@@ -32,14 +32,14 @@ namespace base
 {
 	namespace ucef
 	{
-		class UCEFNullFederate : public UCEFFederateBase
+		class NoOpFederate : public UCEFFederateBase
 		{
 		public:
 			//----------------------------------------------------------
 			//                     Constructors
 			//----------------------------------------------------------
-			UCEFNullFederate() = default;
-			virtual ~UCEFNullFederate() = default;
+			NoOpFederate() = default;
+			virtual ~NoOpFederate() = default;
 
 		protected:
 			//----------------------------------------------------------
