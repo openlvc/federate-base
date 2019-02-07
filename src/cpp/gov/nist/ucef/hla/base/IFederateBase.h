@@ -57,6 +57,7 @@ namespace base
 			IFederateBase() = default;
 			virtual ~IFederateBase() {};
 
+		protected:
 			//----------------------------------------------------------
 			//                     Callback Methods
 			//----------------------------------------------------------
@@ -142,14 +143,14 @@ namespace base
 			 */
 			virtual bool step( double federateTime ) = 0;
 
+		public:
 			/**
 			 * Starts the execution of the federate.
 			 * <p/>
 			 * This method must be called after creating an instance of
-			 * {@link IFederateBase} to start the life-cycle execution.
+			 * {@link IFederateBase} to start the execution of federate life-cycle.
 			 */
 			virtual void runFederate() = 0;
-
 			//----------------------------------------------------------
 			//            Helper methods
 			//----------------------------------------------------------

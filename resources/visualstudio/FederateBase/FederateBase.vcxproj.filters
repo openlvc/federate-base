@@ -108,6 +108,9 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.h">
       <Filter>gov\nist\ucef\hla\ucef\interaction</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\NoOpFederate.h">
+      <Filter>gov\nist\ucef\hla\ucef</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="gov">

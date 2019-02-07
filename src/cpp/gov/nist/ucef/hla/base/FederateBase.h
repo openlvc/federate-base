@@ -59,7 +59,19 @@ namespace base
 			//----------------------------------------------------------
 			//       IFederateBase interface implementation
 			//----------------------------------------------------------
+			/**
+			 * Starts the execution of the Federate.
+			 * <p/>
+			 * This method must be called after creating an instance of
+			 * {@link IFederateBase} to start the execution of federate life-cycle.
+			 */
 			virtual void runFederate() final;
+
+			/**
+			 * Allows to access federate's configuration parameters.
+			 *
+			 * @return FederateConfiguration that allows to access configuration of this federate.
+			 */
 			virtual std::shared_ptr<base::FederateConfiguration> getFederateConfiguration() final;
 
 			//----------------------------------------------------------
@@ -119,6 +131,26 @@ namespace base
 			std::shared_ptr<base::InteractionClass> getInteractionClass(long hash);
 
 			/**
+			 * Prepare this federate for execution
+			 */
+			virtual void federateSetup();
+
+			/**
+			 * The main execution loop of the federate
+			 */
+			virtual void federateExecute();
+
+			/**
+			 * Teardown this federate
+			 */
+			virtual void federateTeardown();
+
+			/**
+			 * Request permission to advance federate time
+			 */
+			void advanceTime();
+
+			/**
 			 * Populates a given interaction with received parameter values
 			 *
 			 * @param interactionClassName the name of the interaction class
@@ -142,7 +174,6 @@ namespace base
 			void disableTimePolicy();
 			void publishAndSubscribe();
 			void synchronize( base::SynchPoint point );
-			void advanceTime();
 			void resignAndDestroy();
 
 			/**
@@ -227,7 +258,7 @@ namespace base
 		protected:
 			std::unique_ptr<RTIAmbassadorWrapper> rtiAmbassadorWrapper;
 			std::shared_ptr<FederateAmbassador> federateAmbassador;
-			std::mutex m_threadSafeLock;
+			std::mutex threadSafeLock;
 
 		private:
 			base::ObjectDataStoreByHash objectDataStoreByHash;

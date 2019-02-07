@@ -119,6 +119,7 @@
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\UCEFFederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\NoOpFederate.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
     <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h" />
