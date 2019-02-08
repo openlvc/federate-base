@@ -34,9 +34,9 @@ import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
+import gov.nist.ucef.hla.ucef.SimEnd;
+import gov.nist.ucef.hla.ucef.SimPause;
+import gov.nist.ucef.hla.ucef.SimResume;
 
 /**
  *		            ___

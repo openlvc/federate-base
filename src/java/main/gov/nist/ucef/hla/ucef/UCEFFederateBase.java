@@ -25,10 +25,6 @@ package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  * An abstract implementation for a UCEF Federate which is aware of certain

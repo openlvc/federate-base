@@ -21,23 +21,21 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction.c2w;
+package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class FederateJoin extends C2WInteraction
+public class SimEnd extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = C2W_INTERACTION_ROOT+"FederateJoinInteraction";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimEnd";
 	
 	// interaction parameters and types
-	private static final String PARAM_KEY_FEDERATE_ID = "FederateId";
-	private static final String PARAM_KEY_FEDERATE_TYPE = "FederateType";
-	private static final String PARAM_KEY_IS_LATE_JOINER = "IsLateJoiner";
+	// ...none...
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -49,7 +47,7 @@ public class FederateJoin extends C2WInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public FederateJoin( RTIAmbassadorWrapper rtiamb )
+	public SimEnd( RTIAmbassadorWrapper rtiamb )
 	{
 		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
@@ -57,12 +55,11 @@ public class FederateJoin extends C2WInteraction
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public FederateJoin( HLAInteraction interaction )
+	public SimEnd( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
 
-	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -70,51 +67,6 @@ public class FederateJoin extends C2WInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-
-	public boolean federateIDIsPresent()
-	{
-		return isPresent( PARAM_KEY_FEDERATE_ID );
-	}
-	
-	public void federateID( String federateID )
-	{
-		setValue( PARAM_KEY_FEDERATE_ID, federateID );
-	}
-
-	public String federateID()
-	{
-		return getAsString( PARAM_KEY_FEDERATE_ID );
-	}
-
-	public boolean federateTypeIsPresent()
-	{
-		return isPresent( PARAM_KEY_FEDERATE_TYPE );
-	}
-	
-	public void federateType( String federateType )
-	{
-		setValue( PARAM_KEY_FEDERATE_TYPE, federateType );
-	}
-
-	public String federateType()
-	{
-		return getAsString( PARAM_KEY_FEDERATE_TYPE );
-	}
-
-	public boolean isLateJoinerIsPresent()
-	{
-		return isPresent( PARAM_KEY_IS_LATE_JOINER );
-	}
-	
-	public void isLateJoiner( boolean isLateJoiner )
-	{
-		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );
-	}
-	
-	public boolean isLateJoiner()
-	{
-		return getAsBoolean( PARAM_KEY_IS_LATE_JOINER );
-	}
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS

@@ -21,22 +21,22 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction.c2w;
+package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimEnd extends UCEFSimControlInteraction
+public class SimPause extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimEnd";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimPause";
 	
 	// interaction parameters and types
 	// ...none...
-	
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -47,15 +47,15 @@ public class SimEnd extends UCEFSimControlInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimEnd( RTIAmbassadorWrapper rtiamb )
+	public SimPause( RTIAmbassadorWrapper rtiamb )
 	{
 		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
-
+	
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public SimEnd( HLAInteraction interaction )
+	public SimPause( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
