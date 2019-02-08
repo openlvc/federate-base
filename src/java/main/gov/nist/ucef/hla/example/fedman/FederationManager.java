@@ -27,9 +27,9 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.example.util.Constants;
 import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
+import gov.nist.ucef.hla.ucef.SimEnd;
+import gov.nist.ucef.hla.ucef.SimPause;
+import gov.nist.ucef.hla.ucef.SimResume;
 
 /**
  *		            ___

@@ -21,17 +21,21 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction.c2w;
+package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import hla.rti1516e.InteractionClassHandle;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public abstract class UCEFSimControlInteraction extends C2WInteraction
+public class SimResume extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	protected static final String UCEF_SIMCONTROL_INTERACTION_ROOT = C2W_INTERACTION_ROOT+"SimulationControl.";
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimResume";
+	
+	// interaction parameters and types
+	// ...none...
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -40,16 +44,22 @@ public abstract class UCEFSimControlInteraction extends C2WInteraction
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	protected UCEFSimControlInteraction( InteractionClassHandle handle )
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public SimResume( RTIAmbassadorWrapper rtiamb )
 	{
-		super( handle );
+		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
 	
-	protected UCEFSimControlInteraction( HLAInteraction interaction )
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public SimResume( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -58,4 +68,16 @@ public abstract class UCEFSimControlInteraction extends C2WInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
+	{
+		return INTERACTION_NAME;
+	}
 }

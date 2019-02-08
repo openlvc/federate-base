@@ -21,22 +21,24 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef.interaction.c2w;
+package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimResume extends UCEFSimControlInteraction
+public class FederateJoin extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = UCEF_SIMCONTROL_INTERACTION_ROOT+"SimResume";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.FederateJoinInteraction";
 	
 	// interaction parameters and types
-	// ...none...
-
+	private static final String PARAM_KEY_FEDERATE_ID = "FederateId";
+	private static final String PARAM_KEY_FEDERATE_TYPE = "FederateType";
+	private static final String PARAM_KEY_IS_LATE_JOINER = "IsLateJoiner";
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -47,19 +49,19 @@ public class SimResume extends UCEFSimControlInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb )
+	public FederateJoin( RTIAmbassadorWrapper rtiamb )
 	{
 		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
 	}
-	
+
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public SimResume( HLAInteraction interaction )
+	public FederateJoin( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
-
+	
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -68,6 +70,51 @@ public class SimResume extends UCEFSimControlInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
+	public boolean federateIDIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_ID );
+	}
+	
+	public void federateID( String federateID )
+	{
+		setValue( PARAM_KEY_FEDERATE_ID, federateID );
+	}
+
+	public String federateID()
+	{
+		return getAsString( PARAM_KEY_FEDERATE_ID );
+	}
+
+	public boolean federateTypeIsPresent()
+	{
+		return isPresent( PARAM_KEY_FEDERATE_TYPE );
+	}
+	
+	public void federateType( String federateType )
+	{
+		setValue( PARAM_KEY_FEDERATE_TYPE, federateType );
+	}
+
+	public String federateType()
+	{
+		return getAsString( PARAM_KEY_FEDERATE_TYPE );
+	}
+
+	public boolean isLateJoinerIsPresent()
+	{
+		return isPresent( PARAM_KEY_IS_LATE_JOINER );
+	}
+	
+	public void isLateJoiner( boolean isLateJoiner )
+	{
+		setValue( PARAM_KEY_IS_LATE_JOINER, isLateJoiner );
+	}
+	
+	public boolean isLateJoiner()
+	{
+		return getAsBoolean( PARAM_KEY_IS_LATE_JOINER );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

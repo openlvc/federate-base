@@ -25,10 +25,6 @@ package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.ucef.interaction.c2w.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.c2w.SimResume;
 
 /**
  * An abstract class with all required method implementations in which perform no operation
