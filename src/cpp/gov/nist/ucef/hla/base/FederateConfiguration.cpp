@@ -43,6 +43,11 @@ namespace base
 		return this->federateType;
 	}
 
+	void FederateConfiguration::setFederateType( string type )
+	{
+		this->federateType = type;
+	}
+
 	vector<string> FederateConfiguration::getFomPaths()
 	{
 		return this->foms;

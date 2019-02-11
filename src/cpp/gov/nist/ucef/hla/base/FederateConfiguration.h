@@ -86,6 +86,13 @@ namespace base
 			std::string getFederateType();
 
 			/**
+			 * Sets the type of this federate
+			 *
+			 *  @param type the type of this federate
+			 */
+			void setFederateType( std::string type);
+
+			/**
 			 * Returns known FOM file paths by this federate
 			 * 
 			 * @return FOM file paths known to this federate
