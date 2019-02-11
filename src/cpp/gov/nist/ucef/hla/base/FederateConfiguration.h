@@ -158,9 +158,9 @@ namespace base
 			 * <p/>
 			 * The default step size is set to 1.
 			 *
-			 * @param timeStep step size to be set
+			 * @param stepSize step size to be set
 			 */
-			void setTimeStep( float stepSize );
+			void setTimeStepSize( float stepSize );
 
 			/**
 			 * Returns the callback mode

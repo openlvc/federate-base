@@ -91,7 +91,7 @@ namespace base
 		return this->stepSize;
 	}
 
-	void FederateConfiguration::setTimeStep( float stepSize)
+	void FederateConfiguration::setTimeStepSize( float stepSize )
 	{
 		this->stepSize = stepSize;
 	}
