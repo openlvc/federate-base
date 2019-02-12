@@ -169,7 +169,7 @@ namespace base
 		vector<string> publishInteractionNames;
 		for( auto& kv : this->interactionDataStoreByName )
 		{
-			if( kv.second->publish )
+			if( kv.second->subscribe )
 			{
 				publishInteractionNames.push_back( kv.first );
 			}
