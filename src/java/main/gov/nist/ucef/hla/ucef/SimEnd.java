@@ -32,7 +32,7 @@ public class SimEnd extends HLAInteraction
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimEnd";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimulationControl.SimEnd";
 	
 	// interaction parameters and types
 	// ...none...
