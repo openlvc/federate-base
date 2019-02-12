@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <direct.h>
 #include "Logger.h"
 #include "spdlog/spdlog.h"
 
@@ -20,6 +20,7 @@ namespace base
 		{ 
 			try
 			{
+				_mkdir("logs");
 				logger = basic_logger_mt( "ucef_federate", "logs/uceffederate.log", true );
 				logger->set_level( level::level_enum::trace );
 				logger->info( "Logger initialised and the default log level is set to INFO" );
