@@ -32,7 +32,7 @@ public class SimPause extends HLAInteraction
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimPause";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimulationControl.SimPause";
 	
 	// interaction parameters and types
 	// ...none...
