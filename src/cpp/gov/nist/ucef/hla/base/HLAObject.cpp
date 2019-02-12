@@ -14,15 +14,34 @@ using namespace base::util;
 
 namespace base
 {
-	HLAObject::HLAObject( const string& objectClassName,
-	                      long id ) : className( objectClassName ),
-	                                          instanceId( id )
+	HLAObject::HLAObject( const string& objectClassName, long id ) : className( objectClassName ),
+	                                                                 instanceId( id )
 	{
-		attributeDataStore = make_shared<HLAObjectAttributes>();
+		this->attributeDataStore = make_shared<HLAObjectAttributes>();
+	}
+
+	HLAObject::HLAObject( const std::string & objectClassName )
+	{
+		this->className = objectClassName;
+		this->instanceId = INVLID_LONG;
+		this->attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
 
 	HLAObject::~HLAObject()
 	{
+	}
+
+	HLAObject::HLAObject( const HLAObject& hlaObject )
+	{
+		this->className = hlaObject.className;
+		this->instanceId = hlaObject.instanceId;
+		this->attributeDataStore = make_shared<HLAObjectAttributes>();
+		// if there is any attributes copy across
+		auto &attributeStoreFrom = *hlaObject.attributeDataStore;
+		for( auto item : attributeStoreFrom )
+		{
+			setValue( item.first, item.second.data, item.second.size );
+		}
 	}
 
 	
@@ -91,6 +110,11 @@ namespace base
 			variableData.size = size;
 			attributeDataStore->insert( pair<string, VariableData>( attributeName, variableData) );
 		}
+	}
+
+	void HLAObject::setInstanceId( long hash )
+	{
+		this->instanceId = hash;
 	}
 
 	bool HLAObject::getAsBool( const string& attributeName ) const

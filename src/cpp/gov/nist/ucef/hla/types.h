@@ -45,6 +45,7 @@ namespace rti1516e
 
 namespace base
 {
+	const static long INVLID_LONG = -1;
 	/**
 	 *  Represents the valid synchronization points of this federate
 	 *

@@ -212,10 +212,11 @@ namespace base
 			throw;
 		}
 
+		logger.log("Waiting for the announcement of synchronization Point " + ConversionHelper::SynchPointToString(point), LevelInfo );
 		while( !federateAmbassador->isAnnounced(synchPointStr) )
 		{
 			logger.log( "Waiting for the announcement of synchronization Point " +
-			            ConversionHelper::SynchPointToString(point), LevelInfo );
+			            ConversionHelper::SynchPointToString(point), LevelDebug);
 			tickForCallBacks();
 		}
 
@@ -232,10 +233,11 @@ namespace base
 			throw;
 		}
 
+		logger.log( "Waiting till the federation achieve synchronization " + ConversionHelper::SynchPointToString(point), LevelInfo );
 		while( !federateAmbassador->isAchieved(synchPointStr) )
 		{
-			logger.log( "Waiting for the federation to synchronise to " +
-			            ConversionHelper::SynchPointToString(point), LevelInfo );
+			logger.log( "Waiting till the federation achieve synchronization " +
+			            ConversionHelper::SynchPointToString(point), LevelDebug );
 			tickForCallBacks();
 		}
 
@@ -458,10 +460,11 @@ namespace base
 		}
 
 		// wait for the rti grant the requested time advancement
+		logger.log( "Request a time advance to " + to_string(requestedTime), LevelInfo );
 		while( federateAmbassador->getFederateTime() < requestedTime )
 		{
 			logger.log( "Waiting for the logical time of this federate to advance to " +
-			            to_string( requestedTime ), LevelInfo );
+			            to_string( requestedTime ), LevelDebug );
 
 			tickForCallBacks();
 		}
