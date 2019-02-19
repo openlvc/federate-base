@@ -37,7 +37,7 @@ public:
 	//                     Constructors
 	//----------------------------------------------------------
 	ResponseInteraction( const std::string& interactionName );
-	ResponseInteraction( std::shared_ptr<const base::HLAInteraction> hlaInterction );
+	ResponseInteraction( std::shared_ptr<const base::HLAInteraction> hlaInteraction );
 	virtual ~ResponseInteraction();
 
 	ResponseInteraction( const ResponseInteraction& ) = delete;

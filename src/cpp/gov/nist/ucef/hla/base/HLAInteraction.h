@@ -56,7 +56,7 @@ namespace base
 			//----------------------------------------------------------
 			HLAInteraction( const std::string& interactionClassName );
 			virtual ~HLAInteraction();
-			HLAInteraction( const HLAInteraction& hlaInterction );
+			HLAInteraction( const HLAInteraction& hlaInteraction );
 			HLAInteraction& operator=( const HLAInteraction& ) = delete;
 
 			//----------------------------------------------------------
