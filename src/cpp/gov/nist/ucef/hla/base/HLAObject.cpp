@@ -23,7 +23,7 @@ namespace base
 	HLAObject::HLAObject( const std::string & objectClassName )
 	{
 		this->className = objectClassName;
-		this->instanceId = INVLID_LONG;
+		this->instanceId = INVALID_LONG;
 		this->attributeDataStore = make_shared<HLAObjectAttributes>();
 	}
 
