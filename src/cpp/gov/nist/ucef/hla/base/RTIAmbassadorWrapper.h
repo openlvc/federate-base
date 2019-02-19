@@ -211,14 +211,29 @@ namespace base
 			void timeAdvanceRequest( const double requestedTime );
 
 			/**
-			 * Registers an instance of a class object in RTI.
+			 * Registers an instance of a given class object with RTI.
 			 * <p/>
 			 * This method must be called before sending updates to the federation using
 			 * {@link #updateAttributeValues(std::shared_ptr<HLAObject>&)}. Further, attributes and
 			 * their values can be added to this object by calling {@link HLAOBject#setValue}.
 			 *
-			 * @param className the fully qualified name of the object instance
-			 * @return an abstract representation of the registered object instance
+			 * @param hlaObject An HLA object intialised with fully qualified class name
+			 *
+			 * @see #updateObjectInstance()
+			 * @see #deleteObjectInstances()
+			 */
+			void registerObjectInstance( std::shared_ptr<HLAObject> hlaObject );
+
+			/**
+			 * Registers an instance of a given class object with RTI.
+			 * <p/>
+			 * This method must be called before sending updates to the federation using
+			 * {@link #updateAttributeValues(std::shared_ptr<HLAObject>&)}. Further, attributes and
+			 * their values can be added to this object by calling {@link HLAOBject#setValue}.
+			 *
+			 * @param className the fully qualified name of the class that needs to be
+			 *        registered with RTI in order to create an instance
+			 * @return an abstract representation of the registered RTI object instance
 			 *
 			 * @see #updateObjectInstance()
 			 * @see #deleteObjectInstances()

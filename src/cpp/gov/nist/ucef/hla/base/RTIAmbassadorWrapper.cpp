@@ -258,6 +258,36 @@ namespace base
 		}
 	}
 
+	void RTIAmbassadorWrapper::registerObjectInstance( shared_ptr<HLAObject> hlaObject )
+	{
+		Logger& logger = Logger::getInstance();
+		string className = hlaObject->getClassName();
+
+		if( className.empty() ) return;
+
+		try
+		{
+			ObjectClassHandle objectHandle =
+				rtiAmbassador->getObjectClassHandle( ConversionHelper::s2ws(className) );
+			try
+			{
+				ObjectInstanceHandle instanceHandle = rtiAmbassador->registerObjectInstance( objectHandle );
+				hlaObject->setInstanceId( instanceHandle.hash() );
+
+				instanceStoreByHash[instanceHandle.hash()] = make_shared<ObjectInstanceHandle>( instanceHandle );
+			}
+			catch( Exception& )
+			{
+				logger.log( "Could not register an object instance for " + hlaObject->getClassName(), LevelError );
+			}
+		}
+		catch( Exception& )
+		{
+			logger.log( "Can't find object class handle for" + hlaObject->getClassName() +
+			            ". Ignoring this update request.", LevelError );
+		}
+	}
+
 	shared_ptr<HLAObject> RTIAmbassadorWrapper::registerObjectInstance( const string& className )
 	{
 		Logger& logger = Logger::getInstance();

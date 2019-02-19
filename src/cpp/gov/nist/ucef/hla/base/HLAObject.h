@@ -58,8 +58,9 @@ namespace base
 			//----------------------------------------------------------
 			HLAObject( const std::string& objectClassName,
 			           long instanceId );
+			HLAObject( const std::string& objectClassName );
 			virtual ~HLAObject();
-			HLAObject( const HLAObject& ) = delete;
+			HLAObject( const HLAObject& hlaObject );
 			HLAObject& operator=( const HLAObject& ) = delete;
 
 			//----------------------------------------------------------
@@ -175,6 +176,13 @@ namespace base
 			void setValue( const std::string& attributeName,
 			               std::shared_ptr<void> data,
 			               const size_t size );
+
+			/**
+			 * Sets the unique instance id of this HLA object.
+			 *
+			 * @param hash the unique instance id of this HLA object.
+			 */
+			void setInstanceId( long hash );
 
 			/**
 			 * Returns the value of a named attribute as a bool.

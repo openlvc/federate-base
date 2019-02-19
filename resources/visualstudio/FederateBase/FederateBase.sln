@@ -5,35 +5,42 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FederateBase", "FederateBase.vcxproj", "{05B6DFCA-CEEC-449A-BCB9-279F9C733207}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ExampleFederate", "..\ExampleFederate\ExampleFederate.vcxproj", "{295FA453-8479-4413-9BCB-54382406879C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ChallengeFederate", "..\ChallengeFederate\ChallengerFederate.vcxproj", "{EA41788D-6EBF-44D0-B3C9-F16887736178}"
 	ProjectSection(ProjectDependencies) = postProject
 		{05B6DFCA-CEEC-449A-BCB9-279F9C733207} = {05B6DFCA-CEEC-449A-BCB9-279F9C733207}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ResponseFederate", "..\ResponseFederate\ResponseFederate.vcxproj", "{4EC1C638-430A-445A-B63E-14DBDC12CF85}"
+	ProjectSection(ProjectDependencies) = postProject
+		{05B6DFCA-CEEC-449A-BCB9-279F9C733207} = {05B6DFCA-CEEC-449A-BCB9-279F9C733207}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{482EAF89-D45F-4AA5-9E35-ECB71C48444B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Debug|x64.ActiveCfg = Debug|x64
 		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Debug|x64.Build.0 = Debug|x64
-		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Debug|x86.ActiveCfg = Debug|x64
 		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Release|x64.ActiveCfg = Release|x64
 		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Release|x64.Build.0 = Release|x64
-		{05B6DFCA-CEEC-449A-BCB9-279F9C733207}.Release|x86.ActiveCfg = Release|x64
-		{295FA453-8479-4413-9BCB-54382406879C}.Debug|x64.ActiveCfg = Debug|x64
-		{295FA453-8479-4413-9BCB-54382406879C}.Debug|x64.Build.0 = Debug|x64
-		{295FA453-8479-4413-9BCB-54382406879C}.Debug|x86.ActiveCfg = Debug|Win32
-		{295FA453-8479-4413-9BCB-54382406879C}.Debug|x86.Build.0 = Debug|Win32
-		{295FA453-8479-4413-9BCB-54382406879C}.Release|x64.ActiveCfg = Release|x64
-		{295FA453-8479-4413-9BCB-54382406879C}.Release|x64.Build.0 = Release|x64
-		{295FA453-8479-4413-9BCB-54382406879C}.Release|x86.ActiveCfg = Release|Win32
-		{295FA453-8479-4413-9BCB-54382406879C}.Release|x86.Build.0 = Release|Win32
+		{EA41788D-6EBF-44D0-B3C9-F16887736178}.Debug|x64.ActiveCfg = Debug|x64
+		{EA41788D-6EBF-44D0-B3C9-F16887736178}.Debug|x64.Build.0 = Debug|x64
+		{EA41788D-6EBF-44D0-B3C9-F16887736178}.Release|x64.ActiveCfg = Release|x64
+		{EA41788D-6EBF-44D0-B3C9-F16887736178}.Release|x64.Build.0 = Release|x64
+		{4EC1C638-430A-445A-B63E-14DBDC12CF85}.Debug|x64.ActiveCfg = Debug|x64
+		{4EC1C638-430A-445A-B63E-14DBDC12CF85}.Debug|x64.Build.0 = Debug|x64
+		{4EC1C638-430A-445A-B63E-14DBDC12CF85}.Release|x64.ActiveCfg = Release|x64
+		{4EC1C638-430A-445A-B63E-14DBDC12CF85}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EA41788D-6EBF-44D0-B3C9-F16887736178} = {482EAF89-D45F-4AA5-9E35-ECB71C48444B}
+		{4EC1C638-430A-445A-B63E-14DBDC12CF85} = {482EAF89-D45F-4AA5-9E35-ECB71C48444B}
 	EndGlobalSection
 EndGlobal

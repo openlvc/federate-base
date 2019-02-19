@@ -14,14 +14,25 @@ using namespace base::util;
 
 namespace base
 {
-	HLAInteraction::HLAInteraction
-	                    ( const string& className ) : interactionClassName( className )
+	HLAInteraction::HLAInteraction( const string& className ) : interactionClassName( className )
 	{
 		this->parameterDataStore = make_shared<HLAInteractionParameters>();
 	}
 
 	HLAInteraction::~HLAInteraction()
 	{
+	}
+
+	HLAInteraction::HLAInteraction( const HLAInteraction& hlaInteraction )
+	{
+		this->interactionClassName = hlaInteraction.interactionClassName;
+		this->parameterDataStore = make_shared<HLAInteractionParameters>();
+		// if there is any attributes copy across
+		auto &parameterStoreFrom = *hlaInteraction.parameterDataStore;
+		for( auto item : parameterStoreFrom )
+		{
+			setValue( item.first, item.second.data, item.second.size );
+		}
 	}
 
 	bool HLAInteraction::isPresent( const string& attributeName ) const
