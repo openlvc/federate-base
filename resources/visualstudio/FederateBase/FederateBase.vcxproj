@@ -43,13 +43,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(ProjectName)\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\$(ProjectName).Int\</IntDir>
     <TargetExt>.dll</TargetExt>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(Configuration)\$(ProjectName)\</OutDir>
+    <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(ProjectName)\</OutDir>
     <TargetExt>.dll</TargetExt>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\$(ProjectName).Int\</IntDir>
   </PropertyGroup>
