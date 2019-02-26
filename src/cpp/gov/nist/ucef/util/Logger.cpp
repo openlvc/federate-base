@@ -1,6 +1,10 @@
 #include <iostream>
+#if defined(_WIN32)
+#include <direct.h>
+#endif
 #include "Logger.h"
 #include "spdlog/spdlog.h"
+
 #include <sys/stat.h>
 using namespace spdlog;
 using namespace std;
@@ -19,7 +23,11 @@ namespace base
 		{ 
 			try
 			{
+#if defined(_WIN32)
+				_mkdir("logs");
+#else
 				mkdir("logs", S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#endif
 				logger = basic_logger_mt( "ucef_federate", "logs/uceffederate.log", true );
 				logger->set_level( level::level_enum::info );
 				logger->info( "Logger initialised and the default log level is set to INFO" );
