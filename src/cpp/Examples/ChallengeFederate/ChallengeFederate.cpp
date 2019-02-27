@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <mutex>
 #include <random>
 
@@ -150,7 +151,8 @@ class ChallengeFederate : public NoOpFederate
 			for( auto object : sentChallengeObjects)
 			{
 				cout << "No result received for id : " << object.first << endl;
-				rtiAmbassadorWrapper->deleteObjectInstance( static_pointer_cast<HLAObject>(object.second) );
+				auto tmpObject = static_pointer_cast<HLAObject>(object.second);
+				rtiAmbassadorWrapper->deleteObjectInstance( tmpObject );
 			}
 
 			for( auto object : sentChallengeInteractions )
@@ -174,7 +176,8 @@ class ChallengeFederate : public NoOpFederate
 
 				// Send attribute update notification to users
 				rtiAmbassadorWrapper->registerObjectInstance( challengeObject );
-				rtiAmbassadorWrapper->updateAttributeValues( static_pointer_cast<HLAObject>(challengeObject) );
+				auto tmpObject = static_pointer_cast<HLAObject>( challengeObject );
+				rtiAmbassadorWrapper->updateAttributeValues( tmpObject );
 
 				// Store the challenge
 				sentChallengeObjects.
@@ -200,7 +203,8 @@ class ChallengeFederate : public NoOpFederate
 				challengeInteraction->setBeginIndex( challenge.beginIndex );
 
 				// Send attribute update notification to users
-				rtiAmbassadorWrapper->sendInteraction( static_pointer_cast<HLAInteraction>(challengeInteraction) );
+				auto tmpInteraction = static_pointer_cast<HLAInteraction>( challengeInteraction );
+				rtiAmbassadorWrapper->sendInteraction( tmpInteraction );
 
 				// Store the challenge
 				sentChallengeInteractions.
@@ -215,7 +219,7 @@ class ChallengeFederate : public NoOpFederate
 				sendChallengeObject = true;
 			}
 
-			unique_lock<mutex> lock( lock );
+			unique_lock<mutex> lock( mutexLock );
 			list<shared_ptr<ResponseInteraction>> responseCopy = responseInteractions;
 			responseInteractions.clear();
 			lock.unlock();
@@ -250,7 +254,8 @@ class ChallengeFederate : public NoOpFederate
 						errorLog << msg;
 					}
 					// Since we received a reply fo this challange, we can delete this instace from RTI now
-					rtiAmbassadorWrapper->deleteObjectInstance( static_pointer_cast<HLAObject>(itSentObject->second) );
+					auto tmpObject = static_pointer_cast<HLAObject>( itSentObject->second );
+					rtiAmbassadorWrapper->deleteObjectInstance( tmpObject );
 					sentChallengeObjects.erase( itSentObject );
 				}
 
@@ -320,7 +325,7 @@ class ChallengeFederate : public NoOpFederate
 		virtual void receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
 		                                  double federateTime ) override
 		{
-			lock_guard<mutex> lock( lock );
+			lock_guard<mutex> lock( mutexLock );
 			shared_ptr<ResponseInteraction> response = make_shared<ResponseInteraction>( hlaInt );
 			responseInteractions.emplace_back( response);
 		}
@@ -374,7 +379,7 @@ class ChallengeFederate : public NoOpFederate
 			mt19937_64 gen{ std::random_device()() };
 			uniform_int_distribution<> distribution( 0, sizeof(VALID_CHARACTERS) - 2 );
 
-			string buffer( challengeLength, NULL );
+			string buffer( challengeLength, ' ' );
 			for( int i = 0; i < challengeLength; i++ ) {
 				buffer[i] = VALID_CHARACTERS[ distribution(gen) ];
 			}
@@ -408,7 +413,7 @@ class ChallengeFederate : public NoOpFederate
 		map<string, shared_ptr<ChallengeObject>> sentChallengeObjects;
 		map<string, shared_ptr<ChallengeInteraction>> sentChallengeInteractions;
 		list<shared_ptr<ResponseInteraction>> responseInteractions;
-		mutex lock;
+		mutex mutexLock;
 		int count = 0;
 		ofstream errorLog;
 };
