@@ -42,16 +42,12 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1451756037" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.58431465" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.paths.1462866048" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FederateBase/Debug}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../dist/linux/FederateBase&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/portico-2.1.0/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.549583032" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="FederateBaseD"/>
-									<listOptionValue builtIn="false" value="fedtime1516e64d"/>
-									<listOptionValue builtIn="false" value="rti1516e64d"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.751064903" superClass="gnu.cpp.link.option.flags" value="-Wl,-unresolved-symbols=ignore-in-shared-libs" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.751064903" name="Linker flags" superClass="gnu.cpp.link.option.flags" value="-Wl,-unresolved-symbols=ignore-in-shared-libs" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1063631609" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -118,16 +114,12 @@
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.release.1611817007" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.release"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.release.1402140659" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.release">
 								<option id="gnu.cpp.link.option.paths.970620705" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" useByScannerDiscovery="false" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/FederateBase/Release}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../dist/linux/FederateBase&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/lib/portico-2.1.0/linux&quot;"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.2075192941" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" useByScannerDiscovery="false" valueType="libs">
 									<listOptionValue builtIn="false" value="FederateBase"/>
-									<listOptionValue builtIn="false" value="fedtime1516e64"/>
-									<listOptionValue builtIn="false" value="rti1516e64"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.1862509735" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-Wl,-unresolved-symbols=ignore-in-shared-libs" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.1862509735" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-Wl,-unresolved-symbols=ignore-in-shared-libs" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1092866357" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
