@@ -29,37 +29,37 @@
 		<link>
 			<name>ChallengeInteraction.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ChallengeInteraction.cpp</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ChallengeInteraction.cpp</locationURI>
 		</link>
 		<link>
 			<name>ChallengeInteraction.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ChallengeInteraction.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ChallengeInteraction.h</locationURI>
 		</link>
 		<link>
 			<name>ChallengeObject.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ChallengeObject.cpp</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ChallengeObject.cpp</locationURI>
 		</link>
 		<link>
 			<name>ChallengeObject.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ChallengeObject.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ChallengeObject.h</locationURI>
 		</link>
 		<link>
 			<name>ResponseFederate.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ResponseFederate.cpp</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ResponseFederate.cpp</locationURI>
 		</link>
 		<link>
 			<name>ResponseInteraction.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ResponseInteraction.cpp</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ResponseInteraction.cpp</locationURI>
 		</link>
 		<link>
 			<name>ResponseInteraction.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-ECLIPSE_HOME/Caly/ucefcodebase/federate-base/src/cpp/Examples/ResponseFederate/ResponseInteraction.h</locationURI>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/Examples/ResponseFederate/ResponseInteraction.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>
