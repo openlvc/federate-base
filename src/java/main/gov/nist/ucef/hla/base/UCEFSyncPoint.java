@@ -105,7 +105,21 @@ public enum UCEFSyncPoint
 		//       chronological order
 		return other != null && this.ordinal() < other.ordinal();
 	}
-
+	
+	/**
+	 * Determine if this synchronization point is at or before the provided synchronization point
+	 * 
+	 * @param other the other synchronization point
+	 * @return true if this synchronization point is at or before the provided synchronization
+	 *         point, false otherwise
+	 */
+	public boolean isAtOrBefore( UCEFSyncPoint other )
+	{
+		// NOTE: relies on the enumerated values being defined in the expected 
+		//       chronological order
+		return other != null && this.ordinal() <= other.ordinal();
+	}
+	
 	/**
 	 * Determine if this synchronization point is after the provided synchronization point
 	 * 
@@ -121,14 +135,43 @@ public enum UCEFSyncPoint
 	}
 
 	/**
+	 * Determine if this synchronization point is at or after the provided synchronization point
+	 * 
+	 * @param other the other synchronization point
+	 * @return true if this synchronization point is at or after the provided synchronization
+	 *         point, false otherwise
+	 */
+	public boolean isAtOrAfter( UCEFSyncPoint other )
+	{
+		// NOTE: relies on the enumerated values being defined in the expected 
+		//       chronological order
+		return other != null && this.ordinal() >= other.ordinal();
+	}
+	
+	/**
+	 * Determine if this synchronization point is the same as the provided synchronization point
+	 * 
+	 * NOTE: this is just wrapper around the standard enumeration equals() method provided to
+	 * improve code readability
+	 * 
+	 * @param other the other synchronization point
+	 * @return true if this synchronization point is the same as the provided synchronization
+	 *         point, false otherwise
+	 */
+	public boolean is( UCEFSyncPoint other )
+	{
+		return this.equals( other );
+	}
+
+	/**
 	 * Determine if this synchronization point is not the same as the provided synchronization
 	 * point
 	 * 
-	 * NOTE: this is just a negatiion of the standard enumeration equals() method provided to
-	 * improve code readbility
+	 * NOTE: this is just a negation of the standard enumeration equals() method provided to
+	 * improve code readability
 	 * 
 	 * @param other the other synchronization point
-	 * @return true if this synchronization point not the same as the provided synchronization
+	 * @return true if this synchronization point is not the same as the provided synchronization
 	 *         point, false otherwise
 	 */
 	public boolean isNot( UCEFSyncPoint other )

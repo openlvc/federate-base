@@ -49,13 +49,10 @@ public class Player extends HLAObject
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param name the {@link Player} name
 	 */
-	public Player( RTIAmbassadorWrapper rtiamb, String name )
+	public Player()
 	{
-		super( rtiamb.registerObjectInstance( OBJECT_CLASS_NAME ), null );
-		
-		name( name );
+		super( OBJECT_CLASS_NAME, null, null );
 	}
 
 	/**
@@ -74,14 +71,16 @@ public class Player extends HLAObject
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public void isNamePresent()
+	public boolean isNamePresent()
 	{
-		isPresent( ATTRIBUTE_KEY_NAME );
+		return isPresent( ATTRIBUTE_KEY_NAME );
 	}
 	
-	public void name( String name )
+	public Player name( String name )
 	{
 		setValue( ATTRIBUTE_KEY_NAME, name );
+		// return instance for chaining
+		return this;
 	}
 
 	public String name()

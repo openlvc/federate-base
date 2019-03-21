@@ -47,9 +47,9 @@ public class SimResume extends HLAInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimResume( RTIAmbassadorWrapper rtiamb )
+	public SimResume()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+		super( INTERACTION_NAME );
 	}
 	
 	/**

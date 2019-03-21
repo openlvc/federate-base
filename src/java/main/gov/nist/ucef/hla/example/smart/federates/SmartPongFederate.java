@@ -85,18 +85,18 @@ public class SmartPongFederate extends _SmartPongFederate
 	public void beforeFirstStep()
 	{
 		this.letter = 'a';
-		this.player = new Player( rtiamb, "PongPlayer" );
+		this.player = register( new Player() );
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
 		// here we end out our interaction and attribute update
-		sendInteraction( new Pong( rtiamb, this.letter ) );
+		sendInteraction( new Pong().letter( this.letter ) );
 		updateAttributeValues( this.player );
 		// update the values
 		this.letter++;
-		String nextPlayerName = this.player.name() + this.letter;
+		String nextPlayerName = (this.player.isNamePresent() ? this.player.name() : "") + this.letter;
 		this.player.name( nextPlayerName );
 		// keep going until time 10.0
 		return (currentTime < 10.0);
@@ -108,25 +108,25 @@ public class SmartPongFederate extends _SmartPongFederate
 	/**
 	 * Handle receipt of a {@link Ping}
 	 * 
-	 * @param interaction the interaction to handle
+	 * @param ping the interaction to handle
 	 */
 	@Override
-	protected void receivePingInteraction( Ping interaction )
+	protected void receivePingInteraction( Ping ping )
 	{
 		System.out.println( String.format( "Received Ping interaction - count is %s",
-		                                   interaction.count() ) );
+		                                   ping.isCountPresent() ? ping.count() : "UNDEFINED" ) );
 	}
 
 	/**
 	 * Handle receipt of a {@link Player}
 	 * 
-	 * @param obj the object to handle
+	 * @param player the object to handle
 	 */
 	@Override
-	protected void receivePlayerUpdate( Player obj )
+	protected void receivePlayerUpdate( Player player )
 	{
 		System.out.println( String.format( "Received Player update - name is %s",
-		                                   obj.name() ) );
+		                                   player.isNamePresent() ? player.name() : "UNDEFINED" ) );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

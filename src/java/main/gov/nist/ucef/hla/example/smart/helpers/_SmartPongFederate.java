@@ -62,14 +62,15 @@ public abstract class _SmartPongFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		if( rtiamb.isOfKind( hlaInteraction, Ping.interactionName() ) )
+		String interactionClassName = hlaInteraction.getInteractionClassName();
+		if( Ping.interactionName().equals( interactionClassName ) )
 		{
 			receivePingInteraction( new Ping( hlaInteraction ) );
 		}
@@ -77,14 +78,15 @@ public abstract class _SmartPongFederate extends NoOpFederate
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                   rtiamb.getInteractionClassName( hlaInteraction ) ) );
+			                                   interactionClassName ) );
 		}
 	}
 
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject ) 
 	{ 
-		if( rtiamb.isOfKind( hlaObject, Player.objectClassName() ) )
+		String objectClassName = hlaObject.getObjectClassName();
+		if( Player.objectClassName().equals( objectClassName ) )
 		{
 			receivePlayerUpdate( new Player( hlaObject ) );
 		}
@@ -92,13 +94,15 @@ public abstract class _SmartPongFederate extends NoOpFederate
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
-			                                   rtiamb.getObjectClassName( hlaObject ) ) );
+			                                   objectClassName ) );
 		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	protected Player register( Player player ) { return (Player)super.register( player ); }
+
 	/**
 	 * Handle receipt of a {@link Ping}
 	 * 

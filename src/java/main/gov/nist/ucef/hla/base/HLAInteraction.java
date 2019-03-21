@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import hla.rti1516e.InteractionClassHandle;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -46,7 +45,7 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	protected InteractionClassHandle interactionClassHandle;
+	protected final String interactionClassName;
 	protected Map<String, byte[]> parameters;
 	
 	// used for encoding/decoding byte array representations of interaction parameters
@@ -63,9 +62,9 @@ public class HLAInteraction
 	 * 
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 */
-	protected HLAInteraction( InteractionClassHandle interactionClassHandle )
+	protected HLAInteraction( String interactionClassName )
 	{
-		this( interactionClassHandle, null );
+		this( interactionClassName, null );
 	}
 
 	/**
@@ -77,10 +76,10 @@ public class HLAInteraction
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 * @param parameters the parameter values for the interaction (may be empty or null)
 	 */
-	protected HLAInteraction( InteractionClassHandle interactionClassHandle,
+	protected HLAInteraction( String interactionClassName,
 	                          Map<String,byte[]> parameters )
 	{
-		this.interactionClassHandle = interactionClassHandle;
+		this.interactionClassName = interactionClassName;
 		this.parameters = parameters == null ? new HashMap<>() : parameters;
 
 		this.encoder = HLACodecUtils.getEncoder();
@@ -98,7 +97,7 @@ public class HLAInteraction
 	 */
 	protected HLAInteraction( HLAInteraction interaction )
 	{
-		this.interactionClassHandle = interaction.interactionClassHandle;
+		this.interactionClassName = interaction.interactionClassName;
 		this.parameters = interaction.parameters;
 		
 		this.encoder = interaction.encoder;
@@ -117,19 +116,19 @@ public class HLAInteraction
 	public int hashCode()
 	{
 		// delegate to the cached interaction class handle
-		return this.interactionClassHandle.hashCode();
+		return this.interactionClassName.hashCode();
 	}
-
+	
     ////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Obtain the underlying HLA interaction class handle associated with this instance
-	 * @return the underlying HLA interaction class associated with this instance
+	 * Obtain the underlying HLA interaction class name associated with this instance
+	 * @return the underlying HLA interaction name associated with this instance
 	 */
-	protected InteractionClassHandle getInteractionClassHandle()
+	public String getInteractionClassName()
 	{
-		return this.interactionClassHandle;
+		return this.interactionClassName;
 	}
 	
 	/**

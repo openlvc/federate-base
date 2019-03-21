@@ -23,7 +23,6 @@
  */
 package gov.nist.ucef.hla.base;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -64,9 +63,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private boolean isTimeRegulated;
 	private boolean isTimeConstrained;
 	
-	// discovered (remote) objects
-	private Map<ObjectInstanceHandle,HLAObject> remoteHlaObjects;
-	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -80,8 +76,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 		// intentional rather than just "forgotten about"
 		currentSyncPoint = null;
 		announcedSyncPoint = null;
-		
-		remoteHlaObjects = new HashMap<>();
 	}
 	
 	//----------------------------------------------------------
@@ -274,15 +268,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    FederateHandle federateHandle)
     	throws FederateInternalError
 	{
-		HLAObject hlaObjectInstance = this.remoteHlaObjects.get( objectInstanceHandle );
-		if( hlaObjectInstance == null )
-		{
-			// this is what *should* be happening - since it's a discovery, it 
-			// shouldn't be in the cache yet
-			hlaObjectInstance = new HLAObject( objectInstanceHandle, null );
-			this.remoteHlaObjects.put( objectInstanceHandle, hlaObjectInstance );
-		}
-		this.federateBase.incomingObjectRegistration( hlaObjectInstance );
+		this.federateBase.incomingObjectRegistration( objectInstanceHandle, objectClassHandle );
 	}
 
 	/**
@@ -324,23 +310,14 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		// create and populate/update existing instance
-		HLAObject hlaObjectInstance = this.remoteHlaObjects.get( objectInstanceHandle );
-		if( hlaObjectInstance == null )
-		{
-			throw new UCEFException("Attribute value reflection received for undiscovered object " +
-									"instance with handle '%s'", objectInstanceHandle);
-		}
-
 		// convert AttributeHandleValueMap to Map<String, byte[]> 
 		Map<String,byte[]> attributes = federateBase.rtiamb.convert( objectInstanceHandle, attributeMap );
-		hlaObjectInstance.setState( attributes );
 
 		// do the appropriate callback on the federate
 		if( time == null )
-			this.federateBase.incomingAttributeReflection( hlaObjectInstance );
+			this.federateBase.incomingAttributeReflection( objectInstanceHandle, attributes );
 		else
-			this.federateBase.incomingAttributeReflection( hlaObjectInstance, logicalTimeAsDouble( time ) );
+			this.federateBase.incomingAttributeReflection( objectInstanceHandle, attributes, logicalTimeAsDouble( time ) );
 	}
 	
 	/**
@@ -380,14 +357,11 @@ public class FederateAmbassador extends NullFederateAmbassador
 		// convert ParameterHandleValueMap to Map<String, byte[]> 
 		Map<String,byte[]> parameters = federateBase.rtiamb.convert( interactionClassHandle, parameterMap );
 
-		// create the (transient) interaction
-		HLAInteraction interaction = new HLAInteraction( interactionClassHandle, parameters );
-
 		// do the appropriate callback on the federate
 		if( time == null )
-			this.federateBase.incomingInteraction( interaction );
+			this.federateBase.incomingInteraction( interactionClassHandle, parameters );
 		else
-			this.federateBase.incomingInteraction( interaction, logicalTimeAsDouble( time ) );
+			this.federateBase.incomingInteraction( interactionClassHandle, parameters, logicalTimeAsDouble( time ) );
 	}
 
 	/**
@@ -400,13 +374,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                  SupplementalRemoveInfo removeInfo )
 	    throws FederateInternalError
 	{
-		HLAObject hlaObjectInstance = this.remoteHlaObjects.remove( objectInstanceHandle ); 
-		if( hlaObjectInstance == null )
-		{
-			throw new UCEFException( "Deletion notification received for undiscovered object " +
-									 "instance with handle '%s'", objectInstanceHandle );
-		}
-		this.federateBase.incomingObjectDeleted( hlaObjectInstance );
+		this.federateBase.incomingObjectDeleted( objectInstanceHandle );
 	}
 	
 	/**

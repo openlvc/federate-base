@@ -290,7 +290,7 @@ public class RTIAmbassadorWrapper
 			                         NULL_TEXT );
 		}
 
-		deleteObjectInstance( instance.getInstanceHandle(), tag );
+		deleteObjectInstance( instance.instanceHandle, tag );
 		
 		return instance;
 	}
@@ -467,22 +467,6 @@ public class RTIAmbassadorWrapper
 	//////////////////////////// IDENTIFIER <-> HANDLE LOOKUPS ETC /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * A "safe" way to get an object class name from an instance.
-	 * 
-	 * @param instance the object instance to obtain the class name for
-	 * @return the corresponding object class name
-	 */
-	public String getObjectClassName( HLAObject instance )
-	{
-		// basic sanity checks on provided arguments
-		if( instance == null )
-			throw new UCEFException( "%s object instance. Cannot obtain object class name.",
-			                         NULL_TEXT );
-		
-		return getObjectClassName( getKnownObjectClassHandle( instance.getInstanceHandle() ) );
-	}
-
-	/**
 	 * A "safe" way to get an object class name from a handle.
 	 * 
 	 * @param handle the object class handle to obtain the object class name for
@@ -557,7 +541,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s object instance. Cannot obtain object instance handle.",
 			                         NULL_TEXT );
 		
-		return getKnownObjectClassHandle( instance.getInstanceHandle() );
+		return getKnownObjectClassHandle( instance.instanceHandle );
 	}
 	
 	/**
@@ -573,7 +557,7 @@ public class RTIAmbassadorWrapper
 		if( a == null || b == null )
 			return false;
 
-		return isOfKind(a, getKnownObjectClassHandle( b.getInstanceHandle() ) );
+		return isOfKind(a, getKnownObjectClassHandle( b.instanceHandle ) );
 	}
 	
 	/**
@@ -612,7 +596,7 @@ public class RTIAmbassadorWrapper
 		if( object == null || handle == null )
 			return false;
 		
-		return handle.equals( getKnownObjectClassHandle( object.getInstanceHandle() ) );
+		return handle.equals( getKnownObjectClassHandle( object.instanceHandle ) );
 	}
 
 	/**
@@ -663,22 +647,6 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an interaction class name from an interaction.
-	 * 
-	 * @param interaction the interaction to obtain the name for
-	 * @return the corresponding interaction class name
-	 */
-	public String getInteractionClassName( HLAInteraction interaction )
-	{
-		// basic sanity checks on provided arguments
-		if( interaction == null )
-			throw new UCEFException( "%s interaction instance. Cannot obtain interaction class name.",
-			                         NULL_TEXT );
-		
-		return getInteractionClassName( interaction.getInteractionClassHandle() );
-	}
-
-	/**
 	 * A "safe" way to get an interaction class name from an interaction class handle. If anything goes 
 	 * wrong, exceptions are absorbed and a null value is returned
 	 * 
@@ -713,7 +681,7 @@ public class RTIAmbassadorWrapper
 									 "could be retrieved.",
 			                         NULL_TEXT );
 		
-		return interaction.getInteractionClassHandle();
+		return getInteractionClassHandle( interaction.interactionClassName );
 	}
 
 	/**
@@ -739,44 +707,6 @@ public class RTIAmbassadorWrapper
 	}
 	
 	/**
-	 * Determine if two {@link HLAInteraction} instances are of the same kind
-	 * 
-	 * @param a an {@link HLAInteraction} instance to compare
-	 * @param b the other {@link HLAInteraction} instance to compare
-	 * @return true if both {@link HLAInteraction} instances are the same kind of interaction,
-	 *         false otherwise
-	 */
-	public boolean isSameKind( HLAInteraction a, HLAInteraction b )
-	{
-		if( a == null || b == null )
-			return false;
-
-		return isOfKind(a, b.interactionClassHandle );
-	}
-	
-	/**
-	 * Determine if an {@link HLAInteraction} instance has the {@link InteractionClassHandle}
-	 * corresponding to the given interaction class name
-	 * 
-	 * @param interaction the {@link HLAInteraction} instance to check
-	 * @param interactionClassName the name of the interaction class to check
-	 * @return true if the {@link HLAInteraction} instance has an {@link InteractionClassHandle}
-	 *         corresponding to the given interaction class name, false otherwise
-	 */
-	public boolean isOfKind( HLAInteraction interaction, String interactionClassName )
-	{
-		try
-		{
-			return isOfKind( interaction, getInteractionClassHandle( interactionClassName ) );
-		}
-		catch( UCEFException e )
-		{
-			// ignore - this will occur if the interaction class name is unknown
-		}
-		return false;
-	}
-	
-	/**
 	 * Determine if an {@link HLAInteraction} instance has the given
 	 * {@link InteractionClassHandle}
 	 * 
@@ -790,7 +720,7 @@ public class RTIAmbassadorWrapper
 		if( interaction == null || handle == null )
 			return false;
 		
-		return handle.equals( interaction.interactionClassHandle );
+		return handle.equals( getInteractionClassHandle( interaction ) );
 	}
 	
 	/**
@@ -863,23 +793,6 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an object instance handle from an object instance. If anything goes
-	 * wrong, exceptions are absorbed and a null value is returned
-	 * 
-	 * @param name the object instance to obtain the handle for
-	 * @return the corresponding object instance handle, or null if anything went wrong
-	 */
-	public ObjectInstanceHandle getObjectInstanceHandle( HLAObject instance )
-	{
-		if( instance == null )
-			throw new UCEFException( "%s object instance. No object instance handle " +
-									 "could be retrieved.",
-			                         NULL_TEXT );
-		
-		return instance.getInstanceHandle();
-	}
-
-	/**
 	 * A "safe" way to get an object instance handle from an object instance name. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
 	 * 
@@ -904,6 +817,26 @@ public class RTIAmbassadorWrapper
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// OBJECT REGISTRATION ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * This method will register an {@link HLAObject} instance and return the federation-wide
+	 * unique handle for that instance.
+	 * 
+	 * NOTE: if the instance has already been registered (i.e., it already has an instance handle)
+	 * calling this method will have no net effect.
+	 */
+	public HLAObject registerObjectInstance( HLAObject instance )
+	{
+		if( instance.instanceHandle == null )
+		{
+			// we only give it an instance handle if it doesn't have one,
+			// otherwise it will become a new instance as far as the
+			// federation is concerned
+			instance.instanceHandle = registerObjectInstance( instance.objectClassName );
+		}
+
+		return instance;
+	}
+	
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
@@ -1003,7 +936,7 @@ public class RTIAmbassadorWrapper
 	 */
 	public HLAInteraction makeInteraction( String name, Map<String,byte[]> parameters )
 	{
-		return new HLAInteraction( getInteractionClassHandle( name ), parameters );
+		return new HLAInteraction( name, parameters );
 	}
 
 	/**
@@ -1023,14 +956,14 @@ public class RTIAmbassadorWrapper
 	 * name and some initial values for the attributes, also registering the instance with the RTI.
 	 * 
 	 * @param name the object class name
-	 * @param initialValues the initial values for the attributes (can be null)
+	 * @param attributes the initial values for the attributes (can be null)
 	 * @return the interaction
 	 */
-	public HLAObject makeObjectInstance( String className, Map<String,byte[]> initialValues )
+	public HLAObject makeObjectInstance( String className, Map<String,byte[]> attributes )
 	{
 		ObjectClassHandle classhandle = getObjectClassHandle( className );
 		ObjectInstanceHandle instanceHandle = registerObjectInstance( classhandle );
-		return new HLAObject( instanceHandle, initialValues );
+		return new HLAObject( className, attributes, instanceHandle );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -1353,7 +1286,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s object instance. Cannot update attribute values.",
 			                         NULL_TEXT );
 		
-		ObjectInstanceHandle objectInstanceHandle = instance.getInstanceHandle();
+		ObjectInstanceHandle objectInstanceHandle = instance.instanceHandle;
 		try
 		{
 			// we need to build up an AttributeHandleValueMap from the object state
@@ -1391,7 +1324,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s interaction. Cannot send interaction.",
 			                         NULL_TEXT );
 		
-		InteractionClassHandle interactionClassHandle = interaction.getInteractionClassHandle();
+		InteractionClassHandle interactionClassHandle = getInteractionClassHandle( interaction );
 		try
 		{
 			// we need to build up a ParameterHandleValueMap from the interaction parameters  
@@ -1440,7 +1373,7 @@ public class RTIAmbassadorWrapper
 		
 		try
 		{
-			ObjectInstanceHandle instanceHandle = instance.getInstanceHandle();
+			ObjectInstanceHandle instanceHandle = instance.instanceHandle;
 			ObjectClassHandle classHandle = getKnownObjectClassHandle( instanceHandle );
 			AttributeHandleSet attributeHandles = makeAttributeHandleSet( classHandle, attributes );
 			
@@ -1583,7 +1516,7 @@ public class RTIAmbassadorWrapper
 	 */
 	public String makeSummary( HLAObject instance )
 	{
-		return makeSummary( instance.getInstanceHandle() );
+		return makeSummary( instance.getObjectInstanceHandle() );
 	}
 	
 	/**
@@ -1593,7 +1526,7 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object instance handle
 	 * @return the details of the associated object instance
 	 */
-	private String makeSummary( ObjectInstanceHandle handle )
+	public String makeSummary( ObjectInstanceHandle handle )
 	{
 		String instanceName = NULL_TEXT;
 		ObjectClassHandle classHandle = null;
@@ -1633,7 +1566,7 @@ public class RTIAmbassadorWrapper
 	 * @param handle the object class handle
 	 * @return the details of the associated object class
 	 */
-	private String makeSummary( ObjectClassHandle handle )
+	public String makeSummary( ObjectClassHandle handle )
 	{
 		String className = NULL_TEXT;
 		try
@@ -1652,7 +1585,7 @@ public class RTIAmbassadorWrapper
 		return details.toString();
 	}
 	
-	private String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandleSet attributes )
+	public String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandleSet attributes )
 	{
 		List<String> details = new ArrayList<>(attributes.size());
 		for(AttributeHandle attributeHandle : attributes)
@@ -1662,7 +1595,7 @@ public class RTIAmbassadorWrapper
 		return details.stream().collect( Collectors.joining( ", " ) );
 	}
 
-	private String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandle attributeHandle )
+	public String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandle attributeHandle )
 	{
 		String attributeName = NULL_TEXT;
 		try
@@ -1690,7 +1623,7 @@ public class RTIAmbassadorWrapper
 	 */
 	public String makeSummary( HLAInteraction interaction )
 	{
-		return makeSummary( interaction.getInteractionClassHandle() );
+		return makeSummary( getInteractionClassHandle( interaction) );
 	}
 	
 	/**
@@ -1700,7 +1633,7 @@ public class RTIAmbassadorWrapper
 	 * @param handle the interaction class handle
 	 * @return the details of the associated interaction class
 	 */
-	private String makeSummary( InteractionClassHandle handle )
+	public String makeSummary( InteractionClassHandle handle )
 	{
 		String className = NULL_TEXT;
 		try

@@ -49,9 +49,9 @@ public class FederateJoin extends HLAInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public FederateJoin( RTIAmbassadorWrapper rtiamb )
+	public FederateJoin()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+		super( INTERACTION_NAME );
 	}
 
 	/**

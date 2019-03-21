@@ -24,7 +24,6 @@
 package gov.nist.ucef.hla.base;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,10 +77,8 @@ public class FederateConfiguration
 	private String federateType;
 	private Set<URL> modules;
 	private Set<URL> joinModules;
-	private Set<String> publishedInteractions;
-	private Set<String> subscribedInteractions;
-	private Map<String,Set<String>> publishedAttributes;
-	private Map<String,Set<String>> subscribedAttributes;
+	private Map<String,Types.InteractionClass> pubSubInteractions;
+	private Map<String,Types.ObjectClass> pubSubAttributes;
 
 	private int maxReconnectAttempts;
 	private long waitReconnectMs;
@@ -113,10 +110,8 @@ public class FederateConfiguration
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
-		this.publishedAttributes = new HashMap<>();
-		this.subscribedAttributes = new HashMap<>();
-		this.publishedInteractions = new HashSet<>();
-		this.subscribedInteractions = new HashSet<>();
+		this.pubSubAttributes = new HashMap<>();
+		this.pubSubInteractions = new HashMap<>();
 		
 		this.maxReconnectAttempts = DEFAULT_MAX_RECONNECT_ATTEMPTS;
 		this.waitReconnectMs = DEFAULT_RECONNECT_WAIT_MS;
@@ -137,9 +132,6 @@ public class FederateConfiguration
 		String dashRule = "------------------------------------------------------------\n";
 		String dotRule = "............................................................\n";
 		
-		List<String> classNames = new ArrayList<>();
-		List<String> attributeNames = new ArrayList<>();
-		
 		StringBuilder builder = new StringBuilder();
 		
 		builder.append( dashRule );
@@ -158,77 +150,76 @@ public class FederateConfiguration
 		
 		builder.append( dotRule );
 		builder.append( "Published Attributes:\n" );
-		if(this.publishedAttributes.isEmpty())
+		Collection<Types.ObjectClass> attributes = getPublishedAttributes();
+		if(attributes.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
 		}
 		else
 		{
-    		classNames.addAll( this.publishedAttributes.keySet() );
-    		classNames.sort(null);
-    		for(String objectClassName : classNames)
-    		{
-    			builder.append( "\t" + objectClassName + "\n" );
-    			attributeNames.clear();
-    			attributeNames.addAll( this.publishedAttributes.get( objectClassName ) );
-    			attributeNames.sort(null);
-    			attributeNames.forEach( (x) -> builder.append( "\t\t" + x + "\n" ) );
-    		}
+			List<Types.ObjectClass> pubAttrList = attributes.stream().collect( Collectors.toList() );
+			pubAttrList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
+			for( Types.ObjectClass objectClass : pubAttrList )
+			{
+				builder.append( "\t" + objectClass.name + "\n" );
+				List<String> attributeNames = objectClass.attributes.values()
+    				.stream()
+    				.map( x -> x.name )
+    				.collect( Collectors.toList() );
+				attributeNames.sort( null );
+				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
+			}
 		}
 		
 		builder.append( dotRule );
 		builder.append( "Subscribed Attributes:\n" );
-		if(this.subscribedAttributes.isEmpty())
+		attributes = getSubscribedAttributes();
+		if(attributes.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
 		}
 		else
 		{
-    		classNames.clear();
-    		classNames.addAll( this.subscribedAttributes.keySet() );
-    		classNames.sort(null);
-    		for(String objectClassName : classNames)
-    		{
-    			builder.append( "\t" + objectClassName + "\n" );
-    			attributeNames.clear();
-    			attributeNames.addAll( this.subscribedAttributes.get( objectClassName ) );
-    			attributeNames.sort(null);
-    			attributeNames.forEach( (x) -> builder.append( "\t\t" + x + "\n" ) );
-    		}
+			List<Types.ObjectClass> subAttrList = attributes.stream().collect( Collectors.toList() );
+			subAttrList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
+			for( Types.ObjectClass objectClass : subAttrList )
+			{
+				builder.append( "\t" + objectClass.name + "\n" );
+				List<String> attributeNames = objectClass.attributes.values()
+    				.stream()
+    				.map( x -> x.name )
+    				.collect( Collectors.toList() );
+				attributeNames.sort( null );
+				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
+			}
 		}
 		
 		builder.append( dotRule );
 		builder.append( "Published Interactions:\n" );
-		if(this.publishedInteractions.isEmpty())
+		Collection<Types.InteractionClass> interactions = getPublishedInteractions();
+		if(interactions.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
 		}
 		else
 		{
-    		classNames.clear();
-    		classNames.addAll( this.publishedInteractions );
-    		classNames.sort(null);
-    		for(String interactionClassName : classNames)
-    		{
-    			builder.append( "\t" + interactionClassName + "\n" );
-    		}
+			List<Types.InteractionClass> pubInteractionList = interactions.stream().collect( Collectors.toList() );
+			pubInteractionList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
+			pubInteractionList.forEach( ( x ) -> builder.append( "\t" + x.name + "\n" ) );
 		}
 		
 		builder.append( dotRule );
 		builder.append( "Subscribed Interactions:\n" );
-		if(this.subscribedInteractions.isEmpty())
+		interactions = getSubscribedInteractions();
+		if(interactions.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
 		}
 		else
 		{
-    		classNames.clear();
-    		classNames.addAll( this.subscribedInteractions );
-    		classNames.sort(null);
-    		for(String interactionClassName : classNames)
-    		{
-    			builder.append( "\t" + interactionClassName + "\n" );
-    		}
+			List<Types.InteractionClass> subInteractionList = interactions.stream().collect( Collectors.toList() );
+			subInteractionList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
+			subInteractionList.forEach( ( x ) -> builder.append( "\t" + x.name + "\n" ) );
 		}
 		
 		builder.append( dashRule );
@@ -390,13 +381,26 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Obtain the published *and* subscribed interactions
+	 * 
+	 * @return the published *and* subscribed interactions (not modifiable)
+	 */
+	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
+	{
+		return Collections.unmodifiableCollection( pubSubInteractions.values() );
+	}
+	
+	/**
 	 * Obtain the published interactions
 	 * 
 	 * @return the published interactions (not modifiable)
 	 */
-	public Collection<String> getPublishedInteractions()
+	public Collection<Types.InteractionClass> getPublishedInteractions()
 	{
-		return Collections.unmodifiableSet( publishedInteractions );
+		return pubSubInteractions.values()
+			.stream()
+			.filter( x -> x.publish )
+			.collect( Collectors.toList() );
 	}
 
 	/**
@@ -404,19 +408,35 @@ public class FederateConfiguration
 	 * 
 	 * @return the subscribed interactions (not modifiable)
 	 */
-	public Collection<String> getSubscribedInteractions()
+	public Collection<Types.InteractionClass> getSubscribedInteractions()
 	{
-		return Collections.unmodifiableSet( subscribedInteractions );
+		return pubSubInteractions.values()
+			.stream()
+			.filter( x -> x.subscribe )
+			.collect( Collectors.toList() );
 	}
 
+	/**
+	 * Obtain the published *and* subscribed attributes
+	 * 
+	 * @return the published *and* subscribed attributes (not modifiable)
+	 */
+	public Collection<Types.ObjectClass> getPublishedAndSubscribedAttributes()
+	{
+		return Collections.unmodifiableCollection( pubSubAttributes.values() );
+	}
+	
 	/**
 	 * Obtain the published attributes
 	 * 
 	 * @return the published attributes (not modifiable)
 	 */
-	public Map<String,Set<String>> getPublishedAttributes()
+	public Collection<Types.ObjectClass> getPublishedAttributes()
 	{
-		return Collections.unmodifiableMap( publishedAttributes );
+		return pubSubAttributes.values()
+			.stream()
+			.filter( x -> x.publish )
+			.collect( Collectors.toList() );
 	}
 
 	/**
@@ -424,9 +444,12 @@ public class FederateConfiguration
 	 * 
 	 * @return the subscribed attributes (not modifiable)
 	 */
-	public Map<String,Set<String>> getSubscribedAttributes()
+	public Collection<Types.ObjectClass> getSubscribedAttributes()
 	{
-		return Collections.unmodifiableMap( subscribedAttributes );
+		return pubSubAttributes.values()
+			.stream()
+			.filter( x -> x.subscribe )
+			.collect( Collectors.toList() );
 	}
 	
 	/**
@@ -669,8 +692,15 @@ public class FederateConfiguration
 	{
 		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
-			this.publishedAttributes.computeIfAbsent( objectClassName,
-			                                          x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeNames ) );
+			Types.ObjectClass objectClass = this.pubSubAttributes.computeIfAbsent( objectClassName, 
+			                                                                       x -> new Types.ObjectClass(objectClassName) );
+			objectClass.publish = true;
+			for(String attributeName : attributeNames)
+			{
+				Types.ObjectAttribute objAttr = objectClass.attributes.computeIfAbsent( attributeName,
+				                                                                              x -> new Types.ObjectAttribute( attributeName ) );
+				objAttr.publish = true;
+			}
 		}
 		return this;
 	}
@@ -687,7 +717,10 @@ public class FederateConfiguration
 	{
 		if( canWrite( publishedAttributes ) )
 		{
-			mergeSetMaps( publishedAttributes, this.publishedAttributes );
+			for( Entry<String,Collection<String>> foo : publishedAttributes.entrySet() )
+			{
+				addPublishedAttributes( foo.getKey(), foo.getValue() );
+			}
 		}
 		return this;
 	}
@@ -730,10 +763,18 @@ public class FederateConfiguration
 	{
 		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
 		{
-			this.subscribedAttributes.computeIfAbsent( objectClassName,
-			                                           x -> new HashSet<>() ).addAll( collectNonEmptyStrings( attributeNames ) );
+			Types.ObjectClass objectClass = this.pubSubAttributes.computeIfAbsent( objectClassName, 
+			                                                                       x -> new Types.ObjectClass(objectClassName) );
+			objectClass.subscribe = true;
+			for(String attributeName : attributeNames)
+			{
+				Types.ObjectAttribute objAttr = objectClass.attributes.computeIfAbsent( attributeName,
+				                                                                              x -> new Types.ObjectAttribute( attributeName ) );
+				objAttr.subscribe = true;
+			}
 		}
 		return this;
+		
 	}
 
 	/**
@@ -748,7 +789,10 @@ public class FederateConfiguration
 	{
 		if( canWrite( subscribedAttributes ) )
 		{
-			mergeSetMaps( subscribedAttributes, this.subscribedAttributes );
+			for( Entry<String,Collection<String>> foo : subscribedAttributes.entrySet() )
+			{
+				addSubscribedAttributes( foo.getKey(), foo.getValue() );
+			}
 		}
 		return this;
 	}
@@ -785,9 +829,15 @@ public class FederateConfiguration
 	{
 		if( canWrite( interactionIdentifiers ) )
 		{
-			this.publishedInteractions.addAll( collectNonEmptyStrings( interactionIdentifiers ) );
+			for(String interactionClassName : interactionIdentifiers )
+			{
+				Types.InteractionClass interactionClass = this.pubSubInteractions.computeIfAbsent( interactionClassName, 
+				                                                                                   x -> new Types.InteractionClass(interactionClassName) );
+				interactionClass.publish = true;
+			}
 		}
 		return this;
+		
 	}
 
 	/**
@@ -822,9 +872,14 @@ public class FederateConfiguration
 	{
 		if( canWrite( interactionIdentifiers ) )
 		{
-			this.subscribedInteractions.addAll( collectNonEmptyStrings( interactionIdentifiers ) );
+			for(String interactionClassName : interactionIdentifiers )
+			{
+				Types.InteractionClass interactionClass = this.pubSubInteractions.computeIfAbsent( interactionClassName, 
+				                                                                                   x -> new Types.InteractionClass(interactionClassName) );
+				interactionClass.subscribe = true;
+			}
 		}
-		return this;
+		return this;	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -875,27 +930,6 @@ public class FederateConfiguration
 	public Collection<URL> collectNonEmptyURLs( Collection<URL> values )
 	{
 		return values.stream().filter( ( url ) -> notNullOrEmpty( url ) ).collect( Collectors.toList() );
-	}
-
-	/**
-	 * Utility method to merge the content of a maps of sets into another map of sets
-	 * 
-	 * @param src the map containing the source data
-	 * @param dest the existing map to merge the source data into
-	 */
-	private void mergeSetMaps( Map<String,Collection<String>> src, Map<String,Set<String>> dest )
-	{
-		if( src == null || dest == null )
-			return;
-
-		// this is "clever"
-		// src.entrySet().forEach( (entry) -> dest.computeIfAbsent(entry.getKey(), x -> new HashSet<>()).addAll( entry.getValue() ) );
-
-		// this is far more readable, IMHO
-		for( Entry<String,Collection<String>> entry : src.entrySet() )
-		{
-			dest.computeIfAbsent( entry.getKey(), x -> new HashSet<>() ).addAll( entry.getValue() );
-		}
 	}
 
 	/**
