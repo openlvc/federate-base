@@ -127,7 +127,7 @@ public class FederationManager
 		{
 			String fomRootPath = "resources/foms/";
 			// modules
-			String[] moduleFoms = { fomRootPath + "FederationManager.xml", 
+			String[] moduleFoms = { fomRootPath + "FederationManager.xml",
 			                        fomRootPath + "SmartPingPong.xml" };
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			

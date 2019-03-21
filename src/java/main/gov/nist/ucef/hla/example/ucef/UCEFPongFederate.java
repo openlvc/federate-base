@@ -142,7 +142,8 @@ public class UCEFPongFederate extends UCEFFederateBase
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		if( rtiamb.isOfKind( hlaInteraction, PING_INTERACTION_NAME ) )
+		String interactionClassName = hlaInteraction.getInteractionClassName();
+		if( PING_INTERACTION_NAME.equals( interactionClassName ) )
 		{
 			// Ping interaction received
 			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
@@ -160,7 +161,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                   rtiamb.getInteractionClassName( hlaInteraction ) ) );
+			                                   interactionClassName) );
 		}
 	}
 
@@ -272,7 +273,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	private static FederateConfiguration makeConfig()
 	{
 		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
-		                                                          "PingPongFederate",     // type
+		                                                          "PongFederate",     // type
 		                                                          "PingPongFederation" ); // execution
 
 		// set up lists of interactions to be published and subscribed to

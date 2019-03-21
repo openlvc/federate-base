@@ -24,10 +24,18 @@
 package gov.nist.ucef.hla.base;
 
 import java.net.URL;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
 import hla.rti1516e.AttributeHandleValueMap;
+import hla.rti1516e.InteractionClassHandle;
+import hla.rti1516e.ObjectClassHandle;
+import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ResignAction;
 
 public abstract class FederateBase
@@ -46,11 +54,23 @@ public abstract class FederateBase
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
 	
+	private Map<ObjectClassHandle, Types.ObjectClass> objectClassByClassHandle;
+	private Map<ObjectInstanceHandle, Types.ObjectClass> objectClassByInstanceHandle;
+	private Map<ObjectInstanceHandle, HLAObject> hlaObjectByInstanceHandle;
+	private Map<InteractionClassHandle, Types.InteractionClass> interactionClassByHandle;
+	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	protected FederateBase()
 	{
+		this.rtiamb = new RTIAmbassadorWrapper();
+		this.fedamb = new FederateAmbassador( this );
+		
+		this.objectClassByClassHandle = new HashMap<>();
+		this.objectClassByInstanceHandle = new HashMap<>();
+		this.hlaObjectByInstanceHandle = new HashMap<>();
+		this.interactionClassByHandle = new HashMap<>();
 	}
 	
 	//----------------------------------------------------------
@@ -112,9 +132,6 @@ public abstract class FederateBase
 	 */
 	protected void federateSetup()
 	{
-		this.rtiamb = new RTIAmbassadorWrapper();
-		this.fedamb = new FederateAmbassador( this );
-
 		createAndJoinFederation();
 		enableTimePolicy();
 		
@@ -155,7 +172,115 @@ public abstract class FederateBase
 		beforeExit();
 
 		resignAndDestroyFederation();
-	}	
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////// INCOMING INTERACTION/REFLECTION HANDLING /////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	public void incomingObjectRegistration( ObjectInstanceHandle instanceHandle, ObjectClassHandle classHandle )
+	{
+		// just delegate to the default handler
+		Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
+		if( objectClass != null )
+		{
+			objectClassByInstanceHandle.put( instanceHandle, objectClass );
+			
+			HLAObject hlaObject = new HLAObject( objectClass.name, instanceHandle );
+			hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
+			
+			receiveObjectRegistration( hlaObject );
+		}
+		else
+		{
+			// TODO Log warning
+			System.out.println(String.format("Discovered unrecognized object instance %s", rtiamb.makeSummary( instanceHandle )));
+		}		
+	}
+
+	public void incomingAttributeReflection( ObjectInstanceHandle handle, Map<String,byte[]> attributes )
+	{
+		HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
+		if( hlaObject != null )
+		{
+			hlaObject.setState( attributes );
+			// just delegate to the default handler
+			receiveAttributeReflection( hlaObject );
+		}
+		else
+		{
+			throw new UCEFException("Attribute value reflection received for undiscovered object " +
+				"instance with handle '%s'", handle);
+		}
+	}
+
+	public void incomingAttributeReflection( ObjectInstanceHandle handle, Map<String,byte[]> attributes, double time )
+	{
+		HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
+		if( hlaObject != null )
+		{
+			hlaObject.setState( attributes );
+			// just delegate to the default handler
+			receiveAttributeReflection( hlaObject, time );
+		}
+		else
+		{
+			// TODO log error
+		}
+	}
+
+	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
+	{
+		HLAInteraction interaction = makeInteraction( handle, parameters );
+		if( interaction != null )
+		{
+			// just delegate to the default handler
+			receiveInteraction( interaction );
+		}
+		else
+		{
+			// TODO log error
+		}
+	}
+
+	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters, double time )
+	{
+		HLAInteraction interaction = makeInteraction( handle, parameters );
+		if( interaction != null )
+		{
+			// just delegate to the default handler
+			receiveInteraction( interaction, time );
+		}
+		else
+		{
+			// TODO log error
+		}
+	}
+
+	public void incomingObjectDeleted( ObjectInstanceHandle handle )
+	{
+		Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
+		HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
+//		logger.log( "Received object removed notification for HLAObject with id :" +
+//		             to_string(objectInstanceHash), LevelInfo );
+
+		if( objectClass != null && hlaObject != null)
+		{
+			// TODO logging
+//			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
+//			            " successsfully removed from the incoming map.", LevelInfo );
+			// HLAObject hlaObject = new HLAObject( objectClass.name, handle );
+			// just delegate to the default handler
+			receiveObjectDeleted( hlaObject );
+		}
+		else
+		{
+			// TODO logging
+//			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
+//			            " could not find for deletion.", LevelWarn );
+			throw new UCEFException( "Deletion notification received for undiscovered object " +
+									 "instance with handle '%s'", handle );
+		}
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
@@ -182,6 +307,21 @@ public abstract class FederateBase
 	protected HLAInteraction makeInteraction( String className, Map<String, byte[]> parameters)
 	{
 		return rtiamb.makeInteraction( className, parameters );
+	}
+	
+	/**
+	 * Create an interaction
+	 * 
+	 * @param className the name of the interaction class
+	 * @return the interaction
+	 */
+	protected HLAInteraction makeInteraction( InteractionClassHandle handle, Map<String, byte[]> parameters)
+	{
+		Types.InteractionClass interactionClass = interactionClassByHandle.get( handle );
+		if(interactionClass == null)
+			return null;
+
+		return makeInteraction( interactionClass.name, parameters );
 	}
 	
 	/**
@@ -230,7 +370,7 @@ public abstract class FederateBase
 	 */
 	protected HLAObject makeObjectInstance( String className )
 	{
-		return rtiamb.makeObjectInstance( className );
+		return makeObjectInstance( className, null );
 	}
 	
 	/**
@@ -241,13 +381,67 @@ public abstract class FederateBase
 	 * {@link #deleteObjectInstance(HLAObject, byte[])} for the symmetrical deletion methods.
 	 * 
 	 * @param className the name of the object class
-	 * @param initialValues the initial values for the object's attributes (may be an empty map or
+	 * @param attributes the initial values for the object's attributes (may be an empty map or
 	 *            null)
 	 * @return the object instance
 	 */
-	protected HLAObject makeObjectInstance( String className, Map<String, byte[]> initialValues)
+	protected HLAObject makeObjectInstance( ObjectClassHandle classHandle, Map<String, byte[]> attributes)
 	{
-		return rtiamb.makeObjectInstance( className, initialValues );
+		Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
+		if(objectClass == null)
+			return null;
+
+		return makeObjectInstance( objectClass.name, attributes );
+	}
+	
+	/**
+	 * Create an object instance with initial values for the attributes, also registering the
+	 * instance with the RTI.
+	 * 
+	 * Refer to the {@link #deleteObjectInstance(HLAObject)} and
+	 * {@link #deleteObjectInstance(HLAObject, byte[])} for the symmetrical deletion methods.
+	 * 
+	 * @param className the name of the object class
+	 * @param attributes the initial values for the object's attributes (may be an empty map or
+	 *            null)
+	 * @return the object instance
+	 */
+	protected HLAObject makeObjectInstance( String className, Map<String, byte[]> attributes)
+	{
+		return rtiamb.makeObjectInstance( className, attributes );
+	}
+	
+	/**
+	 * Create an object instance with initial values for the attributes.
+	 * 
+	 * Refer to the {@link #deleteObjectInstance(HLAObject)} and
+	 * {@link #deleteObjectInstance(HLAObject, byte[])} for the symmetrical deletion methods.
+	 * 
+	 * @param className the name of the object class
+	 * @param attributes the initial values for the object's attributes (may be an empty map or
+	 *            null)
+	 * @return the object instance
+	 */
+	protected HLAObject makeObjectInstance( ObjectInstanceHandle handle, Map<String, byte[]> attributes)
+	{
+		ObjectClassHandle classHandle = this.rtiamb.getKnownObjectClassHandle( handle );
+		Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
+		if(objectClass == null)
+			return null;
+		
+		return new HLAObject( objectClass.name, attributes, handle );
+	}
+	
+	/**
+	 * Register the instance with the RTI. If the instance is already registered, there is no net
+	 * effect (i.e., it will not get re-registered or become a new instance).
+	 * 
+	 * @param instance the object instance to be registered
+	 * @return the object instance
+	 */
+	protected HLAObject register( HLAObject instance )
+	{
+		return this.rtiamb.registerObjectInstance( instance );
 	}
 	
 	/**
@@ -510,11 +704,43 @@ public abstract class FederateBase
 	 */
 	protected void publishAndSubscribe()
 	{
-		rtiamb.publishObjectClassAttributes( configuration.getPublishedAttributes() );
-		rtiamb.publishInteractionClasses( configuration.getPublishedInteractions() );
+		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedAttributes();
+		for(ObjectClass objectClass : objectClasses)
+		{
+			if(objectClass.publish)
+			{
+				Set<String> attributes = objectClass.attributes.entrySet()
+					.stream()
+					.filter( x -> x.getValue().publish )
+					.map( x -> x.getValue().name )
+					.collect(Collectors.toSet());
+				rtiamb.publishObjectClassAttributes( objectClass.name, attributes );
+			}
+			if(objectClass.subscribe)
+			{
+				Set<String> attributes = objectClass.attributes.entrySet()
+					.stream()
+					.filter( x -> x.getValue().subscribe )
+					.map( x -> x.getValue().name )
+					.collect(Collectors.toSet());
+				rtiamb.subscribeObjectClassAttributes( objectClass.name, attributes );
+			}
+			storeObjectClassData( objectClass );
+		}
 		
-		rtiamb.subscribeObjectClassAttributes( configuration.getSubscribedAttributes() );
-		rtiamb.subscribeInteractionClasses( configuration.getSubscribedInteractions() );
+		Collection<InteractionClass> interactionClasses = configuration.getPublishedAndSubscribedInteractions();
+		for(InteractionClass interactionClass : interactionClasses)
+		{
+			if(interactionClass.publish)
+			{
+				rtiamb.publishInteractionClass( interactionClass.name);
+			}
+			if(interactionClass.subscribe)
+			{
+				rtiamb.subscribeInteractionClass( interactionClass.name);
+			}
+			storeInteractionClassData( interactionClass );
+		}
 	}
 
 	/**
@@ -559,45 +785,17 @@ public abstract class FederateBase
 		rtiamb.subscribeObjectClassAttributes( className, attributes );
 	}
 	
-	/**
-	 * 
-	 * @param hlaObject
-	 */
-	public void incomingObjectRegistration( HLAObject hlaObject )
+	private void storeObjectClassData( Types.ObjectClass objectClass )
 	{
-		// just delegate to the default handler
-		receiveObjectRegistration( hlaObject );
+		ObjectClassHandle classHandle = rtiamb.getObjectClassHandle( objectClass.name );
+		objectClassByClassHandle.put( classHandle, objectClass );
 	}
 
-	public void incomingAttributeReflection( HLAObject hlaObject )
+	private void storeInteractionClassData( Types.InteractionClass interactionClass )
 	{
-		// just delegate to the default handler
-		receiveAttributeReflection( hlaObject );
-	}
-
-	public void incomingAttributeReflection( HLAObject hlaObject, double time )
-	{
-		// just delegate to the default handler
-		receiveAttributeReflection( hlaObject, time );
-	}
-
-	public void incomingInteraction( HLAInteraction hlaInteraction )
-	{
-		// just delegate to the default handler
-		receiveInteraction( hlaInteraction );
-	}
-
-	public void incomingInteraction( HLAInteraction hlaInteraction, double time )
-	{
-		// just delegate to the default handler
-		receiveInteraction( hlaInteraction, time );
-	}
-
-	public void incomingObjectDeleted( HLAObject hlaObject )
-	{
-		// just delegate to the default handler
-		receiveObjectDeleted( hlaObject );
-	}
+		InteractionClassHandle interactionHandle = rtiamb.getInteractionClassHandle( interactionClass.name );
+		interactionClassByHandle.put( interactionHandle, interactionClass );
+	}	
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS

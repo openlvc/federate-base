@@ -106,8 +106,8 @@ public class NoOpPongFederate extends NoOpFederate
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
-		if( PING_INTERACTION_ID.equals( interactionName ) )
+		String interactionClassName = hlaInteraction.getInteractionClassName();
+		if( PING_INTERACTION_ID.equals( interactionClassName ) )
 		{
 			// Ping interaction received
 			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
@@ -125,7 +125,7 @@ public class NoOpPongFederate extends NoOpFederate
 		{
 			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
 			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                    interactionName ) );
+			                                    interactionClassName ) );
 		}
 	}
 

@@ -47,13 +47,10 @@ public class Ping extends HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param count the count
 	 */
-	public Ping( RTIAmbassadorWrapper rtiamb, int count)
+	public Ping()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ), null );
-
-		count( count );
+		super( INTERACTION_NAME, null );
 	}
 
 	/**
@@ -77,9 +74,11 @@ public class Ping extends HLAInteraction
 		return isPresent( PARAM_KEY_COUNT );
 	}
 	
-	public void count( int count )
+	public Ping count( int count )
 	{
 		setValue( PARAM_KEY_COUNT, count );
+		// return instance for chaining
+		return this;
 	}
 
 	public int count()

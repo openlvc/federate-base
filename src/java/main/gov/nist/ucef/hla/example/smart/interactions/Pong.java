@@ -47,13 +47,10 @@ public class Pong extends HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
-	 * @param letter the letter
 	 */
-	public Pong( RTIAmbassadorWrapper rtiamb, char letter )
+	public Pong()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ), null );
-
-		letter( letter );
+		super( INTERACTION_NAME, null );
 	}
 
 	/**
@@ -77,9 +74,11 @@ public class Pong extends HLAInteraction
 		return isPresent( PARAM_KEY_LETTER );
 	}
 	
-	public void letter( char letter )
+	public Pong letter( char letter )
 	{
 		setValue( PARAM_KEY_LETTER, letter );
+		// return instance for chaining
+		return this;
 	}
 
 	public char letter()

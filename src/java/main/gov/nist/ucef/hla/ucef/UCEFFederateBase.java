@@ -23,8 +23,11 @@
  */
 package gov.nist.ucef.hla.ucef;
 
+import java.util.Map;
+
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
+import hla.rti1516e.InteractionClassHandle;
 
 /**
  * An abstract implementation for a UCEF Federate which is aware of certain
@@ -186,62 +189,84 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * Override to provide handling for specific UCEF simulation control interaction types
 	 */
 	@Override
-	public void incomingInteraction( HLAInteraction interaction, double time )
+	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters, double time )
 	{
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		HLAInteraction interaction = makeInteraction( handle, parameters );
+		
+		if( interaction != null )
 		{
-			simShouldEnd = true;
-			receiveSimEnd( new SimEnd( interaction ), time );
-		}
-		else if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-		{
-			simShouldPause = true;
-			receiveSimPause( new SimPause( interaction ), time );
-		}
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-		{
-			simShouldPause = false;
-			receiveSimResume( new SimResume( interaction ), time );
-		}
-		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
-		{
-			receiveFederateJoin( new FederateJoin( interaction ), time );
+    		String interactionClassName = interaction.getInteractionClassName();
+    		
+    		if( SimEnd.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldEnd = true;
+    			receiveSimEnd( new SimEnd( interaction ), time );
+    		}
+    		else if( SimPause.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldPause = true;
+    			receiveSimPause( new SimPause( interaction ), time );
+    		}
+    		else if( SimResume.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldPause = false;
+    			receiveSimResume( new SimResume( interaction ), time );
+    		}
+    		else if( FederateJoin.interactionName().equals( interactionClassName ) )
+    		{
+    			receiveFederateJoin( new FederateJoin( interaction ), time );
+    		}
+    		else
+    		{
+    			// anything else gets generic interaction receipt handling
+    			receiveInteraction( interaction, time );
+    		}
 		}
 		else
 		{
-			// anything else gets generic interaction receipt handling
-			receiveInteraction( interaction, time );
+			// TODO Log error
 		}
 	}
 	
 	@Override
-	public void incomingInteraction( HLAInteraction interaction )
+	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
 	{
 		// delegate to handlers for UCEF Simulation control interactions as required
-		if( rtiamb.isOfKind( interaction, SimEnd.interactionName() ) )
+		HLAInteraction interaction = makeInteraction( handle, parameters );
+		
+		if( interaction != null )
 		{
-			simShouldEnd = true;
-			receiveSimEnd( new SimEnd( interaction ) );
-		}
-		else if( rtiamb.isOfKind( interaction, SimPause.interactionName() ) )
-		{
-			simShouldPause = true;
-			receiveSimPause( new SimPause( interaction ) );
-		}
-		else if( rtiamb.isOfKind( interaction, SimResume.interactionName() ) )
-		{
-			simShouldPause = false;
-			receiveSimResume( new SimResume( interaction ) );
-		}
-		else if( rtiamb.isOfKind( interaction, FederateJoin.interactionName() ) )
-		{
-			receiveFederateJoin( new FederateJoin( interaction ) );
+    		String interactionClassName = interaction.getInteractionClassName();
+    		
+    		if( SimEnd.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldEnd = true;
+    			receiveSimEnd( new SimEnd( interaction ) );
+    		}
+    		else if( SimPause.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldPause = true;
+    			receiveSimPause( new SimPause( interaction ) );
+    		}
+    		else if( SimResume.interactionName().equals( interactionClassName ) )
+    		{
+    			simShouldPause = false;
+    			receiveSimResume( new SimResume( interaction ) );
+    		}
+    		else if( FederateJoin.interactionName().equals( interactionClassName ) )
+    		{
+    			receiveFederateJoin( new FederateJoin( interaction ) );
+    		}
+    		else
+    		{
+    			// anything else gets generic interaction receipt handling
+    			receiveInteraction( interaction );
+    		}
 		}
 		else
 		{
-			// anything else gets generic interaction receipt handling
-			receiveInteraction( interaction );
+			// TODO Log error
 		}
 	}
 	

@@ -46,11 +46,12 @@ public class HLAObject
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private ObjectInstanceHandle objectInstanceHandle;
-	private Map<String, byte[]> attributes;
+	protected final String objectClassName;
+	protected Map<String, byte[]> attributes;
+	protected ObjectInstanceHandle instanceHandle;
 	
 	// used for encoding/decoding byte array representations of attributes
-	private EncoderFactory encoder;
+	protected EncoderFactory encoder;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -58,31 +59,61 @@ public class HLAObject
 	/**
 	 * Construct a new object instance with no attribute values
 	 * 
-	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjetInstance() method should be
-	 * used to create a new {@link HLAObject}
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjectInstance() family of methods
+	 * should be used to create a new {@link HLAObject}
 	 * 
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 */
-	protected HLAObject( ObjectInstanceHandle objectInstanceHandle )
+	protected HLAObject( String objectClassName )
 	{
-		this( objectInstanceHandle, null );
+		this( objectClassName, null, null );
+	}
+	
+	/**
+	 * Construct a new object instance with no attribute values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjectInstance() family of methods
+	 * should be used to create a new {@link HLAObject}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 */
+	protected HLAObject( String objectClassName, ObjectInstanceHandle handle )
+	{
+		this( objectClassName, null, handle );
 	}
 
 	/**
 	 * Construct a new object instance with attribute values
 	 * 
-	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjetInstance() method should be
-	 * used to create a new {@link HLAObject}
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjectInstance() family of methods
+	 * should be used to create a new {@link HLAObject}
 	 * 
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 * @param initialValues the initial attribute values for the interaction (may be empty or
 	 *            null)
 	 */
-	protected HLAObject( ObjectInstanceHandle objectInstanceHandle,
-	                     Map<String,byte[]> initialValues )
+	protected HLAObject( String objectClassName, Map<String,byte[]> initialValues )
 	{
-		this.objectInstanceHandle = objectInstanceHandle;
+		this( objectClassName, initialValues, null );
+	}
+	
+	/**
+	 * Construct a new object instance with attribute values
+	 * 
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjectInstance() family of methods
+	 * should be used to create a new {@link HLAObject}
+	 * 
+	 * @param interactionClassHandle the class handle to which this instance corresponds
+	 * @param initialValues the initial attribute values for the interaction (may be empty or
+	 *            null)
+	 */
+	protected HLAObject( String objectClassName,
+	                     Map<String,byte[]> initialValues, ObjectInstanceHandle handle )
+	{
+		this.objectClassName = objectClassName;
 		this.attributes = initialValues == null ? new HashMap<>() : initialValues;
+		
+		this.instanceHandle = handle;
 
 		this.encoder = HLACodecUtils.getEncoder();
 	}
@@ -92,16 +123,18 @@ public class HLAObject
 	 * 
 	 * NOTE: this will result in an instance which is "linked" to the original instance.
 	 * 
-	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
-	 * to create a new {@link HLAObject}
+	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeObjectInstance() family of methods
+	 * should be used to create a new {@link HLAObject}
 	 * 
 	 * @param objectInstance the object instance to use as the base
 	 */
 	protected HLAObject( HLAObject objectInstance )
 	{
-		this.objectInstanceHandle = objectInstance.objectInstanceHandle;
+		this.objectClassName = objectInstance.objectClassName;
 		this.attributes = objectInstance.attributes;
 		
+		this.instanceHandle = objectInstance.instanceHandle;
+
 		this.encoder = objectInstance.encoder;
 	}
 	
@@ -115,7 +148,7 @@ public class HLAObject
 	public int hashCode()
 	{
 		// delegate to the cached object instance handle
-		return this.objectInstanceHandle.hashCode();
+		return this.objectClassName.hashCode();
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -125,9 +158,19 @@ public class HLAObject
 	 * Obtain the underlying HLA handle associated with this instance
 	 * @return the underlying HLA handle associated with this instance
 	 */
-	protected ObjectInstanceHandle getInstanceHandle()
+	public String getObjectClassName()
 	{
-		return this.objectInstanceHandle;
+		return this.objectClassName;
+	}
+	
+	/**
+	 * Returns the unique instance handle of this HLA object.
+	 *
+	 * @return the unique instance handle of this HLA object.
+	 */
+	public ObjectInstanceHandle getObjectInstanceHandle()
+	{
+		return this.instanceHandle;
 	}
 	
 	/**

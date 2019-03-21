@@ -47,9 +47,9 @@ public class SimPause extends HLAInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimPause( RTIAmbassadorWrapper rtiamb )
+	public SimPause()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+		super( INTERACTION_NAME );
 	}
 	
 	/**

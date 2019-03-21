@@ -86,14 +86,14 @@ public class SmartPingFederate extends _SmartPingFederate
 	public void beforeFirstStep()
 	{
 		this.count =  0;
-		this.player = new Player( rtiamb, "PingPlayer" );
+		this.player = register( new Player() );
 	}
 
 	@Override
 	public boolean step( double currentTime )
 	{
 		// here we end out our interaction and attribute update
-		sendInteraction( new Ping( rtiamb, this.count ) );
+		sendInteraction( new Ping().count(  this.count ) );
 		updateAttributeValues( this.player );
 		// update the values
 		this.count++;
@@ -115,7 +115,7 @@ public class SmartPingFederate extends _SmartPingFederate
 	protected void receivePongInteraction( Pong pong )
 	{
 		System.out.println( String.format( "Received Pong interaction - letter is '%s'.",
-		                                   pong.letter() ) );
+		                                   pong.isLetterPresent() ? pong.letter() : "UNDEFINED" ) );
 	}
 
 	/**
@@ -127,7 +127,7 @@ public class SmartPingFederate extends _SmartPingFederate
 	protected void receivePlayerUpdate( Player player )
 	{
 		System.out.println( String.format( "Received Player update - name is %s",
-		                                   player.name() ) );
+		                                   player.isNamePresent() ? player.name() : "UNDEFINED" ) );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

@@ -62,6 +62,47 @@ public abstract class _SmartPingFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	@Override
+	public void receiveInteraction( HLAInteraction hlaInteraction )
+	{
+		String interactionClassName = hlaInteraction.getInteractionClassName(); 
+		if( Pong.interactionName().equals( interactionClassName ) )
+		{
+			receivePongInteraction( new Pong( hlaInteraction ) );
+		}
+		else
+		{
+			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
+			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
+			                                   interactionClassName ) );
+		}
+	}
+	
+	@Override
+	public void receiveAttributeReflection( HLAObject hlaObject ) 
+	{ 
+		String objectClassName = hlaObject.getObjectClassName(); 
+		if( Player.objectClassName().equals( objectClassName ) )
+		{
+			receivePlayerUpdate( new Player( hlaObject ) );
+		}
+		else
+		{
+			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
+			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
+			                                   objectClassName ) );
+		}
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Internal Utility Methods /////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	public Player register( Player player ) { return (Player)super.register( player ); }
+
 	/**
 	 * Handle receipt of a {@link Pong}
 	 * 
@@ -76,39 +117,6 @@ public abstract class _SmartPingFederate extends NoOpFederate
 	 */
 	protected abstract void receivePlayerUpdate( Player player );
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction )
-	{
-		if( rtiamb.isOfKind( hlaInteraction, Pong.interactionName() ) )
-		{
-			receivePongInteraction( new Pong( hlaInteraction ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                    rtiamb.getInteractionClassName( hlaInteraction ) ) );
-		}
-	}
-	
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject ) 
-	{ 
-		if( rtiamb.isOfKind( hlaObject, Player.objectClassName() ) )
-		{
-			receivePlayerUpdate( new Player( hlaObject ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
-			                                   rtiamb.getObjectClassName( hlaObject ) ) );
-		}
-	}
-	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

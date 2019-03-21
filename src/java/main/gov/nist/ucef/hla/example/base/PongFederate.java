@@ -157,7 +157,7 @@ public class PongFederate extends FederateBase
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
-		String interactionName = rtiamb.getInteractionClassName( hlaInteraction );
+		String interactionName = hlaInteraction.getInteractionClassName();
 		if( PING_INTERACTION_ID.equals( interactionName ) )
 		{
 			// Ping interaction received

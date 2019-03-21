@@ -356,7 +356,7 @@ public class FedManFederate extends NoOpFederate
 	 */
 	private void sendSimPause()
 	{
-		sendInteraction( new SimPause( rtiamb ) );
+		sendInteraction( new SimPause() );
 	}
 	
 	/**
@@ -365,7 +365,7 @@ public class FedManFederate extends NoOpFederate
 	 */
 	private void sendSimResume()
 	{
-		sendInteraction( new SimResume( rtiamb ) );
+		sendInteraction( new SimResume() );
 	}
 	
 	/**
@@ -374,7 +374,7 @@ public class FedManFederate extends NoOpFederate
 	 */
 	private void sendSimEnd()
 	{
-		sendInteraction( new SimEnd( rtiamb ) );
+		sendInteraction( new SimEnd() );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

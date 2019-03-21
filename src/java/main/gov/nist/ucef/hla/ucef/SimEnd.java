@@ -47,9 +47,9 @@ public class SimEnd extends HLAInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimEnd( RTIAmbassadorWrapper rtiamb )
+	public SimEnd()
 	{
-		super( rtiamb.getInteractionClassHandle( INTERACTION_NAME ) );
+		super( INTERACTION_NAME );
 	}
 
 	/**
