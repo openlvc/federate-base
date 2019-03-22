@@ -29,7 +29,7 @@ import gov.nist.ucef.hla.base.HLAObject;
  * A very simple class to hold the salient details of federates which have joined the federation
  * for the purposes of tracking whether simulation start requirements have been met
  */
-public class JoinedFederateDetails
+public class FederateDetails
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
@@ -43,7 +43,7 @@ public class JoinedFederateDetails
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	JoinedFederateDetails(HLAObject instance)
+	FederateDetails(HLAObject instance)
 	{
 		this.instance = instance;
 	}

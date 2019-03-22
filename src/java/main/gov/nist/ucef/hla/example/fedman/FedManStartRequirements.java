@@ -55,7 +55,7 @@ public class FedManStartRequirements
 	// a map of federate types to minimum counts
 	private Map<String, Integer> startRequirements;
 	// used to track the types of federates which have joined the federation
-	private Map<String, Set<JoinedFederateDetails>> joinedFederatesByType;
+	private Map<String, Set<FederateDetails>> joinedFederatesByType;
 	// keeps track of the total number of federates required to start (regardless of type)
 	private int totalFederatesRequired;
 	
@@ -113,7 +113,7 @@ public class FedManStartRequirements
 	 * Update when a federate joins 
 	 * @param joinedFederate the salient details of the federate which joined
 	 */
-	public void federateJoined( JoinedFederateDetails joinedFederate )
+	public void federateJoined( FederateDetails joinedFederate )
 	{
 		String federateType = joinedFederate.getFederateType();
 		
@@ -148,7 +148,7 @@ public class FedManStartRequirements
 	 * Update when a federate joins 
 	 * @param joinedFederate the salient details of the federate which joined
 	 */
-	public void federateLeft( JoinedFederateDetails joinedFederate )
+	public void federateDeparted( FederateDetails joinedFederate )
 	{
 		String federateType = joinedFederate.getFederateType();
 		
@@ -192,7 +192,7 @@ public class FedManStartRequirements
     			String federateType = x.getKey();
     			int minCount = x.getValue();
     			
-    			Set<JoinedFederateDetails> joined = joinedFederatesByType.get( federateType );
+    			Set<FederateDetails> joined = joinedFederatesByType.get( federateType );
     			if(joined == null || joined.size() < minCount )
     			{
     				return false;

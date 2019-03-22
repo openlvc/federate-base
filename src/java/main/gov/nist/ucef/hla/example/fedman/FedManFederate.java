@@ -345,7 +345,7 @@ public class FedManFederate extends NoOpFederate
     		String objectClassName = hlaObject.getObjectClassName();
     		if( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME.equals( objectClassName ) )
     		{
-        		JoinedFederateDetails joinedFederate = new JoinedFederateDetails( hlaObject );
+        		FederateDetails joinedFederate = new FederateDetails( hlaObject );
         		String federateType = joinedFederate.getFederateType();
         		if( FedManConstants.FEDMAN_FEDERATE_TYPE.equals( federateType ) )
         		{
@@ -365,8 +365,8 @@ public class FedManFederate extends NoOpFederate
     		String objectClassName = hlaObject.getObjectClassName();
     		if( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME.equals( objectClassName ) )
     		{
-        		JoinedFederateDetails joinedFederate = new JoinedFederateDetails( hlaObject );
-        		startRequirements.federateLeft( joinedFederate );
+        		FederateDetails departedFederate = new FederateDetails( hlaObject );
+        		startRequirements.federateDeparted( departedFederate );
     		}
 		}
 	}
