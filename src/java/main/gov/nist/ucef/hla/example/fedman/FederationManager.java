@@ -108,7 +108,10 @@ public class FederationManager
 		FederateConfiguration config = new FederateConfiguration( FedManConstants.FEDMAN_FEDERATE_NAME, 
 		                                                          FedManConstants.FEDMAN_FEDERATE_TYPE,
 		                                                          "ManagedFederation");
-		
+
+		// a federation manager is allowed to create a required federation
+		config.setCanCreateFederation( true );
+
 		// subscribe to reflections described in MIM to detected joining federates 
 		config.addSubscribedAttributes( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME, FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES );
 		

@@ -86,7 +86,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( federateType, config.getFederateType() );
 		
 		assertEquals(5, config.getMaxReconnectAttempts());
-		assertEquals(5000, config.getReconnectWaitTime());
+		assertEquals(5L, config.getReconnectRetryInterval());
 		assertEquals(false, config.isLateJoiner());
 		assertEquals(true, config.isTimeStepped());
 		assertEquals(false, config.callbacksAreEvoked());
@@ -158,7 +158,7 @@ public class FederateConfigurationTest extends TestCase
 		Collection<String> expectedSubscribedInteractions = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"X", interactionIdBase+"Y", interactionIdBase+"Z"} ));
 
 		int expectedMaxReconnectAttempts = 123;
-		int expectedReconnectWaitTime = 54321;
+		int expectedReconnectRetryInterval = 54321;
 		double expectedStepSize = 1.234;
 		double expectedLookAhead = 0.1234;
 		boolean expectedIsTimeStepped = true;
@@ -173,7 +173,7 @@ public class FederateConfigurationTest extends TestCase
 			  .addPublishedInteractions( expectedPublishedInteractions )
 			  .addSubscribedInteractions( expectedSubscribedInteractions)
 			  .setMaxReconnectAttempts( expectedMaxReconnectAttempts )
-			  .setReconnectWaitTime( expectedReconnectWaitTime )
+			  .setReconnectRetryInterval( expectedReconnectRetryInterval )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
 			  .setLateJoiner( expectedIsLateJoiner )
@@ -188,7 +188,7 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( federateType, config.getFederateType() );
 		
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts() );
-		assertEquals( expectedReconnectWaitTime, config.getReconnectWaitTime() );
+		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval() );
 		assertEquals( expectedIsLateJoiner, config.isLateJoiner() );
 		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked() );
 		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
@@ -237,18 +237,18 @@ public class FederateConfigurationTest extends TestCase
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		int expectedReconnectWaitTime = 54321;
+		int expectedReconnectRetryInterval = 54321;
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedReconnectWaitTime != config.getReconnectWaitTime() );
+		assertTrue( expectedReconnectRetryInterval != config.getReconnectRetryInterval() );
 		// try changing the value
-		config.setReconnectWaitTime( expectedReconnectWaitTime );
-		assertEquals( expectedReconnectWaitTime, config.getReconnectWaitTime());
+		config.setReconnectRetryInterval( expectedReconnectRetryInterval );
+		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval());
 		// freeze the config and try to change the value - should not change
 		config.freeze();
-		config.setMaxReconnectAttempts( expectedReconnectWaitTime + 1 );
-		assertEquals( expectedReconnectWaitTime, config.getReconnectWaitTime());
+		config.setMaxReconnectAttempts( expectedReconnectRetryInterval + 1 );
+		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval());
 	}
 	
 	/**
