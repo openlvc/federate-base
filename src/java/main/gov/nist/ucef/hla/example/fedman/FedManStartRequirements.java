@@ -58,6 +58,8 @@ public class FedManStartRequirements
 	private Map<String, Set<JoinedFederateDetails>> joinedFederatesByType;
 	// keeps track of the total number of federates required to start (regardless of type)
 	private int totalFederatesRequired;
+	
+	private final Object mutex_lock = new Object();
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -100,7 +102,7 @@ public class FedManStartRequirements
 	public int joinedCount()
 	{
 		int result = 0;
-		synchronized( joinedFederatesByType )
+		synchronized( mutex_lock )
 		{
 			result = joinedFederatesByType.values().parallelStream().mapToInt( i -> i.size() ).sum();
 		}
@@ -124,7 +126,7 @@ public class FedManStartRequirements
 		{
 			if( federateType.startsWith( requiredType ) )
 			{
-				synchronized( joinedFederatesByType )
+				synchronized( mutex_lock )
 				{
 					joinedFederatesByType.computeIfAbsent( requiredType,
 					                                       x -> new HashSet<>() ).add( joinedFederate );
@@ -134,10 +136,44 @@ public class FedManStartRequirements
 		*/
 		if( startRequirements.containsKey( federateType ) )
 		{
-			synchronized( joinedFederatesByType )
+			synchronized( mutex_lock )
 			{
 				joinedFederatesByType.computeIfAbsent( federateType,
 				                                       x -> new HashSet<>() ).add( joinedFederate );
+			}
+		}
+	}
+	
+	/**
+	 * Update when a federate joins 
+	 * @param joinedFederate the salient details of the federate which joined
+	 */
+	public void federateLeft( JoinedFederateDetails joinedFederate )
+	{
+		String federateType = joinedFederate.getFederateType();
+		
+		// WORKAROUND for the fact that the federate type is currently not correctly
+		//            propagated (and instead is actually the federate name)
+		//            see: https://github.com/openlvc/portico/issues/280
+		//                 https://github.com/openlvc/portico/pull/281
+		/*
+		for( String requiredType : startRequirements.keySet() )
+		{
+			if( federateType.startsWith( requiredType ) )
+			{
+				synchronized( joinedFederatesByType )
+				{
+					joinedFederatesByType.computeIfAbsent( requiredType,
+					                                       x -> new HashSet<>() ).add( joinedFederate );
+				}
+			}
+		}
+		 */
+		if( startRequirements.containsKey( federateType ) )
+		{
+			synchronized( joinedFederatesByType )
+			{
+				joinedFederatesByType.remove( federateType );
 			}
 		}
 	}
@@ -149,7 +185,7 @@ public class FedManStartRequirements
 	 */
 	public boolean canStart()
 	{
-		synchronized( joinedFederatesByType )
+		synchronized( mutex_lock )
 		{
     		for( Entry<String,Integer> x: startRequirements.entrySet() )
     		{
