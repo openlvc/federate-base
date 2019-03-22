@@ -21,22 +21,22 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.interactions;
+package gov.nist.ucef.hla.example.challenger.interactions;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class Ping extends HLAInteraction
+public class ResponseInteraction extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition
-	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
-	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Ping";
+	private static final String INTERACTION_NAME = "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.Response";
 	
-	// interaction parameters and types
-	private static final String PARAM_KEY_COUNT = "count";
+	// interaction parameters
+	private static final String PARAM_KEY_SUBSTRING = "substring";
+	private static final String PARAM_KEY_CHALLENGEID = "challengeId";
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -47,16 +47,17 @@ public class Ping extends HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param count the count
 	 */
-	public Ping()
+	public ResponseInteraction()
 	{
-		super( INTERACTION_NAME, null );
+		super( INTERACTION_NAME );
 	}
 
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public Ping( HLAInteraction interaction )
+	public ResponseInteraction( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
@@ -69,21 +70,36 @@ public class Ping extends HLAInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public boolean isCountPresent()
+	public void isSubstringPresent()
 	{
-		return isPresent( PARAM_KEY_COUNT );
+		isPresent( PARAM_KEY_SUBSTRING );
 	}
 	
-	public Ping count( int count )
+	public ResponseInteraction substring( String substring )
 	{
-		setValue( PARAM_KEY_COUNT, count );
-		// return instance for chaining
+		setValue( PARAM_KEY_SUBSTRING, substring );
 		return this;
 	}
-
-	public int count()
+	
+	public String substring()
 	{
-		return getAsInt( PARAM_KEY_COUNT );
+		return getAsString( PARAM_KEY_SUBSTRING );
+	}
+
+	public boolean isChallengeIdPresent()
+	{
+		return isPresent( PARAM_KEY_CHALLENGEID );
+	}
+	
+	public ResponseInteraction challengeId( String challengeId )
+	{
+		setValue( PARAM_KEY_CHALLENGEID, challengeId );
+		return this;
+	}
+	
+	public String challengeId()
+	{
+		return getAsString( PARAM_KEY_CHALLENGEID );
 	}
 
 	//----------------------------------------------------------

@@ -21,12 +21,12 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.helpers;
+package gov.nist.ucef.hla.example.challenger.helpers;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.example.smart.interactions.Ping;
-import gov.nist.ucef.hla.example.smart.reflections.Player;
+import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
+import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
 
 /**
@@ -41,7 +41,7 @@ import gov.nist.ucef.hla.ucef.NoOpFederate;
  * 
  * Example federate for testing
  */
-public abstract class _SmartPongFederate extends NoOpFederate
+public abstract class _ResponseFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -54,7 +54,7 @@ public abstract class _SmartPongFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public _SmartPongFederate()
+	public _ResponseFederate()
 	{
 		super();
 	}
@@ -62,6 +62,22 @@ public abstract class _SmartPongFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////// Interaction/Reflection Handler Callbacks ////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Handle receipt of a {@link ChallengeInteraction}
+	 * 
+	 * @param interaction the interaction to handle
+	 */
+	protected abstract void receiveChallengeInteraction( ChallengeInteraction interaction );
+
+	/**
+	 * Handle receipt of a {@link ChallengeObject}
+	 * 
+	 * @param obj the object to handle
+	 */
+	protected abstract void receiveChallengeObject( ChallengeObject obj );
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
@@ -70,52 +86,21 @@ public abstract class _SmartPongFederate extends NoOpFederate
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionClassName = hlaInteraction.getInteractionClassName();
-		if( Ping.interactionClassName().equals( interactionClassName ) )
+		if( ChallengeInteraction.interactionClassName().equals( interactionClassName ) )
 		{
-			receivePingInteraction( new Ping( hlaInteraction ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                   interactionClassName ) );
+			receiveChallengeInteraction( new ChallengeInteraction( hlaInteraction ) );
 		}
 	}
 
 	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject ) 
-	{ 
+	public void receiveAttributeReflection( HLAObject hlaObject )
+	{
 		String objectClassName = hlaObject.getObjectClassName();
-		if( Player.objectClassName().equals( objectClassName ) )
+		if( ChallengeObject.objectClassName().equals( objectClassName ) )
 		{
-			receivePlayerUpdate( new Player( hlaObject ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
-			                                   objectClassName ) );
+			receiveChallengeObject( new ChallengeObject( hlaObject ) );
 		}
 	}
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////// Internal Utility Methods /////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	protected Player register( Player player ) { return (Player)super.register( player ); }
-
-	/**
-	 * Handle receipt of a {@link Ping}
-	 * 
-	 * @param ping the interaction to handle
-	 */
-	protected abstract void receivePingInteraction( Ping ping );
-
-	/**
-	 * Handle receipt of a {@link Player}
-	 * 
-	 * @param player the object to handle
-	 */
-	protected abstract void receivePlayerUpdate( Player player );
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS

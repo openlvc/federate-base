@@ -94,7 +94,7 @@ public class Pong extends HLAInteraction
 	 * 
 	 * @return the HLA interaction name identifying this interaction
 	 */
-	public static String interactionName()
+	public static String interactionClassName()
 	{
 		return INTERACTION_NAME;
 	}

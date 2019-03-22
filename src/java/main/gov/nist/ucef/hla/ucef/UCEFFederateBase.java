@@ -53,6 +53,8 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
+	private final Object mutex_lock = new Object();
+
 	// flag which becomes true after a SimEnd interaction has
 	// been received (begins as false)
 	protected volatile boolean simShouldEnd;
@@ -191,82 +193,88 @@ public abstract class UCEFFederateBase extends FederateBase
 	@Override
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters, double time )
 	{
-		// delegate to handlers for UCEF Simulation control interactions as required
-		HLAInteraction interaction = makeInteraction( handle, parameters );
-		
-		if( interaction != null )
+		synchronized( mutex_lock )
 		{
-    		String interactionClassName = interaction.getInteractionClassName();
+    		// delegate to handlers for UCEF Simulation control interactions as required
+    		HLAInteraction interaction = makeInteraction( handle, parameters );
     		
-    		if( SimEnd.interactionName().equals( interactionClassName ) )
+    		if( interaction != null )
     		{
-    			simShouldEnd = true;
-    			receiveSimEnd( new SimEnd( interaction ), time );
-    		}
-    		else if( SimPause.interactionName().equals( interactionClassName ) )
-    		{
-    			simShouldPause = true;
-    			receiveSimPause( new SimPause( interaction ), time );
-    		}
-    		else if( SimResume.interactionName().equals( interactionClassName ) )
-    		{
-    			simShouldPause = false;
-    			receiveSimResume( new SimResume( interaction ), time );
-    		}
-    		else if( FederateJoin.interactionName().equals( interactionClassName ) )
-    		{
-    			receiveFederateJoin( new FederateJoin( interaction ), time );
+        		String interactionClassName = interaction.getInteractionClassName();
+        		
+        		if( SimEnd.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldEnd = true;
+        			receiveSimEnd( new SimEnd( interaction ), time );
+        		}
+        		else if( SimPause.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldPause = true;
+        			receiveSimPause( new SimPause( interaction ), time );
+        		}
+        		else if( SimResume.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldPause = false;
+        			receiveSimResume( new SimResume( interaction ), time );
+        		}
+        		else if( FederateJoin.interactionName().equals( interactionClassName ) )
+        		{
+        			receiveFederateJoin( new FederateJoin( interaction ), time );
+        		}
+        		else
+        		{
+        			// anything else gets generic interaction receipt handling
+        			receiveInteraction( interaction, time );
+        		}
     		}
     		else
     		{
-    			// anything else gets generic interaction receipt handling
-    			receiveInteraction( interaction, time );
+    			// TODO Log error
     		}
-		}
-		else
-		{
-			// TODO Log error
 		}
 	}
 	
 	@Override
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
 	{
-		// delegate to handlers for UCEF Simulation control interactions as required
-		HLAInteraction interaction = makeInteraction( handle, parameters );
-		
-		if( interaction != null )
+		synchronized( mutex_lock )
 		{
-    		String interactionClassName = interaction.getInteractionClassName();
+    		// delegate to handlers for UCEF Simulation control interactions as required
+    		HLAInteraction interaction = makeInteraction( handle, parameters );
     		
-    		if( SimEnd.interactionName().equals( interactionClassName ) )
+    		if( interaction != null )
     		{
-    			simShouldEnd = true;
-    			receiveSimEnd( new SimEnd( interaction ) );
-    		}
-    		else if( SimPause.interactionName().equals( interactionClassName ) )
-    		{
-    			simShouldPause = true;
-    			receiveSimPause( new SimPause( interaction ) );
-    		}
-    		else if( SimResume.interactionName().equals( interactionClassName ) )
-    		{
-    			simShouldPause = false;
-    			receiveSimResume( new SimResume( interaction ) );
-    		}
-    		else if( FederateJoin.interactionName().equals( interactionClassName ) )
-    		{
-    			receiveFederateJoin( new FederateJoin( interaction ) );
+        		String interactionClassName = interaction.getInteractionClassName();
+        		
+        		if( SimEnd.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldEnd = true;
+        			receiveSimEnd( new SimEnd( interaction ) );
+        		}
+        		else if( SimPause.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldPause = true;
+        			receiveSimPause( new SimPause( interaction ) );
+        		}
+        		else if( SimResume.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldPause = false;
+        			receiveSimResume( new SimResume( interaction ) );
+        		}
+        		else if( FederateJoin.interactionName().equals( interactionClassName ) )
+        		{
+        			receiveFederateJoin( new FederateJoin( interaction ) );
+        		}
+        		else
+        		{
+        			// anything else gets generic interaction receipt handling
+        			receiveInteraction( interaction );
+        		}
     		}
     		else
     		{
-    			// anything else gets generic interaction receipt handling
-    			receiveInteraction( interaction );
+    			// TODO Log error
     		}
-		}
-		else
-		{
-			// TODO Log error
 		}
 	}
 	

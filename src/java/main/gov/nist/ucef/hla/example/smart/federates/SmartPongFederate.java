@@ -168,8 +168,8 @@ public class SmartPongFederate extends _SmartPongFederate
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
 		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Pong.interactionName() );
-		config.addSubscribedInteraction( Ping.interactionName() );
+		config.addPublishedInteraction( Pong.interactionClassName() );
+		config.addSubscribedInteraction( Ping.interactionClassName() );
 		// subscribed UCEF simulation control interactions
 		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
 		                                  SimEnd.interactionName() );
