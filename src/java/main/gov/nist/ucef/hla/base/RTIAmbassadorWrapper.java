@@ -561,28 +561,6 @@ public class RTIAmbassadorWrapper
 	}
 	
 	/**
-	 * Determine if an {@link HLAObject} instance has the {@link ObjectClassHandle} corresponding
-	 * to the given object class name
-	 * 
-	 * @param interaction the {@link HLAInteraction} instance to check
-	 * @param objectClassName the name of the object class to check
-	 * @return true if the {@link HLAObject} instance has an {@link ObjectClassHandle}
-	 *         corresponding to the given object class name, false otherwise
-	 */
-	public boolean isOfKind( HLAObject object, String objectClassName )
-	{
-		try
-		{
-			return isOfKind( object, getObjectClassHandle( objectClassName ) );
-		}
-		catch( UCEFException e )
-		{
-			// ignore - this will occur if the object class name is unknown
-		}
-		return false;
-	}
-	
-	/**
 	 * Determine if an {@link HLAObject} instance has the given
 	 * {@link ObjectClassHandle}
 	 * 

@@ -81,6 +81,8 @@ public class FedManFederate extends NoOpFederate
 	private long nextTimeAdvance;
 	private double maxTime;
 	
+	private final Object mutex_lock = new Object();
+	
 	volatile boolean simShouldStart = false;
 	volatile boolean simIsPaused = false;
 	Lock lock = new ReentrantLock();
@@ -328,7 +330,8 @@ public class FedManFederate extends NoOpFederate
 	@Override
 	public void receiveObjectRegistration( HLAObject hlaObject )
 	{
-		if( rtiamb.isOfKind( hlaObject, FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME ) )
+		String objectClassName = hlaObject.getObjectClassName();
+		if( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME.equals( objectClassName ) )
 		{
 			rtiamb.requestAttributeValueUpdate( hlaObject, FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES );
 		}
@@ -337,16 +340,34 @@ public class FedManFederate extends NoOpFederate
 	@Override
 	public void receiveAttributeReflection( HLAObject hlaObject )
 	{
-		if( rtiamb.isOfKind( hlaObject, FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME ) )
+		synchronized(mutex_lock)
 		{
-    		JoinedFederateDetails joinedFederate = new JoinedFederateDetails( hlaObject );
-    		String federateType = joinedFederate.getFederateType();
-    		if( FedManConstants.FEDMAN_FEDERATE_TYPE.equals( federateType ) )
+    		String objectClassName = hlaObject.getObjectClassName();
+    		if( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME.equals( objectClassName ) )
     		{
-    			// ignore ourself joining...
-    			return;
+        		JoinedFederateDetails joinedFederate = new JoinedFederateDetails( hlaObject );
+        		String federateType = joinedFederate.getFederateType();
+        		if( FedManConstants.FEDMAN_FEDERATE_TYPE.equals( federateType ) )
+        		{
+        			// ignore ourself joining...
+        			return;
+        		}
+        		startRequirements.federateJoined( joinedFederate );
     		}
-    		startRequirements.federateJoined( joinedFederate );
+		}
+	}
+
+	@Override
+	public void receiveObjectDeleted( HLAObject hlaObject )
+	{
+		synchronized(mutex_lock)
+		{
+    		String objectClassName = hlaObject.getObjectClassName();
+    		if( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME.equals( objectClassName ) )
+    		{
+        		JoinedFederateDetails joinedFederate = new JoinedFederateDetails( hlaObject );
+        		startRequirements.federateLeft( joinedFederate );
+    		}
 		}
 	}
 
