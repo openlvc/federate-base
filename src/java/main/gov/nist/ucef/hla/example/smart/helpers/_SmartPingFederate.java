@@ -70,7 +70,7 @@ public abstract class _SmartPingFederate extends NoOpFederate
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionClassName = hlaInteraction.getInteractionClassName(); 
-		if( Pong.interactionName().equals( interactionClassName ) )
+		if( Pong.interactionClassName().equals( interactionClassName ) )
 		{
 			receivePongInteraction( new Pong( hlaInteraction ) );
 		}

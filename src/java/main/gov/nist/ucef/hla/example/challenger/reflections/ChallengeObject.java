@@ -21,22 +21,27 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.interactions;
+package gov.nist.ucef.hla.example.challenger.reflections;
 
-import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class Ping extends HLAInteraction
+public class ChallengeObject extends HLAObject
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	// HLA identifier of this type of interaction - must match FOM definition
-	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
-	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Ping";
+	// HLA identifier of this type of object - must match FOM definition
+	private static final String OBJECT_CLASS_NAME = "HLAobjectRoot.ParentObject.ChallengeObject";
 	
-	// interaction parameters and types
-	private static final String PARAM_KEY_COUNT = "count";
+	// object attributes and types
+	private static final String ATTRIBUTE_KEY_BEGININDEX = "beginIndex";
+	private static final String ATTRIBUTE_KEY_STRINGVALUE = "stringValue";
+	private static final String ATTRIBUTE_KEY_CHALLENGEID = "challengeId";
+	
+	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_BEGININDEX, 
+	                                                  ATTRIBUTE_KEY_STRINGVALUE,
+	                                                  ATTRIBUTE_KEY_CHALLENGEID };
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -47,18 +52,19 @@ public class Ping extends HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param name the {@link ChallengeObject} name
 	 */
-	public Ping()
+	public ChallengeObject()
 	{
-		super( INTERACTION_NAME, null );
+		super( OBJECT_CLASS_NAME );
 	}
 
 	/**
-	 * @param interaction the {@link HLAInteraction} instance
+	 * @param instance the {@link HLAObject} instance
 	 */
-	public Ping( HLAInteraction interaction )
+	public ChallengeObject( HLAObject instance )
 	{
-		super( interaction );
+		super( instance );
 	}
 	
 	//----------------------------------------------------------
@@ -69,33 +75,74 @@ public class Ping extends HLAInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public boolean isCountPresent()
+	public void isBeginIndexPresent()
 	{
-		return isPresent( PARAM_KEY_COUNT );
+		isPresent( ATTRIBUTE_KEY_BEGININDEX );
 	}
 	
-	public Ping count( int count )
+	public ChallengeObject beginIndex( int beginIndex )
 	{
-		setValue( PARAM_KEY_COUNT, count );
-		// return instance for chaining
+		setValue( ATTRIBUTE_KEY_BEGININDEX, beginIndex );
 		return this;
 	}
 
-	public int count()
+	public int beginIndex()
 	{
-		return getAsInt( PARAM_KEY_COUNT );
+		return getAsInt( ATTRIBUTE_KEY_BEGININDEX );
 	}
 
+	public boolean isStringValuePresent()
+	{
+		return isPresent( ATTRIBUTE_KEY_STRINGVALUE );
+	}
+	
+	public ChallengeObject stringValue( String stringValue )
+	{
+		setValue( ATTRIBUTE_KEY_STRINGVALUE, stringValue );
+		return this;
+	}
+	
+	public String stringValue()
+	{
+		return getAsString( ATTRIBUTE_KEY_STRINGVALUE );
+	}
+	
+	public boolean isChallengeIdPresent()
+	{
+		return isPresent( ATTRIBUTE_KEY_CHALLENGEID );
+	}
+	
+	public ChallengeObject challengeId( String challengeId )
+	{
+		setValue( ATTRIBUTE_KEY_CHALLENGEID, challengeId );
+		return this;
+	}
+	
+	public String challengeId()
+	{
+		return getAsString( ATTRIBUTE_KEY_CHALLENGEID );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Obtain the HLA interaction name identifying this type of interaction
+	 * Obtain the HLA object class name identifying this type of object
 	 * 
-	 * @return the HLA interaction name identifying this interaction
+	 * @return the HLA object class name identifying this type of object
 	 */
-	public static String interactionClassName()
+	public static String objectClassName()
 	{
-		return INTERACTION_NAME;
+		return OBJECT_CLASS_NAME;
+	}
+	
+	/**
+	 * Obtain the HLA attribute names associated with this type of object
+	 * 
+	 * @return the HLA attribute names associated with this type of object
+	 */
+	public static String[] attributeNames()
+	{
+		return ATTRIBUTE_NAMES;
 	}
 }

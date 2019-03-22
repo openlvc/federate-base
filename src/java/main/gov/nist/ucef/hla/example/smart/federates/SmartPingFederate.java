@@ -169,8 +169,8 @@ public class SmartPingFederate extends _SmartPingFederate
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
 		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Ping.interactionName() );
-		config.addSubscribedInteraction( Pong.interactionName() );
+		config.addPublishedInteraction( Ping.interactionClassName() );
+		config.addSubscribedInteraction( Pong.interactionClassName() );
 		// subscribed UCEF simulation control interactions
 		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
 		                                  SimEnd.interactionName() );

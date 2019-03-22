@@ -21,22 +21,23 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.smart.interactions;
+package gov.nist.ucef.hla.example.challenger.interactions;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class Ping extends HLAInteraction
+public class ChallengeInteraction extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition
-	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
-	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Ping";
+	private static final String INTERACTION_NAME = "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction";
 	
-	// interaction parameters and types
-	private static final String PARAM_KEY_COUNT = "count";
+	// interaction parameters
+	private static final String PARAM_KEY_BEGININDEX = "beginIndex";
+	private static final String PARAM_KEY_STRINGVALUE = "stringValue";
+	private static final String PARAM_KEY_CHALLENGEID = "challengeId";
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -47,16 +48,17 @@ public class Ping extends HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 * @param count the count
 	 */
-	public Ping()
+	public ChallengeInteraction()
 	{
-		super( INTERACTION_NAME, null );
+		super( INTERACTION_NAME );
 	}
 
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public Ping( HLAInteraction interaction )
+	public ChallengeInteraction( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
@@ -69,23 +71,54 @@ public class Ping extends HLAInteraction
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 
-	public boolean isCountPresent()
+	public void isBeginIndexPresent()
 	{
-		return isPresent( PARAM_KEY_COUNT );
+		isPresent( PARAM_KEY_BEGININDEX );
 	}
 	
-	public Ping count( int count )
+	public ChallengeInteraction beginIndex( int beginIndex )
 	{
-		setValue( PARAM_KEY_COUNT, count );
-		// return instance for chaining
+		setValue( PARAM_KEY_BEGININDEX, beginIndex );
 		return this;
 	}
 
-	public int count()
+	public int beginIndex()
 	{
-		return getAsInt( PARAM_KEY_COUNT );
+		return getAsInt( PARAM_KEY_BEGININDEX );
 	}
 
+	public void isStringValuePresent()
+	{
+		isPresent( PARAM_KEY_STRINGVALUE );
+	}
+	
+	public ChallengeInteraction stringValue( String stringValue )
+	{
+		setValue( PARAM_KEY_STRINGVALUE, stringValue );
+		return this;
+	}
+	
+	public String stringValue()
+	{
+		return getAsString( PARAM_KEY_STRINGVALUE );
+	}
+
+	public boolean isChallengeIdPresent()
+	{
+		return isPresent( PARAM_KEY_CHALLENGEID );
+	}
+	
+	public ChallengeInteraction challengeId( String challengeId )
+	{
+		setValue( PARAM_KEY_CHALLENGEID, challengeId );
+		return this;
+	}
+	
+	public String challengeId()
+	{
+		return getAsString( PARAM_KEY_CHALLENGEID );
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

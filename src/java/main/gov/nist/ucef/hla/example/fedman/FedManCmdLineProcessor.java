@@ -78,10 +78,10 @@ public class FedManCmdLineProcessor
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FedManCmdLineProcessor(String execName, int consoleWidth )
+	public FedManCmdLineProcessor( String execName, int consoleWidth )
 	{
 		this.execName = execName;
-		
+
 		initialize( consoleWidth );
 	}
 	

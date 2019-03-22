@@ -52,7 +52,7 @@ public class Player extends HLAObject
 	 */
 	public Player()
 	{
-		super( OBJECT_CLASS_NAME, null, null );
+		super( OBJECT_CLASS_NAME );
 	}
 
 	/**

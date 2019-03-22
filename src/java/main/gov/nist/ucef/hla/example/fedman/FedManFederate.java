@@ -113,7 +113,7 @@ public class FedManFederate extends NoOpFederate
 			System.exit( 1 );
 		}
         
-		this.maxTime = 15.0;
+		this.maxTime = 30.0;
 		this.nextTimeAdvance = -1;
 		
 		this.startRequirements = new FedManStartRequirements( argProcessor.startRequirements() );
@@ -316,6 +316,9 @@ public class FedManFederate extends NoOpFederate
 		}
 		
 		System.out.println( "Maximum simulation time reached.");
+		
+		sendSimEnd();
+		
 		return false;
 	}
 	
