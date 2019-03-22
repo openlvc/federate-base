@@ -501,16 +501,79 @@ public abstract class FederateBase
 		
 		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
+		createFederation();
+		
+		joinFederation();
+	}
+
+	/**
+	 * Creates the federation if that is appropriate (as per the provided configuration)
+	 */
+	protected void createFederation()
+	{
+		if( !configuration.canCreateFederation() )
+		{
+			// this federate is not allowed to create federations - they must already
+			// exist (i.e., have been created by something else)
+			return;
+		}
+			
 		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederationExecution( federationName, modules );
-		
+	}
+	
+	/**
+	 * Joins the federation, retrying on failures to join (as per the provided configuration)
+	 */
+	protected void joinFederation()
+	{
+		String federationName = configuration.getFederationName();
 		String federateName = configuration.getFederateName();
 		String federateType = configuration.getFederateType();
 		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
-		rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
+		
+		int retryCount = 0;
+		long retryInterval = configuration.getReconnectRetryInterval();
+		int maxRetries = configuration.getMaxReconnectAttempts();
+		boolean hasJoinedFederation = false;
+		while( !hasJoinedFederation && retryCount < maxRetries )
+		{
+			try
+			{
+				if(retryCount > 0)
+				{
+					System.err.println( String.format( "Attempt %d of %d to join federation '%s'...", 
+					                                   (retryCount+1), maxRetries, federationName ) );
+				}
+				
+				rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
+				hasJoinedFederation = true;
+				
+				System.out.println( String.format("Joined federation '%s'.", federationName ) );
+			}
+			catch(UCEFException e)
+			{
+				System.err.println( String.format( "Failed to join federation '%s'",
+				                                   federationName ) );
+				if( ++retryCount < maxRetries )
+					System.err.println( String.format( "Retrying in %d second%s...",
+					                                   retryInterval,
+					                                   (retryInterval == 1 ? "" : "s") ) );
+				delayFor( retryInterval );
+			}
+		}
+		
+		if( !hasJoinedFederation )
+		{
+			System.err.println( String.format( "Failed to join federation '%s' after %d attempt%s. "+
+											   "Giving up.",
+			                                   federationName,
+			                                   maxRetries,
+			                                   (maxRetries == 1 ? "" : "s") ) );
+		}
 	}
-
+	
 	/**
 	 * Registers the specified synchronization point, and then waits for the federation to reach
 	 * the same synchronization point
@@ -778,7 +841,18 @@ public abstract class FederateBase
 				interactionClassByHandle.put( handle, interactionClass );
 			}
 		}
-	}	
+	}
+	
+	private void delayFor(long seconds)
+	{
+		try
+		{
+			Thread.sleep( seconds * 1000 );
+		}
+		catch( InterruptedException e1 )
+		{
+		}
+	}
 	
 	//----------------------------------------------------------
 	//                     STATIC METHODS

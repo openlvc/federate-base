@@ -112,6 +112,9 @@ public class ChallengerManager
 		                                                          FedManConstants.FEDMAN_FEDERATE_TYPE,
 		                                                          "ChallengeResponseFederation");
 		
+		// a federation manager is allowed to create a required federation
+		config.setCanCreateFederation( true );
+
 		// subscribe to reflections described in MIM to detected joining federates 
 		config.addSubscribedAttributes( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME, 
 		                                FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES );

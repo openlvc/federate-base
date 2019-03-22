@@ -61,8 +61,9 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
 	private static final int DEFAULT_MAX_RECONNECT_ATTEMPTS = 5;
-	private static final long DEFAULT_RECONNECT_WAIT_MS = 5000; // 5 seconds
+	private static final long DEFAULT_RECONNECT_RETRY_INTERVAL_SEC = 5;
 	private static final boolean DEFAULT_IS_LATE_JOINER = false;
 	private static final boolean DEFAULT_IS_TIME_STEPPED = true;
 	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED = false;
@@ -80,8 +81,9 @@ public class FederateConfiguration
 	private Map<String,Types.InteractionClass> pubSubInteractions;
 	private Map<String,Types.ObjectClass> pubSubAttributes;
 
+	private boolean canCreateFederation;
 	private int maxReconnectAttempts;
-	private long waitReconnectMs;
+	private long reconnectRetryIntervalSec;
 	private boolean isLateJoiner;
 	private boolean isTimeStepped;
 	private boolean callbacksAreEvoked;
@@ -113,8 +115,9 @@ public class FederateConfiguration
 		this.pubSubAttributes = new HashMap<>();
 		this.pubSubInteractions = new HashMap<>();
 		
+		this.canCreateFederation = DEFAULT_SHOULD_CREATE_FEDERATION;
 		this.maxReconnectAttempts = DEFAULT_MAX_RECONNECT_ATTEMPTS;
-		this.waitReconnectMs = DEFAULT_RECONNECT_WAIT_MS;
+		this.reconnectRetryIntervalSec = DEFAULT_RECONNECT_RETRY_INTERVAL_SEC;
 		this.isLateJoiner = DEFAULT_IS_LATE_JOINER;
 		this.isTimeStepped = DEFAULT_IS_TIME_STEPPED;
 		this.callbacksAreEvoked = DEFAULT_ARE_CALLBACKS_EVOKED;
@@ -140,8 +143,9 @@ public class FederateConfiguration
 		builder.append( "Federate Type              : " + this.federateType + "\n" );
 		
 		builder.append( dotRule );
+		builder.append( "Create Federation?         : " + (this.canCreateFederation?"Yes":"No") + "\n" );
 		builder.append( "Maximum Recconect Attempts : " + this.maxReconnectAttempts + "\n" );
-		builder.append( "Reconnect Wait Time        : " + this.waitReconnectMs + "ms\n" );
+		builder.append( "Reconnect Wait Time        : " + this.reconnectRetryIntervalSec + " seconds\n" );
 		builder.append( "Late Joiner?               : " + (this.isLateJoiner?"Yes":"No") + "\n" );
 		builder.append( "Time Stepped?              : " + (this.isTimeStepped?"Yes":"No") + "\n" );
 		builder.append( "Are Callbacks Evoked?      : " + (this.callbacksAreEvoked?"Yes":"No") + "\n" );
@@ -291,6 +295,17 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Determine whether the federate should be able to create a required federation if it is
+	 * absent
+	 * 
+	 * @return true if the federate should be able to create federations, false otherwise
+	 */
+	public boolean canCreateFederation()
+	{
+		return canCreateFederation;
+	}
+	
+	/**
 	 * Obtain the maximum number of reconnection attempts
 	 * 
 	 * @return the maximum number of reconnection attempts
@@ -301,13 +316,13 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Obtain the maximum reconnection wait time (before timeout) in milliseconds
+	 * Obtain the reconnection retry interval in seconds
 	 * 
-	 * @return the maximum reconnection wait time (before timeout) in milliseconds
+	 * @return the reconnection retry interval in seconds
 	 */
-	public long getReconnectWaitTime()
+	public long getReconnectRetryInterval()
 	{
-		return waitReconnectMs;
+		return reconnectRetryIntervalSec;
 	}
 
 	/**
@@ -489,6 +504,21 @@ public class FederateConfiguration
 	}
 	
 	/**
+	 * Configure whether the federate is able to create a federation if the federation is absent
+	 * on startup
+	 * 
+	 * @param canCreateFederation if true, the federate can attempt to create the required
+	 *            federation on startup, otherwise it is not allowed to create any new federations
+	 * @return this instance
+	 */
+	public FederateConfiguration setCanCreateFederation( boolean canCreateFederation )
+	{
+		if(canWrite())
+			this.canCreateFederation = canCreateFederation;
+		return this;
+	}
+	
+	/**
 	 * Configure the federate's maximum number of reconnection attempts
 	 * 
 	 * @param maxReconnectAttempts the maximum number of reconnection attempts
@@ -502,16 +532,15 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Configure the federate's maximum reconnection wait time (before timeout) in milliseconds
+	 * Configure the federate's reconnect retry interval in seconds
 	 * 
-	 * @param reconnectWaitTimeMs the maximum reconnection wait time (before timeout) in
-	 *            milliseconds
+	 * @param the federate's reconnect retry interval in seconds
 	 * @return this instance
 	 */
-	public FederateConfiguration setReconnectWaitTime( long reconnectWaitTimeMs )
+	public FederateConfiguration setReconnectRetryInterval( long retryIntervalSec )
 	{
 		if(canWrite())
-			this.waitReconnectMs = reconnectWaitTimeMs;
+			this.reconnectRetryIntervalSec = retryIntervalSec;
 		return this;
 	}
 
