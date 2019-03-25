@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -422,7 +421,7 @@ public class ChallengeFederate extends _ChallengeFederate
 	/**
 	 * A simple utility function to generate a random string of a given length
 	 * 
-	 * @param length the length of the desired string
+	 * @param length the length of the desired string	
 	 * @return a random string of the required length
 	 */
 	private String getRandomString( int length )
