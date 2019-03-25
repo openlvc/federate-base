@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
 import hla.rti1516e.AttributeHandleValueMap;
@@ -43,6 +46,8 @@ public abstract class FederateBase
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final Logger logger = LogManager.getLogger(FederateBase.class);
+	
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
 	
@@ -236,8 +241,8 @@ public abstract class FederateBase
     		}
     		else
     		{
-    			// TODO Log warning
-    			System.out.println(String.format("Discovered unrecognized object instance %s", rtiamb.makeSummary( instanceHandle )));
+    			logger.warn( "Discovered unrecognized object instance {}", 
+    			             rtiamb.makeSummary( instanceHandle ) );
     		}		
 		}
 	}
@@ -255,15 +260,8 @@ public abstract class FederateBase
     		}
     		else
     		{
-            	throw new UCEFException("Attribute value reflection received for previously undiscovered object " +
-            						    "instance %s", this.rtiamb.makeSummary( handle ) );
-//    			ObjectClassHandle classHandle = this.rtiamb.getKnownObjectClassHandle( handle );
-//    			String className = this.rtiamb.getObjectClassName( classHandle );
-//    			hlaObject = new HLAObject( className, attributes );
-//    			synchronized( hlaObjectByInstanceHandle )
-//    			{
-//    				hlaObjectByInstanceHandle.put( handle, hlaObject );
-//    			}
+    			logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
+   			              	 rtiamb.makeSummary( handle ) );
     		}
 		}
 		
@@ -284,15 +282,8 @@ public abstract class FederateBase
     		}
     		else
     		{
-                	throw new UCEFException("Attribute value reflection received for previously undiscovered object " +
-                						    "instance %s", this.rtiamb.makeSummary( handle ) );
-    //			ObjectClassHandle classHandle = this.rtiamb.getKnownObjectClassHandle( handle );
-    //			String className = this.rtiamb.getObjectClassName( classHandle );
-    //			hlaObject = new HLAObject( className, attributes );
-    //			synchronized( hlaObjectByInstanceHandle )
-    //			{
-    //				hlaObjectByInstanceHandle.put( handle, hlaObject );
-    //			}
+    			logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
+   			              	 rtiamb.makeSummary( handle ) );
     		}
 		}
 	}
@@ -309,7 +300,8 @@ public abstract class FederateBase
     		}
     		else
     		{
-    			// TODO log error
+    			logger.warn( "Ignoring unexpected interaction: {}",
+   			              	 rtiamb.makeSummary( handle ) );
     		}
 		}
 	}
@@ -326,7 +318,8 @@ public abstract class FederateBase
     		}
     		else
     		{
-    			// TODO log error
+    			logger.warn( "Ignoring unexpected interaction: {}",
+    			             rtiamb.makeSummary( handle ) );
     		}
     	}
 	}
@@ -335,28 +328,19 @@ public abstract class FederateBase
 	{
 		synchronized( mutex_lock )
 		{
+			// clean up object maps as required
     		Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
     		HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
     		
-    //		logger.log( "Received object removed notification for HLAObject with id :" +
-    //		             to_string(objectInstanceHash), LevelInfo );
-    
     		if( objectClass != null && hlaObject != null)
     		{
-    			// TODO logging
-    //			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
-    //			            " successsfully removed from the incoming map.", LevelInfo );
-    			// HLAObject hlaObject = new HLAObject( objectClass.name, handle );
     			// just delegate to the default handler
     			receiveObjectDeleted( hlaObject );
     		}
     		else
     		{
-    			// TODO logging
-    //			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
-    //			            " could not find for deletion.", LevelWarn );
-    //			throw new UCEFException( "Deletion notification received for previously undiscovered object " +
-    //									 "instance with handle '%s'", handle );
+    			logger.warn( "Deletion notification received for previously undiscovered object instance {}",
+    			             rtiamb.makeSummary( handle ) );
     		}
 		}
 	}
@@ -397,12 +381,12 @@ public abstract class FederateBase
 	protected HLAInteraction makeInteraction( InteractionClassHandle handle, Map<String, byte[]> parameters)
 	{
 		Types.InteractionClass interactionClass;
-		synchronized(interactionClassByHandle)
+		synchronized( mutex_lock )
 		{
 			interactionClass = interactionClassByHandle.get( handle );
 		}
 		
-		if(interactionClass == null)
+		if( interactionClass == null )
 			return null;
 
 		return makeInteraction( interactionClass.name, parameters );
@@ -540,6 +524,8 @@ public abstract class FederateBase
 		
 		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
+		logger.info( "Federate {} connected to RTI.", configuration.getFederateName() );
+		
 		createFederation();
 		
 		joinFederation();
@@ -560,6 +546,8 @@ public abstract class FederateBase
 		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederationExecution( federationName, modules );
+		
+		logger.info( "Federation {} created.", federationName );
 	}
 	
 	/**
@@ -582,34 +570,33 @@ public abstract class FederateBase
 			{
 				if(retryCount > 0)
 				{
-					System.err.println( String.format( "Attempt %d of %d to join federation '%s'...", 
-					                                   (retryCount+1), maxRetries, federationName ) );
+					logger.warn( "Attempt {} of {} to join federation '{}'...",
+					             (retryCount+1), maxRetries, federationName );
 				}
 				
 				rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
 				hasJoinedFederation = true;
 				
-				System.out.println( String.format("Joined federation '%s'.", federationName ) );
+				System.out.println( String.format("Joined federation '{}'.", federationName ) );
 			}
 			catch(UCEFException e)
 			{
-				System.err.println( String.format( "Failed to join federation '%s'",
-				                                   federationName ) );
+				logger.warn( "Failed to join federation '{}'",
+                             federationName );
 				if( ++retryCount < maxRetries )
-					System.err.println( String.format( "Retrying in %d second%s...",
-					                                   retryInterval,
-					                                   (retryInterval == 1 ? "" : "s") ) );
+					logger.warn( "Retrying in {} second{}...",
+                                 retryInterval,
+                                 (retryInterval == 1 ? "" : "s") );
 				delayFor( retryInterval );
 			}
 		}
 		
 		if( !hasJoinedFederation )
 		{
-			System.err.println( String.format( "Failed to join federation '%s' after %d attempt%s. "+
-											   "Giving up.",
-			                                   federationName,
-			                                   maxRetries,
-			                                   (maxRetries == 1 ? "" : "s") ) );
+			logger.error( "Failed to join federation '{}' after {} attempt{}. Giving up.",
+                          federationName,
+                          maxRetries,
+                          (maxRetries == 1 ? "" : "s")  );
 		}
 	}
 	
