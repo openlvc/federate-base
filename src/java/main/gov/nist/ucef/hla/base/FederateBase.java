@@ -54,12 +54,14 @@ public abstract class FederateBase
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
 	
-	private final Object mutex_lock = new Object();
+	private LifecycleState lifecycleState;
 	
 	private Map<ObjectClassHandle, Types.ObjectClass> objectClassByClassHandle;
 	private Map<ObjectInstanceHandle, Types.ObjectClass> objectClassByInstanceHandle;
 	private Map<ObjectInstanceHandle, HLAObject> hlaObjectByInstanceHandle;
 	private Map<InteractionClassHandle, Types.InteractionClass> interactionClassByHandle;
+	
+	private final Object mutex_lock = new Object();
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -73,6 +75,8 @@ public abstract class FederateBase
 		this.objectClassByInstanceHandle = new HashMap<>();
 		this.hlaObjectByInstanceHandle = new HashMap<>();
 		this.interactionClassByHandle = new HashMap<>();
+		
+		lifecycleState = LifecycleState.GESTATING;
 	}
 	
 	//----------------------------------------------------------
@@ -103,6 +107,37 @@ public abstract class FederateBase
 	public abstract void receiveObjectDeleted( HLAObject hlaObject );
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////// Lifecycle State Query //////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Determine the current lifecycle state of this federate.
+	 * 
+	 * <b>NOTE:</b> The lifecycyle state is managed by the federate itself (i.e.
+	 * {@link FederateBase} and cannot be manually altered.
+	 * 
+	 * See also {@link LifecycleState} for possible states.
+	 * 
+	 * This principally provides a mechanism for federate implementations to differentiate between
+	 * the main three cases:
+	 * <ol>
+	 * <li>{@link LifecycleState#INITIALIZING}: during {@link #beforeReadyToPopulate()},
+	 *         {@link #beforeReadyToRun()} or {@link #beforeFirstStep()}</li>
+	 * <li>{@link LifecycleState#RUNNING}: received in {@link #step(double)};</li>
+	 * <li>{@link LifecycleState#CLEANING_UP}: received in {@link #beforeReadyToResign()} or
+	 *         {@link #beforeExit()};</li>
+	 * </ol>
+	 * 
+	 * This allows handling of incoming interactions and attribute reflections to be tailored to
+	 * the current lifecycle state of the federate.
+	 * 
+	 * @return the current lifecycle state of this federate.
+	 */
+	public LifecycleState getLifecycleState()
+	{
+		return this.lifecycleState;
+	}
+	
+	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Federate Business ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
@@ -120,13 +155,17 @@ public abstract class FederateBase
 
 		// create and join the Federation, publish and subscribe
 		// call beforeReadyToPopulate(), beforeReadyToRun() and beforeFirstStep()
+		this.lifecycleState = LifecycleState.INITIALIZING;
 		federateSetup();
 		// repeatedly call step() until simulation ends
+		this.lifecycleState = LifecycleState.RUNNING;
 		federateExecution();
 		// disable any time policy
 		// call readyToResign() and beforeExit()
 		// resign and destroy the federation
+		this.lifecycleState = LifecycleState.CLEANING_UP;
 		federateTeardown();
+		this.lifecycleState = LifecycleState.EXPIRED;
 	}
 	
 	/**
