@@ -161,7 +161,7 @@ public class FedManStartRequirements
 		{
 			if( federateType.startsWith( requiredType ) )
 			{
-				synchronized( joinedFederatesByType )
+				synchronized( mutex_lock )
 				{
 					joinedFederatesByType.computeIfAbsent( requiredType,
 					                                       x -> new HashSet<>() ).add( joinedFederate );
@@ -171,7 +171,7 @@ public class FedManStartRequirements
 		 */
 		if( startRequirements.containsKey( federateType ) )
 		{
-			synchronized( joinedFederatesByType )
+			synchronized( mutex_lock )
 			{
 				joinedFederatesByType.remove( federateType );
 			}

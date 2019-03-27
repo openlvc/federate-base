@@ -51,6 +51,8 @@ public class HLAInteraction
 	// used for encoding/decoding byte array representations of interaction parameters
 	protected EncoderFactory encoder;
 
+	private final Object mutex_lock = new Object();
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -261,7 +263,7 @@ public class HLAInteraction
 	public byte[] getRawValue( String parameterName )
 	{
 		byte[] result;
-		synchronized( this.parameters )
+		synchronized( mutex_lock )
 		{
 			result = parameters.get( parameterName );
 		}
@@ -364,7 +366,7 @@ public class HLAInteraction
 	 */
 	public void setRawValue( String parameterName, byte[] value )
 	{
-		synchronized( this.parameters )
+		synchronized( mutex_lock )
 		{
 			if( value == null )
     		{
@@ -388,7 +390,7 @@ public class HLAInteraction
     	return Collections.unmodifiableMap( this.parameters );
     	/*
     	Map<String, byte[]> result = new HashMap<>(); 
-		synchronized( this.parameters )
+		synchronized( mutex_lock )
 		{
 			for( Entry<String,byte[]> entry : this.parameters.entrySet())
 			{
@@ -410,7 +412,7 @@ public class HLAInteraction
 	 */
 	public HLAInteraction setState( Map<String, byte[]> parameters )
 	{
-		synchronized( this.parameters )
+		synchronized( mutex_lock )
 		{
 			this.parameters.putAll( parameters );
 		}
@@ -426,7 +428,7 @@ public class HLAInteraction
 	 */
 	public HLAInteraction clearState()
 	{
-		synchronized( this.parameters )
+		synchronized( mutex_lock )
 		{
 			this.parameters.clear();
 		}

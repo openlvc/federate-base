@@ -52,6 +52,8 @@ public class HLAObject
 	
 	// used for encoding/decoding byte array representations of attributes
 	protected EncoderFactory encoder;
+	
+	private final Object mutex_lock = new Object();
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -302,7 +304,7 @@ public class HLAObject
 	public byte[] getRawValue( String attributeName )
 	{
 		byte[] result;
-		synchronized( this.attributes )
+		synchronized( mutex_lock )
 		{
 			result = this.attributes.get( attributeName );
 		}
@@ -405,7 +407,7 @@ public class HLAObject
 	 */
 	public void setRawValue( String attributeName, byte[] value )
 	{
-		synchronized( this.attributes )
+		synchronized( mutex_lock )
 		{
     		if( value == null )
     		{
@@ -437,7 +439,7 @@ public class HLAObject
 	 */
 	public HLAObject setState( Map<String, byte[]> attributes )
 	{
-		synchronized( this.attributes )
+		synchronized( mutex_lock )
 		{
 			this.attributes.putAll( attributes );
 		}
@@ -453,7 +455,7 @@ public class HLAObject
 	 */
 	public HLAObject clearState()
 	{
-		synchronized( this.attributes )
+		synchronized( mutex_lock )
 		{
 			this.attributes.clear();
 		}

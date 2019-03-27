@@ -67,7 +67,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private boolean isTimeRegulated;
 	private boolean isTimeConstrained;
 	
-	private static final Object mutex_lock = new Object(); 
+	private final Object mutex_lock = new Object(); 
 	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
