@@ -221,7 +221,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 			this.currentSyncPoint = label;
 			this.achievedPoints.add( label );
 		}
-		logger.debug( "Federation has sycnhronized to '{}'.", label );
+		logger.debug( "Federation has synchronized to '{}'.", label );
 	}
 
 	/**
