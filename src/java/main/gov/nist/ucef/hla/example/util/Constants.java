@@ -42,6 +42,16 @@ public class Constants
 
 	// console width for wrapping text etc 
 	public static final int CONSOLE_WIDTH = 80;
+	
+	/** System property that identifies the value for {@link #UCEF_LOG_LEVEL}. */
+	public static final String PROPERTY_UCEF_LOG_LEVEL = "ucef.loglevel";	
+	/** System property for defining which directory to put the log file in */
+	public static final String PROPERTY_UCEF_LOG_DIR = "ucef.logdir";	
+	/** The log level to apply to all loggers under the "ucef" level.
+	    This level defaults to WARN. You can alter this level through
+	    a system property as long as you do before the things are loaded */
+	public static String UCEF_LOG_LEVEL = "WARN";
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------

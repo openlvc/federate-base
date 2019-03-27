@@ -23,6 +23,9 @@
  */
 package gov.nist.ucef.hla.example.smart.federates;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
@@ -66,6 +69,7 @@ public class SmartPongFederate extends _SmartPongFederate
 	public SmartPongFederate( String[] args )
 	{
 		super();
+		Configurator.setRootLevel( Level.TRACE );
 	}
 
 	//----------------------------------------------------------

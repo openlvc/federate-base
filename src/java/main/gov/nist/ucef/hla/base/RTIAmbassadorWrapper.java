@@ -31,6 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.util.Set;
 
 import hla.rti1516e.AttributeHandle;
@@ -71,6 +75,8 @@ public class RTIAmbassadorWrapper
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final Logger logger = LogManager.getLogger( RTIAmbassadorWrapper.class );
+	
 	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 	private static final String NULL_TEXT = "NULL"; 
 	
@@ -119,17 +125,20 @@ public class RTIAmbassadorWrapper
 														   CallbackModel.HLA_IMMEDIATE;
 		try
 		{
+			logger.debug( "Federate is connecting..." );
 			this.rtiAmbassador.connect( federateAmbassador, callbackModel );
+			logger.debug( "Federate has connected." );
 		}
 		catch( AlreadyConnected e )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that we are already connected to the
 			// federation so we don't need to do it again.
+			logger.info( "The federate is already connected." );
 		}
 		catch( Exception e )
 		{
-			throw new UCEFException( "Failed to connect to federation.", e );
+			throw new UCEFException( "Failed to connect.", e );
 		}
 	}
 	
@@ -138,18 +147,22 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// We attempt to create a new federation with the configured FOM modules
+			logger.debug( "Creating federation '{}'...", federationName );
 			this.rtiAmbassador.createFederationExecution( federationName, modules );
+			logger.debug( "Federation '{}' was created.", federationName );
 		}
 		catch( FederationExecutionAlreadyExists exists )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that the federation was already created
 			// by someone else so we don't need to. We can just carry on with our business.
+			logger.info( "The federation '{}' already exists, and does not need to be created.",
+			             federationName );
 		}
 		catch( Exception e )
 		{
 			// Something else has gone wrong - throw the exception on up
-			throw new UCEFException( "Failed to create federation.", e );
+			throw new UCEFException( e, "Failed to create federation '%s'.", federationName );
 		}
 	}
 
@@ -161,12 +174,23 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			// join the federation with the configured join FOM modules
+			logger.debug( "Federate '{}' of type '{}' is joining federation '{}'...",
+			              federateName,
+			              federateType,
+			              federationName );
 			rtiAmbassador.joinFederationExecution( federateName, federateType, 
 			                                       federationName, joinModules );
+			logger.debug( "Federate '{}' of type '{}' joined federation '{}'.",
+			              federateName,
+			              federateType,
+			              federationName );
 		}
 		catch(Exception e)
 		{
-			throw new UCEFException( "Failed to join federation execution.", e );
+			throw new UCEFException( e, "Federate '%s' of type '%s' failed to join federation '%s'.",
+			                         federateName,
+			                         federateType,
+			                         federationName );
 		}
 	}
 
@@ -177,7 +201,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
-			rtiAmbassador.evokeCallback(seconds);
+			logger.trace( "Evoking callback ({} seconds)...", seconds );
+			rtiAmbassador.evokeCallback( seconds );
+			logger.trace( "Callback evoked." );
 		}
 		catch( Exception e )
 		{
@@ -189,7 +215,11 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Evoking multiple callbacks ({} - {} seconds)...",
+			              minimumTime,
+			              maximumTime );
 			rtiAmbassador.evokeMultipleCallbacks( minimumTime, maximumTime );
+			logger.trace( "Multiple callbacks evoked." );
 		}
 		catch( Exception e )
 		{
@@ -206,7 +236,9 @@ public class RTIAmbassadorWrapper
 		// failed, but as long as *someone* registered it everything is fine
 		try
 		{
+			logger.debug( "Registering synchronization point '{}'...", label );
 			rtiAmbassador.registerFederationSynchronizationPoint( label, safeByteArray( tag ) );
+			logger.debug( "Synchronization point '{}' registered.", label );
 		}
 		catch( Exception e )
 		{
@@ -218,7 +250,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.debug( "Achieving synchronization point '{}'...", label );
 			rtiAmbassador.synchronizationPointAchieved( label );
+			logger.debug( "Synchronization point '{}' achieved.", label );
 		}
 		catch( Exception e )
 		{
@@ -230,7 +264,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.debug( "Resigning from the federation..." );
 			rtiAmbassador.resignFederationExecution( resignAction );
+			logger.debug( "Resigned from the federation." );
 		}
 		catch( Exception e )
 		{
@@ -242,13 +278,16 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.debug( "Destroying federation '{}'...", federationName );
 			rtiAmbassador.destroyFederationExecution( federationName );
+			logger.debug( "Federation '{}' was destroyed.", federationName );
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that the federation was already destroyed
 			// by someone else so we don't need to.
+			logger.warn( "The federation '{}' does not exist, so it was not destroyed.", federationName );
 		}
 		catch( FederatesCurrentlyJoined fcj )
 		{
@@ -259,7 +298,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch(Exception e)
 		{
-			throw new UCEFException( "Failed to destroy the federation execution.", e );
+			throw new UCEFException( e, "Failed to destroy federation '%s'.", federationName );
 		}
 	}
 
@@ -312,7 +351,16 @@ public class RTIAmbassadorWrapper
 		
 		try
 		{
+			boolean debugLogging = logger.isDebugEnabled();
+			String handleSummary = debugLogging ? makeSummary( handle ) : null;
+			
+			if( debugLogging )
+				logger.debug( "Deleting object instance {}...", handleSummary );
+
 			rtiAmbassador.deleteObjectInstance( handle, safeByteArray( tag ) );
+			
+			if( debugLogging )
+				logger.debug( "Object instance {} was deleted.", handleSummary );
 		}
 		catch( DeletePrivilegeNotHeld e )
 		{
@@ -351,7 +399,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Requesting time advance to {}...", newTime );
 			rtiAmbassador.timeAdvanceRequest( makeHLATime( newTime ) );
+			logger.trace( "Time advance request complete." );
 		}
 		catch( Exception e )
 		{
@@ -363,13 +413,16 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Requesting enabling of time regulation..." );
 			this.rtiAmbassador.enableTimeRegulation( makeHLAInterval( lookAhead ) );
+			logger.trace( "Request to enable time regulation complete." );
 		}
 		catch( TimeRegulationAlreadyEnabled e )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that time regulation is already enabled
 			// so we don't need to do it again.
+			logger.info( "Time regulation is already enabled, and so does not need to be enabled." );
 		}
 		catch( Exception e )
 		{
@@ -381,13 +434,16 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Requesting disabling of time regulation..." );
 			this.rtiAmbassador.disableTimeRegulation();
+			logger.trace( "Request to disable time regulation complete." );
 		}
 		catch( TimeRegulationIsNotEnabled e )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that time regulation is not enabled
 			// so we don't need to disable it.
+			logger.info( "Time regulation is already disabled, and so does not need to be disabled." );
 		}
 		catch( Exception e )
 		{
@@ -399,13 +455,16 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Requesting enabling of time constraint..." );
 			this.rtiAmbassador.enableTimeConstrained();
+			logger.trace( "Request to enable time constraint complete." );
 		}
 		catch( TimeConstrainedAlreadyEnabled e )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that time constrained is already enabled
 			// so we don't need to do it again.
+			logger.info( "Time constraint is already enabled, and so does not need to be enabled." );
 		}
 		catch( Exception e )
 		{
@@ -417,13 +476,16 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Requesting disabling of time constraint..." );
 			this.rtiAmbassador.disableTimeConstrained();
+			logger.trace( "Request to disable time constraint complete." );
 		}
 		catch( TimeConstrainedIsNotEnabled e )
 		{
 			// We catch and deliberately ignore this exception - this is not an error 
 			// condition as such, it just means that time constrained is not enabled
 			// so we don't need to disable it.
+			logger.info( "Time constraint is already disabled, and so does not need to be disabled." );
 		}
 		catch( Exception e )
 		{
@@ -476,6 +538,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving object class name for object class handle {}...", handle );
 			return this.rtiAmbassador.getObjectClassName( handle );
 		}
 		catch( Exception e )
@@ -497,6 +560,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving object class handle for object class name '{}'...", name );
 			return this.rtiAmbassador.getObjectClassHandle( name );
 		}
 		catch( Exception e )
@@ -518,6 +582,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving known object class handle for object instance handle ...", handle );
 			return rtiAmbassador.getKnownObjectClassHandle( handle );
 		}
 		catch( Exception e )
@@ -590,6 +655,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving attribute name for attribute handle {} "+
+						  "in the context of object class handle {}...", 
+			              attributeHandle, objectClassHandle );
 			return this.rtiAmbassador.getAttributeName( objectClassHandle, attributeHandle );
 		}
 		catch( Exception e )
@@ -613,6 +681,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving attribute handle for attribute name '{}' " +
+			              "in the context of object class handle {}...",
+			              attributeName, handle );
 			return this.rtiAmbassador.getAttributeHandle( handle, attributeName );
 		}
 		catch( Exception e )
@@ -635,6 +706,8 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving interaction class name for interaction class handle {}...",
+			              handle );
 			return this.rtiAmbassador.getInteractionClassName( handle );
 		}
 		catch( Exception e )
@@ -673,6 +746,8 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving interaction class handle for interaction class name '{}'...",
+			              name );
 			return this.rtiAmbassador.getInteractionClassHandle( name );
 		}
 		catch( Exception e )
@@ -713,6 +788,9 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving parameter handle for parameter name '{}' "+
+						  "in the context of interaction class handle {}...",
+			              parameterName, handle );
 			return this.rtiAmbassador.getParameterHandle( handle, parameterName );
 		}
 		catch( Exception e )
@@ -737,6 +815,10 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving parameter name for parameter handle {} " +
+			              "in the context of interaction class handle {}...",
+			              parameterHandle,
+			              interactionClassHandle );
 			return this.rtiAmbassador.getParameterName( interactionClassHandle, parameterHandle );
 		}
 		catch( Exception e )
@@ -759,6 +841,7 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving object instance name for object instance handle {}...", handle);
 			return this.rtiAmbassador.getObjectInstanceName( handle );
 		}
 		catch( Exception e )
@@ -781,6 +864,8 @@ public class RTIAmbassadorWrapper
 	{
 		try
 		{
+			logger.trace( "Retrieving object instance handle for object instance name '{}'...",
+			              name );
 			return this.rtiAmbassador.getObjectInstanceHandle( name );
 		}
 		catch( Exception e )
@@ -861,9 +946,17 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			if( instanceIdentifier == null )
+			{
+				logger.trace( "Registering object instance handle {}...", handle );
 				instanceHandle = rtiAmbassador.registerObjectInstance( handle );
+			}
 			else
+			{
+				logger.trace( "Registering object instance handle {} with instance identifier '{}'...", 
+				              handle, instanceIdentifier );
 				instanceHandle = rtiAmbassador.registerObjectInstance( handle, instanceIdentifier );
+			}
+			logger.trace( "Registered object instance handle {}.", handle );
 		}
 		catch( Exception e )
 		{
@@ -981,11 +1074,15 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
+			logger.trace( "Registering intent to publish interaction class with handle {}...", handle );
+			
 			rtiAmbassador.publishInteractionClass( handle );
+			
+			logger.trace( "Registered intent to publish interaction class with handle {}...", handle );
 		}
 		catch( Exception e )
 		{
-			throw new UCEFException( e, "Failed to publish interaction class with handle %s",
+			throw new UCEFException( e, "Failed to register intent to publish interaction class with handle %s",
 			                         makeSummary( handle ) );
 		}
 	}
@@ -1081,7 +1178,13 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
+			logger.trace( "Publishing object {} class attribute(s) for object class handle {}...", 
+			              handle, attributes.size() );
+			
 			rtiAmbassador.publishObjectClassAttributes( handle, attributes );
+			
+			logger.trace( "Published object {} class attribute(s) for object class handle {}...", 
+			              handle, attributes.size() );
 		}
 		catch( Exception e )
 		{
@@ -1232,7 +1335,13 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
+			logger.trace( "Registering subscription to {} attribute(s) on object class with handle {}...",
+			              attributes.size(), handle );
+			
 			rtiAmbassador.subscribeObjectClassAttributes( handle, attributes );
+			
+			logger.trace( "Registered subscription to {} attribute(s) on object class with handle {}...",
+			              attributes.size(), handle );
 		}
 		catch( Exception e )
 		{
@@ -1271,11 +1380,17 @@ public class RTIAmbassadorWrapper
 			AttributeHandleValueMap ahvm = convert( objectInstanceHandle, instance.getState() );
 			
 			// now we have the information we need to do the update   
+			logger.trace( "Sending reflection for {} attribute(s) for object instance handle {}...",
+			              ahvm.size(), objectInstanceHandle );
+			
 			if( time == null )
 				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, safeByteArray( tag ) );
 			else
 				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, 
 				                                     safeByteArray( tag ), makeHLATime( time ) );
+			
+			logger.trace( "Sent reflection for {} attribute(s) for object instance handle {}.",
+			              ahvm.size(), objectInstanceHandle );
 		}
 		catch( Exception e )
 		{
@@ -1309,11 +1424,17 @@ public class RTIAmbassadorWrapper
 			ParameterHandleValueMap phvm = convert( interactionClassHandle, interaction.getState() );
 			
 			// now we have the information we need to do the send
+			logger.trace( "Sending interaction with {} parameter(s) for interaction class handle {}...",
+			              phvm.size(), interactionClassHandle );
+			
 			if(time == null)
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, safeByteArray( tag ) );
 			else
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, 
 				                               safeByteArray( tag ), makeHLATime( time ) );
+			
+			logger.trace( "Sent interaction with {} parameter(s) for interaction class handle {}.",
+			              phvm.size(), interactionClassHandle );
 		}
 		catch( InteractionClassNotPublished e )
 		{
@@ -1375,7 +1496,11 @@ public class RTIAmbassadorWrapper
 		
 		try
 		{
+			logger.trace( "Sending update request for {} attribute(s) for object instance handle {}...",
+			              attributes.size(), handle );
 			this.rtiAmbassador.requestAttributeValueUpdate( handle, attributes, safeByteArray( tag ) );
+			logger.trace( "Sent update request for {} attribute(s) for object instance handle {}.",
+			              attributes.size(), handle );
 		}
 		catch( Exception e )
 		{
@@ -1563,6 +1688,14 @@ public class RTIAmbassadorWrapper
 		return details.toString();
 	}
 	
+	/**
+	 * A utility method purely for the purpose of constructing meaningful text for error messages
+	 * regarding an attribute handle set (in the context of an object class handle)
+	 * 
+	 * @param objectClassHandle the object class handle
+	 * @param attributes the attribute handle set
+	 * @return the details of the associated attributes
+	 */
 	public String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandleSet attributes )
 	{
 		List<String> details = new ArrayList<>(attributes.size());
@@ -1573,6 +1706,14 @@ public class RTIAmbassadorWrapper
 		return details.stream().collect( Collectors.joining( ", " ) );
 	}
 
+	/**
+	 * A utility method purely for the purpose of constructing meaningful text for error messages
+	 * regarding an attribute handle (in the context of an object class handle)
+	 * 
+	 * @param objectClassHandle the object class handle
+	 * @param attributeHandle the attribute handle
+	 * @return the details of the associated attribute
+	 */
 	public String makeSummary( ObjectClassHandle objectClassHandle, AttributeHandle attributeHandle )
 	{
 		String attributeName = NULL_TEXT;
