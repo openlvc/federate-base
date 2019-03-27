@@ -50,7 +50,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final Logger logger = LogManager.getLogger(FederateAmbassador.class);
+	private static final Logger logger = LogManager.getLogger( FederateAmbassador.class );
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -67,10 +67,12 @@ public class FederateAmbassador extends NullFederateAmbassador
 	private boolean isTimeRegulated;
 	private boolean isTimeConstrained;
 	
+	private static final Object mutex_lock = new Object(); 
+	
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FederateAmbassador(FederateBase federateBase)
+	public FederateAmbassador( FederateBase federateBase )
 	{
 		this.federateBase = federateBase;
 		
@@ -182,6 +184,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	public void synchronizationPointRegistrationSucceeded( String label )
 	{
 		// don't really need to do anything here
+		logger.debug( "Registration of synchronization point '{}' succeeded", label );
 	}
 	
 	@Override
@@ -189,13 +192,16 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                                    SynchronizationPointFailureReason reason )
 	{
 		// possibly we should be logging something here
+		logger.warn( "Registration of synchronization point '{}' failed", label );
 	}
 
 	@Override
 	public void announceSynchronizationPoint( String label, byte[] tag )
 	{
+		logger.debug( "Synchronization point '{}' has been announced", label );
+		
 		this.announcedSyncPoint = label;
-		synchronized (this.announcedPoints)
+		synchronized( mutex_lock )
 		{
 			this.announcedPoints.add( label );
 		}
@@ -210,11 +216,12 @@ public class FederateAmbassador extends NullFederateAmbassador
 	@Override
 	public void federationSynchronized( String label, FederateHandleSet handleSet )
 	{
-		this.currentSyncPoint = label;
-		synchronized( this.achievedPoints )
+		synchronized( mutex_lock )
 		{
+			this.currentSyncPoint = label;
 			this.achievedPoints.add( label );
 		}
+		logger.debug( "Federation has sycnhronized to '{}'.", label );
 	}
 
 	/**
@@ -224,8 +231,12 @@ public class FederateAmbassador extends NullFederateAmbassador
 	@SuppressWarnings("rawtypes")
 	public void timeRegulationEnabled( LogicalTime time )
 	{
-		this.federateTime = logicalTimeAsDouble( time );
-		this.isTimeRegulated = true;
+		synchronized( mutex_lock )
+		{
+    		this.federateTime = logicalTimeAsDouble( time );
+    		this.isTimeRegulated = true;
+		}
+		logger.debug( "Time regulation is enabled." );
 	}
 
 	/**
@@ -235,8 +246,12 @@ public class FederateAmbassador extends NullFederateAmbassador
 	@SuppressWarnings("rawtypes")
 	public void timeConstrainedEnabled( LogicalTime time )
 	{
-		this.federateTime = logicalTimeAsDouble( time );
-		this.isTimeConstrained = true;
+		synchronized( mutex_lock )
+		{
+    		this.federateTime = logicalTimeAsDouble( time );
+    		this.isTimeConstrained = true;
+		}
+		logger.debug( "Time constraint is enabled." );
 	}
 
 	/**
@@ -246,7 +261,12 @@ public class FederateAmbassador extends NullFederateAmbassador
 	@SuppressWarnings("rawtypes")
 	public void timeAdvanceGrant( LogicalTime time )
 	{
-		this.federateTime = logicalTimeAsDouble( time );
+		double dblTime = logicalTimeAsDouble( time );
+		synchronized( mutex_lock )
+		{
+			this.federateTime = dblTime; 
+		}
+		logger.debug( "Time advanced to {} has been granted.", dblTime );
 	}
 
 	/**

@@ -46,7 +46,7 @@ public abstract class FederateBase
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final Logger logger = LogManager.getLogger(FederateBase.class);
+	private static final Logger logger = LogManager.getLogger( FederateBase.class );
 	
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
@@ -577,7 +577,7 @@ public abstract class FederateBase
 				rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
 				hasJoinedFederation = true;
 				
-				System.out.println( String.format("Joined federation '{}'.", federationName ) );
+				logger.info( "Joined federation '{}'.", federationName );
 			}
 			catch(UCEFException e)
 			{
