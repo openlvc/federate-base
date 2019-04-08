@@ -67,9 +67,11 @@ class ChallengeFederate : public NoOpFederate
 				{
 					cout << "----" + pubClassName << endl;
 					vector<string> attributes = getFederateConfiguration()->getAttributeNamesPublished( pubClassName );
-					for( auto attribute : attributes )
+					for( auto& attribute : attributes )
 					{
-						cout << "--------" + attribute << endl;
+						DataType dataType = getFederateConfiguration()->getDataType( pubClassName, attribute );
+						string dataTypeStr = ConversionHelper::toStringDataType( dataType );
+						cout << "--------" + attribute << "(" << dataTypeStr << ")" << endl;
 					}
 				}
 
@@ -79,9 +81,11 @@ class ChallengeFederate : public NoOpFederate
 				{
 					cout << "----" + subClassName << endl;
 					vector<string> attributes = getFederateConfiguration()->getAttributeNamesSubscribed( subClassName );
-					for( auto attribute : attributes )
+					for( auto& attribute : attributes )
 					{
-						cout << "--------" + attribute << endl;
+						DataType dataType = getFederateConfiguration()->getDataType( subClassName, attribute );
+						string dataTypeStr = ConversionHelper::toStringDataType( dataType );
+						cout << "--------" + attribute << "(" << dataTypeStr << ")" << endl;
 					}
 				}
 
@@ -91,21 +95,25 @@ class ChallengeFederate : public NoOpFederate
 				{
 					cout << "----" + pubInteractionName << endl;
 					vector<string> params = getFederateConfiguration()->getParameterNames( pubInteractionName );
-					for( auto param : params )
+					for( auto& param : params )
 					{
-						cout << "--------" + param << endl;
+						DataType dataType = getFederateConfiguration()->getDataType( pubInteractionName, param );
+						string dataTypeStr = ConversionHelper::toStringDataType( dataType );
+						cout << "--------" + param << "(" << dataTypeStr << ")" << endl;
 					}
 				}
 
 				cout << "\n--Interactions subscribed by this federate--" << endl;
 				vector<string> subInteractionNames = getFederateConfiguration()->getInteractionNamesSubscribed();
-				for( auto subInteractionName : subInteractionNames )
+				for( auto& subInteractionName : subInteractionNames )
 				{
 					cout << "----" + subInteractionName << endl;
 					vector<string> params = getFederateConfiguration()->getParameterNames( subInteractionName );
-					for( auto param : params )
+					for( auto& param : params )
 					{
-						cout << "--------" + param << endl;
+						DataType dataType = getFederateConfiguration()->getDataType( subInteractionName, param );
+						string dataTypeStr = ConversionHelper::toStringDataType( dataType );
+						cout << "--------" + param << "(" << dataTypeStr << ")" << endl;
 					}
 				}
 			}
@@ -446,6 +454,7 @@ int main( int argc, char* argv[] )
 	federateConfig->setTimeStepSize( 1.0f );
 	federateConfig->addFomPath( string("ChallengeResponse/fom/ChallengeResponse.xml") );
 	federateConfig->addSomPath( string("ChallengeResponse/som/Challenge.xml") );
+	federateConfig->setPermisionToCreateFederation(true);
 	try
 	{
 		fed->runFederate();

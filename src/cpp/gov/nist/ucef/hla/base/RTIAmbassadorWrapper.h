@@ -197,7 +197,7 @@ namespace base
 			void registerFederationSynchronizationPoint( const std::string& synchPoint );
 
 			/**
-			 * Announces to the federation that this federate has achived a synchronization point
+			 * Announces to the federation that this federate has achived the given synchronization point
 			 *
 			 * @param synchPoint the name of the synchronization point achieved by this federate
 			 */

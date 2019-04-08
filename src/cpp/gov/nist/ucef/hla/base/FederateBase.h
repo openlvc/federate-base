@@ -74,6 +74,33 @@ namespace base
 			 */
 			virtual std::shared_ptr<base::FederateConfiguration> getFederateConfiguration() final;
 
+			/**
+			 * Determine the current lifecycle state of this federate.
+			 *
+			 * <b>NOTE:</b> The lifecycyle state is managed by the federate itself 
+			 * and cannot be manually altered.
+			 * <p/>
+			 * This principally provides a mechanism for federate implementations to differentiate between
+			 * the main three cases:
+			 * <ol>
+			 * <li> {@link LifecycleState#INITIALIZING} during {@link #beforeReadyToPopulate()},
+			 *      {@link #beforeReadyToRun()} or {@link #beforeFirstStep()}</li>
+			 * <li> {@link LifecycleState#RUNNING} during {@link #step(double)}</li>
+			 * <li> {@link LifecycleState#CLEANING_UP} during {@link #beforeReadyToResign()} or
+			 *      {@link #beforeExit()}</li>
+			 * <li> {@link LifecycleState#EXPIRED} during {@link #beforeExit()} </li>
+			 * <li> {@link LifecycleState#LIFE_CYCLE_UNKNOWN} in all other cases
+			 * </ol>
+			 *
+			 * This allows handling of incoming interactions and attribute reflections to be tailored to
+			 * the current lifecycle state of the federate.
+			 *
+			 * @return the current lifecycle state of this federate.
+			 *
+			 * See {@link LifecycleState} for all possible states.
+			 */
+			LifecycleState getLifecycleState();
+
 			//----------------------------------------------------------
 			//                    Business Logic
 			//----------------------------------------------------------
@@ -162,6 +189,30 @@ namespace base
 			void populateInteraction( const std::string& interactionClassName,
 			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
 			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+
+
+			/**
+			 * Achieve the specified synchronisation point
+			 *
+			 * @param synchPoint the name of the synchronisation point to be acheived
+			 */
+			void acheiveSynchronisation( std::string& synchPoint );
+
+			/**
+			 * Checks if the given synchronization point has been achieved by the federation
+			 *
+			 * @param label synchronization point identifier
+			 * @return true if the synchronization point has been achieved by the federation,
+			 *         false otherwise
+			 */
+			bool isAchieved( std::string& synchPoint );
+
+			/**
+			 * Announces a synchronisation point to the federation
+			 *
+			 * @param synchPoint the name of the synchronisation point to be announced
+			 */
+			void synchronize( std::string& synchPoint );
 
 		private:
 			//----------------------------------------------------------
@@ -258,12 +309,13 @@ namespace base
 		protected:
 			std::unique_ptr<RTIAmbassadorWrapper> rtiAmbassadorWrapper;
 			std::shared_ptr<FederateAmbassador> federateAmbassador;
+			std::shared_ptr<base::FederateConfiguration> ucefConfig;
 			std::mutex threadSafeLock;
 
 		private:
 			base::ObjectDataStoreByHash objectDataStoreByHash;
 			base::InteractionDataStoreByHash interactionDataStoreByHash;
 			base::ObjectDataStoreByInstance objectDataStoreByInstance;
-			std::shared_ptr<base::FederateConfiguration> ucefConfig;
+			LifecycleState lifecycleState;
 	};
 }

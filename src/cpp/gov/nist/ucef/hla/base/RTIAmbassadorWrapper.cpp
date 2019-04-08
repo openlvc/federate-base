@@ -91,8 +91,8 @@ namespace base
 		}
 		catch( Exception& e)
 		{
-			throw UCEFException( federateName + " failed to join the federation : " + federationName +
-			                     "due to :" + ConversionHelper::ws2s(e.what()) );
+			throw UCEFException( federateName + " failed to join the federation '" + federationName +
+			                     "' due to " + ConversionHelper::ws2s(e.what()) );
 		}
 	}
 

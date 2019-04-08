@@ -207,6 +207,50 @@ namespace base
 			 */
 			void setTimeConstrained( bool timeConstrained );
 
+			/**
+			 * Determines whether this federate has permission to create the configured federation
+			 *
+			 * @return true if the federate has permission to create the configured federation, false otherwise
+			 */
+			bool isPermittedToCreateFederation();
+
+			/**
+			 * Sets the permisson to create the federation if it is absent on startup
+			 *
+			 * @param permission if true, federate can attempt to create the federation on startup
+			 */
+			void setPermisionToCreateFederation( bool permission );
+
+			/**
+			 * Obtain the maximum number of join attempts to the federation
+			 *
+			 * @return the maximum number of join attempts to the federation
+			 */
+			int getMaxJoinAttempts();
+
+			/**
+			 * Configures federate's maximum number of join attempts to the federation
+			 *
+			 * @param jointAttempts the maximum number of join attempts to the federation
+			 */
+			void setMaxJoinAttempts( int jointAttempts );
+
+			/**
+			 * Returns the synchronization restriction when resigning
+			 *
+			 * @return true if the federate has to be synchronised to
+			 *              'READY_TO_RESIGN' before resigning.
+			 */
+			bool synchAtResign();
+
+			/**
+			 * Sets the synchronization restriction when resigning
+			 *
+			 * @param synch true if federate has to be synchronised to 'READY_TO_RESIGN' 
+			 *                   before resigning, false otherwise
+			 */
+			void synchAtResign( bool synch );
+
 			//----------------------------------------------------------
 			//                 SOM data
 			//----------------------------------------------------------
@@ -281,6 +325,18 @@ namespace base
 			 */
 			virtual std::vector<std::string> getParameterNames( const std::string& interactionName );
 
+
+			/**
+			 * Returns the data type of the given attribute or parameter
+			 * <p/>
+			 * If the data type cannot be resolved, DataType::DATATYPEUNKNOWN
+			 * will be returned
+			 *
+			 * @param className the name of an object or an interaction class
+			 * @return memberName attribute or parameter name of the given object/interaction class
+			 */
+			virtual DataType getDataType( const std::string& className, const std::string& memberName );
+
 		private:
 			std::string federationName;
 			std::string federateName;
@@ -292,6 +348,9 @@ namespace base
 			bool immediateCallBacks;
 			bool timeRegulated;
 			bool timeConstrained;
+			bool permitToCreateFederation;
+			int maxJoinAttempts;
+			bool synchBeforeResign;
 			ObjectDataStoreByName objectDataStoreByName;
 			InteractionDataStoreByName interactionDataStoreByName;
 	};
