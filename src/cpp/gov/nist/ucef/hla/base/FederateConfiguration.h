@@ -241,7 +241,7 @@ namespace base
 			 * @return true if the federate has to be synchronised to
 			 *              'READY_TO_RESIGN' before resigning.
 			 */
-			bool synchAtResign();
+			bool syncBeforeResign();
 
 			/**
 			 * Sets the synchronization restriction when resigning
@@ -249,7 +249,7 @@ namespace base
 			 * @param synch true if federate has to be synchronised to 'READY_TO_RESIGN' 
 			 *                   before resigning, false otherwise
 			 */
-			void synchAtResign( bool synch );
+			void syncBeforeResign( bool synch );
 
 			//----------------------------------------------------------
 			//                 SOM data

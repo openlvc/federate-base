@@ -149,12 +149,12 @@ namespace base
 		this->maxJoinAttempts = jointAttempts;
 	}
 
-	bool FederateConfiguration::synchAtResign()
+	bool FederateConfiguration::syncBeforeResign()
 	{
 		return this->synchBeforeResign;
 	}
 
-	void FederateConfiguration::synchAtResign( bool synch )
+	void FederateConfiguration::syncBeforeResign( bool synch )
 	{
 		this->synchBeforeResign = synch;
 	}

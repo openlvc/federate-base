@@ -228,7 +228,7 @@ namespace base
 		}
 	}
 
-	void FederateBase::acheiveSynchronisation( string& synchPoint )
+	void FederateBase::achieveSynchronization( string& synchPoint )
 	{
 		try
 		{
@@ -242,8 +242,8 @@ namespace base
 
 	bool FederateBase::isAchieved( string& synchPoint )
 	{
-		bool acheived = federateAmbassador->isAchieved( synchPoint );
-		return acheived;
+		bool achieved = federateAmbassador->isAchieved( synchPoint );
+		return achieved;
 	}
 
 	void FederateBase::synchronize( string& synchPoint )
@@ -276,8 +276,8 @@ namespace base
 		string synchPointStr = ConversionHelper::SynchPointToString( point );
 		synchronize( synchPointStr );
 
-		// immedietly acheive the announced synch point
-		acheiveSynchronisation( synchPointStr );
+		// immedietly achieve the announced synch point
+		achieveSynchronization( synchPointStr );
 
 		logger.log( "Waiting till the federation achieve synchronization " + ConversionHelper::SynchPointToString(point), LevelInfo );
 		while( !this->isAchieved(synchPointStr) )
@@ -492,7 +492,7 @@ namespace base
 		beforeReadyToResign();
 
 		// now we are ready to resign from this federation
-		if( ucefConfig->synchAtResign() )
+		if( ucefConfig->syncBeforeResign() )
 			synchronize( READY_TO_RESIGN );
 
 		// before exit hook for cleanup

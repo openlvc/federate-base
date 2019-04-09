@@ -194,9 +194,9 @@ namespace base
 			/**
 			 * Achieve the specified synchronisation point
 			 *
-			 * @param synchPoint the name of the synchronisation point to be acheived
+			 * @param synchPoint the name of the synchronisation point to be achieved
 			 */
-			void acheiveSynchronisation( std::string& synchPoint );
+			void achieveSynchronization( std::string& synchPoint );
 
 			/**
 			 * Checks if the given synchronization point has been achieved by the federation
