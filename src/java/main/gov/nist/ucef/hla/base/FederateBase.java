@@ -183,12 +183,15 @@ public abstract class FederateBase
 		
 		publishAndSubscribe();
 
+		tickForCallBacks();
 		beforeReadyToPopulate();
 		synchronize( UCEFSyncPoint.READY_TO_POPULATE );
 
+		tickForCallBacks();
 		beforeReadyToRun();
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
 		
+		tickForCallBacks();
 		beforeFirstStep();
 	}
 	
@@ -213,8 +216,13 @@ public abstract class FederateBase
 	{
 		disableTimePolicy();
 
+		tickForCallBacks();
 		beforeReadyToResign();
-		synchronize( UCEFSyncPoint.READY_TO_RESIGN );
+		
+		if( this.configuration.shouldSyncBeforeResign() )
+			synchronize( UCEFSyncPoint.READY_TO_RESIGN );
+		
+		tickForCallBacks();
 		beforeExit();
 
 		resignAndDestroyFederation();
@@ -536,14 +544,16 @@ public abstract class FederateBase
 	 */
 	protected void createFederation()
 	{
+		String federationName = configuration.getFederationName();
+		
 		if( !configuration.canCreateFederation() )
 		{
 			// this federate is not allowed to create federations - they must already
 			// exist (i.e., have been created by something else)
+			logger.info( "No permission to create federation {} - skipping creation attempt....", federationName );
 			return;
 		}
 			
-		String federationName = configuration.getFederationName();
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederationExecution( federationName, modules );
 		
@@ -561,8 +571,8 @@ public abstract class FederateBase
 		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
 		
 		int retryCount = 0;
-		long retryInterval = configuration.getReconnectRetryInterval();
-		int maxRetries = configuration.getMaxReconnectAttempts();
+		long retryInterval = configuration.getJoinRetryInterval();
+		int maxRetries = configuration.getMaxJoinAttempts();
 		boolean hasJoinedFederation = false;
 		while( !hasJoinedFederation && retryCount < maxRetries )
 		{
@@ -587,7 +597,7 @@ public abstract class FederateBase
 					logger.warn( "Retrying in {} second{}...",
                                  retryInterval,
                                  (retryInterval == 1 ? "" : "s") );
-				delayFor( retryInterval );
+				delayFor( retryInterval * 1000 );
 			}
 		}
 		
@@ -608,56 +618,81 @@ public abstract class FederateBase
 	 */
 	protected void synchronize( UCEFSyncPoint syncPoint )
 	{
-		synchronize( syncPoint.getLabel() );
+		registerSyncPoint( syncPoint.getLabel(), null );
+		// automatically achieve the sync point
+		achieveSyncPoint( syncPoint.getLabel() );
+		waitForSyncPointAchievement( syncPoint.getLabel() );
 	}
 	
 	/**
-	 * Registers the specified synchronization point, and then waits for the federation to reach
-	 * the same synchronization point
-	 * 
-	 * @param label the identifier of the synchronization point to synchronize to
-	 */
-	protected void synchronize( String label )
-	{
-		// register the sync point
-		registerSyncPointAndWaitForAnnounce( label, null );
-		// achieve the sync point
-		achieveSyncPointAndWaitForFederation( label );
-	}
-
-	/**
-	 * Registers a synchronization point and waits for the announcement of that synchronization
-	 * point
+	 * Registers a synchronization point
 	 * 
 	 * @param label the synchronization point label
 	 * @param tag a tag to go along with the synchronization point registration (may be null)
 	 */
-	protected void registerSyncPointAndWaitForAnnounce( String label, byte[] tag )
+	protected void registerSyncPoint( String label, byte[] tag )
 	{
 		// Note that if the point already been registered, there will be a callback saying this
 		// failed, but as long as *someone* registered it everything is fine
 		rtiamb.registerFederationSynchronizationPoint( label, tag );
+	}
+
+	/**
+	 * Waits for the announcement of a synchronization point
+	 * 
+	 * @param label the synchronization point label
+	 */
+	protected void waitForSyncPointAnnouncement( String label )
+	{
 		while( !fedamb.isAnnounced( label ) )
 		{
 			evokeMultipleCallbacks();
 		}
 	}
-
+	
 	/**
-	 * Achieves a synchronization point and waits for the federation to achieve that
-	 * synchronization point
+	 * Check if a synchronization point has been announced
 	 * 
 	 * @param label the synchronization point label
 	 */
-	protected void achieveSyncPointAndWaitForFederation( String label )
+	protected boolean isAnnounced( String label )
+	{
+		return fedamb.isAnnounced( label );
+	}
+	
+	/**
+	 * Achieves a synchronization point
+	 * 
+	 * @param label the synchronization point label
+	 */
+	protected void achieveSyncPoint( String label )
 	{
 		rtiamb.synchronizationPointAchieved( label );
+	}
+
+	/**
+	 * Waits for the federation to achieve the synchronization point
+	 * 
+	 * @param label the synchronization point label
+	 */
+	protected void waitForSyncPointAchievement( String label )
+	{
 		while( !fedamb.isAchieved( label ) )
 		{
 			evokeMultipleCallbacks();
 		}
 	}
-
+	
+	/**
+	 * Check if a synchronization point has been achieved yet
+	 * 
+	 * @param label the synchronization point label
+	 */
+	protected void isAchieved( String label )
+	{
+		fedamb.isAchieved( label );
+	}
+	
 	/**
 	 * Advance time according to configuration
 	 */
@@ -869,14 +904,23 @@ public abstract class FederateBase
 		}
 	}
 	
-	private void delayFor(long seconds)
+	private void tickForCallBacks()
+	{
+		if( this.configuration.callbacksAreEvoked() )
+			evokeMultipleCallbacks();
+		else
+			delayFor(1);
+	}	
+	
+	private void delayFor(long milliseconds)
 	{
 		try
 		{
-			Thread.sleep( seconds * 1000 );
+			Thread.sleep( milliseconds );
 		}
-		catch( InterruptedException e1 )
+		catch( InterruptedException e )
 		{
+			// ignore
 		}
 	}
 	

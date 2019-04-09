@@ -449,7 +449,8 @@ public class FedManFederate extends NoOpFederate
 	{
 		for( UCEFSyncPoint syncPoint : UCEFSyncPoint.values() )
 		{
-			registerSyncPointAndWaitForAnnounce( syncPoint.getLabel(), null );
+			registerSyncPoint( syncPoint.getLabel(), null );
+			waitForSyncPointAnnouncement( syncPoint.getLabel() );
 		}
 	}
 	

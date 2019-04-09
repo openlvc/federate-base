@@ -85,8 +85,8 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( federateName, config.getFederateName() );
 		assertEquals( federateType, config.getFederateType() );
 		
-		assertEquals(5, config.getMaxReconnectAttempts());
-		assertEquals(5L, config.getReconnectRetryInterval());
+		assertEquals(5, config.getMaxJoinAttempts());
+		assertEquals(5L, config.getJoinRetryInterval());
 		assertEquals(false, config.isLateJoiner());
 		assertEquals(true, config.isTimeStepped());
 		assertEquals(false, config.callbacksAreEvoked());
@@ -172,8 +172,8 @@ public class FederateConfigurationTest extends TestCase
 			  .addSubscribedAttributes( expectedSubscribedAttributes )
 			  .addPublishedInteractions( expectedPublishedInteractions )
 			  .addSubscribedInteractions( expectedSubscribedInteractions)
-			  .setMaxReconnectAttempts( expectedMaxReconnectAttempts )
-			  .setReconnectRetryInterval( expectedReconnectRetryInterval )
+			  .setMaxJoinAttempts( expectedMaxReconnectAttempts )
+			  .setJoinRetryInterval( expectedReconnectRetryInterval )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
 			  .setLateJoiner( expectedIsLateJoiner )
@@ -187,8 +187,8 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( federateName, config.getFederateName() );
 		assertEquals( federateType, config.getFederateType() );
 		
-		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts() );
-		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval() );
+		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts() );
+		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval() );
 		assertEquals( expectedIsLateJoiner, config.isLateJoiner() );
 		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked() );
 		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
@@ -219,14 +219,14 @@ public class FederateConfigurationTest extends TestCase
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedMaxReconnectAttempts != config.getMaxReconnectAttempts() );
+		assertTrue( expectedMaxReconnectAttempts != config.getMaxJoinAttempts() );
 		// try changing the value
-		config.setMaxReconnectAttempts( expectedMaxReconnectAttempts );
-		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts());
+		config.setMaxJoinAttempts( expectedMaxReconnectAttempts );
+		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts());
 		// freeze the config and try to change the value - should not change
 		config.freeze();
-		config.setMaxReconnectAttempts( expectedMaxReconnectAttempts + 1 );
-		assertEquals( expectedMaxReconnectAttempts, config.getMaxReconnectAttempts());
+		config.setMaxJoinAttempts( expectedMaxReconnectAttempts + 1 );
+		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts());
 	}
 	
 	/**
@@ -241,14 +241,14 @@ public class FederateConfigurationTest extends TestCase
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedReconnectRetryInterval != config.getReconnectRetryInterval() );
+		assertTrue( expectedReconnectRetryInterval != config.getJoinRetryInterval() );
 		// try changing the value
-		config.setReconnectRetryInterval( expectedReconnectRetryInterval );
-		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval());
+		config.setJoinRetryInterval( expectedReconnectRetryInterval );
+		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval());
 		// freeze the config and try to change the value - should not change
 		config.freeze();
-		config.setMaxReconnectAttempts( expectedReconnectRetryInterval + 1 );
-		assertEquals( expectedReconnectRetryInterval, config.getReconnectRetryInterval());
+		config.setMaxJoinAttempts( expectedReconnectRetryInterval + 1 );
+		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval());
 	}
 	
 	/**
