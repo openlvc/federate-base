@@ -62,9 +62,11 @@ public class FederateConfiguration
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
-	private static final int DEFAULT_MAX_RECONNECT_ATTEMPTS = 5;
-	private static final long DEFAULT_RECONNECT_RETRY_INTERVAL_SEC = 5;
+	private static final int DEFAULT_MAX_JOIN_ATTEMPTS = 5;
+	private static final long DEFAULT_JOIN_RETRY_INTERVAL_SEC = 5;
 	private static final boolean DEFAULT_IS_LATE_JOINER = false;
+	private static final boolean DEFAULT_SYNC_BEFORE_RESIGN = false;
+	
 	private static final boolean DEFAULT_IS_TIME_STEPPED = true;
 	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED = false;
 	private static final double DEFAULT_LOOK_AHEAD = 1.0;
@@ -82,9 +84,12 @@ public class FederateConfiguration
 	private Map<String,Types.ObjectClass> pubSubAttributes;
 
 	private boolean canCreateFederation;
-	private int maxReconnectAttempts;
-	private long reconnectRetryIntervalSec;
+	private int maxJoinAttempts;
+	private long joinRetryIntervalSec;
+	
 	private boolean isLateJoiner;
+	private boolean syncBeforeResign;
+	
 	private boolean isTimeStepped;
 	private boolean callbacksAreEvoked;
 	private double lookAhead;
@@ -116,9 +121,12 @@ public class FederateConfiguration
 		this.pubSubInteractions = new HashMap<>();
 		
 		this.canCreateFederation = DEFAULT_SHOULD_CREATE_FEDERATION;
-		this.maxReconnectAttempts = DEFAULT_MAX_RECONNECT_ATTEMPTS;
-		this.reconnectRetryIntervalSec = DEFAULT_RECONNECT_RETRY_INTERVAL_SEC;
+		this.maxJoinAttempts = DEFAULT_MAX_JOIN_ATTEMPTS;
+		this.joinRetryIntervalSec = DEFAULT_JOIN_RETRY_INTERVAL_SEC;
+		
 		this.isLateJoiner = DEFAULT_IS_LATE_JOINER;
+		this.syncBeforeResign = DEFAULT_SYNC_BEFORE_RESIGN;
+		
 		this.isTimeStepped = DEFAULT_IS_TIME_STEPPED;
 		this.callbacksAreEvoked = DEFAULT_ARE_CALLBACKS_EVOKED;
 		this.lookAhead = DEFAULT_LOOK_AHEAD;
@@ -144,8 +152,9 @@ public class FederateConfiguration
 		
 		builder.append( dotRule );
 		builder.append( "Create Federation?         : " + (this.canCreateFederation?"Yes":"No") + "\n" );
-		builder.append( "Maximum Recconect Attempts : " + this.maxReconnectAttempts + "\n" );
-		builder.append( "Reconnect Wait Time        : " + this.reconnectRetryIntervalSec + " seconds\n" );
+		builder.append( "Maximum Recconect Attempts : " + this.maxJoinAttempts + "\n" );
+		builder.append( "Reconnect Wait Time        : " + this.joinRetryIntervalSec + " seconds\n" );
+		builder.append( "Sync before resigning?     : " + (this.syncBeforeResign?"Yes":"No") + "\n" );
 		builder.append( "Late Joiner?               : " + (this.isLateJoiner?"Yes":"No") + "\n" );
 		builder.append( "Time Stepped?              : " + (this.isTimeStepped?"Yes":"No") + "\n" );
 		builder.append( "Are Callbacks Evoked?      : " + (this.callbacksAreEvoked?"Yes":"No") + "\n" );
@@ -306,25 +315,36 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Obtain the maximum number of reconnection attempts
+	 * Obtain the maximum number of attempts to join a federation
 	 * 
-	 * @return the maximum number of reconnection attempts
+	 * @return the maximum number of attempts to join a federation
 	 */
-	public int getMaxReconnectAttempts()
+	public int getMaxJoinAttempts()
 	{
-		return maxReconnectAttempts;
+		return maxJoinAttempts;
 	}
 
 	/**
-	 * Obtain the reconnection retry interval in seconds
+	 * Obtain the interval, in seconds, between attempts to join a federation
 	 * 
-	 * @return the reconnection retry interval in seconds
+	 * @return the interval, in seconds, between attempts to join a federation
 	 */
-	public long getReconnectRetryInterval()
+	public long getJoinRetryInterval()
 	{
-		return reconnectRetryIntervalSec;
+		return joinRetryIntervalSec;
 	}
 
+	/**
+	 * Determine whether the federate should synchronize before resigning from the federation
+	 * 
+	 * @return true if the federate must synchronize before resigning from the federation, 
+	 *         otherwise it's OK to exit without synchronizing
+	 */
+	public boolean shouldSyncBeforeResign()
+	{
+		return syncBeforeResign;
+	}
+	
 	/**
 	 * Obtain the lookahead
 	 * 
@@ -519,35 +539,49 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Configure the federate's maximum number of reconnection attempts
+	 * Configure the federate's maximum number of attempts to join a federation
 	 * 
-	 * @param maxReconnectAttempts the maximum number of reconnection attempts
+	 * @param maxJoinAttempts the maximum number of attempts to join a federation
 	 * @return this instance
 	 */
-	public FederateConfiguration setMaxReconnectAttempts( int maxReconnectAttempts )
+	public FederateConfiguration setMaxJoinAttempts( int maxJoinAttempts )
 	{
 		if(canWrite())
-			this.maxReconnectAttempts = maxReconnectAttempts;
+			this.maxJoinAttempts = maxJoinAttempts;
 		return this;
 	}
 
 	/**
-	 * Configure the federate's reconnect retry interval in seconds
+	 * Configure the interval, in seconds, between attempts to join a federation
 	 * 
-	 * @param the federate's reconnect retry interval in seconds
+	 * @param retryIntervalSec the interval, in seconds, between attempts to join a federation
 	 * @return this instance
 	 */
-	public FederateConfiguration setReconnectRetryInterval( long retryIntervalSec )
+	public FederateConfiguration setJoinRetryInterval( long retryIntervalSec )
 	{
 		if(canWrite())
-			this.reconnectRetryIntervalSec = retryIntervalSec;
+			this.joinRetryIntervalSec = retryIntervalSec;
 		return this;
 	}
 
+	/**
+	 * Configure whether the federate should synchronize before resigning from the federation
+	 * 
+	 * @param syncBeforeResign if true, synchronize before resigning from the federation, otherwise
+	 *        it's OK to exit without synchronizing
+	 * @return this instance
+	 */
+	public FederateConfiguration setSyncBeforeResign( boolean syncBeforeResign )
+	{
+		// NOTE: no write guards here - needs to be able to change while active
+		this.syncBeforeResign = syncBeforeResign;
+		return this;
+	}
+	
 	/**
 	 * Configure the federate's lookahead
 	 * 
-	 * @param lookahead the lookahead
+	 * @param lookAhead the lookahead
 	 * @return this instance
 	 */
 	public FederateConfiguration setLookAhead( double lookAhead )
@@ -586,7 +620,7 @@ public class FederateConfiguration
 	/**
 	 * Configure whether the federate is configured to be time stepped
 	 * 
-	 * @param isLateJoiner true if the federate to be time stepped, false otherwise
+	 * @param isTimeStepped true if the federate to be time stepped, false otherwise
 	 * @return this instance
 	 */
 	public FederateConfiguration setTimeStepped( boolean isTimeStepped )
@@ -599,7 +633,7 @@ public class FederateConfiguration
 	/**
 	 * Configure whether the federate is configured to use evoked callbacks
 	 * 
-	 * @param isLateJoiner true if the federate is configured to use evoked callbacks, false otherwise
+	 * @param callbacksAreEvoked true if the federate is configured to use evoked callbacks, false otherwise
 	 * @return this instance
 	 */
 	public FederateConfiguration setCallbacksAreEvoked( boolean callbacksAreEvoked )
@@ -985,6 +1019,7 @@ public class FederateConfiguration
 	 * 
 	 * If it is no modifiable, an ERROR level error log will be produced
 	 * 
+	 * @param value the value
 	 * @return true if this instance is currently modifiable and that the parameter is not null or
 	 *         empty, false otherwise
 	 */
@@ -999,12 +1034,13 @@ public class FederateConfiguration
 	 * 
 	 * If it is no modifiable, an ERROR level error log will be produced
 	 * 
+	 * @param values the values
 	 * @return true if this instance is currently modifiable and that the parameter is not null or
 	 *         empty, false otherwise
 	 */
-	private boolean canWrite( Collection<?> value )
+	private boolean canWrite( Collection<?> values )
 	{
-		return canWrite() && notNullOrEmpty( value );
+		return canWrite() && notNullOrEmpty( values );
 	}
 
 	/**
@@ -1013,12 +1049,13 @@ public class FederateConfiguration
 	 * 
 	 * If it is no modifiable, an ERROR level error log will be produced
 	 * 
+	 * @param values the values
 	 * @return true if this instance is currently modifiable and that the parameter is not null or
 	 *         empty, false otherwise
 	 */
-	private boolean canWrite( Map<?,?> value )
+	private boolean canWrite( Map<?,?> values )
 	{
-		return canWrite() && notNullOrEmpty( value );
+		return canWrite() && notNullOrEmpty( values );
 	}
 
 	/**

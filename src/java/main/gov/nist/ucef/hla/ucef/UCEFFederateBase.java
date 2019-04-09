@@ -204,6 +204,10 @@ public abstract class UCEFFederateBase extends FederateBase
         		
         		if( SimEnd.interactionName().equals( interactionClassName ) )
         		{
+        			// if a SimEnd is received, a UCEF federate must synchronize with the
+        			// rest of the federation before resigning
+        			this.configuration.setSyncBeforeResign( true );
+        			
         			simShouldEnd = true;
         			receiveSimEnd( new SimEnd( interaction ), time );
         		}
@@ -248,6 +252,10 @@ public abstract class UCEFFederateBase extends FederateBase
         		
         		if( SimEnd.interactionName().equals( interactionClassName ) )
         		{
+        			// if a SimEnd is received, a UCEF federate must synchronize with the
+        			// rest of the federation before resigning
+        			this.configuration.setSyncBeforeResign( true );
+        			
         			simShouldEnd = true;
         			receiveSimEnd( new SimEnd( interaction ) );
         		}

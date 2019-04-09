@@ -205,12 +205,6 @@ public class FederateAmbassador extends NullFederateAmbassador
 		{
 			this.announcedPoints.add( label );
 		}
-		
-		if( UCEFSyncPoint.isUnknown( label ) )
-		{
-			// non-UCEF synchronization point - should probably just achieve it immediately
-			this.federateBase.rtiamb.synchronizationPointAchieved( label );
-		}
 	}
 
 	@Override
