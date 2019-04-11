@@ -14,7 +14,10 @@ namespace base
 	                                                 stepSize( 1.0 ),
 	                                                 immediateCallBacks( true ),
 	                                                 timeRegulated( true ),
-	                                                 timeConstrained( true )
+	                                                 timeConstrained( true ),
+	                                                 permitToCreateFederation( false ),
+	                                                 maxJoinAttempts( 1 ),
+	                                                 synchBeforeResign( false )
 	{
 	}
 
@@ -124,6 +127,36 @@ namespace base
 	void FederateConfiguration::setTimeConstrained( bool timeConstrained )
 	{
 		this->timeConstrained = timeConstrained;
+	}
+
+	bool FederateConfiguration::isPermittedToCreateFederation()
+	{
+		return permitToCreateFederation;
+	}
+
+	void FederateConfiguration::setPermisionToCreateFederation( bool permission )
+	{
+		this->permitToCreateFederation = permission;
+	}
+
+	int FederateConfiguration::getMaxJoinAttempts()
+	{
+		return maxJoinAttempts;
+	}
+
+	void FederateConfiguration::setMaxJoinAttempts( int jointAttempts )
+	{
+		this->maxJoinAttempts = jointAttempts;
+	}
+
+	bool FederateConfiguration::syncBeforeResign()
+	{
+		return this->synchBeforeResign;
+	}
+
+	void FederateConfiguration::syncBeforeResign( bool synch )
+	{
+		this->synchBeforeResign = synch;
 	}
 
 	void FederateConfiguration::cacheObjectClass( shared_ptr<ObjectClass>& objectClass )
@@ -239,5 +272,34 @@ namespace base
 			}
 		}
 		return parameterNames;
+	}
+	DataType FederateConfiguration::getDataType( const string& className, const string& memberName )
+	{
+		DataType dataType = DATATYPEUNKNOWN;
+
+		ObjectDataStoreByName::iterator objIt = this->objectDataStoreByName.find( className );
+		if( objIt != this->objectDataStoreByName.end() ) // check object classes
+		{
+			ObjectAttributes& attributes = objIt->second->objectAttributes;
+			ObjectAttributes::iterator attIt = attributes.find( memberName );
+			if( attIt != attributes.end() ) // found an attribute with given class name and member name
+			{
+				dataType = attIt->second->type;
+			}
+		}
+		else // check parameter classes
+		{
+			InteractionDataStoreByName::iterator intIt = this->interactionDataStoreByName.find( className );
+			if( intIt != this->interactionDataStoreByName.end() )
+			{
+				InteractionParameters& parameters = intIt->second->parameters;
+				InteractionParameters::iterator paramIt = parameters.find( memberName );
+				if( paramIt != parameters.end()) // found a parameter with the given class name and member name
+				{
+					dataType = paramIt->second->type;
+				}
+			}
+		}
+		return dataType;
 	}
 }

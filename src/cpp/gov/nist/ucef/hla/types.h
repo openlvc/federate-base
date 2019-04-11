@@ -59,6 +59,40 @@ namespace base
 		POINT_UNKNOWN = 3
 	};
 
+	/**
+	 *  Represents the life cycle state of this federate
+	 *
+	 *  @see FederateBase#getLifecycleState()
+	 */
+	enum LifecycleState
+	{
+		INITIALIZING,
+		RUNNING,
+		CLEANING_UP,
+		EXPIRED,
+		LIFE_CYCLE_UNKNOWN
+	};
+
+	/**
+	 *  Represents data type of an attribute or interaction parameter
+	 *
+	 *  @see ObjectAttribute
+	 *  @see InteractionParameter
+	 */
+	enum DataType
+	{
+		DATATYPEBYTE,
+		DATATYPECHAR,
+		DATATYPESHORT,
+		DATATYPEINT,
+		DATATYPELONG,
+		DATATYPEFLOAT,
+		DATATYPEDOUBLE,
+		DATATYPEBOOLEAN,
+		DATATYPESTRING,
+		DATATYPEUNKNOWN
+	};
+
 	//----------------------------------------
 	//            Struct declaration
 	//-----------------------------------------
@@ -70,15 +104,17 @@ namespace base
 	 */
 	struct ObjectAttribute
 	{
-		ObjectAttribute() : name(""),
-		                    publish(false),
-		                    subscribe(false)
+		ObjectAttribute() : name( "" ),
+		                    publish( false ),
+		                    subscribe( false ),
+		                    type( DATATYPEUNKNOWN )
 		{
 		}
 
 		std::string name;
 		bool publish;
 		bool subscribe;
+		DataType type;
 	};
 
 	/**
@@ -90,9 +126,9 @@ namespace base
 	typedef std::unordered_map<std::string, std::shared_ptr<ObjectAttribute>> ObjectAttributes;
 	struct ObjectClass
 	{
-		ObjectClass() : name(""),
-		                publish(false),
-		                subscribe(false),
+		ObjectClass() : name( "" ),
+		                publish( false ),
+		                subscribe( false ),
 		                objectAttributes{}
 		{
 		}
@@ -109,11 +145,13 @@ namespace base
 	 */
 	struct InteractionParameter
 	{
-		InteractionParameter() : name("")
+		InteractionParameter() : name( "" ),
+		                         type( DATATYPEUNKNOWN )
 		{
 
 		}
 		std::string name;
+		DataType type;
 	};
 
 	/**
@@ -125,9 +163,9 @@ namespace base
 	typedef std::unordered_map<std::string, std::shared_ptr<InteractionParameter>> InteractionParameters;
 	struct InteractionClass
 	{
-		InteractionClass() : name(""),
-		                     publish(false),
-		                     subscribe(false),
+		InteractionClass() : name( "" ),
+		                     publish( false ),
+		                     subscribe( false ),
 		                     parameters{}
 		{
 
@@ -241,6 +279,102 @@ namespace base
 				}
 
 				/**
+				 * Converts a data type string to an equivalent data type enum
+				 *
+				 * @param dataTypeString string representation of a data type
+				 * @return the equivalent enum representation of a data type string
+				 */
+				static DataType toEnumDataType( const std::string& dataTypeString )
+				{
+					DataType dataType = DataType::DATATYPEUNKNOWN;
+					if( dataTypeString == "byte" )
+					{
+						dataType = DataType::DATATYPEBYTE;
+					}
+					else if( dataTypeString == "char" )
+					{
+						dataType = DataType::DATATYPECHAR;
+					}
+					else if( dataTypeString == "short" )
+					{
+						dataType = DataType::DATATYPESHORT;
+					}
+					else if( dataTypeString == "int" )
+					{
+						dataType = DataType::DATATYPEINT;
+					}
+					else if( dataTypeString == "long" )
+					{
+						dataType = DataType::DATATYPELONG;
+					}
+					else if( dataTypeString == "float" )
+					{
+						dataType = DataType::DATATYPEFLOAT;
+					}
+					else if( dataTypeString == "double" )
+					{
+						dataType = DataType::DATATYPEDOUBLE;
+					}
+					else if( dataTypeString == "boolean" )
+					{
+						dataType = DataType::DATATYPEBOOLEAN;
+					}
+					else if( dataTypeString == "String" )
+					{
+						dataType = DataType::DATATYPESTRING;
+					}
+					return dataType;
+				}
+
+				/**
+				 * Converts a data type enum to an equivalent data type string representation
+				 *
+				 * @param dataType enum representation of a data type
+				 * @return the equivalent string representation of a data type enum
+				 */
+				static std::string toStringDataType( const DataType dataType )
+				{
+					std::string dataTypeStr = "unknown";
+					if( dataType == DataType::DATATYPEBYTE )
+					{
+						dataTypeStr = "byte";
+					}
+					else if( dataType == DataType::DATATYPECHAR )
+					{
+						dataTypeStr = "char";
+					}
+					else if( dataType == DataType::DATATYPESHORT )
+					{
+						dataTypeStr = "short";
+					}
+					else if( dataType == DataType::DATATYPEINT )
+					{
+						dataTypeStr = "int";
+					}
+					else if( dataType == DataType::DATATYPELONG )
+					{
+						dataTypeStr = "long";
+					}
+					else if( dataType == DataType::DATATYPEFLOAT )
+					{
+						dataTypeStr = "float";
+					}
+					else if( dataType == DataType::DATATYPEDOUBLE )
+					{
+						dataTypeStr = "double";
+					}
+					else if( dataType == DataType::DATATYPEBOOLEAN )
+					{
+						dataTypeStr = "boolean";
+					}
+					else if( dataType == DataType::DATATYPESTRING )
+					{
+						dataTypeStr = "String";
+					}
+					return dataTypeStr;
+				}
+
+				/**
 				 * Converts a synchronization point to an equivalent string representation
 				 * 
 				 * @param point synchronization point
@@ -299,7 +433,7 @@ namespace base
 					using convert_typeX = std::codecvt_utf8<wchar_t>;
 					std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-					return converterX.from_bytes(str);
+					return converterX.from_bytes( str );
 				}
 
 				/**
@@ -308,12 +442,12 @@ namespace base
 				 * @param wstr the msg that required string representation
 				 * @return the string representation of a wstring
 				 */
-				static std::string ws2s(const std::wstring& wstr)
+				static std::string ws2s( const std::wstring& wstr )
 				{
 					using convert_typeX = std::codecvt_utf8<wchar_t>;
 					std::wstring_convert<convert_typeX, wchar_t> converterX;
 
-					return converterX.to_bytes(wstr);
+					return converterX.to_bytes( wstr );
 				}
 		};
 	}

@@ -143,6 +143,14 @@ namespace base
 								objectAttribute->subscribe = 
 										ConversionHelper::isSubscribe(attributeSharingElement->GetText());
 							}
+
+							// data type of this attribute
+							XMLElement* attributeDataTypeElement = attrElement->FirstChildElement( "dataType" );
+							if( attributeDataTypeElement )
+							{
+								objectAttribute->type = ConversionHelper::toEnumDataType( attributeDataTypeElement->GetText() );
+							}
+
 							attributes.push_back( objectAttribute );
 						}
 					}
@@ -195,6 +203,13 @@ namespace base
 										ConversionHelper::isSubscribe(attributeSharingElement->GetText());
 							}
 
+							// data type of this attribute
+							XMLElement* attributeDataTypeElement = attrElement->FirstChildElement( "dataType" );
+							if( attributeDataTypeElement )
+							{
+								objectAttribute->type = ConversionHelper::toEnumDataType( attributeDataTypeElement->GetText() );
+							}
+
 							attributes.push_back( objectAttribute );
 						}
 					}
@@ -242,12 +257,20 @@ namespace base
 						 paramElement != NULL; paramElement = paramElement->NextSiblingElement( "parameter" ))
 					{
 						// try to get the name tag in a param
-						XMLElement* attributeNameElement = paramElement->FirstChildElement( "name" );
-						if( attributeNameElement )
+						XMLElement* paramNameElement = paramElement->FirstChildElement( "name" );
+						if( paramNameElement )
 						{
 							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
 							// get param's name as in SOM
-							interactionParam->name = attributeNameElement->GetText();
+							interactionParam->name = paramNameElement->GetText();
+
+							// data type of this parameter
+							XMLElement* paramDataTypeElement = paramElement->FirstChildElement( "dataType" );
+							if( paramDataTypeElement )
+							{
+								interactionParam->type = ConversionHelper::toEnumDataType( paramDataTypeElement->GetText() );
+							}
+
 							params.push_back( interactionParam );
 						}
 					}
@@ -279,6 +302,14 @@ namespace base
 							shared_ptr<InteractionParameter> interactionParam = make_shared<InteractionParameter>();
 							// get attribute's name as in SOM
 							interactionParam->name = paramNameElement->GetText();
+
+							// data type of this parameter
+							XMLElement* paramDataTypeElement = paramElement->FirstChildElement("dataType");
+							if (paramDataTypeElement)
+							{
+								interactionParam->type = ConversionHelper::toEnumDataType(paramDataTypeElement->GetText());
+							}
+
 							params.push_back( interactionParam );
 						}
 					}

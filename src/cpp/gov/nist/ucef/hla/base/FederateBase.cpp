@@ -25,7 +25,8 @@ namespace base
 
 	FederateBase::FederateBase() : rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
 	                               federateAmbassador( make_shared<FederateAmbassador>(this) ),
-	                               ucefConfig( make_shared<FederateConfiguration>() )
+	                               ucefConfig( make_shared<FederateConfiguration>() ),
+	                               lifecycleState( LIFE_CYCLE_UNKNOWN )
 	{
 
 	}
@@ -37,12 +38,16 @@ namespace base
 
 	void FederateBase::runFederate()
 	{
+		lifecycleState = INITIALIZING;
 		// Prepare this federate for execution
 		federateSetup();
+		lifecycleState = RUNNING;
 		// The main execution of the federate
 		federateExecute();
+		lifecycleState = CLEANING_UP;
 		// Teardown of the federate
 		federateTeardown();
+		lifecycleState = EXPIRED;
 	}
 
 	shared_ptr<FederateConfiguration> FederateBase::getFederateConfiguration()
@@ -65,10 +70,16 @@ namespace base
 
 	void FederateBase::createFederation()
 	{
+		if( !ucefConfig->isPermittedToCreateFederation() )
+		{
+			Logger::getInstance().log( " Do not have permission to create " + ucefConfig->getFederationName(), LevelInfo );
+			return;
+		}
+
 		try
 		{
 			rtiAmbassadorWrapper->createFederation( ucefConfig->getFederationName(),  ucefConfig->getFomPaths() );
-			Logger::getInstance().log( "Federation " + ucefConfig->getFederationName() + " created.", LevelInfo );
+			Logger::getInstance().log( "Federation : " + ucefConfig->getFederationName() + " created.", LevelInfo );
 		}
 		catch( UCEFException& )
 		{
@@ -78,17 +89,36 @@ namespace base
 
 	void FederateBase::joinFederation()
 	{
-		try
+		bool hasJoined = false;
+		int attemptCount = 0;
+		while( !hasJoined )
 		{
-			rtiAmbassadorWrapper->joinFederation( ucefConfig->getFederateName(),
-			                                      ucefConfig->getFederateType(),
-			                                      ucefConfig->getFederationName() );
-			Logger::getInstance().log( ucefConfig->getFederateName() + " joined the federation " +
-			                           ucefConfig->getFederationName() + ".", LevelInfo );
-		}
-		catch( UCEFException& )
-		{
-			throw;
+			try
+			{
+				Logger::getInstance().log( "Trying to join : " + ucefConfig->getFederationName(), LevelInfo );
+
+				rtiAmbassadorWrapper->joinFederation( ucefConfig->getFederateName(),
+				                                      ucefConfig->getFederateType(),
+				                                      ucefConfig->getFederationName() );
+
+				Logger::getInstance().log( ucefConfig->getFederateName() + " joined the federation " +
+				                           ucefConfig->getFederationName() + ".", LevelInfo );
+				hasJoined = true;
+			}
+			catch( UCEFException& )
+			{
+				attemptCount++;
+				Logger::getInstance().log( "Failed to join : " + ucefConfig->getFederationName(), LevelWarn );
+				Logger::getInstance().log( "Retrying in : " + to_string(0.01) + " seconds.", LevelWarn );
+				this_thread::sleep_for( chrono::microseconds(10) );
+
+				if( attemptCount >= ucefConfig->getMaxJoinAttempts() )
+				{
+					Logger::getInstance().log( "Tried " + to_string(attemptCount) + "and could not connect.", LevelWarn );
+					Logger::getInstance().log( "Failing permanently.", LevelError );
+					throw;
+				}
+			}
 		}
 	}
 
@@ -198,43 +228,59 @@ namespace base
 		}
 	}
 
+	void FederateBase::achieveSynchronization( string& synchPoint )
+	{
+		try
+		{
+			rtiAmbassadorWrapper->synchronizationPointAchieved( synchPoint );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+	}
+
+	bool FederateBase::isAchieved( string& synchPoint )
+	{
+		bool achieved = federateAmbassador->isAchieved( synchPoint );
+		return achieved;
+	}
+
+	void FederateBase::synchronize( string& synchPoint )
+	{
+		Logger& logger = Logger::getInstance();
+
+		// announce synch point to the federation
+		try
+		{
+			rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPoint );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+
+		logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelInfo );
+		while( !federateAmbassador->isAnnounced(synchPoint) )
+		{
+			logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelDebug);
+			tickForCallBacks();
+		}
+
+		logger.log("Successfully announced the synchronization Point " + synchPoint, LevelInfo);
+	}
+
 	void FederateBase::synchronize( SynchPoint point )
 	{
 		Logger& logger = Logger::getInstance();
 		string synchPointStr = ConversionHelper::SynchPointToString( point );
-		// announce synch point
-		try
-		{
-			rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPointStr );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
+		synchronize( synchPointStr );
 
-		logger.log("Waiting for the announcement of synchronization Point " + ConversionHelper::SynchPointToString(point), LevelInfo );
-		while( !federateAmbassador->isAnnounced(synchPointStr) )
-		{
-			logger.log( "Waiting for the announcement of synchronization Point " +
-			            ConversionHelper::SynchPointToString(point), LevelDebug);
-			tickForCallBacks();
-		}
-
-		logger.log( "Successfully announced the synchronization Point " +
-		            ConversionHelper::SynchPointToString(point), LevelInfo );
-
-		// immedietly acheive the announced synch point
-		try
-		{
-			rtiAmbassadorWrapper->synchronizationPointAchieved( synchPointStr );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
+		// immedietly achieve the announced synch point
+		achieveSynchronization( synchPointStr );
 
 		logger.log( "Waiting till the federation achieve synchronization " + ConversionHelper::SynchPointToString(point), LevelInfo );
-		while( !federateAmbassador->isAchieved(synchPointStr) )
+		while( !this->isAchieved(synchPointStr) )
 		{
 			logger.log( "Waiting till the federation achieve synchronization " +
 			            ConversionHelper::SynchPointToString(point), LevelDebug );
@@ -243,6 +289,11 @@ namespace base
 
 		logger.log( "Federation achieved synchronization Point " +
 		            ConversionHelper::SynchPointToString(point), LevelInfo );
+	}
+
+	LifecycleState FederateBase::getLifecycleState()
+	{
+		return this->lifecycleState;
 	}
 
 	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
@@ -404,17 +455,21 @@ namespace base
 		publishAndSubscribe();
 
 		// lifecycle hook
+		tickForCallBacks();
 		beforeReadyToPopulate();
 
 		// now we are ready to populate the federation
 		synchronize( READY_TO_POPULATE );
 
 		// before federate run hook
+		tickForCallBacks();
 		beforeReadyToRun();
+
 		// now we are ready to run this federate
 		synchronize( READY_TO_RUN );
 
 		// just before the first update hook
+		tickForCallBacks();
 		beforeFirstStep();
 	}
 
@@ -433,12 +488,15 @@ namespace base
 		disableTimePolicy();
 
 		// before resigning the federation hook
+		tickForCallBacks();
 		beforeReadyToResign();
 
 		// now we are ready to resign from this federation
-		synchronize( READY_TO_RESIGN );
+		if( ucefConfig->syncBeforeResign() )
+			synchronize( READY_TO_RESIGN );
 
 		// before exit hook for cleanup
+		tickForCallBacks();
 		beforeExit();
 
 		// resign from this federation

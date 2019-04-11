@@ -30,12 +30,6 @@ namespace base
 	                                                       const VariableLengthData& tag )
 	                                                            throw( FederateInternalError )
 	{
-		SynchPoint synchPoint = ConversionHelper::StringToSynchPoint( label );
-		if( synchPoint == POINT_UNKNOWN )
-		{
-			// may be we can achieve this immediately
-			return;
-		}
 		lock_guard<mutex> lock( threadSafeLock );
 
 		string sLabel = ConversionHelper::ws2s( label );

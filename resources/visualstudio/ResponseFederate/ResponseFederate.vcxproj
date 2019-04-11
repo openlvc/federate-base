@@ -74,7 +74,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>FederateBaseD.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\dist\win\$(Platform)\FederateBase</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\dist\win\$(Platform)\FederateBased</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
