@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>FederateBase</name>
+	<name>OmnetFederate</name>
 	<comment></comment>
 	<projects>
+		<project>FederateBase</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
@@ -26,9 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>gov</name>
-			<type>2</type>
-			<locationURI>PARENT-3-PROJECT_LOC../src/cpp/FederateBase/gov</locationURI>
+			<name>OmnetFederate.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-3-PROJECT_LOC/src/cpp/OmnetFederate/OmnetFederate.cpp</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

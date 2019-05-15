@@ -30,7 +30,7 @@
 								<option id="gnu.cpp.compiler.so.debug.option.optimization.level.183501522" name="Optimization Level" superClass="gnu.cpp.compiler.so.debug.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.debug.option.debugging.level.1972418502" name="Debug Level" superClass="gnu.cpp.compiler.so.debug.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1159219811" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp/FederateBase&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
@@ -103,7 +103,7 @@
 								<option id="gnu.cpp.compiler.so.release.option.optimization.level.1328727377" name="Optimization Level" superClass="gnu.cpp.compiler.so.release.option.optimization.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.optimization.level.most" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.so.release.option.debugging.level.135161863" name="Debug Level" superClass="gnu.cpp.compiler.so.release.option.debugging.level" useByScannerDiscovery="false" value="gnu.cpp.compiler.debugging.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1380765481" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp/FederateBase&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
