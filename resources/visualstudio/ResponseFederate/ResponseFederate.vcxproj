@@ -54,14 +54,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(PorjectDir)..\..\..\src\cpp;$(IncludePath)</IncludePath>
+    <IncludePath>$(PorjectDir)..\..\..\src\cpp\FederateBase;$(IncludePath)</IncludePath>
     <LibraryPath>$(PorjectDir)..\..\..\dist;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(ProjectName)\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\$(ProjectName).Int\</IntDir>
     <TargetName>$(ProjectName)D</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(PorjectDir)..\..\..\src\cpp;$(IncludePath)</IncludePath>
+    <IncludePath>$(PorjectDir)..\..\..\src\cpp\FederateBase;$(IncludePath)</IncludePath>
     <LibraryPath>$(PorjectDir)..\..\..\dist;$(LibraryPath)</LibraryPath>
     <OutDir>$(SolutionDir)..\..\..\dist\win\$(Platform)\$(ProjectName)\</OutDir>
     <IntDir>$(SolutionDir)..\..\..\build\$(Platform)\$(Configuration)\$(ProjectName).Int\</IntDir>

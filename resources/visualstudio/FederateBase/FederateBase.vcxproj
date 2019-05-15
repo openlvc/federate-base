@@ -10,6 +10,46 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\config.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateAmbassador.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateConfiguration.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\HLAInteraction.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\HLAObject.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\IFederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\RTIAmbassadorWrapper.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\UCEFDataTypeException.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\UCEFException.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\types.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimEnd.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimPause.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimResume.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimStart.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\NoOpFederate.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\UCEFFederateBase.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\util\Logger.h" />
+    <ClInclude Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\util\SOMParser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateAmbassador.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateBase.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\FederateConfiguration.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\HLAInteraction.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\HLAObject.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\RTIAmbassadorWrapper.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\UCEFDataTypeException.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\base\UCEFException.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimEnd.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimPause.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimResume.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\SimStart.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\hla\ucef\UCEFFederateBase.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\util\Logger.cpp" />
+    <ClCompile Include="..\..\..\src\cpp\FederateBase\gov\nist\ucef\util\SOMParser.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{05B6DFCA-CEEC-449A-BCB9-279F9C733207}</ProjectGuid>
     <RootNamespace>FederateBase</RootNamespace>
@@ -58,7 +98,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\lib\cpp\include\tinyxml2;$(SolutionDir)..\..\..\lib\cpp\include\ieee1516e;$(SolutionDir)..\..\..\lib\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp\FederateBase;$(SolutionDir)..\..\..\lib\cpp\include\tinyxml2;$(SolutionDir)..\..\..\lib\cpp\include\ieee1516e;$(SolutionDir)..\..\..\lib\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UCEF_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4290;4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -74,7 +114,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp;$(SolutionDir)..\..\..\lib\cpp\include\tinyxml2;$(SolutionDir)..\..\..\lib\cpp\include\ieee1516e;$(SolutionDir)..\..\..\lib\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\..\..\src\cpp\FederateBase;$(SolutionDir)..\..\..\lib\cpp\include\tinyxml2;$(SolutionDir)..\..\..\lib\cpp\include\ieee1516e;$(SolutionDir)..\..\..\lib\cpp\include\logger;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>UCEF_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4290;4251;4275;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
@@ -85,46 +125,6 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\..\..\lib\cpp\lib\portico-2.1.0\win64;$(SolutionDir)..\..\..\lib\cpp\lib\tinyxml2\win64</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateAmbassador.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateBase.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateConfiguration.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\HLAInteraction.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\HLAObject.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\RTIAmbassadorWrapper.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\UCEFDataTypeException.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\UCEFException.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimEnd.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimPause.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimResume.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\UCEFFederateBase.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.cpp" />
-    <ClCompile Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateAmbassador.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateBase.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\FederateConfiguration.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\HLAInteraction.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\HLAObject.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\IFederateBase.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\RTIAmbassadorWrapper.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\UCEFDataTypeException.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\base\UCEFException.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\types.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimEnd.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimPause.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimResume.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\SimStart.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\interactions\UCEFInteraction.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\UCEFFederateBase.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\hla\ucef\NoOpFederate.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\Logger.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\util\SOMParser.h" />
-    <ClInclude Include="..\..\..\src\cpp\gov\nist\ucef\config.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
