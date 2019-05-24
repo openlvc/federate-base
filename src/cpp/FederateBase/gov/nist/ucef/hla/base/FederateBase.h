@@ -145,6 +145,16 @@ namespace base
 			 */
 			void incomingObjectDeletion( long objectInstanceHash );
 
+			/**
+			 * Returns federate's logical time
+			 */
+			double getTime();
+
+			/**
+			 * The main execution of the federate
+			 */
+			bool execute();
+
 		protected:
 			//----------------------------------------------------------
 			//                    Business Logic

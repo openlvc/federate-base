@@ -88,9 +88,8 @@ namespace base
 		{
 			while( !simEndReceived )
 			{
-				if( step(federateAmbassador->getFederateTime()) == false )
+				if( !execute() )
 					break;
-				advanceTime();
 			}
 		}
 	}

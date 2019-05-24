@@ -42,7 +42,7 @@ namespace base
 		// Prepare this federate for execution
 		federateSetup();
 		lifecycleState = RUNNING;
-		// The main execution of the federate
+		// The main execution loop of the federate
 		federateExecute();
 		lifecycleState = CLEANING_UP;
 		// Teardown of the federate
@@ -477,10 +477,17 @@ namespace base
 	{
 		while( true )
 		{
-			if( step(federateAmbassador->getFederateTime()) == false )
+			if( !execute() )
 				break;
-			advanceTime();
 		}
+	}
+
+	bool FederateBase::execute()
+	{
+		bool continueFedEx = step( federateAmbassador->getFederateTime() );
+		if( continueFedEx )
+			advanceTime();
+		return continueFedEx;
 	}
 
 	void FederateBase::federateTeardown()
@@ -527,6 +534,11 @@ namespace base
 			tickForCallBacks();
 		}
 		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
+	}
+
+	double FederateBase::getTime()
+	{
+		return federateAmbassador->getFederateTime();
 	}
 
 	void FederateBase::populateInteraction( const string& interactionClassName,
