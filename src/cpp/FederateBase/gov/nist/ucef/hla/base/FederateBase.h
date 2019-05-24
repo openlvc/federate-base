@@ -104,6 +104,7 @@ namespace base
 			//----------------------------------------------------------
 			//                    Business Logic
 			//----------------------------------------------------------
+
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI discovers a new object instance
 			 *
