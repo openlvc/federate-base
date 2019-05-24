@@ -69,7 +69,7 @@ namespace base
 			 */
 			virtual void incomingInteraction
 			                     ( long interactionHash,
-			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues ) override;
 
 		protected:
 			//----------------------------------------------------------
@@ -79,10 +79,10 @@ namespace base
 			/**
 			 * Get called whenever RTI receives ucef specific simulation start interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
-			 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
-			 *                       methods to get the values of the received parameter updates. Since no type checking
-			 *                       is carried out it is important to use the right methods to obtain the correct values.
+			 * @param hlaInteraction Stores the received parameter updates relavant to the SimStart interaction.
+			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
+			 *                       received parameter updates. Since no type checking is carried out it is
+			 *                       important to use the right methods to obtain the correct values.
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedSimStart( std::shared_ptr<const SimStart> hlaInteraction,
@@ -90,34 +90,34 @@ namespace base
 			/**
 			 * Get called whenever RTI receives ucef specific simulation end interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
-			 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
-			 *                       methods to get the values of the received parameter updates. Since no type checking
-			 *                       is carried out it is important to use the right methods to obtain the correct values.
+			 * @param hlaInteraction Stores the received parameter updates relavant to the SimEnd interaction.
+			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
+			 *                       received parameter updates. Since no type checking is carried out it is
+			 *                       important to use the right methods to obtain the correct values.
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedSimEnd( std::shared_ptr<const SimEnd> hlaInteraction,
 			                             double federateTime ) = 0;
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation paused interaction
+			 * Get called whenever RTI receives ucef specific simulation pause interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
-			 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
-			 *                       methods to get the values of the received parameter updates. Since no type checking
-			 *                       is carried out it is important to use the right methods to obtain the correct values.
+			 * @param hlaInteraction Stores the received parameter updates relavant to the SimPause interaction.
+			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
+			 *                       received parameter updates. Since no type checking is carried out it is
+			 *                       important to use the right methods to obtain the correct values.
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedSimPaused( std::shared_ptr<const SimPause> hlaInteraction,
 			                                double federateTime ) = 0;
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation resumed interaction
+			 * Get called whenever RTI receives ucef specific simulation resume interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
-			 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
-			 *                       methods to get the values of the received parameter updates. Since no type checking
-			 *                       is carried out it is important to use the right methods to obtain the correct values.
+			 * @param hlaInteraction Stores the received parameter updates relavant to the SimResume interaction.
+			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
+			 *                       received parameter updates. Since no type checking is carried out it is
+			 *                       important to use the right methods to obtain the correct values.
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedSimResumed( std::shared_ptr<const SimResume> hlaInteraction,
