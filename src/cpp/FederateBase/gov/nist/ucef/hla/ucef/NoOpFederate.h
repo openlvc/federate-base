@@ -45,10 +45,10 @@ namespace base
 			//----------------------------------------------------------
 			//          Empty Lifecycle hooks
 			//----------------------------------------------------------
-			void beforeReadyToPopulate() override {}
-			void beforeReadyToRun() override {}
-			void beforeFirstStep() override {}
-			void beforeReadyToResign() override {}
+			virtual void beforeReadyToPopulate() override {}
+			virtual void beforeReadyToRun() override {}
+			virtual void beforeFirstStep() override {}
+			virtual void beforeReadyToResign() override {}
 			virtual void beforeExit() override {}
 			virtual bool step( double federateTime ) override { return true; }
 
