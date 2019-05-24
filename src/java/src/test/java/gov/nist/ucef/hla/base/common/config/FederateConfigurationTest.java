@@ -522,8 +522,8 @@ public class FederateConfigurationTest extends TestCase
 		
 		String objectClass2 = "HLAobjectRoot.X.Y.Z";
 		List<String> attributes2 = new ArrayList<>();
-		attributes1.add( "M" );
-		attributes1.add( "N" );
+		attributes2.add( "M" );
+		attributes2.add( "N" );
 		Map<String, Collection<String>> extraPublishedAttributes = new HashMap<>();
 		extraPublishedAttributes.put( objectClass2, attributes2 );
 
@@ -586,8 +586,8 @@ public class FederateConfigurationTest extends TestCase
 		
 		String objectClass2 = "HLAobjectRoot.X.Y.Z";
 		List<String> attributes2 = new ArrayList<>();
-		attributes1.add( "M" );
-		attributes1.add( "N" );
+		attributes2.add( "M" );
+		attributes2.add( "N" );
 		Map<String, Collection<String>> extraSubscribedAttributes = new HashMap<>();
 		extraSubscribedAttributes.put( objectClass2, attributes2 );
 		
