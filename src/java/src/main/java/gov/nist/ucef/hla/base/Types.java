@@ -66,7 +66,7 @@ public class Types
 		STRING(  "string",  String.class,    HLAunicodeString.class),
 		UNKNOWN( "unknown", null,            null);
 		
-		// a map for finding a datat type for a string key - this is to provide
+		// a map for finding a data type for a string key - this is to provide
 		// quick lookups and avoid iterating over all data types
 		private static final Map<String,DataType> DATATYPE_LOOKUP =
 		    Collections.unmodifiableMap( initializeMapping() );
