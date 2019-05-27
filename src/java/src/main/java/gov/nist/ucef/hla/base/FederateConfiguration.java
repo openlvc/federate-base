@@ -31,10 +31,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
 
 /**
  * The purpose of this class is to encapsulate all data required to configure a federate. The main
@@ -192,7 +194,7 @@ public class FederateConfiguration
 				builder.append( "\t" + objectClass.name + "\n" );
 				List<String> attributeNames = objectClass.attributes.values()
     				.stream()
-    				.map( x -> x.name )
+    				.map( x -> x.name + " (" + x.dataType.toString() + ")" )
     				.collect( Collectors.toList() );
 				attributeNames.sort( null );
 				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
@@ -215,7 +217,7 @@ public class FederateConfiguration
 				builder.append( "\t" + objectClass.name + "\n" );
 				List<String> attributeNames = objectClass.attributes.values()
     				.stream()
-    				.map( x -> x.name )
+    				.map( x -> x.name + " (" + x.dataType.toString() + ")" )
     				.collect( Collectors.toList() );
 				attributeNames.sort( null );
 				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
@@ -439,7 +441,7 @@ public class FederateConfiguration
 	{
 		return pubSubInteractions.values()
 			.stream()
-			.filter( x -> x.publish )
+			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
 	}
 
@@ -452,7 +454,7 @@ public class FederateConfiguration
 	{
 		return pubSubInteractions.values()
 			.stream()
-			.filter( x -> x.subscribe )
+			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
 	}
 
@@ -475,7 +477,7 @@ public class FederateConfiguration
 	{
 		return pubSubAttributes.values()
 			.stream()
-			.filter( x -> x.publish )
+			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
 	}
 
@@ -488,7 +490,7 @@ public class FederateConfiguration
 	{
 		return pubSubAttributes.values()
 			.stream()
-			.filter( x -> x.subscribe )
+			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
 	}
 	
@@ -759,10 +761,9 @@ public class FederateConfiguration
 	 * @param attributeName the identifier of the attribute on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAttribute( String objectClassName,
-	                                                    String attributeName )
+	public FederateConfiguration addReflection( ObjectClass objectClass )
 	{
-		return addPublishedAttributes( objectClassName, new String[]{ attributeName } );
+		return addReflections( new ObjectClass[]{ objectClass } );
 	}
 
 	/**
@@ -772,10 +773,9 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAttributes( String objectClassName,
-	                                                     String[] attributeNames )
+	public FederateConfiguration addReflections( ObjectClass[] objectClasses )
 	{
-		return addPublishedAttributes( objectClassName, asCollection( attributeNames ) );
+		return addReflections( asCollection( objectClasses ) );
 	}
 
 	/**
@@ -785,216 +785,85 @@ public class FederateConfiguration
 	 * @param attributeNames the identifiers of the attributes on the class to publish
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAttributes( String objectClassName,
-	                                                     Collection<String> attributeNames )
+	public FederateConfiguration addReflections( Collection<ObjectClass> objectClasses )
 	{
-		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
+		if( canWrite( objectClasses ) )
 		{
-			Types.ObjectClass objectClass = this.pubSubAttributes.computeIfAbsent( objectClassName, 
-			                                                                       x -> new Types.ObjectClass(objectClassName) );
-			objectClass.publish = true;
-			for(String attributeName : attributeNames)
+			for(ObjectClass objectClass : objectClasses)
 			{
-				Types.ObjectAttribute objAttr = objectClass.attributes.computeIfAbsent( attributeName,
-				                                                                              x -> new Types.ObjectAttribute( attributeName ) );
-				objAttr.publish = true;
+				this.pubSubAttributes.put( objectClass.name, objectClass );
 			}
 		}
 		return this;
 	}
 
 	/**
-	 * Add published attributes to the configuration
+	 * Add an interaction class to the configuration
 	 * 
-	 * @param publishedAttributes the published attributes to add to the configuration as a map
-	 *            linking the identifiers of the classes with the identifiers of the attributes on
-	 *            the class which are to be published
+	 * @param interactionClass the interaction class to add to the configuration
 	 * @return this instance
 	 */
-	public FederateConfiguration addPublishedAttributes( Map<String,Collection<String>> publishedAttributes )
+	public FederateConfiguration addInteraction( InteractionClass interactionClass )
 	{
-		if( canWrite( publishedAttributes ) )
+		return addInteractions( new InteractionClass[]{ interactionClass } );
+	}
+
+	/**
+	 * Add interactions to the configuration
+	 * 
+	 * @param interactionClasses the interaction classes to add to the configuration
+	 * @return this instance
+	 */
+	public FederateConfiguration addInteractions( InteractionClass ... interactionClasses )
+	{
+		return addInteractions( asCollection( interactionClasses ) );
+	}
+
+	/**
+	 * Add interactions to the configuration
+	 * 
+	 * @param interactionIdentifiers the interactions to add to the configuration
+	 * @return this instance
+	 */
+	public FederateConfiguration addInteractions( Collection<InteractionClass> interactionClasses )
+	{
+		if( canWrite( interactionClasses ) )
 		{
-			for( Entry<String,Collection<String>> foo : publishedAttributes.entrySet() )
+			for(InteractionClass interactionClass : interactionClasses )
 			{
-				addPublishedAttributes( foo.getKey(), foo.getValue() );
+				this.pubSubInteractions.put( interactionClass.name, interactionClass);
 			}
 		}
 		return this;
-	}
-
-	/**
-	 * Add a subscribed attribute to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attribute belongs
-	 * @param attributeIdentifier the identifier of the attribute on the class to subscribe to
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedAttribute( String objectClassName,
-	                                                     String attributeIdentifier )
-	{
-		return addSubscribedAttributes( objectClassName, new String[]{ attributeIdentifier } );
-	}
-
-	/**
-	 * Add subscribed attributes to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attributes belong
-	 * @param attributeNames the identifiers of the attributes on the class to subscribed to
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedAttributes( String objectClassName,
-	                                                     String[] attributeNames )
-	{
-		return addSubscribedAttributes( objectClassName, asCollection( attributeNames ) );
-	}
-
-	/**
-	 * Add subscribed attributes to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attributes belong
-	 * @param attributeNames the identifiers of the attributes on the class to subscribe to
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedAttributes( String objectClassName,
-	                                                      Collection<String> attributeNames )
-	{
-		if( canWrite( objectClassName ) && canWrite( attributeNames ) )
-		{
-			Types.ObjectClass objectClass = this.pubSubAttributes.computeIfAbsent( objectClassName, 
-			                                                                       x -> new Types.ObjectClass(objectClassName) );
-			objectClass.subscribe = true;
-			for(String attributeName : attributeNames)
-			{
-				Types.ObjectAttribute objAttr = objectClass.attributes.computeIfAbsent( attributeName,
-				                                                                              x -> new Types.ObjectAttribute( attributeName ) );
-				objAttr.subscribe = true;
-			}
-		}
-		return this;
-		
-	}
-
-	/**
-	 * Add subscribed attributes to the configuration
-	 * 
-	 * @param subscribedAttributes the subscribed attributes to add to the configuration as a map
-	 *            linking the identifiers of the classes with the identifiers of the attributes on
-	 *            the class which are to be subscribed to
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedAttributes( Map<String,Collection<String>> subscribedAttributes )
-	{
-		if( canWrite( subscribedAttributes ) )
-		{
-			for( Entry<String,Collection<String>> foo : subscribedAttributes.entrySet() )
-			{
-				addSubscribedAttributes( foo.getKey(), foo.getValue() );
-			}
-		}
-		return this;
-	}
-
-	/**
-	 * Add a published interaction to the configuration
-	 * 
-	 * @param interactionIdentifier the published interaction to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addPublishedInteraction( String interactionIdentifier )
-	{
-		return addPublishedInteractions( new String[]{ interactionIdentifier } );
-	}
-
-	/**
-	 * Add published interactions to the configuration
-	 * 
-	 * @param interactionIdentifiers the published interactions to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addPublishedInteractions( String ... interactionIdentifiers )
-	{
-		return addPublishedInteractions( asCollection( interactionIdentifiers ) );
-	}
-
-	/**
-	 * Add published interactions to the configuration
-	 * 
-	 * @param interactionIdentifiers the published interactions to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addPublishedInteractions( Collection<String> interactionIdentifiers )
-	{
-		if( canWrite( interactionIdentifiers ) )
-		{
-			for(String interactionClassName : interactionIdentifiers )
-			{
-				Types.InteractionClass interactionClass = this.pubSubInteractions.computeIfAbsent( interactionClassName, 
-				                                                                                   x -> new Types.InteractionClass(interactionClassName) );
-				interactionClass.publish = true;
-			}
-		}
-		return this;
-		
-	}
-
-	/**
-	 * Add a subscribed interaction to the configuration
-	 * 
-	 * @param interactionIdentifier the subscribed interaction to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedInteraction( String interactionIdentifier )
-	{
-		return addSubscribedInteractions( new String[]{ interactionIdentifier } );
-	}
-
-	/**
-	 * Add subscribed interactions to the configuration
-	 * 
-	 * @param interactionIdentifiers the subscribed interactions to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedInteractions( String ... interactionIdentifiers )
-	{
-		return addSubscribedInteractions( asCollection( interactionIdentifiers ) );
-	}
-
-	/**
-	 * Add subscribed interactions to the configuration
-	 * 
-	 * @param interactionIdentifiers the subscribed interactions to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addSubscribedInteractions( Collection<String> interactionIdentifiers )
-	{
-		if( canWrite( interactionIdentifiers ) )
-		{
-			for(String interactionClassName : interactionIdentifiers )
-			{
-				Types.InteractionClass interactionClass = this.pubSubInteractions.computeIfAbsent( interactionClassName, 
-				                                                                                   x -> new Types.InteractionClass(interactionClassName) );
-				interactionClass.subscribe = true;
-			}
-		}
-		return this;	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// Utility Methods /////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Utility method to turn an array of {@link String}s into a {@link Collection} of
-	 * {@link String}s
+	 * Utility method to turn an array of {@link InteractionClass}s into a {@link Collection} of
+	 * {@link InteractionClass}s
 	 * 
-	 * @param values the array of {@link String}s
-	 * @return a {@link Collection} of {@link String}s
+	 * @param values the array of {@link InteractionClass}s
+	 * @return a {@link Collection} of {@link InteractionClass}s
 	 */
-	private Collection<String> asCollection( String[] values )
+	private Collection<InteractionClass> asCollection( InteractionClass[] values )
 	{
 		return values == null ? Collections.emptyList() : Arrays.asList( values );
 	}
-
+	
+	/**
+	 * Utility method to turn an array of {@link ObjectClass}s into a {@link Collection} of
+	 * {@link ObjectClass}s
+	 * 
+	 * @param values the array of {@link ObjectClass}s
+	 * @return a {@link Collection} of {@link ObjectClass}s
+	 */
+	private Collection<ObjectClass> asCollection( ObjectClass[] values )
+	{
+		return values == null ? Collections.emptyList() : Arrays.asList( values );
+	}
+	
 	/**
 	 * Utility method to turn an array of {@link URL}s into a {@link Collection} of {@link URL}s
 	 * 
@@ -1054,41 +923,11 @@ public class FederateConfiguration
 	 * 
 	 * If it is no modifiable, an ERROR level error log will be produced
 	 * 
-	 * @param value the value
-	 * @return true if this instance is currently modifiable and that the parameter is not null or
-	 *         empty, false otherwise
-	 */
-	private boolean canWrite( String value )
-	{
-		return canWrite() && notNullOrEmpty( value );
-	}
-
-	/**
-	 * Utility method to check if this instance is currently modifiable and that the parameter is
-	 * not null or empty before carrying out modifications to the configured properties.
-	 * 
-	 * If it is no modifiable, an ERROR level error log will be produced
-	 * 
 	 * @param values the values
 	 * @return true if this instance is currently modifiable and that the parameter is not null or
 	 *         empty, false otherwise
 	 */
 	private boolean canWrite( Collection<?> values )
-	{
-		return canWrite() && notNullOrEmpty( values );
-	}
-
-	/**
-	 * Utility method to check if this instance is currently modifiable and that the parameter is
-	 * not null or empty before carrying out modifications to the configured properties.
-	 * 
-	 * If it is no modifiable, an ERROR level error log will be produced
-	 * 
-	 * @param values the values
-	 * @return true if this instance is currently modifiable and that the parameter is not null or
-	 *         empty, false otherwise
-	 */
-	private boolean canWrite( Map<?,?> values )
 	{
 		return canWrite() && notNullOrEmpty( values );
 	}
@@ -1122,17 +961,6 @@ public class FederateConfiguration
 	 * @return true if the collection is neither null nor empty, false if it is null or empty
 	 */
 	private boolean notNullOrEmpty( Collection<?> toTest )
-	{
-		return toTest != null && !toTest.isEmpty();
-	}
-
-	/**
-	 * Utility method to make sure that a map is neither null nor empty
-	 * 
-	 * @param toTest the {@link Map} to test
-	 * @return true if the collection is neither null nor empty, false if it is null or empty
-	 */
-	private boolean notNullOrEmpty( Map<?,?> toTest )
 	{
 		return toTest != null && !toTest.isEmpty();
 	}

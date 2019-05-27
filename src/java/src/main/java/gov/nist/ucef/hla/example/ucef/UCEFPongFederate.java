@@ -30,6 +30,8 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.Types;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.FederateJoin;
@@ -143,7 +145,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionClassName = hlaInteraction.getInteractionClassName();
-		if( PING_INTERACTION_NAME.equals( interactionClassName ) )
+		if( PING_INTERACTION_ID.equals( interactionClassName ) )
 		{
 			// Ping interaction received
 			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
@@ -253,16 +255,16 @@ public class UCEFPongFederate extends UCEFFederateBase
 		Map<String,byte[]> parameters = new HashMap<>();
 		parameters.put( PONG_PARAM_LETTER, 
 		                HLACodecUtils.encode( encoder, letter ) );
-		return makeInteraction( PONG_INTERACTION_NAME, parameters );
+		return makeInteraction( PONG_INTERACTION_ID, parameters );
 	}
 
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final String INTERACTION_ROOT = "HLAinteractionRoot.";
-	private static final String PING_INTERACTION_NAME = INTERACTION_ROOT+"Ping";
+	private static final String PING_INTERACTION_ID = INTERACTION_ROOT+"Ping";
 	private static final String PING_PARAM_COUNT = "count";
-	private static final String PONG_INTERACTION_NAME = INTERACTION_ROOT+"Pong";
+	private static final String PONG_INTERACTION_ID = INTERACTION_ROOT+"Pong";
 	private static final String PONG_PARAM_LETTER = "letter";
 	
 	/**
@@ -277,8 +279,11 @@ public class UCEFPongFederate extends UCEFFederateBase
 		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( PONG_INTERACTION_NAME );
-		config.addSubscribedInteraction( PING_INTERACTION_NAME );
+		Types.InteractionClass pongInteraction = new Types.InteractionClass(PONG_INTERACTION_ID, 
+		                                                                    Sharing.PUBLISH);
+		Types.InteractionClass pingInteraction = new Types.InteractionClass(PING_INTERACTION_ID,
+		                                                                    Sharing.SUBSCRIBE);
+		config.addInteractions( pongInteraction, pingInteraction );
 
 		// somebody set us up the FOM...
 		try

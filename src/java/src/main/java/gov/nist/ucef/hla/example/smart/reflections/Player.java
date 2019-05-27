@@ -23,8 +23,13 @@
  */
 package gov.nist.ucef.hla.example.smart.reflections;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.base.Types.DataType;
 
 public class Player extends HLAObject
 {
@@ -32,13 +37,17 @@ public class Player extends HLAObject
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of object - must match FOM definition
-	private static final String HLA_OBJECT_ROOT = "HLAobjectRoot.";
+	private static final String HLA_OBJECT_ROOT   = "HLAobjectRoot.";
 	private static final String OBJECT_CLASS_NAME = HLA_OBJECT_ROOT+"Player";
 	
 	// object attributes and types
-	private static final String ATTRIBUTE_KEY_NAME = "name";
+	private static final String ATTRIBUTE_KEY_NAME    = "name";
+	private static final DataType ATTRIBUTE_TYPE_NAME = DataType.STRING;
 	
-	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_NAME };
+	// a map for finding a data type for an attribute name - this is to provide
+	// quick lookups and avoid iterating over all attributes
+	private static final Map<String,DataType> ATTRIBUTES_LOOKUP =
+		Collections.unmodifiableMap( initializeMapping() );
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -87,7 +96,7 @@ public class Player extends HLAObject
 	{
 		return getAsString( ATTRIBUTE_KEY_NAME );
 	}
-
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -102,12 +111,25 @@ public class Player extends HLAObject
 	}
 	
 	/**
-	 * Obtain the HLA object class name identifying this type of object
+	 * Obtain the attributes associated with this kind of reflection
 	 * 
-	 * @return the HLA object class name identifying this type of object
+	 * @return a map associating the String names of the attributes and their data types
 	 */
-	public static String[] attributeNames()
+	public static Map<String,DataType> attributes()
 	{
-		return ATTRIBUTE_NAMES;
+		return ATTRIBUTES_LOOKUP;
+	}
+	
+	/**
+	 * Private initializer method for the attribute-datatype lookup map
+	 * 
+	 * @return a lookup map which pairs attribute names and the corresponding
+	 *         {@link DataType}s
+	 */
+	private static Map<String,DataType> initializeMapping()
+	{
+		Map<String,DataType> lookupMap = new HashMap<String,DataType>();
+		lookupMap.put( ATTRIBUTE_KEY_NAME, ATTRIBUTE_TYPE_NAME );
+		return lookupMap;
 	}
 }

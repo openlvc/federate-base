@@ -52,8 +52,85 @@ public class Types
 	 *  @see ObjectAttribute
 	 *  @see InteractionParameter
 	 */
+	public enum Sharing
+	{
+		// note that these values conform to the ones used in SOM XML definitions
+		// for `<sharing>` nodes - don't change the strings!
+		PUBLISH("Publish"),
+		SUBSCRIBE("Subscribe"),
+		PUBLISHSUBSCRIBE("PublishSubscribe"),
+		NEITHER("Neither");
+
+		// a map for finding a data type for a string key - this is to provide
+		// quick lookups and avoid iterating over all data types
+		private static final Map<String,Sharing> SHARING_LOOKUP =
+			Collections.unmodifiableMap( initializeMapping() );
+		
+		public String label;
+		
+		Sharing( String label )
+		{
+			this.label = label;
+		}
+		
+		public String toString()
+		{
+			return this.label;
+		}
+		
+		public boolean isPublish()
+		{
+			return this.equals( PUBLISH ) || this.equals( PUBLISHSUBSCRIBE );
+		}
+		
+		public boolean isSubscribe()
+		{
+			return this.equals( SUBSCRIBE ) || this.equals( PUBLISHSUBSCRIBE );
+		}
+		
+		public boolean isNeither()
+		{
+			return this.equals( NEITHER );
+		}
+		
+		/**
+		 * Converts a text identifier uniquely identifying a sharing type to a {@link Sharing}
+		 * instance.
+		 * 
+		 * NOTE: if the key is not a valid text identifier for a sharing type, NEITHER will be returned
+		 * 
+		 * @param label the text identifier uniquely identifying a sharing type
+		 * @return the corresponding {@link Sharing}, or {@link Sharing#NEITHER} if the key is
+		 *         not a valid text identifier for a {@link Sharing}.
+		 */
+		public static Sharing fromLabel( String label )
+		{
+			return SHARING_LOOKUP.getOrDefault( label.toLowerCase().trim(), NEITHER );
+		}
+		
+		/**
+		 * Private initializer method for the key-to-{@link Sharing} lookup map
+		 * 
+		 * @return a lookup map which pairs text identifiers and the corresponding
+		 *         {@link Sharing}s
+		 */
+		private static Map<String,Sharing> initializeMapping()
+		{
+			Map<String,Sharing> lookupMap = new HashMap<String,Sharing>();
+			for( Sharing sharing : Sharing.values() )
+				lookupMap.put( sharing.label.toLowerCase().trim(), sharing );
+			return lookupMap;
+		}
+	};
+	
+	/**
+	 *  Represents data type of an attribute or interaction parameter
+	 *
+	 *  @see ObjectAttribute
+	 *  @see InteractionParameter
+	 */
 	@SuppressWarnings("rawtypes")
-	enum DataType
+	public enum DataType
 	{
 		BYTE(    "bytes",   Byte[].class,    null),
 		CHAR(    "char",    Character.class, HLAunicodeChar.class),
@@ -116,6 +193,7 @@ public class Types
 			return lookupMap;
 		}
 	};
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -137,58 +215,37 @@ public class Types
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Represents an attribute in an object class in a Simulation Object Model
-	 *
-	 * @see ObjectClass
-	 */
-	protected static class ObjectAttribute
-	{
-		public String name;
-		public boolean publish;
-		public boolean subscribe;
-		public DataType dataType;
-
-		public ObjectAttribute( String name )
-		{
-			this.name = name;
-			this.publish = false;
-			this.subscribe = false;
-			this.dataType = DataType.UNKNOWN;
-		}
-		
-		public String toString()
-		{
-			String pubSub = String.format("%s%s%s%s", 
-			                              this.publish ? "PUB" : "",
-         			                      this.publish && this.subscribe ? "/" : "",
-          			                      this.subscribe ? "SUB" : "",
-                                          !(this.publish || this.subscribe) ? "-" : "");
-			return String.format( "Attr:'%s'[%s](%s)",
-			                      this.name,
-			                      this.dataType.toString(),
-			                      pubSub);
-		}
-	}
-
-	/**
 	 * Represents an object class in a Simulation Object Model
 	 *
 	 * @see SOMParser#getObjectClasses(string&)
 	 * @see ObjectAttribute
 	 */
-	protected static class ObjectClass
+	public static class ObjectClass
 	{
 		public String name; // fully qualified object class name
-		public boolean publish;
-		public boolean subscribe;
+		public Sharing sharing;
 		Map<String,ObjectAttribute> attributes;
 
 		public ObjectClass( String name )
 		{
+			this(name, Sharing.NEITHER);
+		}
+		
+		public ObjectClass( String name, Sharing sharing )
+		{
 			this.name = name;
-			this.publish = false;
-			this.subscribe = false;
+			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
 			this.attributes = new HashMap<>();
+		}
+		
+		public boolean isPublished()
+		{
+			return this.sharing.isPublish();
+		}
+		
+		public boolean isSubscribed()
+		{
+			return this.sharing.isSubscribe();
 		}
 		
 		public void addAttribute( ObjectAttribute attribute )
@@ -198,44 +255,56 @@ public class Types
 		
 		public String toString()
 		{
-			String pubSub = String.format("%s%s%s%s", 
-			                              this.publish ? "PUB" : "",
-         			                      this.publish && this.subscribe ? "/" : "",
-          			                      this.subscribe ? "SUB" : "",
-                                          !(this.publish || this.subscribe) ? "-" : "");
-			
 			String attrs = this.attributes.values()
 				.stream()
 				.map((m)->m.toString())
 				.collect(Collectors.joining(","));
 			
 			return String.format( "Class:'%s'(%s){%s}",
-			                      this.name, pubSub, attrs );
+			                      this.name, this.sharing.toString(), attrs );
 		}
 	}
 
 	/**
-	 * Represents a parameter in an interaction class in a Simulation Object Model
+	 * Represents an attribute in an object class in a Simulation Object Model
 	 *
-	 * @see InteractionClass
+	 * @see ObjectClass
 	 */
-	protected static class InteractionParameter
+	public static class ObjectAttribute
 	{
 		public String name;
+		public Sharing sharing;
 		public DataType dataType;
 
-		public InteractionParameter( String name )
+		public ObjectAttribute( String name )
+		{
+			this(name, DataType.UNKNOWN, Sharing.NEITHER);
+		}
+		
+		public ObjectAttribute( String name, DataType dataType, Sharing sharing )
 		{
 			this.name = name;
-			this.dataType = DataType.UNKNOWN;
+			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
+			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
+		}
+		
+		public boolean isPublished()
+		{
+			return this.sharing.isPublish();
+		}
+		
+		public boolean isSubscribed()
+		{
+			return this.sharing.isSubscribe();
 		}
 		
 		public String toString()
 		{
-			return String.format( "Param:'%s'[%s]",
+			return String.format( "Attr:'%s'[%s](%s)",
 			                      this.name,
-			                      this.dataType.toString());
-		}		
+			                      this.dataType.toString(),
+			                      this.sharing.toString());
+		}
 	}
 
 	/**
@@ -244,19 +313,33 @@ public class Types
 	 * @see SOMParser#getInteractionClasses(string&)
 	 * @see InteractionParameter
 	 */
-	protected static class InteractionClass
+	public static class InteractionClass
 	{
 		public String name; // fully qualified interaction class name
-		public boolean publish;
-		public boolean subscribe;
+		public Sharing sharing;
 		public Map<String,InteractionParameter> parameters;
 
 		public InteractionClass( String name )
 		{
-			this.name = name;
-			this.publish = false;
-			this.subscribe = false;
+			this( name, Sharing.NEITHER );
 			this.parameters = new HashMap<>();
+		}
+		
+		public InteractionClass( String name, Sharing sharing )
+		{
+			this.name = name;
+			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
+			this.parameters = new HashMap<>();
+		}
+		
+		public boolean isPublished()
+		{
+			return this.sharing.isPublish();
+		}
+		
+		public boolean isSubscribed()
+		{
+			return this.sharing.isSubscribe();
 		}
 		
 		public void addParameter( InteractionParameter parameter )
@@ -266,20 +349,42 @@ public class Types
 		
 		public String toString()
 		{
-			String pubSub = String.format("%s%s%s%s", 
-			                              this.publish ? "PUB" : "",
-         			                      this.publish && this.subscribe ? "/" : "",
-          			                      this.subscribe ? "SUB" : "",
-                                          !(this.publish || this.subscribe) ? "-" : "");
-			
 			String params = this.parameters.values()
 				.stream()
 				.map((m)->m.toString())
 				.collect(Collectors.joining(","));
 			
 			return String.format( "Interaction:'%s'(%s){%s}",
-			                      this.name, pubSub, params );
+			                      this.name, this.sharing.toString(), params );
+		}
+	}
+	
+	/**
+	 * Represents a parameter in an interaction class in a Simulation Object Model
+	 *
+	 * @see InteractionClass
+	 */
+	public static class InteractionParameter
+	{
+		public String name;
+		public DataType dataType;
+
+		public InteractionParameter( String name )
+		{
+			this( name, DataType.UNKNOWN );
+		}
+
+		public InteractionParameter( String name, DataType dataType )
+		{
+			this.name = name;
+			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
 		}
 		
+		public String toString()
+		{
+			return String.format( "Param:'%s'[%s]",
+			                      this.name,
+			                      this.dataType.toString());
+		}		
 	}
 }

@@ -23,9 +23,16 @@
  */
 package gov.nist.ucef.hla.example.smart.federates;
 
+import java.util.Map.Entry;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.example.smart.helpers._SmartPongFederate;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.interactions.Pong;
@@ -165,14 +172,35 @@ public class SmartPongFederate extends _SmartPongFederate
 		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of objects/attributes to be published and subscribed to
-		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
-		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
+		ObjectClass playerReflection = new ObjectClass( Player.objectClassName(), 
+		                                                Sharing.PUBLISHSUBSCRIBE );
+		for( Entry<String,DataType> entry : Player.attributes().entrySet() )
+		{
+			String attributeName = entry.getKey();
+			DataType attributeType = entry.getValue();
+			ObjectAttribute playerAttribute = new ObjectAttribute( attributeName, 
+			                                                       attributeType, 
+			                                                       Sharing.PUBLISHSUBSCRIBE );
+			playerReflection.addAttribute( playerAttribute );
+		}
+		config.addReflection( playerReflection );
+
 		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Pong.interactionClassName() );
-		config.addSubscribedInteraction( Ping.interactionClassName() );
+		// set up lists of interactions to be published and subscribed to
+		InteractionClass pongInteraction = new InteractionClass( Pong.interactionClassName(), 
+		                                                         Sharing.PUBLISH );
+		InteractionClass pingInteraction = new InteractionClass( Ping.interactionClassName(),
+		                                                         Sharing.SUBSCRIBE );
+		config.addInteractions( pingInteraction, pongInteraction );
+		
 		// subscribed UCEF simulation control interactions
-		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
-		                                  SimEnd.interactionName() );
+		InteractionClass simPauseInteraction = new InteractionClass( SimPause.interactionName(), 
+		                                                             Sharing.SUBSCRIBE );
+		InteractionClass simResumeInteraction = new InteractionClass( SimResume.interactionName(), 
+		                                                              Sharing.SUBSCRIBE );
+		InteractionClass simEndInteraction = new InteractionClass( SimEnd.interactionName(), 
+		                                                           Sharing.SUBSCRIBE );
+		config.addInteractions( simPauseInteraction, simResumeInteraction, simEndInteraction );
 
 		// somebody set us up the FOM...
 		try
