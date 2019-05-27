@@ -114,7 +114,7 @@ namespace base
 
 				if( attemptCount >= ucefConfig->getMaxJoinAttempts() )
 				{
-					Logger::getInstance().log( "Tried " + to_string(attemptCount) + "and could not connect.", LevelWarn );
+					Logger::getInstance().log( "Tried " + to_string(attemptCount) + " and could not connect.", LevelWarn );
 					Logger::getInstance().log( "Failing permanently.", LevelError );
 					throw;
 				}

@@ -20,8 +20,8 @@ using namespace base;
 using namespace base::ucef;
 using namespace base::util;
 
-const static string CHALLENGE_OBJECT = "ObjectRoot.ParentObject.ChallengeObject";
-const static string CHALLENGE_INTERACTION = "InteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction";
+const static string CHALLENGE_OBJECT = "HLAobjectRoot.ParentObject.ChallengeObject";
+const static string CHALLENGE_INTERACTION = "HLA=iInteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction";
 
 const static int CHALLENGE_LENGTH = 10;
 
@@ -121,6 +121,8 @@ class ChallengeFederate : public NoOpFederate
 			{
 				cout << e.what() << endl;
 			}
+
+			pressEnterToContinue();
 		}
 
 		void beforeFirstStep() override

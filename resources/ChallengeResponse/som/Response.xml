@@ -21,7 +21,7 @@
     </modelIdentification>
     <objects>
         <objectClass>
-            <name>ObjectRoot</name>
+            <name>HLAobjectRoot</name>
             <sharing>Neither</sharing>
             <objectClass>
                 <name>ParentObject</name>
@@ -62,7 +62,7 @@
     </objects>
     <interactions>
         <interactionClass>
-            <name>InteractionRoot</name>
+            <name>HLAinteractionRoot</name>
             <sharing>Neither</sharing>
             <transportation>HLAreliable</transportation>
             <order>TimeStamp</order>

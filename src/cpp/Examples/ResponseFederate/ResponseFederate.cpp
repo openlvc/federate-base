@@ -18,7 +18,7 @@ using namespace base;
 using namespace base::ucef;
 using namespace base::util;
 
-const static string RESPONSE_INTERACTION = "InteractionRoot.C2WInteractionRoot.ParentInteraction.Response";
+const static string RESPONSE_INTERACTION = "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.Response";
 
 struct Response
 {
@@ -103,6 +103,9 @@ public:
 		{
 			cout << e.what() << endl;
 		}
+
+		cout << "\'Before ready to run.\' hook" << endl;
+		pressEnterToContinue();
 	}
 
 	void beforeFirstStep() override

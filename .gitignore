@@ -1,6 +1,7 @@
 /bin/
 /target/
 /build/
+out/
 **/.vs/
 local.properties
 *.opensdf
