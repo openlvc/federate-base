@@ -33,11 +33,11 @@ import gov.nist.ucef.hla.example.challenger.helpers._ResponseFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.FileUtils;
 
 /**
  *		            ___
@@ -262,11 +262,11 @@ public class ResponseFederate extends _ResponseFederate
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Responder",                     // name
-		                                                          "ResponseFederate",              // type
-		                                                          "ChallengeResponseFederation" ); // execution
+		config.setFederateName( "JavaResponder" );
+		config.setFederateType( "ResponseFederate" );
+		config.setFederationName( "ChallengeResponseFederation" );
 
 		// set up lists of objects/attributes and interactions to subscribe to
 		config.addSubscribedAttributes( ChallengeObject.objectClassName(), ChallengeObject.attributeNames() );
@@ -318,7 +318,9 @@ public class ResponseFederate extends _ResponseFederate
 
 		try
 		{
-			new ResponseFederate().runFederate( makeConfig() );
+			ResponseFederate federate = new ResponseFederate();
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

@@ -32,13 +32,13 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.FederateJoin;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.FileUtils;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -270,11 +270,11 @@ public class UCEFPingFederate extends UCEFFederateBase
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig(FederateConfiguration config)
 	{
-		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingFederate",     // type
-		                                                          "PingPongFederation" ); // execution
+		 config.setFederateName( "Ping" );
+		 config.setFederateType( "PingFederate" );
+		 config.setFederationName( "PingPongFederation" );
 
 		// set up lists of interactions to be published and subscribed to
 		config.addPublishedInteraction( PING_INTERACTION_NAME );
@@ -322,7 +322,9 @@ public class UCEFPingFederate extends UCEFFederateBase
 
 		try
 		{
-			new UCEFPingFederate( args ).runFederate( makeConfig() );
+			UCEFPingFederate federate = new UCEFPingFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

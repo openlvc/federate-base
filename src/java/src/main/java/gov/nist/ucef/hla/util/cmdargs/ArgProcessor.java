@@ -21,7 +21,7 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.util.cmdargs;
+package gov.nist.ucef.hla.util.cmdargs;
 
 import java.util.ArrayList;
 import java.util.Arrays;

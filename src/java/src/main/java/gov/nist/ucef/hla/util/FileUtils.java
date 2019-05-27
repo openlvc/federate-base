@@ -21,37 +21,23 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.util;
+package gov.nist.ucef.hla.util;
 
-public class Constants
+import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import gov.nist.ucef.hla.base.UCEFException;
+
+public class FileUtils
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	
-	// the UCEF logo as ASCII art - may be shown on federate startup in console
-	public static final String UCEF_LOGO =
-		"            ___\n" +
-		"          _/   \\_     _     _\n" +
-		"         / \\   / \\   / \\   / \\\n" +
-		"        ( U )─( C )─( E )─( F )\n" +
-		"         \\_/   \\_/   \\_/   \\_/\n" +
-		"        <─┴─> <─┴─────┴─────┴─>\n" +
-		"       Universal CPS Environment\n" +
-		"             for Federation\n";
 
-	// console width for wrapping text etc 
-	public static final int CONSOLE_WIDTH = 80;
-	
-	/** System property that identifies the value for {@link #UCEF_LOG_LEVEL}. */
-	public static final String PROPERTY_UCEF_LOG_LEVEL = "ucef.loglevel";	
-	/** System property for defining which directory to put the log file in */
-	public static final String PROPERTY_UCEF_LOG_DIR = "ucef.logdir";	
-	/** The log level to apply to all loggers under the "ucef" level.
-	    This level defaults to WARN. You can alter this level through
-	    a system property as long as you do before the things are loaded */
-	public static String UCEF_LOG_LEVEL = "WARN";
-	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -71,4 +57,35 @@ public class Constants
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
+	/**
+	 * Utility function to set create a bunch of URLs from file paths
+	 * 
+	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system, 
+	 *       a {@link UCEFException} will be thrown.
+	 * 
+	 * @return a list of URLs corresponding to the paths provided
+	 */
+	public static Collection<URL> urlsFromPaths(String[] paths)
+	{
+		List<URL> result = new ArrayList<>();
+		
+		try
+		{
+    		for(String path : paths)
+    		{
+    			File file = new File( path );
+    			if(file.isFile())
+    					result.add( new File( path ).toURI().toURL() );
+    			else
+    				throw new UCEFException("The file '%s' does not exist. " +
+    										"Please check the file path.", path);
+    		}
+		}
+		catch( MalformedURLException e )
+		{
+			throw new UCEFException(e);
+		}
+		
+		return result;
+	}
 }

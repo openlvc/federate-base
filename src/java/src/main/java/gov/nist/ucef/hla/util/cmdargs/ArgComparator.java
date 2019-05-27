@@ -21,25 +21,22 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.util;
+package gov.nist.ucef.hla.util.cmdargs;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.Comparator;
 
-import gov.nist.ucef.hla.base.UCEFException;
-
-public class FileUtils
+/**
+ * Utility class which simpy implements the {@link Comparator} interface to allow comparison of
+ * {@link Arg} instances for the purposes of sorting
+ */
+public class ArgComparator implements Comparator<Arg>
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//                    INSTANCE VARIABLES
 	//----------------------------------------------------------
 
 	//----------------------------------------------------------
@@ -49,43 +46,39 @@ public class FileUtils
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
-	/**
-	 * Utility function to set create a bunch of URLs from file paths
-	 * 
-	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system, 
-	 *       a {@link UCEFException} will be thrown.
-	 * 
-	 * @return a list of URLs corresponding to the paths provided
-	 */
-	public static Collection<URL> urlsFromPaths(String[] paths)
+	@Override
+	public int compare( Arg cla1, Arg cla2 )
 	{
-		List<URL> result = new ArrayList<>();
-		
-		try
+		// return...
+		//   *  -ve if the first value is less than the second 
+		//   *  0 if the first value is equal to second 
+		//   *  +ve if the first value is more than the second
+
+		// basically we are trying to sort so that optional arguments come
+		// after required arguments, and otherwise sort alphabetically by
+		// the short form or the argument if it has one, and the long form
+		// if not
+
+		// required arguments before optional arguments
+		if( cla1.isRequired() && !cla2.isRequired() )
 		{
-    		for(String path : paths)
-    		{
-    			File file = new File( path );
-    			if(file.isFile())
-    					result.add( new File( path ).toURI().toURL() );
-    			else
-    				throw new UCEFException("The file '%s' does not exist. " +
-    										"Please check the file path.", path);
-    		}
+			return -1;
 		}
-		catch( MalformedURLException e )
+		else if( !cla1.isRequired() && cla2.isRequired() )
 		{
-			throw new UCEFException(e);
+			return 1;
 		}
-		
-		return result;
+
+		// sort by type - SWITCH before VALUE before LIST
+		int ord1 = cla1.argKind().ordinal();
+		int ord2 = cla2.argKind().ordinal();
+		int diff = ord1 - ord2;
+		if( diff != 0 )
+			return diff;
+
+		// alphabetical sort by short/long form of argument
+		String o1Str = cla1.hasShortForm() ? cla1.shortForm.toString() : cla1.longForm;
+		String o2Str = cla2.hasShortForm() ? cla2.shortForm.toString() : cla2.longForm;
+		return o1Str.compareTo( o2Str );
 	}
 }

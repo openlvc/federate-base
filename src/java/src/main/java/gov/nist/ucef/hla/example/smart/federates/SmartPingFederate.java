@@ -30,11 +30,11 @@ import gov.nist.ucef.hla.example.smart.helpers._SmartPingFederate;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.interactions.Pong;
 import gov.nist.ucef.hla.example.smart.reflections.Player;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.FileUtils;
 
 /**
  *		            ___
@@ -159,11 +159,11 @@ public class SmartPingFederate extends _SmartPingFederate
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingFederate",         // type
-		                                                          "PingPongFederation" ); // execution
+		config.setFederateName( "Ping" );
+		config.setFederateType( "PingFederate" );
+		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of objects/attributes to be published and subscribed to
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
@@ -218,7 +218,9 @@ public class SmartPingFederate extends _SmartPingFederate
 
 		try
 		{
-			new SmartPingFederate( args ).runFederate( makeConfig() );
+			SmartPingFederate federate = new SmartPingFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

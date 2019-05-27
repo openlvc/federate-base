@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -64,7 +65,6 @@ public class FederateConfiguration
 	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
 	private static final int DEFAULT_MAX_JOIN_ATTEMPTS = 5;
 	private static final long DEFAULT_JOIN_RETRY_INTERVAL_SEC = 5;
-	private static final boolean DEFAULT_IS_LATE_JOINER = false;
 	private static final boolean DEFAULT_SYNC_BEFORE_RESIGN = false;
 	
 	private static final boolean DEFAULT_IS_TIME_STEPPED = true;
@@ -80,6 +80,10 @@ public class FederateConfiguration
 	private String federateType;
 	private Set<URL> modules;
 	private Set<URL> joinModules;
+	
+	private Set<String> foms;
+	private String som;	
+	
 	private Map<String,Types.InteractionClass> pubSubInteractions;
 	private Map<String,Types.ObjectClass> pubSubAttributes;
 
@@ -87,7 +91,6 @@ public class FederateConfiguration
 	private int maxJoinAttempts;
 	private long joinRetryIntervalSec;
 	
-	private boolean isLateJoiner;
 	private boolean syncBeforeResign;
 	
 	private boolean isTimeStepped;
@@ -103,6 +106,16 @@ public class FederateConfiguration
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
+	 * Constructor
+	 */
+	public FederateConfiguration()
+	{
+		this( "UnnamedFederation",
+		      "Federate" + UUID.randomUUID(),
+		      "FederateType" + UUID.randomUUID() );
+	}
+	
+	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
 	 * @param federateName
@@ -117,6 +130,10 @@ public class FederateConfiguration
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
+		
+		this.foms = new HashSet<>();
+		this.som = null;
+		
 		this.pubSubAttributes = new HashMap<>();
 		this.pubSubInteractions = new HashMap<>();
 		
@@ -124,7 +141,6 @@ public class FederateConfiguration
 		this.maxJoinAttempts = DEFAULT_MAX_JOIN_ATTEMPTS;
 		this.joinRetryIntervalSec = DEFAULT_JOIN_RETRY_INTERVAL_SEC;
 		
-		this.isLateJoiner = DEFAULT_IS_LATE_JOINER;
 		this.syncBeforeResign = DEFAULT_SYNC_BEFORE_RESIGN;
 		
 		this.isTimeStepped = DEFAULT_IS_TIME_STEPPED;
@@ -155,7 +171,6 @@ public class FederateConfiguration
 		builder.append( "Maximum Recconect Attempts : " + this.maxJoinAttempts + "\n" );
 		builder.append( "Reconnect Wait Time        : " + this.joinRetryIntervalSec + " seconds\n" );
 		builder.append( "Sync before resigning?     : " + (this.syncBeforeResign?"Yes":"No") + "\n" );
-		builder.append( "Late Joiner?               : " + (this.isLateJoiner?"Yes":"No") + "\n" );
 		builder.append( "Time Stepped?              : " + (this.isTimeStepped?"Yes":"No") + "\n" );
 		builder.append( "Are Callbacks Evoked?      : " + (this.callbacksAreEvoked?"Yes":"No") + "\n" );
 		builder.append( "Look Ahead                 : " + this.lookAhead + "\n" );
@@ -363,16 +378,6 @@ public class FederateConfiguration
 	public double getStepSize()
 	{
 		return stepSize;
-	}
-
-	/**
-	 * Determine if the federate is configured to be a late joiner
-	 * 
-	 * @return true if the federate is configured to be a late joiner, false otherwise
-	 */
-	public boolean isLateJoiner()
-	{
-		return isLateJoiner;
 	}
 
 	/**
@@ -605,19 +610,6 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Configure whether the federate is configured to be a late joiner
-	 * 
-	 * @param isLateJoiner true if the federate to be a late joiner, false otherwise
-	 * @return this instance
-	 */
-	public FederateConfiguration setLateJoiner( boolean isLateJoiner )
-	{
-		if(canWrite())
-			this.isLateJoiner = isLateJoiner;
-		return this;
-	}
-
-	/**
 	 * Configure whether the federate is configured to be time stepped
 	 * 
 	 * @param isTimeStepped true if the federate to be time stepped, false otherwise
@@ -716,6 +708,49 @@ public class FederateConfiguration
 		}
 		return this;
 	}
+	
+	
+	
+	
+	
+	
+	public Set<String> getFomPaths()
+	{
+		return this.foms;
+	}
+
+	public FederateConfiguration addFomPath( String path )
+	{
+		this.foms.add(path);
+		return this;
+	}
+
+	public FederateConfiguration clearFomPaths()
+	{
+		this.foms.clear();
+		return this;
+	}
+
+	public Set<String> getSomPaths()
+	{
+		// this is to support multiple SOM usage without breaking the interface
+		Set<String> soms = new HashSet<>();
+		soms.add( this.som );
+		return soms;
+	}
+
+	public FederateConfiguration addSomPath( String path )
+	{
+		this.som = path;
+		return this;
+	}	
+
+	
+	
+	
+	
+	
+	
 
 	/**
 	 * Add a published attribute to the configuration
