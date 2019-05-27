@@ -26,6 +26,7 @@ package gov.nist.ucef.hla.base;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import hla.rti1516e.encoding.HLAboolean;
 import hla.rti1516e.encoding.HLAfloat32BE;
@@ -79,6 +80,11 @@ public class Types
 			this.label = label;
 			this.javaType = javaType;
 			this.hlaType = hlaType;
+		}
+		
+		public String toString()
+		{
+			return this.label;
 		}
 		
 		/**
@@ -149,6 +155,19 @@ public class Types
 			this.subscribe = false;
 			this.dataType = DataType.UNKNOWN;
 		}
+		
+		public String toString()
+		{
+			String pubSub = String.format("%s%s%s%s", 
+			                              this.publish ? "PUB" : "",
+         			                      this.publish && this.subscribe ? "/" : "",
+          			                      this.subscribe ? "SUB" : "",
+                                          !(this.publish || this.subscribe) ? "-" : "");
+			return String.format( "Attr:'%s'[%s](%s)",
+			                      this.name,
+			                      this.dataType.toString(),
+			                      pubSub);
+		}
 	}
 
 	/**
@@ -171,6 +190,28 @@ public class Types
 			this.subscribe = false;
 			this.attributes = new HashMap<>();
 		}
+		
+		public void addAttribute( ObjectAttribute attribute )
+		{
+			this.attributes.put( attribute.name, attribute );
+		}
+		
+		public String toString()
+		{
+			String pubSub = String.format("%s%s%s%s", 
+			                              this.publish ? "PUB" : "",
+         			                      this.publish && this.subscribe ? "/" : "",
+          			                      this.subscribe ? "SUB" : "",
+                                          !(this.publish || this.subscribe) ? "-" : "");
+			
+			String attrs = this.attributes.values()
+				.stream()
+				.map((m)->m.toString())
+				.collect(Collectors.joining(","));
+			
+			return String.format( "Class:'%s'(%s){%s}",
+			                      this.name, pubSub, attrs );
+		}
 	}
 
 	/**
@@ -188,6 +229,13 @@ public class Types
 			this.name = name;
 			this.dataType = DataType.UNKNOWN;
 		}
+		
+		public String toString()
+		{
+			return String.format( "Param:'%s'[%s]",
+			                      this.name,
+			                      this.dataType.toString());
+		}		
 	}
 
 	/**
@@ -210,5 +258,28 @@ public class Types
 			this.subscribe = false;
 			this.parameters = new HashMap<>();
 		}
+		
+		public void addParameter( InteractionParameter parameter )
+		{
+			this.parameters.put( parameter.name, parameter );
+		}
+		
+		public String toString()
+		{
+			String pubSub = String.format("%s%s%s%s", 
+			                              this.publish ? "PUB" : "",
+         			                      this.publish && this.subscribe ? "/" : "",
+          			                      this.subscribe ? "SUB" : "",
+                                          !(this.publish || this.subscribe) ? "-" : "");
+			
+			String params = this.parameters.values()
+				.stream()
+				.map((m)->m.toString())
+				.collect(Collectors.joining(","));
+			
+			return String.format( "Interaction:'%s'(%s){%s}",
+			                      this.name, pubSub, params );
+		}
+		
 	}
 }

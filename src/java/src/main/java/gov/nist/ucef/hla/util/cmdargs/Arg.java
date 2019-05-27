@@ -21,7 +21,7 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.util.cmdargs;
+package gov.nist.ucef.hla.util.cmdargs;
 
 /**
  * Abstract class to provide the basic functionality for any command line argument

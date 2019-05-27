@@ -25,11 +25,11 @@ package gov.nist.ucef.hla.example.fedman;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.FileUtils;
 
 /**
  *		            ___

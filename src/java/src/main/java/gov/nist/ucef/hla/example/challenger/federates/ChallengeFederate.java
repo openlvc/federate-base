@@ -37,15 +37,15 @@ import gov.nist.ucef.hla.example.challenger.helpers._ChallengeFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.FileUtils;
-import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
-import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
-import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
-import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.FileUtils;
+import gov.nist.ucef.hla.util.cmdargs.ArgException;
+import gov.nist.ucef.hla.util.cmdargs.ArgProcessor;
+import gov.nist.ucef.hla.util.cmdargs.StdValidators;
+import gov.nist.ucef.hla.util.cmdargs.ValueArg;
 
 /**
  *		            ___
@@ -565,6 +565,9 @@ public class ChallengeFederate extends _ChallengeFederate
 		                                                          "ChallengeFederate",             // type
 		                                                          "ChallengeResponseFederation" ); // execution
 
+		config.addFomPath( "ChallengeResponse/fom/ChallengeResponse.xml" );
+		config.addSomPath( "ChallengeResponse/som/Challenge.xml" );
+		
 		// set up lists of objects/attributes and interactions to subscribe to
 		config.addSubscribedInteraction( ResponseInteraction.interactionClassName() );
 		// set up lists of objects/attributes and interactions to publish
@@ -574,7 +577,7 @@ public class ChallengeFederate extends _ChallengeFederate
 		// subscribed UCEF simulation control interactions
 		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
 		                                  SimEnd.interactionName() );
-
+		
 		// somebody set us up the FOM...
 		try
 		{

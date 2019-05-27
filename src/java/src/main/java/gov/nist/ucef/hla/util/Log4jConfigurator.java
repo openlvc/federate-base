@@ -21,7 +21,7 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.util;
+package gov.nist.ucef.hla.util;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

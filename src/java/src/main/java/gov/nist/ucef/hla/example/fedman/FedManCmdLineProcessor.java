@@ -28,13 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
-import gov.nist.ucef.hla.example.util.cmdargs.ArgProcessor;
-import gov.nist.ucef.hla.example.util.cmdargs.IArgValidator;
-import gov.nist.ucef.hla.example.util.cmdargs.ListArg;
-import gov.nist.ucef.hla.example.util.cmdargs.StdValidators;
-import gov.nist.ucef.hla.example.util.cmdargs.ValidationResult;
-import gov.nist.ucef.hla.example.util.cmdargs.ValueArg;
+import gov.nist.ucef.hla.util.cmdargs.ArgException;
+import gov.nist.ucef.hla.util.cmdargs.ArgProcessor;
+import gov.nist.ucef.hla.util.cmdargs.IArgValidator;
+import gov.nist.ucef.hla.util.cmdargs.ListArg;
+import gov.nist.ucef.hla.util.cmdargs.StdValidators;
+import gov.nist.ucef.hla.util.cmdargs.ValidationResult;
+import gov.nist.ucef.hla.util.cmdargs.ValueArg;
 
 public class FedManCmdLineProcessor
 {

@@ -31,9 +31,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
-import gov.nist.ucef.hla.example.util.StringUtils;
+import gov.nist.ucef.hla.util.StringUtils;
+
+import java.util.Set;
 
 /**
  * A class providing functionality to check whether the start requirements for the Federation

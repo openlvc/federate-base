@@ -824,6 +824,9 @@ public abstract class FederateBase
 		storeObjectClassData( objectClasses );
 		
 		Collection<InteractionClass> interactionClasses = configuration.getPublishedAndSubscribedInteractions();
+		// Collection<InteractionClass> interactionClasses = SOMParser.getInteractionClasses(configuration.getSomPaths());
+		
+		
 		for(InteractionClass interactionClass : interactionClasses)
 		{
 			if(interactionClass.publish)

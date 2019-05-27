@@ -34,13 +34,13 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.example.util.Constants;
-import gov.nist.ucef.hla.example.util.StringUtils;
-import gov.nist.ucef.hla.example.util.cmdargs.ArgException;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
 import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.util.Constants;
+import gov.nist.ucef.hla.util.StringUtils;
+import gov.nist.ucef.hla.util.cmdargs.ArgException;
 
 /**
  *		            ___
