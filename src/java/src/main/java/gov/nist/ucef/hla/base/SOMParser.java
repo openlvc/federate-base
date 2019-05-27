@@ -107,23 +107,23 @@ public class SOMParser
 		Element interactionsRoot = getElementByPath( objectModelNode, INTERACTIONS );
 		Collection<InteractionClass> interactions = extractInteractionClasses( interactionsRoot );
 		
-		for(ObjectClass reflection : reflections)
+		for(ObjectClass objectClass : reflections)
 		{
-			for(ObjectAttribute attribute : reflection.attributes.values())
+			for(ObjectAttribute attribute : objectClass.attributes.values())
 			{
 				if(attribute.publish)
-					config.addPublishedAttribute(reflection.name, attribute.name);
+					config.addPublishedAttribute(objectClass.name, attribute.name);
 				if(attribute.subscribe)
-					config.addSubscribedAttribute(reflection.name, attribute.name);
+					config.addSubscribedAttribute(objectClass.name, attribute.name);
 			}
 		}
 		
-		for(InteractionClass interaction : interactions)
+		for(InteractionClass interactionClass : interactions)
 		{
-			if(interaction.publish)
-				config.addPublishedInteraction(interaction.name);
-			if(interaction.subscribe)
-				config.addSubscribedInteraction(interaction.name);
+			if(interactionClass.publish)
+				config.addPublishedInteraction(interactionClass.name);
+			if(interactionClass.subscribe)
+				config.addSubscribedInteraction(interactionClass.name);
 		}
 	}
 	
@@ -291,9 +291,12 @@ public class SOMParser
 
 		for(Element elm : getChildElementsByName( root, OBJECTCLASS ))
 		{
-			// recurse
+			// recurse - make a copy of the attributes so we don't "pollute"
+			// all the way through the tree using the original collection
+			ArrayList<ObjectAttribute> recAttributes = new ArrayList<ObjectAttribute>();
+			recAttributes.addAll( attributes );
 			traverseObjectClasses( elm, (namespace + className + "."), 
-			                       objectClasses, attributes );
+			                       objectClasses, recAttributes );
 		}
 	}
 	
@@ -328,25 +331,20 @@ public class SOMParser
 			parameters.add(parameter);
 		}
 		
-		// if we have attributes in this objectClass then we can publish and 
-		// subscribe so add it to the vector
-		if( parameters.size() > 0 )
-		{
-			for( InteractionParameter parameter : parameters )
-				interactionClass.addParameter( parameter );
+		// interactions without parameters are just fine
+		for( InteractionParameter parameter : parameters )
+			interactionClass.addParameter( parameter );
 
-			interactionClasses.add( interactionClass );
-		}
-		else
-		{
-			logger.warn( interactionClass.name  + " doesn't have any parameters - ignoring." );
-		}		
+		interactionClasses.add( interactionClass );
 
 		for(Element elm : getChildElementsByName( root, OBJECTCLASS ))
 		{
-			// recurse
+			// recurse - make a copy of the parameters so we don't "pollute"
+			// all the way through the tree using the original collection
+			ArrayList<InteractionParameter> recParameters = new ArrayList<InteractionParameter>();
+			recParameters.addAll( parameters );
 			traverseInteractionClasses( elm, (namespace + className + "."), 
-			                            interactionClasses, parameters );
+			                            interactionClasses, recParameters );
 		}
 	}
 	
