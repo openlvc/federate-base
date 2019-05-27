@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -104,6 +105,16 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
+	/**
+	 * Constructor
+	 */
+	public FederateConfiguration()
+	{
+		this( "UnnamedFederation",
+		      "Federate" + UUID.randomUUID(),
+		      "FederateType" + UUID.randomUUID() );
+	}
+	
 	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.

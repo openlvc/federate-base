@@ -68,7 +68,8 @@ public class ChallengerManager
 		try
 		{
 			FedManFederate fedman = new FedManFederate( args );
-			fedman.runFederate( makeConfig() );
+			makeConfig( fedman.getFederateConfiguration() );
+			fedman.runFederate();
 		}
 		catch(Exception e)
 		{
@@ -106,11 +107,11 @@ public class ChallengerManager
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( FedManConstants.FEDMAN_FEDERATE_NAME, 
-		                                                          FedManConstants.FEDMAN_FEDERATE_TYPE,
-		                                                          "ChallengeResponseFederation");
+		config.setFederateName( FedManConstants.FEDMAN_FEDERATE_NAME );
+		config.setFederateType( FedManConstants.FEDMAN_FEDERATE_TYPE );
+		config.setFederationName( "ChallengeResponseFederation" );
 		
 		// a federation manager is allowed to create a required federation
 		config.setCanCreateFederation( true );

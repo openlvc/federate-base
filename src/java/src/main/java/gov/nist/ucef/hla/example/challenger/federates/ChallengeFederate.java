@@ -559,11 +559,11 @@ public class ChallengeFederate extends _ChallengeFederate
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Challenger",                    // name
-		                                                          "ChallengeFederate",             // type
-		                                                          "ChallengeResponseFederation" ); // execution
+		config.setFederateName( "JavaChallenger" );
+		config.setFederateType( "ChallengeFederate" );
+		config.setFederationName( "ChallengeResponseFederation" );
 
 		config.addFomPath( "ChallengeResponse/fom/ChallengeResponse.xml" );
 		config.addSomPath( "ChallengeResponse/som/Challenge.xml" );
@@ -617,7 +617,9 @@ public class ChallengeFederate extends _ChallengeFederate
 
 		try
 		{
-			new ChallengeFederate(args).runFederate( makeConfig() );
+			ChallengeFederate federate = new ChallengeFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

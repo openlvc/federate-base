@@ -159,11 +159,11 @@ public class SmartPingFederate extends _SmartPingFederate
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Ping",                 // name
-		                                                          "PingFederate",         // type
-		                                                          "PingPongFederation" ); // execution
+		config.setFederateName( "Ping" );
+		config.setFederateType( "PingFederate" );
+		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of objects/attributes to be published and subscribed to
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
@@ -218,7 +218,9 @@ public class SmartPingFederate extends _SmartPingFederate
 
 		try
 		{
-			new SmartPingFederate( args ).runFederate( makeConfig() );
+			SmartPingFederate federate = new SmartPingFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

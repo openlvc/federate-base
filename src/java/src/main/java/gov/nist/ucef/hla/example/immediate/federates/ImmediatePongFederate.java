@@ -159,11 +159,11 @@ public class ImmediatePongFederate extends _ImmediatePongFederate
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
-		                                                          "PongFederate",         // type
-		                                                          "PingPongFederation" ); // execution
+		config.setFederateName( "Pong" );
+		config.setFederateType( "PongFederate" );
+		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of objects/attributes to be published and subscribed to
 		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
@@ -217,7 +217,9 @@ public class ImmediatePongFederate extends _ImmediatePongFederate
 
 		try
 		{
-			new ImmediatePongFederate( args ).runFederate( makeConfig() );
+			ImmediatePongFederate federate = new ImmediatePongFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

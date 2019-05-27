@@ -75,13 +75,13 @@ public abstract class FederateBase
 	{
 		this.rtiamb = new RTIAmbassadorWrapper();
 		this.fedamb = new FederateAmbassador( this );
+		this.configuration = new FederateConfiguration();
+		this.lifecycleState = LifecycleState.GESTATING;
 		
 		this.objectClassByClassHandle = new HashMap<>();
 		this.objectClassByInstanceHandle = new HashMap<>();
 		this.hlaObjectByInstanceHandle = new HashMap<>();
 		this.interactionClassByHandle = new HashMap<>();
-		
-		lifecycleState = LifecycleState.GESTATING;
 	}
 	
 	//----------------------------------------------------------
@@ -146,18 +146,22 @@ public abstract class FederateBase
 	///////////////////////////////////// Federate Business ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Allows to access federate's configuration parameters.
+	 *
+	 * @return FederateConfiguration that allows to access configuration of this federate.
+	 */
+	public FederateConfiguration getFederateConfiguration()
+	{
+		return this.configuration;
+	}
+	
+	/**
 	 * This is the main method which carries out the life cycle of the federate
 	 * 
 	 * @param configuration the configuration for the federate
 	 */
-	public void runFederate( FederateConfiguration configuration )
+	public void runFederate()
 	{
-		// sanity check
-		if(configuration == null)
-			throw new UCEFException("Federate configuration cannot be null.");
-			
-		this.configuration = configuration;
-
 		// create and join the Federation, publish and subscribe
 		// call beforeReadyToPopulate(), beforeReadyToRun() and beforeFirstStep()
 		this.lifecycleState = LifecycleState.INITIALIZING;

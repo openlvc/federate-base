@@ -270,11 +270,11 @@ public class UCEFPongFederate extends UCEFFederateBase
 	 * 
 	 * @return a usefully populated {@link FederateConfiguration} instance
 	 */
-	private static FederateConfiguration makeConfig()
+	private static FederateConfiguration makeConfig( FederateConfiguration config )
 	{
-		FederateConfiguration config = new FederateConfiguration( "Pong",                 // name
-		                                                          "PongFederate",     // type
-		                                                          "PingPongFederation" ); // execution
+		config.setFederateName( "Pong" );
+		config.setFederateType( "PongFederate" );
+		config.setFederationName( "PingPongFederation" );
 
 		// set up lists of interactions to be published and subscribed to
 		config.addPublishedInteraction( PONG_INTERACTION_NAME );
@@ -321,7 +321,9 @@ public class UCEFPongFederate extends UCEFFederateBase
 
 		try
 		{
-			new UCEFPongFederate( args ).runFederate( makeConfig() );
+			UCEFPongFederate federate = new UCEFPongFederate( args );
+			makeConfig( federate.getFederateConfiguration() );
+			federate.runFederate();
 		}
 		catch( Exception e )
 		{

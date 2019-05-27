@@ -87,7 +87,6 @@ public class FederateConfigurationTest extends TestCase
 		
 		assertEquals(5, config.getMaxJoinAttempts());
 		assertEquals(5L, config.getJoinRetryInterval());
-		assertEquals(false, config.isLateJoiner());
 		assertEquals(true, config.isTimeStepped());
 		assertEquals(false, config.callbacksAreEvoked());
 		assertEquals(1.0, config.getLookAhead());
@@ -162,7 +161,6 @@ public class FederateConfigurationTest extends TestCase
 		double expectedStepSize = 1.234;
 		double expectedLookAhead = 0.1234;
 		boolean expectedIsTimeStepped = true;
-		boolean expectedIsLateJoiner = true;
 		boolean expectedCallbacksAreEvoked = true;
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName);
@@ -176,7 +174,6 @@ public class FederateConfigurationTest extends TestCase
 			  .setJoinRetryInterval( expectedReconnectRetryInterval )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
-			  .setLateJoiner( expectedIsLateJoiner )
 			  .setCallbacksAreEvoked( expectedCallbacksAreEvoked )
 			  .setTimeStepped( expectedIsTimeStepped );
 		
@@ -189,7 +186,6 @@ public class FederateConfigurationTest extends TestCase
 		
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts() );
 		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval() );
-		assertEquals( expectedIsLateJoiner, config.isLateJoiner() );
 		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked() );
 		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
 		assertEquals( expectedLookAhead, config.getLookAhead() );
@@ -293,28 +289,6 @@ public class FederateConfigurationTest extends TestCase
 		config.freeze();
 		config.setLookAhead( expectedLookAhead + 1 );
 		assertEquals( expectedLookAhead, config.getLookAhead());
-	}
-	
-	/**
-	 * This tests setting the late joiner value 
-	 */
-	public void testLateJoiner()
-	{
-		String federationName = "federationName";
-		String federateName = "federateName";
-		String federateType = "federateType";
-		boolean expectedLateJoiner = true;
-		
-		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedLateJoiner != config.isLateJoiner());
-		// try changing the value
-		config.setLateJoiner( expectedLateJoiner );
-		assertEquals( expectedLateJoiner, config.isLateJoiner());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setLateJoiner( !expectedLateJoiner );
-		assertEquals( expectedLateJoiner, config.isLateJoiner());
 	}
 	
 	/**
