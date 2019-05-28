@@ -23,9 +23,17 @@
  */
 package gov.nist.ucef.hla.example.immediate.federates;
 
+import java.util.Map.Entry;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
+import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
 import gov.nist.ucef.hla.example.immediate.helpers._ImmediatePongFederate;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.interactions.Pong;
@@ -165,15 +173,32 @@ public class ImmediatePongFederate extends _ImmediatePongFederate
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of objects/attributes to be published and subscribed to
-		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
-		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
-		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Pong.interactionClassName() );
-		config.addSubscribedInteraction( Ping.interactionClassName() );
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+            new InteractionClass( Pong.interactionClassName(), Sharing.PUBLISH ),
+		    new InteractionClass( Ping.interactionClassName(), Sharing.SUBSCRIBE )
+		);
+		
+		// set up object class reflections to publish and subscribe to
+		ObjectClass playerReflection =
+		    new ObjectClass( ChallengeObject.objectClassName(), Sharing.PUBLISHSUBSCRIBE );
+		for( Entry<String,DataType> entry : Player.attributes().entrySet() )
+		{
+			String name = entry.getKey();
+			DataType dataType = entry.getValue();
+			ObjectAttribute playerAttribute = new ObjectAttribute( name, 
+			                                                       dataType, 
+			                                                       Sharing.PUBLISHSUBSCRIBE );
+			playerReflection.addAttribute( playerAttribute );
+		}
+		config.cacheObjectClasses( playerReflection );
+		
 		// subscribed UCEF simulation control interactions
-		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
-		                                  SimEnd.interactionName() );
+		config.cacheInteractionClasses( 
+    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
+		);
 
 		// somebody set us up the FOM...
 		try

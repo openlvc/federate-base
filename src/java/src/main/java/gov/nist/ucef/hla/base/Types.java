@@ -253,6 +253,11 @@ public class Types
 			this.attributes.put( attribute.name, attribute );
 		}
 		
+		public Map<String,ObjectAttribute> getAttributes()
+		{
+			return Collections.unmodifiableMap( this.attributes );
+		}
+		
 		public String toString()
 		{
 			String attrs = this.attributes.values()
@@ -345,6 +350,11 @@ public class Types
 		public void addParameter( InteractionParameter parameter )
 		{
 			this.parameters.put( parameter.name, parameter );
+		}
+		
+		public Map<String,InteractionParameter> getParameters()
+		{
+			return Collections.unmodifiableMap( this.parameters );
 		}
 		
 		public String toString()

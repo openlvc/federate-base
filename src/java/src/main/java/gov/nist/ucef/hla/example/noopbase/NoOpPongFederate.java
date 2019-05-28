@@ -162,12 +162,11 @@ public class NoOpPongFederate extends NoOpFederate
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of interactions to be published and subscribed to
-		Types.InteractionClass pongInteraction = new Types.InteractionClass(PONG_INTERACTION_ID,
-		                                                                    Sharing.PUBLISH);
-		Types.InteractionClass pingInteraction = new Types.InteractionClass(PING_INTERACTION_ID,
-		                                                                    Sharing.SUBSCRIBE);
-		config.addInteractions( pongInteraction, pingInteraction );
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+	        new Types.InteractionClass( PONG_INTERACTION_ID, Sharing.PUBLISH ),
+		    new Types.InteractionClass( PING_INTERACTION_ID, Sharing.SUBSCRIBE )
+		);
 		
 		// somebody set us up the FOM...
 		try

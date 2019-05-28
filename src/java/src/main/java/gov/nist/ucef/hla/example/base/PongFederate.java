@@ -31,10 +31,10 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.base.Types;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -221,13 +221,12 @@ public class PongFederate extends FederateBase
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of interactions to be published and subscribed to
-		Types.InteractionClass pongInteraction = new Types.InteractionClass(PONG_INTERACTION_ID,
-		                                                                    Sharing.PUBLISH);
-		Types.InteractionClass pingInteraction = new Types.InteractionClass(PING_INTERACTION_ID,
-		                                                                    Sharing.SUBSCRIBE);
-		config.addInteractions( pongInteraction, pingInteraction );
-
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+           	new InteractionClass( PONG_INTERACTION_ID, Sharing.PUBLISH ),
+            new InteractionClass( PING_INTERACTION_ID, Sharing.SUBSCRIBE )
+        );
+		
 		// somebody set us up the FOM...
 		try
 		{

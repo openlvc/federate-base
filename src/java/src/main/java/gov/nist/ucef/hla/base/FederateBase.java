@@ -531,9 +531,6 @@ public abstract class FederateBase
 	{
 		beforeFederationJoin();
 
-		// no more configuration changes allowed
-		configuration.freeze();
-		
 		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
 		logger.info( "Federate {} connected to RTI.", configuration.getFederateName() );
@@ -803,7 +800,7 @@ public abstract class FederateBase
 	 */
 	protected void publishAndSubscribe()
 	{
-		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedAttributes();
+		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedObjectClasses();
 		for(ObjectClass objectClass : objectClasses)
 		{
 			if(objectClass.isPublished())

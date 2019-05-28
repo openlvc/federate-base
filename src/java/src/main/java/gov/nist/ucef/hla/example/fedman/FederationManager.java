@@ -24,6 +24,11 @@
 package gov.nist.ucef.hla.example.fedman;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
@@ -113,12 +118,27 @@ public class FederationManager
 		// a federation manager is allowed to create a required federation
 		config.setCanCreateFederation( true );
 
-		// subscribe to reflections described in MIM to detected joining federates 
-		config.addSubscribedAttributes( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME, FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES );
+		// set up object class reflections to subscribe to (described 
+		// in MIM) to detect joining federates. Note that since this
+		// is a non-UCEF reflection, the `DataType` parameter here 
+		// does not really matter too much
+		ObjectClass mimReflection = new ObjectClass( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME, 
+		                                             Sharing.SUBSCRIBE );
+		for( String attributeName : FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES )
+		{
+			ObjectAttribute playerAttribute = new ObjectAttribute( attributeName, 
+			                                                       DataType.UNKNOWN,
+			                                                       Sharing.SUBSCRIBE );
+			mimReflection.addAttribute( playerAttribute );
+		}
+		config.cacheObjectClasses( mimReflection );
 		
-		// published UCEF interactions
-		config.addPublishedInteractions( SimPause.interactionName(), SimResume.interactionName(),
-		                                 SimEnd.interactionName() );
+		// subscribed UCEF simulation control interactions
+		config.cacheInteractionClasses( 
+    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
+		);
 		
 		// here about callbacks *immediately*, rather than when evoked, otherwise
 		// we don't know about joined federates until after the ticking starts 

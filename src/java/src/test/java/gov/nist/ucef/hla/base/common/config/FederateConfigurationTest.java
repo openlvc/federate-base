@@ -33,9 +33,16 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.InteractionParameter;
+import gov.nist.ucef.hla.base.Types.Sharing;
+import gov.nist.ucef.hla.base.Types.DataType;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -78,9 +85,6 @@ public class FederateConfigurationTest extends TestCase
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 
-		// configuration should be writable at this point
-		assertEquals( false, config.isFrozen());
-			
 		assertEquals( federationName, config.getFederationName() );
 		assertEquals( federateName, config.getFederateName() );
 		assertEquals( federateType, config.getFederateType() );
@@ -94,13 +98,10 @@ public class FederateConfigurationTest extends TestCase
 
 		assertEquals( 0, config.getModules().size() );
 		assertEquals( 0, config.getJoinModules().size() );
-		assertEquals( 0, config.getPublishedAttributes().size() );
-		assertEquals( 0, config.getSubscribedAttributes().size() );
+		assertEquals( 0, config.getPublishedObjectClasses().size() );
+		assertEquals( 0, config.getSubscribedObjectClasses().size() );
 		assertEquals( 0, config.getPublishedInteractions().size() );
 		assertEquals( 0, config.getSubscribedInteractions().size() );
-		
-		// configuration should still be writable because we haven't frozen it
-		assertEquals( false, config.isFrozen());
 	}
 
 	/**
@@ -146,15 +147,52 @@ public class FederateConfigurationTest extends TestCase
 		// set up maps with classes and corresponding lists of attributes to 
 		// be published and subscribed to
 		String klassIdBase = "HLAobjectRoot.A.B.C.";
-		Map<String, Collection<String>> expectedPublishedAttributes = new HashMap<>();
-		expectedPublishedAttributes.put( klassIdBase+"D", new HashSet<>(Arrays.asList( new String[] {"a", "b"} ) ));
-		Map<String, Collection<String>> expectedSubscribedAttributes = new HashMap<>();
-		expectedSubscribedAttributes.put( klassIdBase+"E", new HashSet<>(Arrays.asList( new String[] {"c", "d", "e"} ) ));
+		Map<String, Collection<String>> tempAttributeDefs = new HashMap<>();
+		tempAttributeDefs.put( klassIdBase+"D", new HashSet<>(Arrays.asList( new String[] {"a", "b"} ) ));
+		List<ObjectClass> expectedPublishedObjectClasses = new ArrayList<>();
+		for( Entry<String,Collection<String>> entry : tempAttributeDefs.entrySet() )
+		{
+			String objectClassName = entry.getKey();
+			ObjectClass publishedObjectClass = new ObjectClass( objectClassName, Sharing.PUBLISH );
+			for( String attributeName : entry.getValue() )
+			{
+				publishedObjectClass.addAttribute( new ObjectAttribute( attributeName,
+				                                                        DataType.STRING,
+				                                                        Sharing.PUBLISH ) );
+			}
+			expectedPublishedObjectClasses.add(publishedObjectClass);
+		}
+		
+		tempAttributeDefs = new HashMap<>();
+		tempAttributeDefs.put( klassIdBase+"E", new HashSet<>(Arrays.asList( new String[] {"c", "d", "e"} ) ));
+		List<ObjectClass> expectedSubscribedObjectClasses = new ArrayList<>();
+		for( Entry<String,Collection<String>> entry : tempAttributeDefs.entrySet() )
+		{
+			String objectClassName = entry.getKey();
+			ObjectClass publishedObjectClass = new ObjectClass( objectClassName, Sharing.SUBSCRIBE );
+			for( String attributeName : entry.getValue() )
+			{
+				publishedObjectClass.addAttribute( new ObjectAttribute( attributeName,
+				                                                        DataType.STRING,
+				                                                        Sharing.SUBSCRIBE ) );
+			}
+			expectedSubscribedObjectClasses.add(publishedObjectClass);
+		}
 		
 		// set up lists of interactions to be published and subscribed to
 		String interactionIdBase = "HLAinteractionRoot.T.U.";
-		Collection<String> expectedPublishedInteractions = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"V", interactionIdBase+"W"} ));
-		Collection<String> expectedSubscribedInteractions = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"X", interactionIdBase+"Y", interactionIdBase+"Z"} ));
+		Collection<String> tempInteractionDefs = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"V", interactionIdBase+"W"} ));
+		List<InteractionClass> expectedPublishedInteractions = new ArrayList<>();
+		for( String interactionClassName : tempInteractionDefs )
+		{
+			expectedPublishedInteractions.add( new InteractionClass( interactionClassName, Sharing.PUBLISH ) );
+		}
+		tempInteractionDefs = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"X", interactionIdBase+"Y", interactionIdBase+"Z"} ));
+		List<InteractionClass> expectedSubscribedInteractions = new ArrayList<>();
+		for( String interactionClassName : tempInteractionDefs )
+		{
+			expectedSubscribedInteractions.add( new InteractionClass( interactionClassName, Sharing.SUBSCRIBE ) );
+		}
 
 		int expectedMaxReconnectAttempts = 123;
 		int expectedReconnectRetryInterval = 54321;
@@ -166,19 +204,16 @@ public class FederateConfigurationTest extends TestCase
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName);
 		config.addModules( expectedModules )
 			  .addJoinModules( expectedJoinModules )
-			  .addPublishedAttributes( expectedPublishedAttributes )
-			  .addSubscribedAttributes( expectedSubscribedAttributes )
-			  .addPublishedInteractions( expectedPublishedInteractions )
-			  .addSubscribedInteractions( expectedSubscribedInteractions)
+			  .cacheObjectClasses( expectedPublishedObjectClasses )
+			  .cacheObjectClasses( expectedSubscribedObjectClasses )
+			  .cacheInteractionClasses( expectedPublishedInteractions )
+			  .cacheInteractionClasses( expectedSubscribedInteractions )
 			  .setMaxJoinAttempts( expectedMaxReconnectAttempts )
 			  .setJoinRetryInterval( expectedReconnectRetryInterval )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
 			  .setCallbacksAreEvoked( expectedCallbacksAreEvoked )
 			  .setTimeStepped( expectedIsTimeStepped );
-		
-		// configuration should be writeable at this point
-		assertEquals( false, config.isFrozen());
 		
 		assertEquals( federationName, config.getFederationName() );
 		assertEquals( federateName, config.getFederateName() );
@@ -193,14 +228,10 @@ public class FederateConfigurationTest extends TestCase
 		
 		assertEquals( expectedModules.size(), config.getModules().size() );
 		assertEquals( expectedJoinModules.size(), config.getJoinModules().size() );
-		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size() );
-		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size() );
+		assertEquals( expectedPublishedObjectClasses.size(), config.getPublishedObjectClasses().size() );
+		assertEquals( expectedSubscribedObjectClasses.size(), config.getSubscribedObjectClasses().size() );
 		assertEquals( expectedPublishedInteractions.size(), config.getPublishedInteractions().size() );
 		assertEquals( expectedSubscribedInteractions.size(), config.getSubscribedInteractions().size() );
-		
-		// freeze configuration, should be read only now
-		config.freeze();
-		assertEquals( true, config.isFrozen());
 	}
 	
 	/**
@@ -218,10 +249,6 @@ public class FederateConfigurationTest extends TestCase
 		assertTrue( expectedMaxReconnectAttempts != config.getMaxJoinAttempts() );
 		// try changing the value
 		config.setMaxJoinAttempts( expectedMaxReconnectAttempts );
-		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setMaxJoinAttempts( expectedMaxReconnectAttempts + 1 );
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts());
 	}
 	
@@ -241,10 +268,6 @@ public class FederateConfigurationTest extends TestCase
 		// try changing the value
 		config.setJoinRetryInterval( expectedReconnectRetryInterval );
 		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setMaxJoinAttempts( expectedReconnectRetryInterval + 1 );
-		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval());
 	}
 	
 	/**
@@ -262,10 +285,6 @@ public class FederateConfigurationTest extends TestCase
 		assertTrue( expectedStepSize != config.getStepSize() );
 		// try changing the value
 		config.setStepSize( expectedStepSize );
-		assertEquals( expectedStepSize, config.getStepSize());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setStepSize( expectedStepSize + 1 );
 		assertEquals( expectedStepSize, config.getStepSize());
 	}
 	
@@ -285,10 +304,6 @@ public class FederateConfigurationTest extends TestCase
 		// try changing the value
 		config.setLookAhead( expectedLookAhead );
 		assertEquals( expectedLookAhead, config.getLookAhead());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setLookAhead( expectedLookAhead + 1 );
-		assertEquals( expectedLookAhead, config.getLookAhead());
 	}
 	
 	/**
@@ -307,10 +322,6 @@ public class FederateConfigurationTest extends TestCase
 		// try changing the value
 		config.setCallbacksAreEvoked( expectedCallbacksAreEvoked );
 		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setCallbacksAreEvoked( !expectedCallbacksAreEvoked );
-		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked());
 	}
 	
 	/**
@@ -328,10 +339,6 @@ public class FederateConfigurationTest extends TestCase
 		assertTrue( expectedTimeStepped != config.isTimeStepped());
 		// try changing the value
 		config.setTimeStepped( expectedTimeStepped );
-		assertEquals( expectedTimeStepped, config.isTimeStepped());
-		// freeze the config and try to change the value - should not change
-		config.freeze();
-		config.setTimeStepped( !expectedTimeStepped );
 		assertEquals( expectedTimeStepped, config.isTimeStepped());
 	}
 	
@@ -383,14 +390,6 @@ public class FederateConfigurationTest extends TestCase
 		config.addModules( extraModules );
 		assertEquals( expectedModules.size() + extraModules.size(), config.getModules().size());
 
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add modules - should have done nothing because config is frozen.
-		config.addModules( expectedModules );
-		assertEquals( 0, config.getModules().size());
-		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single module - this actually ends up feeding through the adding
@@ -456,14 +455,6 @@ public class FederateConfigurationTest extends TestCase
 
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add modules - should have done nothing because config is frozen.
-		config.addJoinModules( expectedJoinModules );
-		assertEquals( 0, config.getJoinModules().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single module - this actually ends up feeding through the adding
 		// a list of modules method
 		config.addModule( expectedJoinModules.get( 0 ) );
@@ -486,59 +477,56 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		
-		// set up maps with classes and corresponding lists of attributes to be published
-		String objectClass1 = "HLAobjectRoot.A.B.C";
-		List<String> attributes1 = new ArrayList<>();
-		attributes1.add( "A" );
-		attributes1.add( "B" );
-		Map<String, Collection<String>> expectedPublishedAttributes = new HashMap<>();
-		expectedPublishedAttributes.put( objectClass1, attributes1 );
+		// set up object classes and corresponding attributes to be published
+		ObjectClass objectClass1 = new ObjectClass("HLAobjectRoot.A.B.C", Sharing.PUBLISH);
+		objectClass1.addAttribute( new ObjectAttribute("A", DataType.BOOLEAN, Sharing.PUBLISH ));
+		objectClass1.addAttribute( new ObjectAttribute("B", DataType.BYTE, Sharing.PUBLISH ));
 		
-		String objectClass2 = "HLAobjectRoot.X.Y.Z";
-		List<String> attributes2 = new ArrayList<>();
-		attributes2.add( "M" );
-		attributes2.add( "N" );
-		Map<String, Collection<String>> extraPublishedAttributes = new HashMap<>();
-		extraPublishedAttributes.put( objectClass2, attributes2 );
-
+		ObjectClass objectClass2 = new ObjectClass("HLAobjectRoot.X.Y.Z", Sharing.PUBLISH);
+		objectClass2.addAttribute( new ObjectAttribute("M", DataType.CHAR, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("N", DataType.DOUBLE, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("O", DataType.FLOAT, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("P", DataType.INT, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("Q", DataType.LONG, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("R", DataType.SHORT, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("S", DataType.STRING, Sharing.PUBLISH ));
+		objectClass2.addAttribute( new ObjectAttribute("T", DataType.UNKNOWN, Sharing.PUBLISH ));
+		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addPublishedAttributes( expectedPublishedAttributes );
-		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size());
+		config.cacheObjectClasses( objectClass1 );
+		assertEquals( 1, config.getPublishedObjectClasses().size());
 		// add the same attributes again - shouldn't increase the size
-		config.addPublishedAttributes( expectedPublishedAttributes );
-		assertEquals( expectedPublishedAttributes.size(), config.getPublishedAttributes().size());
+		config.cacheObjectClasses( objectClass1 );
+		assertEquals( 1, config.getPublishedObjectClasses().size());
 		// add more attributes - should increase the size
-		config.addPublishedAttributes( extraPublishedAttributes );
-		assertEquals( expectedPublishedAttributes.size() + extraPublishedAttributes.size(), config.getPublishedAttributes().size());
+		config.cacheObjectClasses( objectClass2 );
+		assertEquals( 2, config.getPublishedObjectClasses().size());
 
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add subscribed attributes - should have done nothing because config is frozen.
-		config.addPublishedAttributes( expectedPublishedAttributes );
-		assertEquals( 0, config.getPublishedAttributes().size());
+		// try to add multiple object class reflections at once
+		config.cacheObjectClasses( objectClass1, objectClass2 );
+		assertEquals( 2, config.getPublishedObjectClasses().size());
 		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add single attribute - this actually ends up feeding through the adding
-		// a map of subscribed attributes method
-		config.addPublishedAttribute( objectClass1, attributes1.get( 0 ) );
-		assertEquals( 1, config.getPublishedAttributes().size());
+		// check on reported attributes
+		Set<String> actualClass1AttributeNames = config.getPublishedAttributeNames( objectClass1.name );
+		Set<String> actualClass2AttributeNames = config.getPublishedAttributeNames( objectClass2.name );
+		assertEquals( objectClass1.getAttributes().size(), actualClass1AttributeNames.size() );
+		assertEquals( objectClass2.getAttributes().size(), actualClass2AttributeNames.size() );
 		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple attributes on single class with an array - this actually ends up feeding
-		// through the adding a map of subscribed attributes method
-		config.addPublishedAttributes( objectClass1, attributes1.toArray( new String[0] ) );
-		assertEquals( 1, config.getPublishedAttributes().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple attributes on single class with a collection - this actually ends up
-		// feeding through the adding a map of subscribed attributes method
-		config.addPublishedAttributes( objectClass1, attributes1 );
-		assertEquals( 1, config.getPublishedAttributes().size());
+		// check reported attribute types
+		for( String attributeName : actualClass1AttributeNames )
+		{
+			DataType expectedDataType = objectClass1.getAttributes().get( attributeName ).dataType;
+			DataType actualDataType = config.getDataType( objectClass1.name, attributeName );
+			assertEquals(expectedDataType, actualDataType);
+		}
+		for( String attributeName : actualClass2AttributeNames )
+		{
+			DataType expectedDataType = objectClass2.getAttributes().get( attributeName ).dataType;
+			DataType actualDataType = config.getDataType( objectClass2.name, attributeName );
+			assertEquals(expectedDataType, actualDataType);
+		}
 	}
 	
 	/**
@@ -550,59 +538,56 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		
-		// set up maps with classes and corresponding lists of attributes to be subscribed to
-		String objectClass1 = "HLAobjectRoot.A.B.C";
-		List<String> attributes1 = new ArrayList<>();
-		attributes1.add( "A" );
-		attributes1.add( "B" );
-		Map<String, Collection<String>> expectedSubscribedAttributes = new HashMap<>();
-		expectedSubscribedAttributes.put( objectClass1, attributes1 );
+		// set up object classes and corresponding attributes to be subscribed to
+		ObjectClass objectClass1 = new ObjectClass("HLAobjectRoot.A.B.C", Sharing.SUBSCRIBE);
+		objectClass1.addAttribute( new ObjectAttribute("A", DataType.BOOLEAN, Sharing.SUBSCRIBE ));
+		objectClass1.addAttribute( new ObjectAttribute("B", DataType.BYTE, Sharing.SUBSCRIBE ));
 		
-		String objectClass2 = "HLAobjectRoot.X.Y.Z";
-		List<String> attributes2 = new ArrayList<>();
-		attributes2.add( "M" );
-		attributes2.add( "N" );
-		Map<String, Collection<String>> extraSubscribedAttributes = new HashMap<>();
-		extraSubscribedAttributes.put( objectClass2, attributes2 );
+		ObjectClass objectClass2 = new ObjectClass("HLAobjectRoot.X.Y.Z", Sharing.SUBSCRIBE);
+		objectClass2.addAttribute( new ObjectAttribute("M", DataType.CHAR, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("N", DataType.DOUBLE, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("O", DataType.FLOAT, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("P", DataType.INT, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("Q", DataType.LONG, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("R", DataType.SHORT, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("S", DataType.STRING, Sharing.SUBSCRIBE ));
+		objectClass2.addAttribute( new ObjectAttribute("T", DataType.UNKNOWN, Sharing.SUBSCRIBE ));
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addSubscribedAttributes( expectedSubscribedAttributes );
-		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size());
+		config.cacheObjectClasses( objectClass1 );
+		assertEquals( 1, config.getSubscribedObjectClasses().size());
 		// add the same attributes again - shouldn't increase the size
-		config.addSubscribedAttributes( expectedSubscribedAttributes );
-		assertEquals( expectedSubscribedAttributes.size(), config.getSubscribedAttributes().size());
+		config.cacheObjectClasses( objectClass1 );
+		assertEquals( 1, config.getSubscribedObjectClasses().size());
 		// add more attributes - should increase the size
-		config.addSubscribedAttributes( extraSubscribedAttributes );
-		assertEquals( expectedSubscribedAttributes.size() + extraSubscribedAttributes.size(), config.getSubscribedAttributes().size());
-		
+		config.cacheObjectClasses( objectClass2 );
+		assertEquals( 2, config.getSubscribedObjectClasses().size());
+
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add subscribed attributes - should have done nothing because config is frozen.
-		config.addSubscribedAttributes( expectedSubscribedAttributes );
-		assertEquals( 0, config.getSubscribedAttributes().size());
+		// try to add multiple object class reflections at once
+		config.cacheObjectClasses( objectClass1, objectClass2 );
+		assertEquals( 2, config.getSubscribedObjectClasses().size());
 		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add single attribute - this actually ends up feeding through the adding
-		// a map of subscribed attributes method
-		config.addSubscribedAttribute( objectClass1, attributes1.get( 0 ) );
-		assertEquals( 1, config.getSubscribedAttributes().size());
+		// check on reported attributes
+		Set<String> actualClass1AttributeNames = config.getSubscribedAttributeNames( objectClass1.name );
+		Set<String> actualClass2AttributeNames = config.getSubscribedAttributeNames( objectClass2.name );
+		assertEquals( objectClass1.getAttributes().size(), actualClass1AttributeNames.size() );
+		assertEquals( objectClass2.getAttributes().size(), actualClass2AttributeNames.size() );
 		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple attributes on single class with an array - this actually ends up feeding
-		// through the adding a map of subscribed attributes method
-		config.addSubscribedAttributes( objectClass1, attributes1.toArray( new String[0] ) );
-		assertEquals( 1, config.getSubscribedAttributes().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple attributes on single class with a collection - this actually ends up
-		// feeding through the adding a map of subscribed attributes method
-		config.addSubscribedAttributes( objectClass1, attributes1 );
-		assertEquals( 1, config.getSubscribedAttributes().size());
+		// check reported attribute types
+		for( String attributeName : actualClass1AttributeNames )
+		{
+			DataType expectedDataType = objectClass1.getAttributes().get( attributeName ).dataType;
+			DataType actualDataType = config.getDataType( objectClass1.name, attributeName );
+			assertEquals(expectedDataType, actualDataType);
+		}
+		for( String attributeName : actualClass2AttributeNames )
+		{
+			DataType expectedDataType = objectClass2.getAttributes().get( attributeName ).dataType;
+			DataType actualDataType = config.getDataType( objectClass2.name, attributeName );
+			assertEquals(expectedDataType, actualDataType);
+		}
 	}
 	
 	/**
@@ -615,48 +600,55 @@ public class FederateConfigurationTest extends TestCase
 		String federateType = "federateType";
 		
 		// set up lists of interactions to be published
-		String interactionIdentifierBase = "HLAinteractionRoot.A.B.C.";
-		List<String> expectedInteractions = new ArrayList<>();
-		expectedInteractions.add( interactionIdentifierBase+"D" );
-		expectedInteractions.add( interactionIdentifierBase+"E" );
-		expectedInteractions.add( interactionIdentifierBase+"F" );
+		InteractionClass interaction1 = new InteractionClass( "HLAinteractionRoot.A.B.C.", Sharing.PUBLISH );
+		interaction1.addParameter( new InteractionParameter("A", DataType.BOOLEAN ));
+		interaction1.addParameter( new InteractionParameter("B", DataType.BYTE ));
 		
-		String extraInteractionIdentifierBase = "HLAinteractionRoot.V.W.X.";
-		List<String> extraInteractions = new ArrayList<>();
-		extraInteractions.add( extraInteractionIdentifierBase+"Y" );
-		extraInteractions.add( extraInteractionIdentifierBase+"Z" );
+		InteractionClass interaction2 = new InteractionClass("HLAobjectRoot.X.Y.Z", Sharing.PUBLISH);
+		interaction2.addParameter( new InteractionParameter("M", DataType.CHAR ));
+		interaction2.addParameter( new InteractionParameter("N", DataType.DOUBLE ));
+		interaction2.addParameter( new InteractionParameter("O", DataType.FLOAT ));
+		interaction2.addParameter( new InteractionParameter("P", DataType.INT ));
+		interaction2.addParameter( new InteractionParameter("Q", DataType.LONG ));
+		interaction2.addParameter( new InteractionParameter("R", DataType.SHORT ));
+		interaction2.addParameter( new InteractionParameter("S", DataType.STRING ));
+		interaction2.addParameter( new InteractionParameter("T", DataType.UNKNOWN ));
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addPublishedInteractions( expectedInteractions );
-		assertEquals( expectedInteractions.size(), config.getPublishedInteractions().size());
-		// add the same interactions again - shouldn't increase the size
-		config.addPublishedInteractions( expectedInteractions );
-		assertEquals( expectedInteractions.size(), config.getPublishedInteractions().size());
-		// add more interactions - should increase the size
-		config.addPublishedInteractions( extraInteractions );
-		assertEquals( expectedInteractions.size() + extraInteractions.size(), config.getPublishedInteractions().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add published interactions - should have done nothing because config is frozen.
-		config.addPublishedInteractions( expectedInteractions );
-		assertEquals( 0, config.getPublishedInteractions().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add single interaction - this actually ends up feeding through the adding
-		// a collection of published interactions method
-		config.addPublishedInteraction( expectedInteractions.get( 0 ) );
+		config.cacheInteractionClasses( interaction1 );
 		assertEquals( 1, config.getPublishedInteractions().size());
+		// add the same interactions again - shouldn't increase the size
+		config.cacheInteractionClasses( interaction1 );
+		assertEquals( 1, config.getPublishedInteractions().size());
+		// add more interactions - should increase the size
+		config.cacheInteractionClasses( interaction2 );
+		assertEquals( 2, config.getPublishedInteractions().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple interactions with an array - this actually ends up feeding
-		// through the adding a collection of interactions method
-		config.addPublishedInteractions( expectedInteractions.toArray( new String[0] ) );
-		assertEquals( expectedInteractions.size(), config.getPublishedInteractions().size());
+		// try to add multiple interactions at once
+		config.cacheInteractionClasses( interaction1, interaction2 );
+		assertEquals( 2, config.getPublishedInteractions().size());
+
+		// check on reported parameters
+		Set<String> actualInteraction1ParameterNames = config.getParameterNames( interaction1.name );
+		Set<String> actualInteraction2ParameterNames = config.getParameterNames( interaction2.name );
+		assertEquals( interaction1.getParameters().size(), actualInteraction1ParameterNames.size() );
+		assertEquals( interaction2.getParameters().size(), actualInteraction2ParameterNames.size() );
+		
+		// check reported attribute types
+		for( String parameterName : actualInteraction1ParameterNames )
+		{
+			DataType expectedDataType = interaction1.getParameters().get( parameterName ).dataType;
+			DataType actualDataType = config.getDataType( interaction1.name, parameterName );
+			assertEquals(expectedDataType, actualDataType);
+		}
+		for( String parameterName : actualInteraction2ParameterNames )
+		{
+			DataType expectedDataType = interaction2.getParameters().get( parameterName ).dataType;
+			DataType actualDataType = config.getDataType( interaction2.name, parameterName );
+			assertEquals(expectedDataType, actualDataType);
+		}
 	}
 	
 	/**
@@ -668,49 +660,56 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		
-		// set up lists of interactions to be subscribed to
-		String interactionIdentifierBase = "HLAinteractionRoot.A.B.C.";
-		List<String> expectedInteractions = new ArrayList<>();
-		expectedInteractions.add( interactionIdentifierBase+"D" );
-		expectedInteractions.add( interactionIdentifierBase+"E" );
-		expectedInteractions.add( interactionIdentifierBase+"F" );
+		// set up lists of interactions to be subscribed
+		InteractionClass interaction1 = new InteractionClass( "HLAinteractionRoot.A.B.C.", Sharing.SUBSCRIBE );
+		interaction1.addParameter( new InteractionParameter("A", DataType.BOOLEAN ));
+		interaction1.addParameter( new InteractionParameter("B", DataType.BYTE ));
 		
-		String extraInteractionIdentifierBase = "HLAinteractionRoot.V.W.X.";
-		List<String> extraInteractions = new ArrayList<>();
-		extraInteractions.add( extraInteractionIdentifierBase+"Y" );
-		extraInteractions.add( extraInteractionIdentifierBase+"Z" );
+		InteractionClass interaction2 = new InteractionClass("HLAobjectRoot.X.Y.Z", Sharing.SUBSCRIBE);
+		interaction2.addParameter( new InteractionParameter("M", DataType.CHAR ));
+		interaction2.addParameter( new InteractionParameter("N", DataType.DOUBLE ));
+		interaction2.addParameter( new InteractionParameter("O", DataType.FLOAT ));
+		interaction2.addParameter( new InteractionParameter("P", DataType.INT ));
+		interaction2.addParameter( new InteractionParameter("Q", DataType.LONG ));
+		interaction2.addParameter( new InteractionParameter("R", DataType.SHORT ));
+		interaction2.addParameter( new InteractionParameter("S", DataType.STRING ));
+		interaction2.addParameter( new InteractionParameter("T", DataType.UNKNOWN ));
 		
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		config.addSubscribedInteractions( expectedInteractions );
-		assertEquals( expectedInteractions.size(), config.getSubscribedInteractions().size());
-		// add the same interactions again - shouldn't increase the size
-		config.addSubscribedInteractions( expectedInteractions );
-		assertEquals( expectedInteractions.size(), config.getSubscribedInteractions().size());
-		// add more interactions - should increase the size
-		config.addSubscribedInteractions( extraInteractions );
-		assertEquals( expectedInteractions.size() + extraInteractions.size(), config.getSubscribedInteractions().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// freeze it
-		config.freeze();
-		// try to add published interactions - should have done nothing because config is frozen.
-		config.addSubscribedInteractions( expectedInteractions );
-		assertEquals( 0, config.getSubscribedInteractions().size());
-		
-		// start again with clean config
-		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add single interaction - this actually ends up feeding through the adding
-		// a collection of published interactions method
-		config.addSubscribedInteraction( expectedInteractions.get( 0 ) );
+		config.cacheInteractionClasses( interaction1 );
 		assertEquals( 1, config.getSubscribedInteractions().size());
+		// add the same interactions again - shouldn't increase the size
+		config.cacheInteractionClasses( interaction1 );
+		assertEquals( 1, config.getSubscribedInteractions().size());
+		// add more interactions - should increase the size
+		config.cacheInteractionClasses( interaction2 );
+		assertEquals( 2, config.getSubscribedInteractions().size());
 		
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
-		// try to add multiple interactions with an array - this actually ends up feeding
-		// through the adding a collection of interactions method
-		config.addSubscribedInteractions( expectedInteractions.toArray( new String[0] ) );
-		assertEquals( expectedInteractions.size(), config.getSubscribedInteractions().size());
+		// try to add multiple interactions at once
+		config.cacheInteractionClasses( interaction1, interaction2 );
+		assertEquals( 2, config.getSubscribedInteractions().size());
+		
+		// check on reported parameters
+		Set<String> actualInteraction1ParameterNames = config.getParameterNames( interaction1.name );
+		Set<String> actualInteraction2ParameterNames = config.getParameterNames( interaction2.name );
+		assertEquals( interaction1.getParameters().size(), actualInteraction1ParameterNames.size() );
+		assertEquals( interaction2.getParameters().size(), actualInteraction2ParameterNames.size() );
+		
+		// check reported attribute types
+		for( String parameterName : actualInteraction1ParameterNames )
+		{
+			DataType expectedDataType = interaction1.getParameters().get( parameterName ).dataType;
+			DataType actualDataType = config.getDataType( interaction1.name, parameterName );
+			assertEquals(expectedDataType, actualDataType);
+		}
+		for( String parameterName : actualInteraction2ParameterNames )
+		{
+			DataType expectedDataType = interaction2.getParameters().get( parameterName ).dataType;
+			DataType actualDataType = config.getDataType( interaction2.name, parameterName );
+			assertEquals(expectedDataType, actualDataType);
+		}
 	}
 	
 	

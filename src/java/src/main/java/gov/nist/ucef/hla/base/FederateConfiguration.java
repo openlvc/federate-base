@@ -35,7 +35,10 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.InteractionParameter;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
 
 /**
@@ -86,8 +89,8 @@ public class FederateConfiguration
 	private Set<String> foms;
 	private String som;	
 	
-	private Map<String,Types.InteractionClass> pubSubInteractions;
-	private Map<String,Types.ObjectClass> pubSubAttributes;
+	private Map<String,Types.InteractionClass> interactionsByName;
+	private Map<String,Types.ObjectClass> objectClassesByName;
 
 	private boolean canCreateFederation;
 	private int maxJoinAttempts;
@@ -99,10 +102,6 @@ public class FederateConfiguration
 	private boolean callbacksAreEvoked;
 	private double lookAhead;
 	private double stepSize;
-
-	// flag indicating whether the configuration in this instance is modifiable or not
-	// IMPORTANT: Do not expose this to modification from outside of this class!
-	private boolean isFrozen = false;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -136,8 +135,8 @@ public class FederateConfiguration
 		this.foms = new HashSet<>();
 		this.som = null;
 		
-		this.pubSubAttributes = new HashMap<>();
-		this.pubSubInteractions = new HashMap<>();
+		this.objectClassesByName = new HashMap<>();
+		this.interactionsByName = new HashMap<>();
 		
 		this.canCreateFederation = DEFAULT_SHOULD_CREATE_FEDERATION;
 		this.maxJoinAttempts = DEFAULT_MAX_JOIN_ATTEMPTS;
@@ -149,8 +148,6 @@ public class FederateConfiguration
 		this.callbacksAreEvoked = DEFAULT_ARE_CALLBACKS_EVOKED;
 		this.lookAhead = DEFAULT_LOOK_AHEAD;
 		this.stepSize = DEFAULT_STEP_SIZE;
-		
-		this.isFrozen = false;
 	}
 
 	//----------------------------------------------------------
@@ -180,7 +177,7 @@ public class FederateConfiguration
 		
 		builder.append( dotRule );
 		builder.append( "Published Attributes:\n" );
-		Collection<Types.ObjectClass> attributes = getPublishedAttributes();
+		Collection<Types.ObjectClass> attributes = getPublishedObjectClasses();
 		if(attributes.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
@@ -203,7 +200,7 @@ public class FederateConfiguration
 		
 		builder.append( dotRule );
 		builder.append( "Subscribed Attributes:\n" );
-		attributes = getSubscribedAttributes();
+		attributes = getSubscribedObjectClasses();
 		if(attributes.isEmpty())
 		{
 			builder.append( "\t...none...\n" );
@@ -260,36 +257,6 @@ public class FederateConfiguration
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Determine if this instance is currently modifiable.
-	 * 
-	 * @return true if this instance is currently modifiable, false otherwise.
-	 */
-	public boolean isFrozen()
-	{
-		return this.isFrozen;
-	}
-
-	/**
-	 * Make this this instance is unmodifiable.
-	 * 
-	 * Once an instance is frozen, it cannot be "thawed" (i.e., made modifiable again).
-	 * 
-	 * Calling this multiple times has no "additional" effect - the instance will simply remain in
-	 * its "locked" state.
-	 * 
-	 * NOTE: This will cause the configuration to become locked. No further modifications may be
-	 * made after this method is called, and this instance will become read only. See also
-	 * {@link #isFrozen()}
-	 * 
-	 * @return this instance
-	 */
-	public FederateConfiguration freeze()
-	{
-		this.isFrozen = true;
-		return this;
-	}
-	
 	/**
 	 * Obtain the configured federation name
 	 * 
@@ -422,78 +389,7 @@ public class FederateConfiguration
 		return Collections.unmodifiableSet( joinModules );
 	}
 
-	/**
-	 * Obtain the published *and* subscribed interactions
-	 * 
-	 * @return the published *and* subscribed interactions (not modifiable)
-	 */
-	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
-	{
-		return Collections.unmodifiableCollection( pubSubInteractions.values() );
-	}
-	
-	/**
-	 * Obtain the published interactions
-	 * 
-	 * @return the published interactions (not modifiable)
-	 */
-	public Collection<Types.InteractionClass> getPublishedInteractions()
-	{
-		return pubSubInteractions.values()
-			.stream()
-			.filter( x -> x.isPublished() )
-			.collect( Collectors.toList() );
-	}
 
-	/**
-	 * Obtain the subscribed interactions
-	 * 
-	 * @return the subscribed interactions (not modifiable)
-	 */
-	public Collection<Types.InteractionClass> getSubscribedInteractions()
-	{
-		return pubSubInteractions.values()
-			.stream()
-			.filter( x -> x.isSubscribed() )
-			.collect( Collectors.toList() );
-	}
-
-	/**
-	 * Obtain the published *and* subscribed attributes
-	 * 
-	 * @return the published *and* subscribed attributes (not modifiable)
-	 */
-	public Collection<Types.ObjectClass> getPublishedAndSubscribedAttributes()
-	{
-		return Collections.unmodifiableCollection( pubSubAttributes.values() );
-	}
-	
-	/**
-	 * Obtain the published attributes
-	 * 
-	 * @return the published attributes (not modifiable)
-	 */
-	public Collection<Types.ObjectClass> getPublishedAttributes()
-	{
-		return pubSubAttributes.values()
-			.stream()
-			.filter( x -> x.isPublished() )
-			.collect( Collectors.toList() );
-	}
-
-	/**
-	 * Obtain the subscribed attributes
-	 * 
-	 * @return the subscribed attributes (not modifiable)
-	 */
-	public Collection<Types.ObjectClass> getSubscribedAttributes()
-	{
-		return pubSubAttributes.values()
-			.stream()
-			.filter( x -> x.isSubscribed() )
-			.collect( Collectors.toList() );
-	}
-	
 	/**
 	 * Set the federation execution name
 	 * 
@@ -501,8 +397,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration setFederationName( String federationExecName )
 	{
-		if( canWrite() )
-			this.federationExecName = federationExecName;
+		this.federationExecName = federationExecName;
 		return this;
 	}
 	
@@ -513,8 +408,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration setFederateName( String federateName )
 	{
-		if( canWrite() )
-			this.federateName = federateName;
+		this.federateName = federateName;
 		return this;
 	}
 	
@@ -525,8 +419,7 @@ public class FederateConfiguration
 	 */
 	public FederateConfiguration setFederateType( String federateType )
 	{
-		if( canWrite() )
-			this.federateType = federateType;
+		this.federateType = federateType;
 		return this;
 	}
 	
@@ -536,12 +429,11 @@ public class FederateConfiguration
 	 * 
 	 * @param canCreateFederation if true, the federate can attempt to create the required
 	 *            federation on startup, otherwise it is not allowed to create any new federations
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setCanCreateFederation( boolean canCreateFederation )
 	{
-		if(canWrite())
-			this.canCreateFederation = canCreateFederation;
+		this.canCreateFederation = canCreateFederation;
 		return this;
 	}
 	
@@ -549,12 +441,11 @@ public class FederateConfiguration
 	 * Configure the federate's maximum number of attempts to join a federation
 	 * 
 	 * @param maxJoinAttempts the maximum number of attempts to join a federation
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setMaxJoinAttempts( int maxJoinAttempts )
 	{
-		if(canWrite())
-			this.maxJoinAttempts = maxJoinAttempts;
+		this.maxJoinAttempts = maxJoinAttempts;
 		return this;
 	}
 
@@ -562,12 +453,11 @@ public class FederateConfiguration
 	 * Configure the interval, in seconds, between attempts to join a federation
 	 * 
 	 * @param retryIntervalSec the interval, in seconds, between attempts to join a federation
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setJoinRetryInterval( long retryIntervalSec )
 	{
-		if(canWrite())
-			this.joinRetryIntervalSec = retryIntervalSec;
+		this.joinRetryIntervalSec = retryIntervalSec;
 		return this;
 	}
 
@@ -576,11 +466,10 @@ public class FederateConfiguration
 	 * 
 	 * @param syncBeforeResign if true, synchronize before resigning from the federation, otherwise
 	 *        it's OK to exit without synchronizing
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setSyncBeforeResign( boolean syncBeforeResign )
 	{
-		// NOTE: no write guards here - needs to be able to change while active
 		this.syncBeforeResign = syncBeforeResign;
 		return this;
 	}
@@ -589,12 +478,11 @@ public class FederateConfiguration
 	 * Configure the federate's lookahead
 	 * 
 	 * @param lookAhead the lookahead
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setLookAhead( double lookAhead )
 	{
-		if(canWrite())
-			this.lookAhead = lookAhead;
+		this.lookAhead = lookAhead;
 		return this;
 	}
 
@@ -602,12 +490,11 @@ public class FederateConfiguration
 	 * Configure the federate's step size
 	 * 
 	 * @param stepSize the step size
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setStepSize( double stepSize )
 	{
-		if(canWrite())
-			this.stepSize = stepSize;
+		this.stepSize = stepSize;
 		return this;
 	}
 
@@ -615,12 +502,11 @@ public class FederateConfiguration
 	 * Configure whether the federate is configured to be time stepped
 	 * 
 	 * @param isTimeStepped true if the federate to be time stepped, false otherwise
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setTimeStepped( boolean isTimeStepped )
 	{
-		if(canWrite())
-			this.isTimeStepped = isTimeStepped;
+		this.isTimeStepped = isTimeStepped;
 		return this;
 	}
 	
@@ -628,12 +514,11 @@ public class FederateConfiguration
 	 * Configure whether the federate is configured to use evoked callbacks
 	 * 
 	 * @param callbacksAreEvoked true if the federate is configured to use evoked callbacks, false otherwise
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration setCallbacksAreEvoked( boolean callbacksAreEvoked )
 	{
-		if(canWrite())
-			this.callbacksAreEvoked = callbacksAreEvoked;
+		this.callbacksAreEvoked = callbacksAreEvoked;
 		return this;
 	}
 	
@@ -641,7 +526,7 @@ public class FederateConfiguration
 	 * Add a FOM module to the configuration
 	 * 
 	 * @param module the FOM module to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addModule( URL module )
 	{
@@ -652,7 +537,7 @@ public class FederateConfiguration
 	 * Add FOM modules to the configuration
 	 * 
 	 * @param modules the FOM modules to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addModules( URL[] modules )
 	{
@@ -663,11 +548,11 @@ public class FederateConfiguration
 	 * Add FOM modules to the configuration
 	 * 
 	 * @param modules the FOM modules to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addModules( Collection<URL> modules )
 	{
-		if( canWrite( modules ) )
+		if( notNullOrEmpty( modules ) )
 		{
 			this.modules.addAll( collectNonEmptyURLs( modules ) );
 		}
@@ -678,7 +563,7 @@ public class FederateConfiguration
 	 * Add a join FOM module to the configuration
 	 * 
 	 * @param joinModule the join FOM module to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addJoinModule( URL joinModule )
 	{
@@ -689,7 +574,7 @@ public class FederateConfiguration
 	 * Add join FOM modules to the configuration
 	 * 
 	 * @param joinModules the join FOM modules to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addJoinModules( URL[] joinModules )
 	{
@@ -700,21 +585,16 @@ public class FederateConfiguration
 	 * Add join FOM modules to the configuration
 	 * 
 	 * @param joinModules the join FOM modules to add to the configuration
-	 * @return this instance
+	 * @return this instance (for method chaining)
 	 */
 	public FederateConfiguration addJoinModules( Collection<URL> joinModules )
 	{
-		if( canWrite( joinModules ) )
+		if( notNullOrEmpty( joinModules ) )
 		{
 			this.joinModules.addAll( collectNonEmptyURLs( joinModules ) );
 		}
 		return this;
 	}
-	
-	
-	
-	
-	
 	
 	public Set<String> getFomPaths()
 	{
@@ -747,96 +627,286 @@ public class FederateConfiguration
 		return this;
 	}	
 
-	
-	
-	
-	
-	
-	
-
 	/**
-	 * Add a published attribute to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attribute belongs
-	 * @param attributeName the identifier of the attribute on the class to publish
-	 * @return this instance
+	 * Add one or more object classes that may be published or subscribed (or both or neither!) by
+	 * this federate
+	 *
+	 * @param objectClasses the {@link ObjectClass} to add
+	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addReflection( ObjectClass objectClass )
+	public FederateConfiguration cacheObjectClasses( ObjectClass ... objectClasses )
 	{
-		return addReflections( new ObjectClass[]{ objectClass } );
+		return cacheObjectClasses( asCollection( objectClasses ) );
 	}
 
 	/**
-	 * Add published attributes to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attributes belong
-	 * @param attributeNames the identifiers of the attributes on the class to publish
-	 * @return this instance
+	 * Add one or more object classes that may be published or subscribed (or both or neither!) by
+	 * this federate
+	 *
+	 * @param objectClasses the {@link ObjectClass} to add
+	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addReflections( ObjectClass[] objectClasses )
+	public FederateConfiguration cacheObjectClasses( Collection<ObjectClass> objectClasses )
 	{
-		return addReflections( asCollection( objectClasses ) );
-	}
-
-	/**
-	 * Add published attributes to the configuration
-	 * 
-	 * @param objectClassName the identifier of the class to which the attributes belong
-	 * @param attributeNames the identifiers of the attributes on the class to publish
-	 * @return this instance
-	 */
-	public FederateConfiguration addReflections( Collection<ObjectClass> objectClasses )
-	{
-		if( canWrite( objectClasses ) )
+		if( notNullOrEmpty( objectClasses ) )
 		{
 			for(ObjectClass objectClass : objectClasses)
 			{
-				this.pubSubAttributes.put( objectClass.name, objectClass );
+				this.objectClassesByName.put( objectClass.name, objectClass );
 			}
 		}
 		return this;
 	}
 
 	/**
-	 * Add an interaction class to the configuration
-	 * 
-	 * @param interactionClass the interaction class to add to the configuration
-	 * @return this instance
+	 * Add one or more interaction classes that may be published or subscribed (or both or neither!) by
+	 * this federate
+	 *
+	 * @param interactionClasses the {@link InteractionClass} to add
+	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addInteraction( InteractionClass interactionClass )
+	public FederateConfiguration cacheInteractionClasses( InteractionClass ... interactionClasses )
 	{
-		return addInteractions( new InteractionClass[]{ interactionClass } );
+		return cacheInteractionClasses( asCollection( interactionClasses ) );
 	}
 
 	/**
-	 * Add interactions to the configuration
-	 * 
-	 * @param interactionClasses the interaction classes to add to the configuration
-	 * @return this instance
+	 * Add one or more interaction classes that may be published or subscribed (or both or neither!) by
+	 * this federate
+	 *
+	 * @param interactionClasses the {@link InteractionClass} to add
+	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addInteractions( InteractionClass ... interactionClasses )
+	public FederateConfiguration cacheInteractionClasses( Collection<InteractionClass> interactionClasses )
 	{
-		return addInteractions( asCollection( interactionClasses ) );
-	}
-
-	/**
-	 * Add interactions to the configuration
-	 * 
-	 * @param interactionIdentifiers the interactions to add to the configuration
-	 * @return this instance
-	 */
-	public FederateConfiguration addInteractions( Collection<InteractionClass> interactionClasses )
-	{
-		if( canWrite( interactionClasses ) )
+		if( notNullOrEmpty( interactionClasses ) )
 		{
 			for(InteractionClass interactionClass : interactionClasses )
 			{
-				this.pubSubInteractions.put( interactionClass.name, interactionClass);
+				this.interactionsByName.put( interactionClass.name, interactionClass);
 			}
 		}
 		return this;
 	}
 
+	/**
+	 * Obtain the published *and* subscribed interactions
+	 * 
+	 * @return the published *and* subscribed interactions (not modifiable)
+	 */
+	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
+	{
+		return Collections.unmodifiableCollection( interactionsByName.values() );
+	}
+	
+	/**
+	 * Obtain the published interactions
+	 * 
+	 * @return the published interactions (not modifiable)
+	 */
+	public Collection<Types.InteractionClass> getPublishedInteractions()
+	{
+		return interactionsByName.values()
+			.stream()
+			.filter( x -> x.isPublished() )
+			.collect( Collectors.toList() );
+	}
+
+	/**
+	 * Obtain the subscribed interactions
+	 * 
+	 * @return the subscribed interactions (not modifiable)
+	 */
+	public Collection<Types.InteractionClass> getSubscribedInteractions()
+	{
+		return interactionsByName.values()
+			.stream()
+			.filter( x -> x.isSubscribed() )
+			.collect( Collectors.toList() );
+	}
+
+	/**
+	 * Obtain the published *and* subscribed attributes
+	 * 
+	 * @return the published *and* subscribed attributes (not modifiable)
+	 */
+	public Collection<Types.ObjectClass> getPublishedAndSubscribedObjectClasses()
+	{
+		return Collections.unmodifiableCollection( objectClassesByName.values() );
+	}
+	
+	/**
+	 * Obtain the published attributes
+	 * 
+	 * @return the published attributes (not modifiable)
+	 */
+	public Collection<Types.ObjectClass> getPublishedObjectClasses()
+	{
+		return objectClassesByName.values()
+			.stream()
+			.filter( x -> x.isPublished() )
+			.collect( Collectors.toList() );
+	}
+
+	/**
+	 * Obtain the subscribed attributes
+	 * 
+	 * @return the subscribed attributes (not modifiable)
+	 */
+	public Collection<Types.ObjectClass> getSubscribedObjectClasses()
+	{
+		return objectClassesByName.values()
+			.stream()
+			.filter( x -> x.isSubscribed() )
+			.collect( Collectors.toList() );
+	}
+	
+	/**
+	 * Returns the fully qualified names of the interaction classes that are published by this
+	 * federate.
+	 *
+	 * @return the names of the publishing interaction classes (not modifiable)
+	 */
+	public Set<String> getPublishedInteractionNames()
+	{
+		return getPublishedInteractions()
+			.stream()
+			.map(x -> x.name)
+			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Returns the fully qualified names of the interaction classes that are subscribed by this
+	 * federate.
+	 *
+	 * @return the names of the subscribed interaction classes (not modifiable)
+	 */
+	public Set<String> getSubscribedInteractionNames()
+	{
+		return getSubscribedInteractions()
+			.stream()
+			.map(x -> x.name)
+			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Returns the names of the publishing attributes of a given object class
+	 *
+	 * @param className the name of a object class
+	 * @return publishing attributes of the given object class (not modifiable)
+	 */
+	public Set<String> getPublishedAttributeNames( String className )
+	{
+		ObjectClass objectClass = this.objectClassesByName.get( className );
+		
+		if( objectClass == null )
+			return Collections.emptySet();
+		
+		return objectClass.attributes.values()
+			.stream()
+			.filter(attr -> attr.isPublished())
+			.map(attr -> attr.name)
+			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Returns the names of the subscribed attributes of a given object class
+	 *
+	 * @param className the name of a object class
+	 * @return subscribed attributes of the given object class (not modifiable)
+	 */
+	public Set<String> getSubscribedAttributeNames( String className )
+	{
+		ObjectClass objectClass = this.objectClassesByName.get( className );
+		
+		if( objectClass == null )
+			return Collections.emptySet();
+		
+		return objectClass.attributes.values()
+			.stream()
+			.filter(attr -> attr.isSubscribed())
+			.map(attr -> attr.name)
+			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Returns parameter names of a given interaction class
+	 *
+	 * @param interactionName the name of a interaction class
+	 * @return parameter names of the given interaction class (not modifiable)
+	 */
+	public Set<String> getParameterNames( String interactionName )
+	{
+		InteractionClass interactionClass = this.interactionsByName.get( interactionName );
+		
+		if( interactionClass == null )
+			return Collections.emptySet();
+		
+		return interactionClass.parameters.keySet();
+	}
+
+	/**
+	 * Returns the fully qualified names of the object classes that are published by this
+	 * federate.
+	 *
+	 * @return the names of the publishing object classes (not modifiable)
+	 */
+	public Set<String> getPublishedClassNames()
+	{
+		return getPublishedObjectClasses()
+			.stream()
+			.map(x -> x.name)
+			.collect(Collectors.toSet());
+	}
+
+
+	/**
+	 * Returns the fully qualified names of the object classes that are subscribed by this
+	 * federate.
+	 *
+	 * @return the names of the subscribed object classes (not modifiable)
+	 */
+	public Set<String> getSubscribedClassNames()
+	{
+		return getSubscribedObjectClasses()
+			.stream()
+			.map(x -> x.name)
+			.collect(Collectors.toSet());
+	}
+	
+	/**
+	 * Returns the data type of the given attribute or parameter
+	 * 
+	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned
+	 *
+	 * @param className the name of an object or an interaction class
+	 * @return the data type of attribute or parameter matching the provided name for of the given
+	 *         object/interaction class
+	 */
+	public DataType getDataType( String className, String memberName )
+	{
+		// start by looking for an interaction matching the class name
+		InteractionClass interactionClass = this.interactionsByName.get( className );
+		if( interactionClass != null )
+		{
+			// found - determine the parameter type and return
+			InteractionParameter parameter = interactionClass.parameters.get( memberName );
+			return parameter == null ? DataType.UNKNOWN : parameter.dataType;
+		}
+		
+		// no interaction - try for an object class matching the class name
+		ObjectClass objectClass = this.objectClassesByName.get( className );
+		if( objectClass != null )
+		{
+			// found - determine the attribute type and return
+			ObjectAttribute attribute = objectClass.attributes.get( memberName );
+			return attribute == null ? DataType.UNKNOWN : attribute.dataType;
+		}
+		
+		// no interaction or object class found matching the provided class name
+		return DataType.UNKNOWN;
+	}
+		
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// Utility Methods /////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -897,39 +967,6 @@ public class FederateConfiguration
 	public Collection<URL> collectNonEmptyURLs( Collection<URL> values )
 	{
 		return values.stream().filter( ( url ) -> notNullOrEmpty( url ) ).collect( Collectors.toList() );
-	}
-
-	/**
-	 * Utility method to check if this instance is currently modifiable before carrying out
-	 * modifications to the configured properties.
-	 * 
-	 * If it is no modifiable, an WARNING level error log will be produced
-	 * 
-	 * @return true if this instance is modifiable, false otherwise.
-	 */
-	private boolean canWrite()
-	{
-		if( isFrozen() )
-		{
-			// can't modify values
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Utility method to check if this instance is currently modifiable and that the parameter is
-	 * not null or empty before carrying out modifications to the configured properties.
-	 * 
-	 * If it is no modifiable, an ERROR level error log will be produced
-	 * 
-	 * @param values the values
-	 * @return true if this instance is currently modifiable and that the parameter is not null or
-	 *         empty, false otherwise
-	 */
-	private boolean canWrite( Collection<?> values )
-	{
-		return canWrite() && notNullOrEmpty( values );
 	}
 
 	/**

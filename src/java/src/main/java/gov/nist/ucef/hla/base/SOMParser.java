@@ -98,20 +98,12 @@ public class SOMParser
 		// get the <objects> element, which is directly under <objectModel>
 		Element objectsRoot = getElementByPath( objectModelNode, OBJECTS );
 		Collection<ObjectClass> reflections = extractObjectClasses( objectsRoot );
+		config.cacheObjectClasses(reflections);
 		
 		// get the <interactions> element, which is directly under <objectModel>
 		Element interactionsRoot = getElementByPath( objectModelNode, INTERACTIONS );
 		Collection<InteractionClass> interactions = extractInteractionClasses( interactionsRoot );
-		
-		for(ObjectClass objectClass : reflections)
-		{
-			config.addReflection(objectClass);
-		}
-		
-		for(InteractionClass interactionClass : interactions)
-		{
-			config.addInteraction(interactionClass);
-		}
+		config.cacheInteractionClasses(interactions);
 	}
 	
 	/**

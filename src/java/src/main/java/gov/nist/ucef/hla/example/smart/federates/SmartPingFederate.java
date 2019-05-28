@@ -172,7 +172,13 @@ public class SmartPingFederate extends _SmartPingFederate
 		config.setFederateType( "PingFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of objects/attributes to be published and subscribed to
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+            new InteractionClass( Ping.interactionClassName(), Sharing.PUBLISH ),
+            new InteractionClass( Pong.interactionClassName(), Sharing.SUBSCRIBE )
+        );
+		
+		// set up object class reflections to publish and subscribe to
 		ObjectClass playerReflection = new ObjectClass( Player.objectClassName(), 
 		                                                Sharing.PUBLISHSUBSCRIBE );
 		for( Entry<String,DataType> entry : Player.attributes().entrySet() )
@@ -184,23 +190,14 @@ public class SmartPingFederate extends _SmartPingFederate
 			                                                       Sharing.PUBLISHSUBSCRIBE );
 			playerReflection.addAttribute( playerAttribute );
 		}
-		config.addReflection( playerReflection );
+		config.cacheObjectClasses( playerReflection );
 		
-		// set up lists of interactions to be published and subscribed to
-		InteractionClass pingInteraction = new InteractionClass( Ping.interactionClassName(),
-		                                                         Sharing.PUBLISH );
-		InteractionClass pongInteraction = new InteractionClass( Pong.interactionClassName(), 
-		                                                         Sharing.SUBSCRIBE );
-		config.addInteractions( pingInteraction, pongInteraction );
-
 		// subscribed UCEF simulation control interactions
-		InteractionClass simPauseInteraction = new InteractionClass( SimPause.interactionName(), 
-		                                                             Sharing.SUBSCRIBE );
-		InteractionClass simResumeInteraction = new InteractionClass( SimResume.interactionName(), 
-		                                                              Sharing.SUBSCRIBE );
-		InteractionClass simEndInteraction = new InteractionClass( SimEnd.interactionName(), 
-		                                                           Sharing.SUBSCRIBE );
-		config.addInteractions( simPauseInteraction, simResumeInteraction, simEndInteraction );
+		config.cacheInteractionClasses( 
+    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
+		);
 
 		// somebody set us up the FOM...
 		try

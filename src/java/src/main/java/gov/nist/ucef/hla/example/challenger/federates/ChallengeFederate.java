@@ -31,6 +31,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.challenger.helpers._ChallengeFederate;
@@ -568,15 +573,30 @@ public class ChallengeFederate extends _ChallengeFederate
 		config.addFomPath( "ChallengeResponse/fom/ChallengeResponse.xml" );
 		config.addSomPath( "ChallengeResponse/som/Challenge.xml" );
 		
-		// set up lists of objects/attributes and interactions to subscribe to
-		config.addSubscribedInteraction( ResponseInteraction.interactionClassName() );
-		// set up lists of objects/attributes and interactions to publish
-		config.addPublishedAttributes( ChallengeObject.objectClassName(), ChallengeObject.attributeNames() );
-		config.addPublishedInteraction( ChallengeInteraction.interactionClassName() );
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+            new InteractionClass( ResponseInteraction.interactionClassName(),  Sharing.SUBSCRIBE ),
+            new InteractionClass( ChallengeInteraction.interactionClassName(), Sharing.PUBLISH )
+		);
+
+		// set up object class reflections to publish and subscribe to
+		ObjectClass challengeReflection =
+		    new ObjectClass( ChallengeObject.objectClassName(), Sharing.PUBLISH );
+		for( String attributeName : ChallengeObject.attributeNames() )
+		{
+			ObjectAttribute playerAttribute = new ObjectAttribute( attributeName, 
+			                                                       DataType.STRING, 
+			                                                       Sharing.PUBLISH );
+			challengeReflection.addAttribute( playerAttribute );
+		}
+		config.cacheObjectClasses( challengeReflection );
 		
 		// subscribed UCEF simulation control interactions
-		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
-		                                  SimEnd.interactionName() );
+		config.cacheInteractionClasses( 
+    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
+    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
+		);
 		
 		// somebody set us up the FOM...
 		try
