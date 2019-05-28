@@ -42,25 +42,20 @@ import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
 
 /**
- * The purpose of this class is to encapsulate all data required to configure a federate. The main
- * usage pattern is something like:
+ * The purpose of this class is to encapsulate all data required to configure a federate.
+ * 
+ * Most "setter" methods return the FederateConfiguratio instance to support method chaining.
+ * 
+ * The main usage pattern is something like:
  * 
  * 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
  * 		                                                          "FederateName", 
  * 		                                                          "TestFederate" );
- * 		config.addPublishedAttributes( publishedAttributes )
- * 			  .addSubscribedAttributes( subscribedAttributes )
- * 			  .addPublishedInteractions( publishedInteractions )
- * 			  .addSubscribedInteractions( publishedInteractions )
- * 			  .setLookAhead(0.5)
- * 			  .freeze();
- * 
- * Once "frozen", the configuration cannot be modified further - attempts to do so will result in
- * errors being logged, but there is no other "adverse" impact (apart from the attempted 
- * modification to the configuration not being applied).
- * 
- * The configuration should be frozen before being used to configure a federate, and most federates
- * will freeze the configuration when it is passed in to prevent modification.
+ * 		config.setLookAhead(0.5)
+ * 			.cacheInteractionClasses(
+ *              InteractionClass.Pub( PING_INTERACTION_ID ),
+ *              InteractionClass.Sub( PONG_INTERACTION_ID ) 
+ *          );
  */
 public class FederateConfiguration
 {
@@ -258,139 +253,6 @@ public class FederateConfiguration
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Obtain the configured federation name
-	 * 
-	 * @return the configured federation name (not modifiable)
-	 */
-	public String getFederationName()
-	{
-		return federationExecName;
-	}
-
-	/**
-	 * Obtain the configured federate name
-	 * 
-	 * @return the configured federate name (not modifiable)
-	 */
-	public String getFederateName()
-	{
-		return federateName;
-	}
-
-	/**
-	 * Obtain the configured federate type
-	 * 
-	 * @return the configured federate type (not modifiable)
-	 */
-	public String getFederateType()
-	{
-		return federateType;
-	}
-
-	/**
-	 * Determine whether the federate should be able to create a required federation if it is
-	 * absent
-	 * 
-	 * @return true if the federate should be able to create federations, false otherwise
-	 */
-	public boolean canCreateFederation()
-	{
-		return canCreateFederation;
-	}
-	
-	/**
-	 * Obtain the maximum number of attempts to join a federation
-	 * 
-	 * @return the maximum number of attempts to join a federation
-	 */
-	public int getMaxJoinAttempts()
-	{
-		return maxJoinAttempts;
-	}
-
-	/**
-	 * Obtain the interval, in seconds, between attempts to join a federation
-	 * 
-	 * @return the interval, in seconds, between attempts to join a federation
-	 */
-	public long getJoinRetryInterval()
-	{
-		return joinRetryIntervalSec;
-	}
-
-	/**
-	 * Determine whether the federate should synchronize before resigning from the federation
-	 * 
-	 * @return true if the federate must synchronize before resigning from the federation, 
-	 *         otherwise it's OK to exit without synchronizing
-	 */
-	public boolean shouldSyncBeforeResign()
-	{
-		return syncBeforeResign;
-	}
-	
-	/**
-	 * Obtain the lookahead
-	 * 
-	 * @return the lookahead
-	 */
-	public double getLookAhead()
-	{
-		return lookAhead;
-	}
-
-	/**
-	 * Obtain the step size
-	 * 
-	 * @return the step size
-	 */
-	public double getStepSize()
-	{
-		return stepSize;
-	}
-
-	/**
-	 * Determine if the federate is configured to be time stepped
-	 * 
-	 * @return true if the federate is configured to be time stepped, false otherwise
-	 */
-	public boolean isTimeStepped()
-	{
-		return isTimeStepped;
-	}
-	
-	/**
-	 * Determine if the federate is configured to use evoked callbacks
-	 * 
-	 * @return true if the federate is configured to use evoked callbacks
-	 */
-	public boolean callbacksAreEvoked()
-	{
-		return callbacksAreEvoked;
-	}
-	
-	/**
-	 * Obtain the configured FOM modules
-	 * 
-	 * @return the configured FOM modules (not modifiable)
-	 */
-	public Collection<URL> getModules()
-	{
-		return Collections.unmodifiableSet( modules );
-	}
-
-	/**
-	 * Obtain the configured join FOM modules
-	 * 
-	 * @return the configured join FOM modules (not modifiable)
-	 */
-	public Collection<URL> getJoinModules()
-	{
-		return Collections.unmodifiableSet( joinModules );
-	}
-
-
-	/**
 	 * Set the federation execution name
 	 * 
 	 * @param federationExecName the federation execution name
@@ -400,6 +262,17 @@ public class FederateConfiguration
 		this.federationExecName = federationExecName;
 		return this;
 	}
+	
+	/**
+	 * Obtain the configured federation name
+	 * 
+	 * @return the configured federation name (not modifiable)
+	 */
+	public String getFederationName()
+	{
+		return federationExecName;
+	}
+
 	
 	/**
 	 * Set the federate name
@@ -413,6 +286,16 @@ public class FederateConfiguration
 	}
 	
 	/**
+	 * Obtain the configured federate name
+	 * 
+	 * @return the configured federate name (not modifiable)
+	 */
+	public String getFederateName()
+	{
+		return federateName;
+	}
+
+	/**
 	 * Set the federate type
 	 * 
 	 * @param federateType the federate type
@@ -423,6 +306,16 @@ public class FederateConfiguration
 		return this;
 	}
 	
+	/**
+	 * Obtain the configured federate type
+	 * 
+	 * @return the configured federate type (not modifiable)
+	 */
+	public String getFederateType()
+	{
+		return federateType;
+	}
+
 	/**
 	 * Configure whether the federate is able to create a federation if the federation is absent
 	 * on startup
@@ -438,6 +331,17 @@ public class FederateConfiguration
 	}
 	
 	/**
+	 * Determine whether the federate should be able to create a required federation if it is
+	 * absent
+	 * 
+	 * @return true if the federate should be able to create federations, false otherwise
+	 */
+	public boolean canCreateFederation()
+	{
+		return canCreateFederation;
+	}
+	
+	/**
 	 * Configure the federate's maximum number of attempts to join a federation
 	 * 
 	 * @param maxJoinAttempts the maximum number of attempts to join a federation
@@ -450,6 +354,16 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Obtain the maximum number of attempts to join a federation
+	 * 
+	 * @return the maximum number of attempts to join a federation
+	 */
+	public int getMaxJoinAttempts()
+	{
+		return maxJoinAttempts;
+	}
+
+	/**
 	 * Configure the interval, in seconds, between attempts to join a federation
 	 * 
 	 * @param retryIntervalSec the interval, in seconds, between attempts to join a federation
@@ -459,6 +373,16 @@ public class FederateConfiguration
 	{
 		this.joinRetryIntervalSec = retryIntervalSec;
 		return this;
+	}
+
+	/**
+	 * Obtain the interval, in seconds, between attempts to join a federation
+	 * 
+	 * @return the interval, in seconds, between attempts to join a federation
+	 */
+	public long getJoinRetryInterval()
+	{
+		return joinRetryIntervalSec;
 	}
 
 	/**
@@ -475,6 +399,17 @@ public class FederateConfiguration
 	}
 	
 	/**
+	 * Determine whether the federate should synchronize before resigning from the federation
+	 * 
+	 * @return true if the federate must synchronize before resigning from the federation, 
+	 *         otherwise it's OK to exit without synchronizing
+	 */
+	public boolean shouldSyncBeforeResign()
+	{
+		return syncBeforeResign;
+	}
+	
+	/**
 	 * Configure the federate's lookahead
 	 * 
 	 * @param lookAhead the lookahead
@@ -485,6 +420,16 @@ public class FederateConfiguration
 		this.lookAhead = lookAhead;
 		return this;
 	}
+	/**
+	 * Obtain the lookahead
+	 * 
+	 * @return the lookahead
+	 */
+	public double getLookAhead()
+	{
+		return lookAhead;
+	}
+
 
 	/**
 	 * Configure the federate's step size
@@ -496,6 +441,16 @@ public class FederateConfiguration
 	{
 		this.stepSize = stepSize;
 		return this;
+	}
+
+	/**
+	 * Obtain the step size
+	 * 
+	 * @return the step size
+	 */
+	public double getStepSize()
+	{
+		return stepSize;
 	}
 
 	/**
@@ -511,6 +466,16 @@ public class FederateConfiguration
 	}
 	
 	/**
+	 * Determine if the federate is configured to be time stepped
+	 * 
+	 * @return true if the federate is configured to be time stepped, false otherwise
+	 */
+	public boolean isTimeStepped()
+	{
+		return isTimeStepped;
+	}
+	
+	/**
 	 * Configure whether the federate is configured to use evoked callbacks
 	 * 
 	 * @param callbacksAreEvoked true if the federate is configured to use evoked callbacks, false otherwise
@@ -520,6 +485,16 @@ public class FederateConfiguration
 	{
 		this.callbacksAreEvoked = callbacksAreEvoked;
 		return this;
+	}
+	
+	/**
+	 * Determine if the federate is configured to use evoked callbacks
+	 * 
+	 * @return true if the federate is configured to use evoked callbacks
+	 */
+	public boolean callbacksAreEvoked()
+	{
+		return callbacksAreEvoked;
 	}
 	
 	/**
@@ -560,6 +535,16 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Obtain the configured FOM modules
+	 * 
+	 * @return the configured FOM modules (not modifiable)
+	 */
+	public Collection<URL> getModules()
+	{
+		return Collections.unmodifiableSet( modules );
+	}
+
+	/**
 	 * Add a join FOM module to the configuration
 	 * 
 	 * @param joinModule the join FOM module to add to the configuration
@@ -594,6 +579,16 @@ public class FederateConfiguration
 			this.joinModules.addAll( collectNonEmptyURLs( joinModules ) );
 		}
 		return this;
+	}
+	
+	/**
+	 * Obtain the configured join FOM modules
+	 * 
+	 * @return the configured join FOM modules (not modifiable)
+	 */
+	public Collection<URL> getJoinModules()
+	{
+		return Collections.unmodifiableSet( joinModules );
 	}
 	
 	public Set<String> getFomPaths()
@@ -690,9 +685,9 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Obtain the published *and* subscribed interactions
+	 * Obtain the interactions which are both published *and* subscribed by this federate
 	 * 
-	 * @return the published *and* subscribed interactions (not modifiable)
+	 * @return the interactions which are both published *and* subscribed (not modifiable)
 	 */
 	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
 	{
@@ -700,7 +695,7 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Obtain the published interactions
+	 * Obtain the interactions which are published by this federate.
 	 * 
 	 * @return the published interactions (not modifiable)
 	 */
@@ -713,7 +708,7 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Obtain the subscribed interactions
+	 * Obtain the interactions which are subscribed to by this federate.
 	 * 
 	 * @return the subscribed interactions (not modifiable)
 	 */
@@ -726,9 +721,9 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Obtain the published *and* subscribed attributes
+	 * Obtain the object classes which are both published *and* subscribed by this federate.
 	 * 
-	 * @return the published *and* subscribed attributes (not modifiable)
+	 * @return the object classes which are both published *and* subscribed (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getPublishedAndSubscribedObjectClasses()
 	{
@@ -736,9 +731,9 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Obtain the published attributes
+	 * Obtain the object classes which are published by this federate.
 	 * 
-	 * @return the published attributes (not modifiable)
+	 * @return Obtain the object classes which are published (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getPublishedObjectClasses()
 	{
@@ -749,9 +744,9 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Obtain the subscribed attributes
+	 * Obtain the object classes which are subscribed to by this federate.
 	 * 
-	 * @return the subscribed attributes (not modifiable)
+	 * @return the object classes which are subscribed (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getSubscribedObjectClasses()
 	{
@@ -762,10 +757,10 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Returns the fully qualified names of the interaction classes that are published by this
+	 * Returns the fully qualified names of the interaction classes which are published by this
 	 * federate.
 	 *
-	 * @return the names of the publishing interaction classes (not modifiable)
+	 * @return the names of the published interaction classes (not modifiable)
 	 */
 	public Set<String> getPublishedInteractionNames()
 	{
@@ -776,8 +771,8 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Returns the fully qualified names of the interaction classes that are subscribed by this
-	 * federate.
+	 * Returns the fully qualified names of the interaction classes which are subscribed to by
+	 * this federate.
 	 *
 	 * @return the names of the subscribed interaction classes (not modifiable)
 	 */
@@ -790,10 +785,13 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Returns the names of the publishing attributes of a given object class
+	 * Obtain the names of the published attributes of a given object class.
+	 * 
+	 * If no object class can be resolved from the given fully qualified object class name, an
+	 * empty {@link Set} is returned.
 	 *
-	 * @param className the name of a object class
-	 * @return publishing attributes of the given object class (not modifiable)
+	 * @param className the fully qualified name of an object class
+	 * @return published attributes of the given object class (not modifiable)
 	 */
 	public Set<String> getPublishedAttributeNames( String className )
 	{
@@ -810,9 +808,12 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Returns the names of the subscribed attributes of a given object class
+	 * Obtain the names of the subscribed attributes of a given object class.
+	 * 
+	 * If no object class can be resolved from the given fully qualified object class name, an
+	 * empty {@link Set} is returned.
 	 *
-	 * @param className the name of a object class
+	 * @param className the fully qualified name of an object class
 	 * @return subscribed attributes of the given object class (not modifiable)
 	 */
 	public Set<String> getSubscribedAttributeNames( String className )
@@ -830,9 +831,12 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Returns parameter names of a given interaction class
+	 * Obtain the names of the parameters of a given interaction class.
+	 * 
+	 * If no interaction class can be resolved from the given fully qualified interaction class
+	 * name, an empty {@link Set} is returned.
 	 *
-	 * @param interactionName the name of a interaction class
+	 * @param interactionName the fully qualified name of a interaction class
 	 * @return parameter names of the given interaction class (not modifiable)
 	 */
 	public Set<String> getParameterNames( String interactionName )
@@ -846,10 +850,9 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Returns the fully qualified names of the object classes that are published by this
-	 * federate.
-	 *
-	 * @return the names of the publishing object classes (not modifiable)
+	 * Obtain the fully qualified names of all object classes published by this federate.
+	 * 
+	 * @return the fully qualified names of the published object classes (not modifiable)
 	 */
 	public Set<String> getPublishedClassNames()
 	{
@@ -859,12 +862,10 @@ public class FederateConfiguration
 			.collect(Collectors.toSet());
 	}
 
-
 	/**
-	 * Returns the fully qualified names of the object classes that are subscribed by this
-	 * federate.
-	 *
-	 * @return the names of the subscribed object classes (not modifiable)
+	 * Obtain the fully qualified names of all object classes subscribed to by this federate.
+	 * 
+	 * @return the fully qualified names of the subscribed object classes (not modifiable)
 	 */
 	public Set<String> getSubscribedClassNames()
 	{
@@ -875,11 +876,21 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Returns the data type of the given attribute or parameter
+	 * Returns the data type of the an object class attribute or interaction parameter given the
+	 * fully qualified name and member name
 	 * 
-	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned
+	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned.
+	 * 
+	 * NOTE: The fully qualified name of an interaction or object class includes the
+	 * `HLAobjectRoot` or `HLAinteractionRoot` namespace. This means is not possible for names of
+	 * interactions and object classes to collide (even if the "local" name for an interaction and
+	 * object class were to coincide). For this reason, it is not necessary to specify whether the
+	 * fully qualified class name refers to an interaction or object class, since it will only
+	 * ever match *either* an interaction *or* an object class.
 	 *
-	 * @param className the name of an object or an interaction class
+	 * @param className the fully qualified name of an object or an interaction class
+	 * @param memberName the name of an attribute or parameter on the object class or interaction
+	 *            referenced by the fully qualified class name
 	 * @return the data type of attribute or parameter matching the provided name for of the given
 	 *         object/interaction class
 	 */
@@ -894,7 +905,7 @@ public class FederateConfiguration
 			return parameter == null ? DataType.UNKNOWN : parameter.dataType;
 		}
 		
-		// no interaction - try for an object class matching the class name
+		// no interaction match - try to match on known object classes...
 		ObjectClass objectClass = this.objectClassesByName.get( className );
 		if( objectClass != null )
 		{
@@ -903,7 +914,8 @@ public class FederateConfiguration
 			return attribute == null ? DataType.UNKNOWN : attribute.dataType;
 		}
 		
-		// no interaction or object class found matching the provided class name
+		// no interaction or object class found matching the provided 
+		// fully qualified class name
 		return DataType.UNKNOWN;
 	}
 		
