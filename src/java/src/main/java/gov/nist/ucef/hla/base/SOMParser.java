@@ -234,20 +234,20 @@ public class SOMParser
 	                                           Collection<ObjectAttribute> attributes)
 	{
 		String className = getTextValue( root, NAME );
-		String sharing = getTextValue( root, SHARING );
+		String sharingStr = getTextValue( root, SHARING );
 		
-		ObjectClass objectClass = new Types.ObjectClass(namespace + className);
-		objectClass.sharing = Sharing.fromLabel(sharing);
+		Sharing sharing = Sharing.fromLabel(sharingStr);
+		ObjectClass objectClass = new ObjectClass(namespace + className, sharing);
 
 		for(Element elm : getChildElementsByName( root, ATTRIBUTE ))
 		{
-			String attributeName    = getTextValue( elm, NAME );
-			String attributeSharing = getTextValue( elm, SHARING );
-			String attributeType    = getTextValue( elm, DATA_TYPE );
+			String attrName       = getTextValue( elm, NAME );
+			String attrSharingStr = getTextValue( elm, SHARING );
+			String attrTypeStr    = getTextValue( elm, DATA_TYPE );
 			
-			ObjectAttribute attribute = new ObjectAttribute( attributeName );
-			attribute.sharing   = Sharing.fromLabel(attributeSharing);
-			attribute.dataType  = DataType.fromLabel( attributeType );
+			Sharing attrSharing        = Sharing.fromLabel( attrSharingStr );
+			DataType attrDataType      = DataType.fromLabel( attrTypeStr );
+			ObjectAttribute attribute  = new ObjectAttribute( attrName, attrDataType, attrSharing );
 			
 			attributes.add(attribute);
 		}
@@ -291,18 +291,18 @@ public class SOMParser
 	                                                Collection<InteractionParameter> parameters )
 	{
 		String className = getTextValue( root, NAME );
-		String sharing = getTextValue( root, SHARING );
+		String sharingStr = getTextValue( root, SHARING );
 		
-		InteractionClass interactionClass = new InteractionClass(namespace + className);
-		interactionClass.sharing   = Sharing.fromLabel( sharing );
+		Sharing sharing   = Sharing.fromLabel( sharingStr );
+		InteractionClass interactionClass = new InteractionClass(namespace + className, sharing);
 
 		for(Element elm : getChildElementsByName( root, PARAMETER ))
 		{
 			String parameterName    = getTextValue( elm, NAME );
-			String parameterType    = getTextValue( elm, DATA_TYPE );
+			String parameterTypeStr = getTextValue( elm, DATA_TYPE );
 			
-			InteractionParameter parameter = new InteractionParameter( parameterName );
-			parameter.dataType  = DataType.fromLabel( parameterType );
+			DataType dataType = DataType.fromLabel( parameterTypeStr );
+			InteractionParameter parameter = new InteractionParameter( parameterName, dataType );
 			
 			parameters.add(parameter);
 		}

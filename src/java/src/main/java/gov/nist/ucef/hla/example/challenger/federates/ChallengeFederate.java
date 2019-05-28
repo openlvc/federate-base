@@ -33,9 +33,7 @@ import java.util.stream.Collectors;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
-import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.challenger.helpers._ChallengeFederate;
@@ -575,27 +573,23 @@ public class ChallengeFederate extends _ChallengeFederate
 		
 		// set up interactions to publish and subscribe to
 		config.cacheInteractionClasses(
-            new InteractionClass( ResponseInteraction.interactionClassName(),  Sharing.SUBSCRIBE ),
-            new InteractionClass( ChallengeInteraction.interactionClassName(), Sharing.PUBLISH )
+            InteractionClass.Sub( ResponseInteraction.interactionClassName() ),
+            InteractionClass.Pub( ChallengeInteraction.interactionClassName() )
 		);
 
 		// set up object class reflections to publish and subscribe to
-		ObjectClass challengeReflection =
-		    new ObjectClass( ChallengeObject.objectClassName(), Sharing.PUBLISH );
+		ObjectClass challengeReflection = ObjectClass.Pub( ChallengeObject.objectClassName() );
 		for( String attributeName : ChallengeObject.attributeNames() )
 		{
-			ObjectAttribute playerAttribute = new ObjectAttribute( attributeName, 
-			                                                       DataType.STRING, 
-			                                                       Sharing.PUBLISH );
-			challengeReflection.addAttribute( playerAttribute );
+			challengeReflection.addAttributePub( attributeName, DataType.STRING );
 		}
 		config.cacheObjectClasses( challengeReflection );
 		
 		// subscribed UCEF simulation control interactions
 		config.cacheInteractionClasses( 
-    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
+    		InteractionClass.Sub( SimPause.interactionName() ),
+    		InteractionClass.Sub( SimResume.interactionName() ),
+    		InteractionClass.Sub( SimEnd.interactionName() )
 		);
 		
 		// somebody set us up the FOM...

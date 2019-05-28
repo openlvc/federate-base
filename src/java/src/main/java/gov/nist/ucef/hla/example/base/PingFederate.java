@@ -32,7 +32,6 @@ import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.util.Constants;
@@ -223,8 +222,8 @@ public class PingFederate extends FederateBase
 
 		// set up interactions to publish and subscribe to
 		config.cacheInteractionClasses(
-            new InteractionClass( PING_INTERACTION_ID, Sharing.PUBLISH ),
-            new InteractionClass( PONG_INTERACTION_ID, Sharing.SUBSCRIBE )
+            InteractionClass.Pub( PING_INTERACTION_ID ),
+            InteractionClass.Sub( PONG_INTERACTION_ID )
         );
 
 		// somebody set us up the FOM...

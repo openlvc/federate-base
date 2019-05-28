@@ -47,10 +47,9 @@ public class Types
 	//                      ENUMERATIONS
 	//----------------------------------------------------------
 	/**
-	 *  Represents data type of an attribute or interaction parameter
+	 * Represents the sharing type of an object class, object class attribute or interaction
 	 *
-	 *  @see ObjectAttribute
-	 *  @see InteractionParameter
+	 * See also: {@link ObjectClass}, {@link ObjectAttribute} and {@link InteractionClass}
 	 */
 	public enum Sharing
 	{
@@ -68,26 +67,43 @@ public class Types
 		
 		public String label;
 		
-		Sharing( String label )
+		private Sharing( String label )
 		{
 			this.label = label;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return this.label;
 		}
 		
+		/**
+		 * Determine if this sharing policy includes publishing
+		 * 
+		 * @return true if this sharing policy includes publishing, false otherwise
+		 */
 		public boolean isPublish()
 		{
 			return this.equals( PUBLISH ) || this.equals( PUBLISHSUBSCRIBE );
 		}
 		
+		/**
+		 * Determine if this sharing policy includes subscribing
+		 * 
+		 * @return true if this sharing policy includes subscribing, false otherwise
+		 */
 		public boolean isSubscribe()
 		{
 			return this.equals( SUBSCRIBE ) || this.equals( PUBLISHSUBSCRIBE );
 		}
 		
+		/**
+		 * Determine if this sharing policy is neither for publishing nor for subscribing
+		 * 
+		 * @return true if this sharing policy is neither for publishing nor for subscribing,
+		 *         false otherwise
+		 */
 		public boolean isNeither()
 		{
 			return this.equals( NEITHER );
@@ -124,10 +140,9 @@ public class Types
 	};
 	
 	/**
-	 *  Represents data type of an attribute or interaction parameter
+	 * Represents data type of an attribute or interaction parameter
 	 *
-	 *  @see ObjectAttribute
-	 *  @see InteractionParameter
+	 * See also {@link ObjectAttribute} and {@link InteractionParameter}
 	 */
 	@SuppressWarnings("rawtypes")
 	public enum DataType
@@ -152,13 +167,14 @@ public class Types
 		public Class javaType;
 		public Class hlaType;
 		
-		DataType( String label, Class javaType, Class hlaType )
+		private DataType( String label, Class javaType, Class hlaType )
 		{
 			this.label = label;
 			this.javaType = javaType;
 			this.hlaType = hlaType;
 		}
 		
+		@Override
 		public String toString()
 		{
 			return this.label;
@@ -195,42 +211,31 @@ public class Types
 	};
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-
-	//----------------------------------------------------------
-	//                    INSTANCE METHODS
-	//----------------------------------------------------------
-
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
+	//                     CLASSES
 	//----------------------------------------------------------
 	/**
 	 * Represents an object class in a Simulation Object Model
 	 *
-	 * @see SOMParser#getObjectClasses(string&)
-	 * @see ObjectAttribute
+	 * See also {@link ObjectAttribute}
 	 */
 	public static class ObjectClass
 	{
+		//----------------------------------------------------------
+		//                   INSTANCE VARIABLES
+		//----------------------------------------------------------
 		public String name; // fully qualified object class name
 		public Sharing sharing;
 		Map<String,ObjectAttribute> attributes;
 
-		public ObjectClass( String name )
-		{
-			this(name, Sharing.NEITHER);
-		}
-		
+		//----------------------------------------------------------
+		//                      CONSTRUCTORS
+		//----------------------------------------------------------
+		/**
+		 * Constructor
+		 * 
+		 * @param name the fully qualified object class name
+		 * @param sharing the sharing type
+		 */
 		public ObjectClass( String name, Sharing sharing )
 		{
 			this.name = name;
@@ -238,54 +243,182 @@ public class Types
 			this.attributes = new HashMap<>();
 		}
 		
+		//----------------------------------------------------------
+		//                    INSTANCE METHODS
+		//----------------------------------------------------------
+		@Override
+		public String toString()
+		{
+			String attrs = this.attributes.values()
+				.stream()
+				.map((attribute)->attribute.toString())
+				.collect(Collectors.joining(","));
+			
+			return String.format( "Class:'%s'(%s){%s}",
+			                      this.name, this.sharing.toString(), attrs );
+		}
+
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		 * Determine if the sharing policy for this instance includes publishing
+		 * 
+		 * @return if the sharing policy for this instance includes publishing, false otherwise
+		 */
 		public boolean isPublished()
 		{
 			return this.sharing.isPublish();
 		}
 		
+		/**
+		 * Determine if the sharing policy for this instance includes subscribing
+		 * 
+		 * @return if the sharing policy for this instance includes subscribing, false otherwise
+		 */
 		public boolean isSubscribed()
 		{
 			return this.sharing.isSubscribe();
 		}
 		
-		public void addAttribute( ObjectAttribute attribute )
+		/**
+		 * Add an attribute instance
+		 * 
+		 * @param attribute the {@link ObjectAttribute} instance to be added
+		 * @return the added {@link ObjectAttribute} instance
+		 */
+		public ObjectAttribute addAttribute( ObjectAttribute attribute )
 		{
 			this.attributes.put( attribute.name, attribute );
+			return attribute;
 		}
 		
+		/**
+		 * Add an attribute with the given name, data type and sharing policy
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @param sharing the sharing policy for this attribute
+		 * @return the added {@link ObjectAttribute} instance
+		 */
+		public ObjectAttribute addAttribute( String name, DataType dataType, Sharing sharing )
+		{
+			return addAttribute( new ObjectAttribute( name, dataType, sharing ) );
+		}
+		
+		/**
+		 * Shortcut method for adding attributes which are published
+		 * 
+		 * See also {@link #addAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return the added {@link ObjectAttribute} instance
+		 */
+		public ObjectAttribute addAttributePub( String name, DataType dataType )
+		{
+			return addAttribute( name, dataType, Sharing.PUBLISH );
+		}
+		
+		/**
+		 * Shortcut method for adding attributes which are subscribed
+		 * See also {@link #addAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return the added {@link ObjectAttribute} instance
+		 */
+		public ObjectAttribute addAttributeSub( String name, DataType dataType )
+		{
+			return addAttribute( name, dataType, Sharing.SUBSCRIBE );
+		}
+		
+		/**
+		 * Shortcut method for adding attributes which are both published and subscribed
+		 * 
+		 * See also {@link #addAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return the added {@link ObjectAttribute} instance
+		 */
+		public ObjectAttribute addAttributePubSub( String name, DataType dataType )
+		{
+			return addAttribute( name, dataType, Sharing.PUBLISHSUBSCRIBE );
+		}
+		
+		/**
+		 * Obtain the attributes of this instance
+		 * 
+		 * @return a {@link Map} relating the names of the attributes to their corresponding
+		 *         {@link ObjectAttribute} definition instances
+		 */
 		public Map<String,ObjectAttribute> getAttributes()
 		{
 			return Collections.unmodifiableMap( this.attributes );
 		}
 		
-		public String toString()
+		//----------------------------------------------------------
+		//                     STATIC METHODS
+		//----------------------------------------------------------
+		/**
+		 * "Shortcut" static method to create published instances
+		 * 
+		 * See also {@link ObjectClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified object class name
+		 * @return an {@link ObjectClass} instance with a {@link Sharing#PUBLISH} sharing policy
+		 */
+		public static ObjectClass Pub( String name )
 		{
-			String attrs = this.attributes.values()
-				.stream()
-				.map((m)->m.toString())
-				.collect(Collectors.joining(","));
-			
-			return String.format( "Class:'%s'(%s){%s}",
-			                      this.name, this.sharing.toString(), attrs );
+			return new ObjectClass( name, Sharing.PUBLISH );
+		}
+
+		/**
+		 * "Shortcut" static method to create subscribed instances
+		 * 
+		 * See also {@link ObjectClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified object class name
+		 * @return an {@link ObjectClass} instance with a {@link Sharing#SUBSCRIBE} sharing policy
+		 */
+		public static ObjectClass Sub( String name )
+		{
+			return new ObjectClass( name, Sharing.SUBSCRIBE );
+		}
+
+		/**
+		 * "Shortcut" static method to create instances which are both published and subscribed
+		 * 
+		 * See also {@link ObjectClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified object class name
+		 * @return an {@link ObjectClass} instance with a {@link Sharing#PUBLISHSUBSCRIBE} sharing
+		 *         policy
+		 */
+		public static ObjectClass PubSub( String name )
+		{
+			return new ObjectClass( name, Sharing.PUBLISHSUBSCRIBE );
 		}
 	}
 
 	/**
 	 * Represents an attribute in an object class in a Simulation Object Model
 	 *
-	 * @see ObjectClass
+	 * See also {@link ObjectClass}
 	 */
 	public static class ObjectAttribute
 	{
+		//----------------------------------------------------------
+		//                   INSTANCE VARIABLES
+		//----------------------------------------------------------
 		public String name;
 		public Sharing sharing;
 		public DataType dataType;
 
-		public ObjectAttribute( String name )
-		{
-			this(name, DataType.UNKNOWN, Sharing.NEITHER);
-		}
-		
+		//----------------------------------------------------------
+		//                      CONSTRUCTORS
+		//----------------------------------------------------------
 		public ObjectAttribute( String name, DataType dataType, Sharing sharing )
 		{
 			this.name = name;
@@ -293,16 +426,10 @@ public class Types
 			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
 		}
 		
-		public boolean isPublished()
-		{
-			return this.sharing.isPublish();
-		}
-		
-		public boolean isSubscribed()
-		{
-			return this.sharing.isSubscribe();
-		}
-		
+		//----------------------------------------------------------
+		//                    INSTANCE METHODS
+		//----------------------------------------------------------
+		@Override
 		public String toString()
 		{
 			return String.format( "Attr:'%s'[%s](%s)",
@@ -310,26 +437,96 @@ public class Types
 			                      this.dataType.toString(),
 			                      this.sharing.toString());
 		}
+		
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		 * Determine if the sharing policy for this instance includes publishing
+		 * 
+		 * @return if the sharing policy for this instance includes publishing, false otherwise
+		 */
+		public boolean isPublished()
+		{
+			return this.sharing.isPublish();
+		}
+		
+		/**
+		 * Determine if the sharing policy for this instance includes subscribing
+		 * 
+		 * @return if the sharing policy for this instance includes subscribing, false otherwise
+		 */
+		public boolean isSubscribed()
+		{
+			return this.sharing.isSubscribe();
+		}
+
+		//----------------------------------------------------------
+		//                     STATIC METHODS
+		//----------------------------------------------------------
+		/**
+		 * "Shortcut" static method to create published instances
+		 * 
+		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#PUBLISH} sharing
+		 *         policy
+		 */
+		public static ObjectAttribute Pub( String name, DataType dataType )
+		{
+			return new ObjectAttribute( name, dataType, Sharing.PUBLISH );
+		}
+		
+		/**
+		 * "Shortcut" static method to create subscribed instances
+		 * 
+		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#SUBSCRIBE} sharing
+		 *         policy
+		 */
+		public static ObjectAttribute Sub( String name, DataType dataType )
+		{
+			return new ObjectAttribute( name, dataType, Sharing.SUBSCRIBE );
+		}
+		
+		/**
+		 * "Shortcut" static method to create instances which are both published and subscribed
+		 * 
+		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#PUBLISHSUBSCRIBE}
+		 *         sharing policy
+		 */
+		public static ObjectAttribute PubSub( String name, DataType dataType )
+		{
+			return new ObjectAttribute( name, dataType, Sharing.PUBLISHSUBSCRIBE );
+		}		
 	}
 
 	/**
 	 * Represents an interaction class in a Simulation Object Model
 	 *
-	 * @see SOMParser#getInteractionClasses(string&)
-	 * @see InteractionParameter
+	 * See also {@link InteractionParameter}
 	 */
 	public static class InteractionClass
 	{
+		//----------------------------------------------------------
+		//                   INSTANCE VARIABLES
+		//----------------------------------------------------------
 		public String name; // fully qualified interaction class name
 		public Sharing sharing;
 		public Map<String,InteractionParameter> parameters;
 
-		public InteractionClass( String name )
-		{
-			this( name, Sharing.NEITHER );
-			this.parameters = new HashMap<>();
-		}
-		
+		//----------------------------------------------------------
+		//                      CONSTRUCTORS
+		//----------------------------------------------------------
 		public InteractionClass( String name, Sharing sharing )
 		{
 			this.name = name;
@@ -337,59 +534,144 @@ public class Types
 			this.parameters = new HashMap<>();
 		}
 		
+		//----------------------------------------------------------
+		//                    INSTANCE METHODS
+		//----------------------------------------------------------
+		@Override
+		public String toString()
+		{
+			String params = this.parameters.values()
+				.stream()
+				.map((parameter)->parameter.toString())
+				.collect(Collectors.joining(","));
+			
+			return String.format( "Interaction:'%s'(%s){%s}",
+			                      this.name, this.sharing.toString(), params );
+		}
+		
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+		////////////////////////////////////////////////////////////////////////////////////////////
+		/**
+		 * Determine if the sharing policy for this instance includes publishing
+		 * 
+		 * @return if the sharing policy for this instance includes publishing, false otherwise
+		 */
 		public boolean isPublished()
 		{
 			return this.sharing.isPublish();
 		}
 		
+		/**
+		 * Determine if the sharing policy for this instance includes subscribing
+		 * 
+		 * @return if the sharing policy for this instance includes subscribing, false otherwise
+		 */
 		public boolean isSubscribed()
 		{
 			return this.sharing.isSubscribe();
 		}
-		
-		public void addParameter( InteractionParameter parameter )
+
+		/**
+		 * Add an parameter instance
+		 * 
+		 * @param parameter the {@link InteractionParameter} instance to be added
+		 * @return the added {@link InteractionParameter} instance
+		 */
+		public InteractionParameter addParameter( InteractionParameter parameter )
 		{
 			this.parameters.put( parameter.name, parameter );
+			return parameter;
+		}
+		
+		/**
+		 * Add a parameter with the given name and data type
+		 * 
+		 * @param name the attribute name
+		 * @param dataType the attribute data type
+		 * @return the added {@link InteractionParameter} instance
+		 */
+		public InteractionParameter addParameter( String name, DataType datatType )
+		{
+			return addParameter( new InteractionParameter( name, datatType ) );
 		}
 		
 		public Map<String,InteractionParameter> getParameters()
 		{
 			return Collections.unmodifiableMap( this.parameters );
 		}
-		
-		public String toString()
+		//----------------------------------------------------------
+		//                     STATIC METHODS
+		//----------------------------------------------------------
+		/**
+		 * "Shortcut" static method to create instances which are published
+		 * 
+		 * See also {@link InteractionClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified interaction class name
+		 * @return an {@link InteractionClass} instance with a {@link Sharing#PUBLISH} sharing
+		 *         policy
+		 */
+		public static InteractionClass Pub( String name )
 		{
-			String params = this.parameters.values()
-				.stream()
-				.map((m)->m.toString())
-				.collect(Collectors.joining(","));
-			
-			return String.format( "Interaction:'%s'(%s){%s}",
-			                      this.name, this.sharing.toString(), params );
+			return new InteractionClass( name, Sharing.PUBLISH );
+		}
+		
+		/**
+		 * "Shortcut" static method to create instances which are subscribed
+		 * 
+		 * See also {@link InteractionClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified interaction class name
+		 * @return an {@link InteractionClass} instance with a {@link Sharing#SUBSCRIBE} sharing
+		 *         policy
+		 */
+		public static InteractionClass Sub( String name )
+		{
+			return new InteractionClass( name, Sharing.SUBSCRIBE );
+		}
+		
+		/**
+		 * "Shortcut" static method to create instances which are both published and subscribed
+		 * 
+		 * See also {@link InteractionClass(String, Sharing)}
+		 * 
+		 * @param name the fully qualified interaction class name
+		 * @return an {@link InteractionClass} instance with a {@link Sharing#PUBLISHSUBSCRIBE} sharing
+		 *         policy
+		 */
+		public static InteractionClass PubSub( String name )
+		{
+			return new InteractionClass( name, Sharing.PUBLISHSUBSCRIBE );
 		}
 	}
 	
 	/**
 	 * Represents a parameter in an interaction class in a Simulation Object Model
 	 *
-	 * @see InteractionClass
+	 * See also {@link InteractionClass}
 	 */
 	public static class InteractionParameter
 	{
+		//----------------------------------------------------------
+		//                   INSTANCE VARIABLES
+		//----------------------------------------------------------
 		public String name;
 		public DataType dataType;
 
-		public InteractionParameter( String name )
-		{
-			this( name, DataType.UNKNOWN );
-		}
-
+		//----------------------------------------------------------
+		//                      CONSTRUCTORS
+		//----------------------------------------------------------
 		public InteractionParameter( String name, DataType dataType )
 		{
 			this.name = name;
 			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
 		}
 		
+		//----------------------------------------------------------
+		//                    INSTANCE METHODS
+		//----------------------------------------------------------
+		@Override
 		public String toString()
 		{
 			return String.format( "Param:'%s'[%s]",

@@ -26,9 +26,7 @@ package gov.nist.ucef.hla.example.fedman;
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
-import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.ucef.SimEnd;
 import gov.nist.ucef.hla.ucef.SimPause;
@@ -122,25 +120,21 @@ public class FederationManager
 		// in MIM) to detect joining federates. Note that since this
 		// is a non-UCEF reflection, the `DataType` parameter here 
 		// does not really matter too much
-		ObjectClass mimReflection = new ObjectClass( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME, 
-		                                             Sharing.SUBSCRIBE );
+		ObjectClass mimReflection = ObjectClass.Sub( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME );
 		for( String attributeName : FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES )
 		{
-			ObjectAttribute playerAttribute = new ObjectAttribute( attributeName, 
-			                                                       DataType.UNKNOWN,
-			                                                       Sharing.SUBSCRIBE );
-			mimReflection.addAttribute( playerAttribute );
+			mimReflection.addAttributeSub( attributeName, DataType.UNKNOWN );
 		}
 		config.cacheObjectClasses( mimReflection );
 		
-		// subscribed UCEF simulation control interactions
+		// The federation manager publishes certain UCEF simulation control interactions
 		config.cacheInteractionClasses( 
-    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
-		);
+       		InteractionClass.Pub( SimPause.interactionName() ),
+       		InteractionClass.Pub( SimResume.interactionName() ),
+       		InteractionClass.Pub( SimEnd.interactionName() )
+    	);
 		
-		// here about callbacks *immediately*, rather than when evoked, otherwise
+		// hear about callbacks *immediately*, rather than when evoked, otherwise
 		// we don't know about joined federates until after the ticking starts 
 		config.setCallbacksAreEvoked( false ); // use CallbackModel.HLA_IMMEDIATE
 		

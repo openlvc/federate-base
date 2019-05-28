@@ -26,13 +26,11 @@ package gov.nist.ucef.hla.example.immediate.federates;
 import java.util.Map.Entry;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.UCEFException;
-import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
-import gov.nist.ucef.hla.base.Types.Sharing;
+import gov.nist.ucef.hla.base.UCEFException;
+import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
 import gov.nist.ucef.hla.example.immediate.helpers._ImmediatePongFederate;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
@@ -175,30 +173,26 @@ public class ImmediatePongFederate extends _ImmediatePongFederate
 
 		// set up interactions to publish and subscribe to
 		config.cacheInteractionClasses(
-            new InteractionClass( Pong.interactionClassName(), Sharing.PUBLISH ),
-		    new InteractionClass( Ping.interactionClassName(), Sharing.SUBSCRIBE )
+            InteractionClass.Pub( Pong.interactionClassName() ),
+		    InteractionClass.Sub( Ping.interactionClassName() )
 		);
 		
 		// set up object class reflections to publish and subscribe to
-		ObjectClass playerReflection =
-		    new ObjectClass( ChallengeObject.objectClassName(), Sharing.PUBLISHSUBSCRIBE );
+		ObjectClass playerReflection = ObjectClass.PubSub( ChallengeObject.objectClassName() );
 		for( Entry<String,DataType> entry : Player.attributes().entrySet() )
 		{
 			String name = entry.getKey();
 			DataType dataType = entry.getValue();
-			ObjectAttribute playerAttribute = new ObjectAttribute( name, 
-			                                                       dataType, 
-			                                                       Sharing.PUBLISHSUBSCRIBE );
-			playerReflection.addAttribute( playerAttribute );
+			playerReflection.addAttributePubSub( name, dataType );
 		}
 		config.cacheObjectClasses( playerReflection );
 		
 		// subscribed UCEF simulation control interactions
 		config.cacheInteractionClasses( 
-    		new InteractionClass( SimPause.interactionName(),  Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimResume.interactionName(), Sharing.SUBSCRIBE ),
-    		new InteractionClass( SimEnd.interactionName(),    Sharing.SUBSCRIBE )
-		);
+       		InteractionClass.Sub( SimPause.interactionName() ),
+       		InteractionClass.Sub( SimResume.interactionName() ),
+       		InteractionClass.Sub( SimEnd.interactionName() )
+   		);
 
 		// somebody set us up the FOM...
 		try
