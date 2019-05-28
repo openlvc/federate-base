@@ -23,7 +23,12 @@
  */
 package gov.nist.ucef.hla.example.smart.federates;
 
+import java.util.Map.Entry;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.smart.helpers._SmartPingFederate;
@@ -165,15 +170,28 @@ public class SmartPingFederate extends _SmartPingFederate
 		config.setFederateType( "PingFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of objects/attributes to be published and subscribed to
-		config.addPublishedAttributes( Player.objectClassName(), Player.attributeNames() );
-		config.addSubscribedAttributes( Player.objectClassName(), Player.attributeNames() );
-		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( Ping.interactionClassName() );
-		config.addSubscribedInteraction( Pong.interactionClassName() );
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+            InteractionClass.Pub( Ping.interactionClassName() ),
+            InteractionClass.Sub( Pong.interactionClassName() )
+        );
+		
+		// set up object class reflections to publish and subscribe to
+		ObjectClass playerReflection = ObjectClass.PubSub( Player.objectClassName() );
+		for( Entry<String,DataType> entry : Player.attributes().entrySet() )
+		{
+			String attributeName = entry.getKey();
+			DataType attributeType = entry.getValue();
+			playerReflection.addAttributePubSub( attributeName, attributeType );
+		}
+		config.cacheObjectClasses( playerReflection );
+		
 		// subscribed UCEF simulation control interactions
-		config.addSubscribedInteractions( SimPause.interactionName(), SimResume.interactionName(),
-		                                  SimEnd.interactionName() );
+		config.cacheInteractionClasses( 
+       		InteractionClass.Sub( SimPause.interactionName() ),
+       		InteractionClass.Sub( SimResume.interactionName() ),
+       		InteractionClass.Sub( SimEnd.interactionName() )
+   		);
 
 		// somebody set us up the FOM...
 		try

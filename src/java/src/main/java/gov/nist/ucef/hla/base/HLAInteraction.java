@@ -143,7 +143,7 @@ public class HLAInteraction
 	 * @param parameterName the name of the parameter
 	 * @return true if the parameter is known by this instance, false otherwise
 	 */
-	public boolean hasParameter( String parameterName )
+	public boolean isParameter( String parameterName )
 	{
 		return this.parameters.containsKey( parameterName );
 	}

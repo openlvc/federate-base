@@ -531,9 +531,6 @@ public abstract class FederateBase
 	{
 		beforeFederationJoin();
 
-		// no more configuration changes allowed
-		configuration.freeze();
-		
 		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
 		
 		logger.info( "Federate {} connected to RTI.", configuration.getFederateName() );
@@ -803,23 +800,23 @@ public abstract class FederateBase
 	 */
 	protected void publishAndSubscribe()
 	{
-		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedAttributes();
+		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedObjectClasses();
 		for(ObjectClass objectClass : objectClasses)
 		{
-			if(objectClass.publish)
+			if(objectClass.isPublished())
 			{
 				Set<String> attributes = objectClass.attributes.entrySet()
 					.stream()
-					.filter( x -> x.getValue().publish )
+					.filter( x -> x.getValue().isPublished() )
 					.map( x -> x.getValue().name )
 					.collect(Collectors.toSet());
 				rtiamb.publishObjectClassAttributes( objectClass.name, attributes );
 			}
-			if(objectClass.subscribe)
+			if(objectClass.isSubscribed())
 			{
 				Set<String> attributes = objectClass.attributes.entrySet()
 					.stream()
-					.filter( x -> x.getValue().subscribe )
+					.filter( x -> x.getValue().isSubscribed() )
 					.map( x -> x.getValue().name )
 					.collect(Collectors.toSet());
 				rtiamb.subscribeObjectClassAttributes( objectClass.name, attributes );
@@ -833,11 +830,11 @@ public abstract class FederateBase
 		
 		for(InteractionClass interactionClass : interactionClasses)
 		{
-			if(interactionClass.publish)
+			if(interactionClass.isPublished())
 			{
 				rtiamb.publishInteractionClass( interactionClass.name);
 			}
-			if(interactionClass.subscribe)
+			if(interactionClass.isSubscribed())
 			{
 				rtiamb.subscribeInteractionClass( interactionClass.name);
 			}

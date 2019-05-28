@@ -31,6 +31,8 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.util.Constants;
@@ -219,10 +221,12 @@ public class PongFederate extends FederateBase
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
-		// set up lists of interactions to be published and subscribed to
-		config.addPublishedInteraction( PONG_INTERACTION_ID );
-		config.addSubscribedInteraction( PING_INTERACTION_ID );
-
+		// set up interactions to publish and subscribe to
+		config.cacheInteractionClasses(
+           	new InteractionClass( PONG_INTERACTION_ID, Sharing.PUBLISH ),
+            new InteractionClass( PING_INTERACTION_ID, Sharing.SUBSCRIBE )
+        );
+		
 		// somebody set us up the FOM...
 		try
 		{
