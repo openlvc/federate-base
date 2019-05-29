@@ -38,6 +38,7 @@ import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.StringUtils;
 import gov.nist.ucef.hla.util.cmdargs.ArgException;
@@ -142,6 +143,7 @@ public class FedManFederate extends NoOpUCEFFederate
 		{
 			this.simShouldStart = true;
 			this.simShouldStartCondition.signal();
+			sendSimStart();
 		}
 		finally
 		{
@@ -375,6 +377,24 @@ public class FedManFederate extends NoOpUCEFFederate
 	//////////////////// UCEF Simulation Control Interaction Transmission //////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Utility method to emit a {@link SimStart} interaction to the federation when the simulation
+	 * is terminated
+	 */
+	private void sendSimStart()
+	{
+		sendInteraction( new SimStart() );
+	}
+	
+	/**
+	 * Utility method to emit a {@link SimEnd} interaction to the federation when the simulation
+	 * is terminated
+	 */
+	private void sendSimEnd()
+	{
+		sendInteraction( new SimEnd() );
+	}
+	
+	/**
 	 * Utility method to emit a {@link SimPause} interaction to the federation when the simulation
 	 * is paused
 	 */
@@ -390,15 +410,6 @@ public class FedManFederate extends NoOpUCEFFederate
 	private void sendSimResume()
 	{
 		sendInteraction( new SimResume() );
-	}
-	
-	/**
-	 * Utility method to emit a {@link SimEnd} interaction to the federation when the simulation
-	 * is terminated
-	 */
-	private void sendSimEnd()
-	{
-		sendInteraction( new SimEnd() );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
