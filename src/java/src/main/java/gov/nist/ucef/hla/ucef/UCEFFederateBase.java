@@ -27,6 +27,11 @@ import java.util.Map;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import hla.rti1516e.InteractionClassHandle;
 
 /**
@@ -55,6 +60,9 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	private final Object mutex_lock = new Object();
 
+	// flag which becomes true after a SimStart interaction has
+	// been received (begins as false)
+	protected volatile boolean simShouldStart;
 	// flag which becomes true after a SimEnd interaction has
 	// been received (begins as false)
 	protected volatile boolean simShouldEnd;
@@ -70,6 +78,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	{
 		super();
 		
+		simShouldStart = false;
 		simShouldEnd = false;
 		simShouldPause = false;
 	}
@@ -77,6 +86,48 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//         UCEF SPECIFIC INTERACTION CALLBACK METHODS
 	//----------------------------------------------------------
+	/**
+	 * Called whenever the UCEF specific "simulation start" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simStart the {@link SimStart} interaction
+	 */
+	protected abstract void receiveSimStart( SimStart simStart );
+	
+	/**
+	 * Called whenever the UCEF specific "simulation start" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simStart the {@link SimStart} interaction
+	 * @param time the current logical time of the federate
+	 */
+	protected abstract void receiveSimStart( SimStart simStart, double time );
+	
+	/**
+	 * Called whenever the UCEF specific "simulation end" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simEnd the {@link SimEnd} interaction
+	 */
+	protected abstract void receiveSimEnd( SimEnd simEnd );
+
+	/**
+	 * Called whenever the UCEF specific "simulation end" interaction is received
+	 * 
+	 * NOTE: this method can be overridden to provide handling suitable for a 
+	 *       specific federate's requirements
+	 *
+	 * @param simEnd the {@link SimEnd} interaction
+	 * @param time the current logical time of the federate
+	 */
+	protected abstract void receiveSimEnd( SimEnd simEnd, double time );
+
 	/**
 	 * Called whenever the UCEF specific "simulation pause" interaction is received
 	 * 
@@ -119,27 +170,6 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param federateTime the current logical time of the federate
 	 */
 	protected abstract void receiveSimResume( SimResume simResume, double time );
-
-	/**
-	 * Called whenever the UCEF specific "simulation end" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simEnd the {@link SimEnd} interaction
-	 */
-	protected abstract void receiveSimEnd( SimEnd simEnd );
-
-	/**
-	 * Called whenever the UCEF specific "simulation end" interaction is received
-	 * 
-	 * NOTE: this method can be overridden to provide handling suitable for a 
-	 *       specific federate's requirements
-	 *
-	 * @param simEnd the {@link SimEnd} interaction
-	 * @param time the current logical time of the federate
-	 */
-	protected abstract void receiveSimEnd( SimEnd simEnd, double time );
 
 	/**
 	 * Called whenever the UCEF specific "federate join" interaction is received
@@ -202,6 +232,11 @@ public abstract class UCEFFederateBase extends FederateBase
     		{
         		String interactionClassName = interaction.getInteractionClassName();
         		
+        		if( SimStart.interactionName().equals( interactionClassName ) )
+        		{
+        			simShouldStart = true;
+        			receiveSimStart( new SimStart( interaction ), time );
+        		}
         		if( SimEnd.interactionName().equals( interactionClassName ) )
         		{
         			// if a SimEnd is received, a UCEF federate must synchronize with the

@@ -21,18 +21,18 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.ucef;
+package gov.nist.ucef.hla.ucef.interaction;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-public class SimPause extends HLAInteraction
+public class SimResume extends HLAInteraction
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition 
-	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimulationControl.SimPause";
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimulationControl.SimResume";
 	
 	// interaction parameters and types
 	// ...none...
@@ -47,7 +47,7 @@ public class SimPause extends HLAInteraction
 	/**
 	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
 	 */
-	public SimPause()
+	public SimResume()
 	{
 		super( INTERACTION_NAME );
 	}
@@ -55,7 +55,7 @@ public class SimPause extends HLAInteraction
 	/**
 	 * @param interaction the {@link HLAInteraction} instance
 	 */
-	public SimPause( HLAInteraction interaction )
+	public SimResume( HLAInteraction interaction )
 	{
 		super( interaction );
 	}
@@ -67,7 +67,7 @@ public class SimPause extends HLAInteraction
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

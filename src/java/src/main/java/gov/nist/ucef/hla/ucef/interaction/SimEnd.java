@@ -21,31 +21,22 @@
  * NOT HAVE ANY OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR
  * MODIFICATIONS.
  */
-package gov.nist.ucef.hla.example.challenger.helpers;
+package gov.nist.ucef.hla.ucef.interaction;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
-import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
+import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
-/**
- *		            ___
- *		          _/   \_     _     _
- *		         / \   / \   / \   / \
- *		        ( U )─( C )─( E )─( F )
- *		         \_/   \_/   \_/   \_/
- *		        <─┴─> <─┴─────┴─────┴─>
- *		       Universal CPS Environment
- *		             for Federation
- * 
- * Example federate for testing
- */
-public abstract class _ChallengeFederate extends NoOpUCEFFederate
+public class SimEnd extends HLAInteraction
 {
 	//----------------------------------------------------------
-	//                   STATIC VARIABLES
+	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-
+	// HLA identifier of this type of interaction - must match FOM definition 
+	private static final String INTERACTION_NAME = "HLAInteractionRoot.C2WInteractionRoot.SimulationControl.SimEnd";
+	
+	// interaction parameters and types
+	// ...none...
+	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -53,40 +44,40 @@ public abstract class _ChallengeFederate extends NoOpUCEFFederate
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public _ChallengeFederate()
+	/**
+	 * @param rtiamb the {@link RTIAmbassadorWrapper} instance
+	 */
+	public SimEnd()
 	{
-		super();
+		super( INTERACTION_NAME );
+	}
+
+	/**
+	 * @param interaction the {@link HLAInteraction} instance
+	 */
+	public SimEnd( HLAInteraction interaction )
+	{
+		super( interaction );
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction )
-	{
-		String interactionClassName = hlaInteraction.getInteractionClassName();
-		if( ResponseInteraction.interactionClassName().equals( interactionClassName ) )
-		{
-			receiveResponseInteraction( new ResponseInteraction( hlaInteraction ) );
-		}
-	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////// Interaction/Reflection Handler Callbacks ////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/**
-	 * Handle receipt of a {@link ResponseInteraction}
-	 * 
-	 * @param interaction the interaction to handle
-	 */
-	protected abstract void receiveResponseInteraction( ResponseInteraction interaction );
 
 	////////////////////////////////////////////////////////////////////////////////////////////
-	////////////////////////////////// Internal Utility Methods ////////////////////////////////
+	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	
-	protected ChallengeObject register( ChallengeObject instance ) { return (ChallengeObject)super.register( instance ); }
+	//----------------------------------------------------------
+	//                     STATIC METHODS
+	//----------------------------------------------------------
+	/**
+	 * Obtain the HLA interaction name identifying this type of interaction
+	 * 
+	 * @return the HLA interaction name identifying this interaction
+	 */
+	public static String interactionName()
+	{
+		return INTERACTION_NAME;
+	}
 }

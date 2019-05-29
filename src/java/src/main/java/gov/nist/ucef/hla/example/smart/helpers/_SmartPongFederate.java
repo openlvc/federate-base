@@ -27,7 +27,7 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.reflections.Player;
-import gov.nist.ucef.hla.ucef.NoOpFederate;
+import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
 
 /**
  *		            ___
@@ -41,7 +41,7 @@ import gov.nist.ucef.hla.ucef.NoOpFederate;
  * 
  * Example federate for testing
  */
-public abstract class _SmartPongFederate extends NoOpFederate
+public abstract class _SmartPongFederate extends NoOpUCEFFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
