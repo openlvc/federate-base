@@ -216,7 +216,7 @@ public class PingFederate extends FederateBase
 	 */
 	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Ping" );
+		config.setFederateName( "Ping-"+System.currentTimeMillis() );
 		config.setFederateType( "PingFederate" );
 		config.setFederationName( "PingPongFederation" );
 

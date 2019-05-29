@@ -273,7 +273,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	 */
 	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Pong" );
+		config.setFederateName( "Pong-"+System.currentTimeMillis() );
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
