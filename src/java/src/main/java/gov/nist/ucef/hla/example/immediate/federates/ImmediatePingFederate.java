@@ -162,11 +162,11 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
 		config.setFederateName( "Ping" );
 		config.setFederateType( "PingFederate" );
@@ -211,8 +211,6 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	/**
@@ -239,7 +237,7 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 		try
 		{
 			ImmediatePingFederate federate = new ImmediatePingFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

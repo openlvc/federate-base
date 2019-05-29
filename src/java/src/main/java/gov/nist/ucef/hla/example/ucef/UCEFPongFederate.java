@@ -267,11 +267,11 @@ public class UCEFPongFederate extends UCEFFederateBase
 	private static final String PONG_PARAM_LETTER = "letter";
 	
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
 		config.setFederateName( "Pong" );
 		config.setFederateType( "PongFederate" );
@@ -299,8 +299,6 @@ public class UCEFPongFederate extends UCEFFederateBase
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	//----------------------------------------------------------
@@ -325,7 +323,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		try
 		{
 			UCEFPongFederate federate = new UCEFPongFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

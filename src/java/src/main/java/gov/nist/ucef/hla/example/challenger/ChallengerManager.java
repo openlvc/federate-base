@@ -71,7 +71,7 @@ public class ChallengerManager
 		try
 		{
 			FedManFederate fedman = new FedManFederate( args );
-			makeConfig( fedman.getFederateConfiguration() );
+			initializeConfig( fedman.getFederateConfiguration() );
 			fedman.runFederate();
 		}
 		catch(Exception e)
@@ -106,11 +106,11 @@ public class ChallengerManager
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
 		config.setFederateName( FedManConstants.FEDMAN_FEDERATE_NAME );
 		config.setFederateType( FedManConstants.FEDMAN_FEDERATE_TYPE );
@@ -160,7 +160,5 @@ public class ChallengerManager
 		{
 			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
 		}
-		
-		return config;
 	}
 }

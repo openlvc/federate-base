@@ -104,8 +104,8 @@ public class SmartPingFederate extends _SmartPingFederate
 		this.count++;
 		String nextPlayerName = PLAYER_NAMES[this.count % PLAYER_NAMES.length];
 		this.player.name( nextPlayerName );
-		// keep going until time 10.0
-		return (currentTime < 10.0);
+		// keep going until time 20.0
+		return (currentTime < 20.0);
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -160,13 +160,13 @@ public class SmartPingFederate extends _SmartPingFederate
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Ping" );
+		config.setFederateName( "Ping-"+System.currentTimeMillis() );
 		config.setFederateType( "PingFederate" );
 		config.setFederationName( "PingPongFederation" );
 
@@ -209,8 +209,6 @@ public class SmartPingFederate extends _SmartPingFederate
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	/**
@@ -237,7 +235,7 @@ public class SmartPingFederate extends _SmartPingFederate
 		try
 		{
 			SmartPingFederate federate = new SmartPingFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

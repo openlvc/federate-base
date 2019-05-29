@@ -558,11 +558,11 @@ public class ChallengeFederate extends _ChallengeFederate
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
 		config.setFederateName( "JavaChallenger" );
 		config.setFederateType( "ChallengeFederate" );
@@ -608,8 +608,6 @@ public class ChallengeFederate extends _ChallengeFederate
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	/**
@@ -632,7 +630,7 @@ public class ChallengeFederate extends _ChallengeFederate
 		try
 		{
 			ChallengeFederate federate = new ChallengeFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )
