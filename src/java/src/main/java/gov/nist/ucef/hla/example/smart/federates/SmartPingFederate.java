@@ -38,6 +38,7 @@ import gov.nist.ucef.hla.example.smart.reflections.Player;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 
@@ -97,7 +98,7 @@ public class SmartPingFederate extends _SmartPingFederate
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction and attribute update
+		// here we send out our interaction and attribute update
 		sendInteraction( new Ping().count(  this.count ) );
 		updateAttributeValues( this.player );
 		// update the values
@@ -139,6 +140,18 @@ public class SmartPingFederate extends _SmartPingFederate
 	////////////////////// UCEF Simulation Control Interaction Callbacks ///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart )
+	{
+		System.out.println( "SimStart signal received. Ready to begin..." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
 		System.out.println( "Simulation has been paused." );
@@ -148,12 +161,6 @@ public class SmartPingFederate extends _SmartPingFederate
 	protected void receiveSimResume( SimResume simResume )
 	{
 		System.out.println( "Simulation has been resumed." );
-	}
-	
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
 	}
 
 	//----------------------------------------------------------

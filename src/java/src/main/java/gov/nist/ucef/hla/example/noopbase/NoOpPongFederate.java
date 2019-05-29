@@ -95,7 +95,7 @@ public class NoOpPongFederate extends NoOpUCEFFederate
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction
+		// here we send out our interaction
 		System.out.println( "Sending Pong interaction at time " + currentTime + "..." );
 		sendInteraction( makePongInteraction( letter++ ), null );
 		// keep going until time 10.0

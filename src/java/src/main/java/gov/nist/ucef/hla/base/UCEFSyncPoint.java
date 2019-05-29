@@ -30,7 +30,7 @@ import java.util.Collections;
 /**
  * This enumeration provides the possible synchronization points which UCEF HLA federates must at
  * least notionally acknowledge, and preferably adhere to in order to interact sensibly with the
- * federate manager.
+ * federation manager.
  */
 public enum UCEFSyncPoint
 {

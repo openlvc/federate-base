@@ -39,6 +39,7 @@ import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 
@@ -175,6 +176,18 @@ public class ResponseFederate extends _ResponseFederate
 	////////////////////// UCEF Simulation Control Interaction Callbacks ///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart )
+	{
+		System.out.println( "SimStart signal received. Ready to begin..." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
 		System.out.println( "Simulation has been paused." );
@@ -184,12 +197,6 @@ public class ResponseFederate extends _ResponseFederate
 	protected void receiveSimResume( SimResume simResume )
 	{
 		System.out.println( "Simulation has been resumed." );
-	}
-	
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
