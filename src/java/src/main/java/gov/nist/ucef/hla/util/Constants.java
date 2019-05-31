@@ -34,9 +34,9 @@ public class Constants
 		"            ___\n" +
 		"          _/   \\_     _     _\n" +
 		"         / \\   / \\   / \\   / \\\n" +
-		"        ( U )─( C )─( E )─( F )\n" +
+		"        ( U )-( C )-( E )-( F )\n" +
 		"         \\_/   \\_/   \\_/   \\_/\n" +
-		"        <─┴─> <─┴─────┴─────┴─>\n" +
+		"        <-+-> <-+-----+-----+->\n" +
 		"       Universal CPS Environment\n" +
 		"             for Federation\n";
 

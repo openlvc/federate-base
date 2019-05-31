@@ -64,7 +64,7 @@ public class FedManConstants
 	public static final String FEDERATE_TYPE_HEADING = "Type";
 	public static final String NUMBER_REQUIRED_HEADING = "Required";
 	public static final String NUMBER_JOINED_HEADING = "Joined";
-	public static final String[] TABLE_HEADINGS = {FEDERATE_TYPE_HEADING, 
+	public static final String[] TABLE_HEADINGS = { FEDERATE_TYPE_HEADING, 
 	                                                NUMBER_REQUIRED_HEADING, 
-	                                                NUMBER_JOINED_HEADING};
+	                                                NUMBER_JOINED_HEADING };
 }

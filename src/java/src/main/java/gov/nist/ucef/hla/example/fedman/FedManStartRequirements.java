@@ -54,11 +54,11 @@ public class FedManStartRequirements
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	// a map of federate types to minimum counts
-	private Map<String, Integer> startRequirements;
+	protected Map<String, Integer> startRequirements;
 	// used to track the types of federates which have joined the federation
-	private Map<String, Set<FederateDetails>> joinedFederatesByType;
+	protected Map<String, Set<FederateDetails>> joinedFederatesByType;
 	// keeps track of the total number of federates required to start (regardless of type)
-	private int totalFederatesRequired;
+	protected int totalFederatesRequired;
 	
 	private final Object mutex_lock = new Object();
 

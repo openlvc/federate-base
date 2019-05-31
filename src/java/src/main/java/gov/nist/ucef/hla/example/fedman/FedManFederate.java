@@ -89,6 +89,7 @@ public class FedManFederate extends NoOpFederate
 	Lock lock = new ReentrantLock();
 	Condition simIsPausedCondition = lock.newCondition();
 	Condition simShouldStartCondition = lock.newCondition();
+	Condition simShouldEndCondition = lock.newCondition();
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -128,6 +129,36 @@ public class FedManFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public FedManStartRequirements getStartRequirements()
+	{
+		return this.startRequirements;
+	}
+	
+	public boolean canStart()
+	{
+		return this.startRequirements.canStart();
+	}
+	
+	public boolean hasStarted()
+	{
+		return this.simShouldStart;
+	}
+	
+	public boolean hasEnded()
+	{
+		return this.simShouldEnd;
+	}
+	
+	public boolean isPaused()
+	{
+		return hasStarted() && !hasEnded() && this.simIsPaused;
+	}
+	
+	public boolean isRunning()
+	{
+		return hasStarted() && !hasEnded() && !this.simIsPaused;
+	}
+	
 	/**
 	 * Signal that the simulation should start.
 	 * 
@@ -163,10 +194,13 @@ public class FedManFederate extends NoOpFederate
 		if( !this.simIsPaused )
 			return;
 		
+		System.out.println( "Resuming..." );
 		lock.lock();
 		try
 		{
+			sendSimResume();
 			this.simIsPaused = false;
+			
 			// reset time advancing baseline, otherwise it's left back at the
 			// point we paused
 			this.nextTimeAdvance = System.currentTimeMillis();
@@ -178,6 +212,56 @@ public class FedManFederate extends NoOpFederate
 		}
 	}
 		
+	/**
+	 * Signal that the simulation should be paused.
+	 * 
+	 * Has no effect if the simulation is already paused or if the simulation has already finished
+	 * due to maximum time being reached or the simulation being (forcibly) exited.
+	 */
+	public void requestSimPause()
+	{
+		if( this.simIsPaused )
+			return;
+		
+		System.out.println( "Pausing..." );
+		lock.lock();
+		try
+		{
+			sendSimPause();
+			this.simIsPaused = true;
+			this.simIsPausedCondition.signal();
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+	
+	/**
+	 * Signal that the simulation should end.
+	 * 
+	 * Has no effect if the simulation has already finished due to maximum time being reached or
+	 * the simulation being (forcibly) exited.
+	 */
+	public void requestSimEnd()
+	{
+		if( this.simShouldEnd )
+			return;
+		
+		System.out.println( "Ending..." );
+		lock.lock();
+		try
+		{
+			sendSimEnd();
+			this.simShouldEnd = true;
+			this.simShouldEndCondition.signal();
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+	
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Lifecycle Callback Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -518,6 +602,28 @@ public class FedManFederate extends NoOpFederate
 	}
 	
 	/**
+	 * Wait until the simulation should end (see also
+	 * {@link FedManFederate#requestSimEnd()}
+	 */
+	private void waitUntilSimShouldEnd()
+	{
+		lock.lock();
+		try
+		{
+			while( !simShouldEnd )
+				simShouldEndCondition.await();
+		}
+		catch(InterruptedException e)
+		{
+			// ignore and continue
+		}
+		finally
+		{
+			lock.unlock();	
+		}
+	}
+	
+	/**
 	 * Wait until the simulation should continue (see also
 	 * {@link FedManFederate#requestSimResume()}
 	 */
@@ -604,17 +710,20 @@ public class FedManFederate extends NoOpFederate
 		
 		private void endSim()
 		{
-			if( simShouldStart )
+			if( !simShouldStart )
 			{
-    			System.out.println( "Terminating..." );
-    			simShouldEnd = true;
-    			if( simIsPaused )
-    				requestSimResume();
-    			sendSimEnd();
+				System.out.println( "Cannot terminate - simulation has not yet started." );
+			}
+			else if( simShouldEnd )
+			{
+				System.out.println( "Simulation is already terminating." );
 			}
 			else
 			{
-    			System.out.println( "Cannot terminate - simulation has not yet started." );
+    			System.out.println( "Terminating..." );
+    			if( simIsPaused )
+    				requestSimResume();
+    			requestSimEnd();    			
 			}
 		}
 		
@@ -624,15 +733,11 @@ public class FedManFederate extends NoOpFederate
 			{
     			if( simIsPaused )
     			{
-    				System.out.println( "Resuming..." );
     				requestSimResume();
-    				sendSimResume();
     			}
     			else
     			{
-    				System.out.println( "Pausing..." );
-    				simIsPaused = true;
-    				sendSimPause();
+    				requestSimPause();
     			}
 			}
 			else
