@@ -69,6 +69,8 @@ public class FederationManager
 		{
 			FedManFederate fedman = new FedManFederate( args );
 			initializeConfig( fedman.getFederateConfiguration() );
+			FedManHttpServer httpServer = new FedManHttpServer(fedman, 8080);
+			httpServer.startServer();
 			fedman.runFederate();
 		}
 		catch(Exception e)
