@@ -26,16 +26,12 @@ package gov.nist.ucef.hla.ucef;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
-import gov.nist.ucef.hla.base.LifecycleState;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
@@ -65,6 +61,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( UCEFFederateBase.class );
+	
 	// if a federate joins after the READY_TO_RUN and READY_TO_POPULATE sync points
 	// have already been achieved by the federation, it is a "late joiner" and does
 	// not need to wait for the SimStart even to enter the simulation loop (because
@@ -78,10 +75,6 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	private final Object mutex_lock = new Object();
 
-	// lock to wait for SimStart signal before entering simulation loop
-	private Lock lock = new ReentrantLock();
-	private Condition simShouldStartCondition = lock.newCondition();
-	
 	protected Set<String> syncPointTimeouts;
 	
 	// flag which becomes true after a SimStart interaction has
@@ -221,69 +214,6 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	/**
-	 * We override the this method here so that we can...
-	 * 
-	 *  - check for late join conditions, and
-	 *  - wait for the arrival of a {@link SimStart} interaction 
-	 *    before entering the simulation loop (unless we are a
-	 *    late joining federate)
-	 * 
-	 * Apart from this, {@link #runFederate()} is identical to 
-	 * the {@link FederateBase#runFederate()} implementation. 
-	 */
-	@Override
-	public void runFederate()
-	{
-		// - create and join the Federation, then 
-		// - publish and subscribe, and then
-		// - call the beforeReadyToPopulate(), beforeReadyToRun() and 
-		//   beforeFirstStep() methods
-		this.lifecycleState = LifecycleState.INITIALIZING;
-		federateSetup();
-		this.lifecycleState = LifecycleState.INITIALIZED;
-		
-		// -----------------------------------------------------------
-		// UCEF Federate specific steps ------------------------------
-		// check for late join conditions
-		boolean isLateJoiner = isLateJoiner();
-		if(isLateJoiner)
-		{
-			// warn that we are joining late for possible post-simulation
-			// diagnostic purposes
-			logger.warn( String.format( "Federate '%s' of type '%s' is a late joiner "+
-				"to federation '%s'.",
-				configuration.getFederateName(),
-				configuration.getFederateType(),
-				configuration.getFederationName() ) );
-		}
-		
-		// - unless we are a late joiner of the federation, we must
-		//   wait until a `SimStart` interaction has been received
-		//   before we begin the simulation loop
-		boolean shouldWait = !this.simShouldStart && !isLateJoiner; 
-		if( shouldWait )
-		{
-			logger.info( String.format( "Federate '%s' is waiting for the 'SimStart' signal...",
-										configuration.getFederateName() ) );
-			waitForSimStart();
-			logger.info( String.format( "Federate '%s' has received the 'SimStart' signal.",
-										configuration.getFederateName() ) );
-		}
-		// end UCEF Federate specific steps --------------------------
-		// -----------------------------------------------------------
-	
-		// - repeatedly call step() until simulation ends
-		this.lifecycleState = LifecycleState.RUNNING;
-		federateExecution();
-		
-		// - disable any time policy, then
-		// - call readyToResign() and beforeExit(), and then
-		// - resign and destroy the federation
-		this.lifecycleState = LifecycleState.CLEANING_UP;
-		federateTeardown();
-		this.lifecycleState = LifecycleState.EXPIRED;
-	}
 	
 	/**
 	 * We override the this method here so that we can react to
@@ -358,10 +288,8 @@ public abstract class UCEFFederateBase extends FederateBase
         		
         		if( SimStart.interactionName().equals( interactionClassName ) )
         		{
-        			// once a SimStart is received, a well behaved UCEF federate is 
-        			// allowed to begin its step() loop, but not before
-        			signalSimStart();
-        			
+        			// it is up to individual federates as to how they handle this 
+        			simShouldStart = true;
         			receiveSimStart( new SimStart( interaction ), time );
         		}
         		if( SimEnd.interactionName().equals( interactionClassName ) )
@@ -415,10 +343,8 @@ public abstract class UCEFFederateBase extends FederateBase
         		
         		if( SimStart.interactionName().equals( interactionClassName ) )
         		{
-        			// once a SimStart is received, a well behaved UCEF federate is 
-        			// allowed to begin its step() loop, but not before
-        			signalSimStart();
-        			
+        			// it is up to individual federates as to how they handle this 
+        			simShouldStart = true;
         			receiveSimStart( new SimStart( interaction ) );
         		}
         		else if( SimEnd.interactionName().equals( interactionClassName ) )
@@ -458,57 +384,15 @@ public abstract class UCEFFederateBase extends FederateBase
 		}
 	}
 	
-	/**
-	 * Wait until a SimStart is received
-	 */
-	private void waitForSimStart()
-	{
-		lock.lock();
-		try
-		{
-			while( this.simShouldStart )
-				simShouldStartCondition.await();
-		}
-		catch(InterruptedException e)
-		{
-			// ignore and continue
-		}
-		finally
-		{
-			lock.unlock();	
-		}
-	}
-	
-	/**
-	 * Signal that the simulation should start.
-	 * 
-	 * Has no effect if the simulation is already started.
-	 */
-	private void signalSimStart()
-	{
-		// if we are already in a state where the simulation should start,
-		// there's nothing we need to do here
-		if( this.simShouldStart )
-			return;
-		
-		lock.lock();
-		try
-		{
-			this.simShouldStart = true;
-			this.simShouldStartCondition.signal();
-		}
-		finally
-		{
-			lock.unlock();	
-		}
-	}
-	
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Determine if this federate is a "late joiner"
 	 * 
 	 * @return true if the federate is a late joiner, false otherwise
 	 */
-	private boolean isLateJoiner()
+	protected boolean isLateJoiner()
 	{
 		// for a federate to be a late joiner, it must have timed out
 		// trying to achieve *all* sync points corresponding to before
@@ -522,13 +406,9 @@ public abstract class UCEFFederateBase extends FederateBase
 			}
 		}
 		
-		// timed out on all relevant sync points - we are a late joining federate!
+		// timed out on all relevant sync points - we are late to the federation
 		return true;
 	}
-	
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
