@@ -394,7 +394,7 @@ public class FederateConfigurationTest extends TestCase
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single module - this actually ends up feeding through the adding
 		// a list of modules method
-		config.addModule( expectedModules.get( 0 ) );
+		config.addModules( expectedModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
 		
 		// start again with clean config
@@ -457,7 +457,7 @@ public class FederateConfigurationTest extends TestCase
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add single module - this actually ends up feeding through the adding
 		// a list of modules method
-		config.addModule( expectedJoinModules.get( 0 ) );
+		config.addModules( expectedJoinModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
 		
 		// start again with clean config

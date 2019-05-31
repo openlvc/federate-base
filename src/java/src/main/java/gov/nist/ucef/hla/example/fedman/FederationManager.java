@@ -152,7 +152,7 @@ public class FederationManager
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
 			
 			// join modules
-			String[] joinModuleFoms = {};
+			String[] joinModuleFoms = {fomRootPath + "HLAstandardMIM.xml"};
 			config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
 		}
 		catch( Exception e )

@@ -498,23 +498,12 @@ public class FederateConfiguration
 	}
 	
 	/**
-	 * Add a FOM module to the configuration
-	 * 
-	 * @param module the FOM module to add to the configuration
-	 * @return this instance (for method chaining)
-	 */
-	public FederateConfiguration addModule( URL module )
-	{
-		return addModules( new URL[]{ module } );
-	}
-
-	/**
 	 * Add FOM modules to the configuration
 	 * 
 	 * @param modules the FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addModules( URL[] modules )
+	public FederateConfiguration addModules( URL ... modules )
 	{
 		return addModules( asCollection( modules ) );
 	}
@@ -545,23 +534,12 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Add a join FOM module to the configuration
-	 * 
-	 * @param joinModule the join FOM module to add to the configuration
-	 * @return this instance (for method chaining)
-	 */
-	public FederateConfiguration addJoinModule( URL joinModule )
-	{
-		return addJoinModules( new URL[]{ joinModule } );
-	}
-
-	/**
 	 * Add join FOM modules to the configuration
 	 * 
 	 * @param joinModules the join FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration addJoinModules( URL[] joinModules )
+	public FederateConfiguration addJoinModules( URL ... joinModules )
 	{
 		return addJoinModules( asCollection( joinModules ) );
 	}
