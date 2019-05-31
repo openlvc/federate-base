@@ -57,7 +57,6 @@ public enum LifecycleState
     // possible lifecycle stages, in expected chronological order of execution in the federation
 	GESTATING("gestating", "Gestating"),          // not a federation member
 	INITIALIZING("initializing", "Initializing"), // federation joined, but still setting up the simulation
-	INITIALIZED("initialized", "Initialized"),    // simulation is set up, but not yet running
 	RUNNING("running", "Running"),                // simulation is active
 	CLEANING_UP("cleaningUp", "Cleaning Up"),     // simulation completed, but still a federation member
 	EXPIRED("expired", "Expired");                // left the federation

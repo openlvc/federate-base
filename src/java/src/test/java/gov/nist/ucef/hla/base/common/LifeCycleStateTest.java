@@ -66,7 +66,6 @@ public class LifeCycleStateTest extends TestCase
 	{
 		assertEquals( "gestating", LifecycleState.GESTATING.getLabel());
 		assertEquals( "initializing", LifecycleState.INITIALIZING.getLabel());
-		assertEquals( "initialized", LifecycleState.INITIALIZED.getLabel());
 		assertEquals( "running", LifecycleState.RUNNING.getLabel());
 		assertEquals( "cleaningUp", LifecycleState.CLEANING_UP.getLabel());
 		assertEquals( "expired", LifecycleState.EXPIRED.getLabel());
@@ -86,7 +85,6 @@ public class LifeCycleStateTest extends TestCase
 		// this test will cause compilation errors
 		LifecycleState[] expectedLifecycleStates = new LifecycleState[]{ LifecycleState.GESTATING,
 		                                                                 LifecycleState.INITIALIZING,
-		                                                                 LifecycleState.INITIALIZED,
 		                                                                 LifecycleState.RUNNING,
 		                                                                 LifecycleState.CLEANING_UP,
 		                                                                 LifecycleState.EXPIRED,
@@ -150,13 +148,11 @@ public class LifeCycleStateTest extends TestCase
 		// GESTATING
 		assertFalse( LifecycleState.GESTATING.isBefore( LifecycleState.GESTATING ));
 		assertTrue( LifecycleState.GESTATING.isBefore( LifecycleState.INITIALIZING ));
-		assertTrue( LifecycleState.GESTATING.isBefore( LifecycleState.INITIALIZED ));
 		assertTrue( LifecycleState.GESTATING.isBefore( LifecycleState.RUNNING ));
 		assertTrue( LifecycleState.GESTATING.isBefore( LifecycleState.CLEANING_UP ));
 		assertTrue( LifecycleState.GESTATING.isBefore( LifecycleState.EXPIRED ));
 		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.GESTATING.isAfter( LifecycleState.EXPIRED ));
@@ -164,41 +160,23 @@ public class LifeCycleStateTest extends TestCase
 		// INITIALIZING
 		assertFalse( LifecycleState.INITIALIZING.isBefore( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.INITIALIZING.isBefore( LifecycleState.INITIALIZING ));
-		assertTrue( LifecycleState.INITIALIZING.isBefore( LifecycleState.INITIALIZED ));
 		assertTrue( LifecycleState.INITIALIZING.isBefore( LifecycleState.RUNNING ));
 		assertTrue( LifecycleState.INITIALIZING.isBefore( LifecycleState.CLEANING_UP ));
 		assertTrue( LifecycleState.INITIALIZING.isBefore( LifecycleState.EXPIRED ));
 		assertTrue( LifecycleState.INITIALIZING.isAfter( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.INITIALIZING.isAfter( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.INITIALIZING.isAfter( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.INITIALIZING.isAfter( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.INITIALIZING.isAfter( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.INITIALIZING.isAfter( LifecycleState.EXPIRED ));
 		
-		// INITIALIZED
-		assertFalse( LifecycleState.INITIALIZED.isBefore( LifecycleState.GESTATING ));
-		assertFalse( LifecycleState.INITIALIZED.isBefore( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.INITIALIZED.isBefore( LifecycleState.INITIALIZED ));
-		assertTrue( LifecycleState.INITIALIZED.isBefore( LifecycleState.RUNNING ));
-		assertTrue( LifecycleState.INITIALIZED.isBefore( LifecycleState.CLEANING_UP ));
-		assertTrue( LifecycleState.INITIALIZED.isBefore( LifecycleState.EXPIRED ));
-		assertTrue( LifecycleState.INITIALIZED.isAfter( LifecycleState.GESTATING ));
-		assertTrue( LifecycleState.INITIALIZED.isAfter( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.INITIALIZED.isAfter( LifecycleState.INITIALIZED ));
-		assertFalse( LifecycleState.INITIALIZED.isAfter( LifecycleState.RUNNING ));
-		assertFalse( LifecycleState.INITIALIZED.isAfter( LifecycleState.CLEANING_UP ));
-		assertFalse( LifecycleState.INITIALIZED.isAfter( LifecycleState.EXPIRED ));
-		
 		// RUNNING
 		assertFalse( LifecycleState.RUNNING.isBefore( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.RUNNING.isBefore( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.RUNNING.isBefore( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.RUNNING.isBefore( LifecycleState.RUNNING ));
 		assertTrue( LifecycleState.RUNNING.isBefore( LifecycleState.CLEANING_UP ));
 		assertTrue( LifecycleState.RUNNING.isBefore( LifecycleState.EXPIRED ));
 		assertTrue( LifecycleState.RUNNING.isAfter( LifecycleState.GESTATING ));
 		assertTrue( LifecycleState.RUNNING.isAfter( LifecycleState.INITIALIZING ));
-		assertTrue( LifecycleState.RUNNING.isAfter( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.RUNNING.isAfter( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.RUNNING.isAfter( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.RUNNING.isAfter( LifecycleState.EXPIRED ));
@@ -206,13 +184,11 @@ public class LifeCycleStateTest extends TestCase
 		// CLEANING_UP
 		assertFalse( LifecycleState.CLEANING_UP.isBefore( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.CLEANING_UP.isBefore( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.CLEANING_UP.isBefore( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.CLEANING_UP.isBefore( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.CLEANING_UP.isBefore( LifecycleState.CLEANING_UP ));
 		assertTrue( LifecycleState.CLEANING_UP.isBefore( LifecycleState.EXPIRED ));
 		assertTrue( LifecycleState.CLEANING_UP.isAfter( LifecycleState.GESTATING ));
 		assertTrue( LifecycleState.CLEANING_UP.isAfter( LifecycleState.INITIALIZING ));
-		assertTrue( LifecycleState.CLEANING_UP.isAfter( LifecycleState.INITIALIZED ));
 		assertTrue( LifecycleState.CLEANING_UP.isAfter( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.CLEANING_UP.isAfter( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.CLEANING_UP.isAfter( LifecycleState.EXPIRED ));
@@ -220,13 +196,11 @@ public class LifeCycleStateTest extends TestCase
 		// EXPIRED
 		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.GESTATING ));
 		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.INITIALIZING ));
-		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.INITIALIZED ));
 		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.RUNNING ));
 		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.EXPIRED.isBefore( LifecycleState.EXPIRED ));
 		assertTrue( LifecycleState.EXPIRED.isAfter( LifecycleState.GESTATING ));
 		assertTrue( LifecycleState.EXPIRED.isAfter( LifecycleState.INITIALIZING ));
-		assertTrue( LifecycleState.EXPIRED.isAfter( LifecycleState.INITIALIZED ));
 		assertTrue( LifecycleState.EXPIRED.isAfter( LifecycleState.RUNNING ));
 		assertTrue( LifecycleState.EXPIRED.isAfter( LifecycleState.CLEANING_UP ));
 		assertFalse( LifecycleState.EXPIRED.isAfter( LifecycleState.EXPIRED ));

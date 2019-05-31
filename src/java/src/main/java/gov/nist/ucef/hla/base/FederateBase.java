@@ -168,7 +168,6 @@ public abstract class FederateBase
 		//   beforeFirstStep() methods
 		this.lifecycleState = LifecycleState.INITIALIZING;
 		federateSetup();
-		this.lifecycleState = LifecycleState.INITIALIZED;
 		
 		// - repeatedly call step() until simulation ends
 		this.lifecycleState = LifecycleState.RUNNING;
