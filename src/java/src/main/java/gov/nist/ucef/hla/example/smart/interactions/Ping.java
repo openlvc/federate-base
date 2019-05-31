@@ -23,8 +23,13 @@
  */
 package gov.nist.ucef.hla.example.smart.interactions;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.base.Types.DataType;
 
 public class Ping extends HLAInteraction
 {
@@ -37,6 +42,13 @@ public class Ping extends HLAInteraction
 	
 	// interaction parameters and types
 	private static final String PARAM_KEY_COUNT = "count";
+	private static final DataType PARAM_TYPE_COUNT = DataType.INT;
+	
+	// a map for finding a data type for an attribute name - this is to provide
+	// quick lookups and avoid iterating over all attributes
+	private static final Map<String,DataType> PARAMETERS_LOOKUP =
+		Collections.unmodifiableMap( initializeMapping() );
+	
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -97,5 +109,28 @@ public class Ping extends HLAInteraction
 	public static String interactionClassName()
 	{
 		return INTERACTION_NAME;
+	}
+	
+	/**
+	 * Obtain the parameters associated with this kind of interaction
+	 * 
+	 * @return a map associating the String names of the parameters and their data types
+	 */
+	public static Map<String, DataType> parameters()
+	{
+		return PARAMETERS_LOOKUP;
+	}
+	
+	/**
+	 * Private initializer method for the parameter-datatype lookup map
+	 * 
+	 * @return a lookup map which pairs parameter names and the corresponding
+	 *         {@link DataType}s
+	 */
+	private static Map<String,DataType> initializeMapping()
+	{
+		Map<String,DataType> lookupMap = new HashMap<String,DataType>();
+		lookupMap.put( PARAM_KEY_COUNT, PARAM_TYPE_COUNT );
+		return lookupMap;
 	}
 }

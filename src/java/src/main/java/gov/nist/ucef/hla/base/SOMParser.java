@@ -43,6 +43,7 @@ import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.InteractionParameter;
 import gov.nist.ucef.hla.base.Types.ObjectAttribute;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.Types.Sharing;
 
 public class SOMParser
 {
@@ -62,11 +63,6 @@ public class SOMParser
 	private static final String INTERACTIONCLASS = "interactionClass";
 	private static final String PARAMETER = "parameter";
 	private static final String DATA_TYPE = "dataType";
-
-	// SOM XML publish/subscribe type identifier constants
-	private static final String PUBLISH = "Publish";
-	private static final String SUBSCRIBE = "Subscribe";
-	private static final String PUBLISH_SUBSCRIBE = "PublishSubscribe";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -102,29 +98,12 @@ public class SOMParser
 		// get the <objects> element, which is directly under <objectModel>
 		Element objectsRoot = getElementByPath( objectModelNode, OBJECTS );
 		Collection<ObjectClass> reflections = extractObjectClasses( objectsRoot );
+		config.cacheObjectClasses(reflections);
 		
 		// get the <interactions> element, which is directly under <objectModel>
 		Element interactionsRoot = getElementByPath( objectModelNode, INTERACTIONS );
 		Collection<InteractionClass> interactions = extractInteractionClasses( interactionsRoot );
-		
-		for(ObjectClass objectClass : reflections)
-		{
-			for(ObjectAttribute attribute : objectClass.attributes.values())
-			{
-				if(attribute.publish)
-					config.addPublishedAttribute(objectClass.name, attribute.name);
-				if(attribute.subscribe)
-					config.addSubscribedAttribute(objectClass.name, attribute.name);
-			}
-		}
-		
-		for(InteractionClass interactionClass : interactions)
-		{
-			if(interactionClass.publish)
-				config.addPublishedInteraction(interactionClass.name);
-			if(interactionClass.subscribe)
-				config.addSubscribedInteraction(interactionClass.name);
-		}
+		config.cacheInteractionClasses(interactions);
 	}
 	
 	/**
@@ -255,22 +234,20 @@ public class SOMParser
 	                                           Collection<ObjectAttribute> attributes)
 	{
 		String className = getTextValue( root, NAME );
-		String sharing = getTextValue( root, SHARING );
+		String sharingStr = getTextValue( root, SHARING );
 		
-		ObjectClass objectClass = new ObjectClass(namespace + className);
-		objectClass.publish   = isPublish(sharing);
-		objectClass.subscribe = isSubscribe(sharing);
+		Sharing sharing = Sharing.fromLabel(sharingStr);
+		ObjectClass objectClass = new ObjectClass(namespace + className, sharing);
 
 		for(Element elm : getChildElementsByName( root, ATTRIBUTE ))
 		{
-			String attributeName    = getTextValue( elm, NAME );
-			String attributeSharing = getTextValue( elm, SHARING );
-			String attributeType    = getTextValue( elm, DATA_TYPE );
+			String attrName       = getTextValue( elm, NAME );
+			String attrSharingStr = getTextValue( elm, SHARING );
+			String attrTypeStr    = getTextValue( elm, DATA_TYPE );
 			
-			ObjectAttribute attribute = new ObjectAttribute( attributeName );
-			attribute.publish   = isPublish( attributeSharing );
-			attribute.subscribe = isSubscribe( attributeSharing );
-			attribute.dataType  = DataType.fromLabel( attributeType );
+			Sharing attrSharing        = Sharing.fromLabel( attrSharingStr );
+			DataType attrDataType      = DataType.fromLabel( attrTypeStr );
+			ObjectAttribute attribute  = new ObjectAttribute( attrName, attrDataType, attrSharing );
 			
 			attributes.add(attribute);
 		}
@@ -314,19 +291,18 @@ public class SOMParser
 	                                                Collection<InteractionParameter> parameters )
 	{
 		String className = getTextValue( root, NAME );
-		String sharing = getTextValue( root, SHARING );
+		String sharingStr = getTextValue( root, SHARING );
 		
-		InteractionClass interactionClass = new InteractionClass(namespace + className);
-		interactionClass.publish   = isPublish(sharing);
-		interactionClass.subscribe = isSubscribe(sharing);
+		Sharing sharing   = Sharing.fromLabel( sharingStr );
+		InteractionClass interactionClass = new InteractionClass(namespace + className, sharing);
 
 		for(Element elm : getChildElementsByName( root, PARAMETER ))
 		{
 			String parameterName    = getTextValue( elm, NAME );
-			String parameterType    = getTextValue( elm, DATA_TYPE );
+			String parameterTypeStr = getTextValue( elm, DATA_TYPE );
 			
-			InteractionParameter parameter = new InteractionParameter( parameterName );
-			parameter.dataType  = DataType.fromLabel( parameterType );
+			DataType dataType = DataType.fromLabel( parameterTypeStr );
+			InteractionParameter parameter = new InteractionParameter( parameterName, dataType );
 			
 			parameters.add(parameter);
 		}
@@ -438,45 +414,11 @@ public class SOMParser
 		return elements;
 	}
 	
-	/**
-	 * Determine if a SOM sharing policy string corresponds to a publishing strategy
-	 * 
-	 * @param sharing the sharing string
-	 * @return true if the string corresponds to publishing, false otherwise
-	 */
-	private static boolean isPublish(String sharing)
-	{
-		if( sharing.equalsIgnoreCase(PUBLISH_SUBSCRIBE) )
-			return true;
-		
-		if( sharing.equalsIgnoreCase(PUBLISH) )
-			return true;
-		
-		return false;		
-	}
-	
-	/**
-	 * Determine if a SOM sharing policy string corresponds to subscribing
-	 * 
-	 * @param sharing the sharing string
-	 * @return true if the string corresponds to a subscribing, false otherwise
-	 */
-	private static boolean isSubscribe(String candidate)
-	{
-		if( candidate.equalsIgnoreCase(PUBLISH_SUBSCRIBE) )
-			return true;
-		
-		if( candidate.equalsIgnoreCase(SUBSCRIBE) )
-			return true;
-		
-		return false;		
-	}
-	
 	public static void main(String[] args)
 	{
 		FederateConfiguration config = new FederateConfiguration("foo", "bar", "ram");
-		somToFederateConfig("src/main/resources/challenge-response/som/Challenge.xml", config);
-		// somToFederateConfig("src/main/resources/challenge-response/som/Response.xml", config);
+		// somToFederateConfig("src/main/resources/challenge-response/som/Challenge.xml", config);
+		somToFederateConfig("src/main/resources/challenge-response/som/Response.xml", config);
 		// somToFederateConfig("src/main/resources/soms/RestaurantSOMModule.xml", config);
 		System.out.println(config.summary());
 	}
