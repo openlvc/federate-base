@@ -33,7 +33,7 @@ import gov.nist.ucef.hla.base.Types;
 import gov.nist.ucef.hla.base.Types.Sharing;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -50,7 +50,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  * 
  * Example base federate for testing
  */
-public class NoOpPingFederate extends NoOpUCEFFederate
+public class NoOpPingFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

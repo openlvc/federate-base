@@ -27,7 +27,7 @@ import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 
 /**
  *		            ___
@@ -41,7 +41,7 @@ import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
  * 
  * Example federate for testing
  */
-public abstract class _ResponseFederate extends NoOpUCEFFederate
+public abstract class _ResponseFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES

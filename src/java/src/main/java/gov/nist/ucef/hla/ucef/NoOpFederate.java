@@ -38,7 +38,7 @@ import gov.nist.ucef.hla.ucef.interaction.SimStart;
  * This makes it simpler to create a UCEF federate, since only the methods which contain actual
  * functional code need be over-ridden.
  */
-public abstract class NoOpUCEFFederate extends UCEFFederateBase
+public abstract class NoOpFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
@@ -51,7 +51,7 @@ public abstract class NoOpUCEFFederate extends UCEFFederateBase
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public NoOpUCEFFederate()
+	public NoOpFederate()
 	{
 		super();
 	}

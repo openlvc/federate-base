@@ -34,7 +34,7 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.ucef.NoOpUCEFFederate;
+import gov.nist.ucef.hla.ucef.NoOpFederate;
 import gov.nist.ucef.hla.ucef.interaction.SimEnd;
 import gov.nist.ucef.hla.ucef.interaction.SimPause;
 import gov.nist.ucef.hla.ucef.interaction.SimResume;
@@ -59,7 +59,7 @@ import gov.nist.ucef.hla.util.cmdargs.ArgException;
  * 	    /_/    \___/\__,_/_/  /_/\__,_/_/ /_/ 		
  * 	  ─────────── Federation Manager ───────────
  */
-public class FedManFederate extends NoOpUCEFFederate
+public class FedManFederate extends NoOpFederate
 {
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
