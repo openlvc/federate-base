@@ -269,7 +269,7 @@ public class FedManHttpServer
 	 */
 	private void doJSONResponse( HttpExchange httpExchange, int code, Map<String,Object> jsonMap) throws IOException
 	{
-		addResponseHeader( httpExchange, CONTENT_TYPE, TEXT_PLAIN_UTF8 );
+		addResponseHeader( httpExchange, CONTENT_TYPE, JSON_UTF8 );
 		doHttpResponse(httpExchange, code, stringToBytes( asJSON( jsonMap ) ));
 	}
 	
