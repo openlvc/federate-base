@@ -104,7 +104,8 @@ public class FedManHttpServer
 	{
 		this.fedManFederate = fedManFederate;
 		this.port = port;
-		started = false;
+		
+		this.started = false;
 	}
 
 	//----------------------------------------------------------
@@ -119,6 +120,7 @@ public class FedManHttpServer
 		if( this.started )
 			return;
 
+		logger.info( "Starting federation manager HTTP server on port " + this.port + "..." );
 		this.started = true;
 
 		// create a single instance of the 404 handler that we can use repeatedly
@@ -171,10 +173,12 @@ public class FedManHttpServer
 			// start the server!
 			server.start();
 		}
-		catch( Throwable tr )
+		catch( Exception e )
 		{
-			tr.printStackTrace();
+			throw new UCEFException( e, "Could not start federation manager HTTP server on port " +
+			                            this.port );
 		}
+		logger.info( "Started federation manager HTTP server." );
 	}
 	
 	/**
@@ -186,13 +190,14 @@ public class FedManHttpServer
 		if( !this.started )
 			return;
 		
+		logger.info( "Stopping federation manager HTTP server..." );
 		try
 		{
 			server.stop( 0 );
 		}
 		catch( Exception e )
 		{
-			throw new UCEFException( e, "Error shutting down HTTP service." );
+			throw new UCEFException( e, "Error shutting down federation manager HTTP service." );
 		}
 
 		synchronized( server )
@@ -201,6 +206,7 @@ public class FedManHttpServer
 		}
 		
 		this.started = false;
+		logger.info( "Stopped federation manager HTTP server." );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
