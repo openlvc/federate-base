@@ -25,12 +25,17 @@ package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 
 /**
  * An abstract class with all required method implementations in which perform no operation
  * (no-op)
  * 
- * This makes it simpler to create a federate, since only the methods which contain actual
+ * This makes it simpler to create a UCEF federate, since only the methods which contain actual
  * functional code need be over-ridden.
  */
 public abstract class NoOpFederate extends UCEFFederateBase
@@ -106,6 +111,26 @@ public abstract class NoOpFederate extends UCEFFederateBase
 	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart ) { }
+
+	@Override
+	protected void receiveSimStart( SimStart simStart, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimStart( simStart );
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd ) { }
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time parameter
+		receiveSimEnd( simEnd );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause ) { }
 
 	@Override
@@ -123,16 +148,6 @@ public abstract class NoOpFederate extends UCEFFederateBase
 	{
 		// delegate to method ignoring time parameter
 		receiveSimResume( simResume );
-	}
-
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd ) { }
-
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd, double time )
-	{
-		// delegate to method ignoring time parameter
-		receiveSimEnd( simEnd );
 	}
 
 	@Override

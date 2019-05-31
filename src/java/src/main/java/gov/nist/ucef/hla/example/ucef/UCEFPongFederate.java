@@ -33,11 +33,12 @@ import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
-import gov.nist.ucef.hla.ucef.FederateJoin;
-import gov.nist.ucef.hla.ucef.SimEnd;
-import gov.nist.ucef.hla.ucef.SimPause;
-import gov.nist.ucef.hla.ucef.SimResume;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
+import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 import hla.rti1516e.encoding.EncoderFactory;
@@ -111,7 +112,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction
+		// here we send out our interaction
 		System.out.println( "Sending Pong interaction at time " + currentTime + "..." );
 		sendInteraction( makePongInteraction( letter++ ), null );
 		// keep going until time 10.0
@@ -194,6 +195,32 @@ public class UCEFPongFederate extends UCEFFederateBase
 	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimStart(simStart);
+	}
+	
+	@Override
+	protected void receiveSimStart( SimStart simStart )
+	{
+		System.out.println( "SimStart signal received. Beginning simulation..." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd, double time )
+	{
+		// delegate to method ignoring time
+		receiveSimEnd(simEnd);
+	}
+
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Terminating simulation..." );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause, double time )
 	{
 		// delegate to method ignoring time
@@ -219,20 +246,6 @@ public class UCEFPongFederate extends UCEFFederateBase
 		System.out.println( "Simulation has been resumed." );
 	}
 	
-
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd, double time )
-	{
-		// delegate to method ignoring time
-		receiveSimEnd(simEnd);
-	}
-
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		System.out.println( "SimEnd signal received. Terminating simulation..." );
-	}
-
 	@Override
 	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
 	{
@@ -267,13 +280,13 @@ public class UCEFPongFederate extends UCEFFederateBase
 	private static final String PONG_PARAM_LETTER = "letter";
 	
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Pong" );
+		config.setFederateName( "Pong-"+System.currentTimeMillis() );
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
@@ -299,8 +312,6 @@ public class UCEFPongFederate extends UCEFFederateBase
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	//----------------------------------------------------------
@@ -325,7 +336,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		try
 		{
 			UCEFPongFederate federate = new UCEFPongFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

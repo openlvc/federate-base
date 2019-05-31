@@ -40,9 +40,10 @@ import gov.nist.ucef.hla.example.challenger.helpers._ChallengeFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.ucef.SimEnd;
-import gov.nist.ucef.hla.ucef.SimPause;
-import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 import gov.nist.ucef.hla.util.cmdargs.ArgException;
@@ -214,6 +215,18 @@ public class ChallengeFederate extends _ChallengeFederate
 	////////////////////// UCEF Simulation Control Interaction Callbacks ///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart )
+	{
+		System.out.println( "SimStart signal received. Ready to begin..." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
 		System.out.println( "Simulation has been paused." );
@@ -225,12 +238,6 @@ public class ChallengeFederate extends _ChallengeFederate
 		System.out.println( "Simulation has been resumed." );
 	}
 	
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////// Internal Utility Methods ////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -558,11 +565,11 @@ public class ChallengeFederate extends _ChallengeFederate
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
 		config.setFederateName( "JavaChallenger" );
 		config.setFederateType( "ChallengeFederate" );
@@ -608,8 +615,6 @@ public class ChallengeFederate extends _ChallengeFederate
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	/**
@@ -632,7 +637,7 @@ public class ChallengeFederate extends _ChallengeFederate
 		try
 		{
 			ChallengeFederate federate = new ChallengeFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

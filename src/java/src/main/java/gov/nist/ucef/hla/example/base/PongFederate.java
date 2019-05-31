@@ -110,7 +110,7 @@ public class PongFederate extends FederateBase
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction
+		// here we send out our interaction
 		System.out.println( "Sending Pong interaction at time " + currentTime + "..." );
 		sendInteraction( makePongInteraction( letter++ ), null );
 		// keep going until time 10.0
@@ -211,13 +211,13 @@ public class PongFederate extends FederateBase
 	private static final String PONG_PARAM_LETTER = "letter";
 	
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Pong" );
+		config.setFederateName( "Pong-"+System.currentTimeMillis() );
 		config.setFederateType( "PongFederate" );
 		config.setFederationName( "PingPongFederation" );
 
@@ -243,8 +243,6 @@ public class PongFederate extends FederateBase
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	//----------------------------------------------------------
@@ -269,7 +267,7 @@ public class PongFederate extends FederateBase
 		try
 		{
 			PongFederate federate = new PongFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )

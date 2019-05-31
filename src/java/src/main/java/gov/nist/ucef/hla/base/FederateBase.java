@@ -59,7 +59,7 @@ public abstract class FederateBase
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
 	
-	private LifecycleState lifecycleState;
+	protected LifecycleState lifecycleState;
 	
 	private Map<ObjectClassHandle, Types.ObjectClass> objectClassByClassHandle;
 	private Map<ObjectInstanceHandle, Types.ObjectClass> objectClassByInstanceHandle;
@@ -162,16 +162,20 @@ public abstract class FederateBase
 	 */
 	public void runFederate()
 	{
-		// create and join the Federation, publish and subscribe
-		// call beforeReadyToPopulate(), beforeReadyToRun() and beforeFirstStep()
+		// - create and join the Federation, then 
+		// - publish and subscribe, and then
+		// - call the beforeReadyToPopulate(), beforeReadyToRun() and 
+		//   beforeFirstStep() methods
 		this.lifecycleState = LifecycleState.INITIALIZING;
 		federateSetup();
-		// repeatedly call step() until simulation ends
+		
+		// - repeatedly call step() until simulation ends
 		this.lifecycleState = LifecycleState.RUNNING;
 		federateExecution();
-		// disable any time policy
-		// call readyToResign() and beforeExit()
-		// resign and destroy the federation
+		
+		// - disable any time policy, then
+		// - call readyToResign() and beforeExit(), and then
+		// - resign and destroy the federation
 		this.lifecycleState = LifecycleState.CLEANING_UP;
 		federateTeardown();
 		this.lifecycleState = LifecycleState.EXPIRED;

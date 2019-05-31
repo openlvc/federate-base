@@ -35,9 +35,10 @@ import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
-import gov.nist.ucef.hla.ucef.SimEnd;
-import gov.nist.ucef.hla.ucef.SimPause;
-import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.StringUtils;
 import gov.nist.ucef.hla.util.cmdargs.ArgException;
@@ -142,6 +143,7 @@ public class FedManFederate extends NoOpFederate
 		{
 			this.simShouldStart = true;
 			this.simShouldStartCondition.signal();
+			sendSimStart();
 		}
 		finally
 		{
@@ -375,6 +377,24 @@ public class FedManFederate extends NoOpFederate
 	//////////////////// UCEF Simulation Control Interaction Transmission //////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Utility method to emit a {@link SimStart} interaction to the federation when the simulation
+	 * is terminated
+	 */
+	private void sendSimStart()
+	{
+		sendInteraction( new SimStart() );
+	}
+	
+	/**
+	 * Utility method to emit a {@link SimEnd} interaction to the federation when the simulation
+	 * is terminated
+	 */
+	private void sendSimEnd()
+	{
+		sendInteraction( new SimEnd() );
+	}
+	
+	/**
 	 * Utility method to emit a {@link SimPause} interaction to the federation when the simulation
 	 * is paused
 	 */
@@ -390,15 +410,6 @@ public class FedManFederate extends NoOpFederate
 	private void sendSimResume()
 	{
 		sendInteraction( new SimResume() );
-	}
-	
-	/**
-	 * Utility method to emit a {@link SimEnd} interaction to the federation when the simulation
-	 * is terminated
-	 */
-	private void sendSimEnd()
-	{
-		sendInteraction( new SimEnd() );
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////

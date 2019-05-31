@@ -146,8 +146,8 @@ public class FedManStartRequirements
 	}
 	
 	/**
-	 * Update when a federate joins 
-	 * @param joinedFederate the salient details of the federate which joined
+	 * Update when a federate leaves
+	 * @param joinedFederate the salient details of the federate which left
 	 */
 	public void federateDeparted( FederateDetails joinedFederate )
 	{

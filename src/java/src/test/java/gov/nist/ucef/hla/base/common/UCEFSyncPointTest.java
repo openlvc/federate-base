@@ -82,8 +82,8 @@ public class UCEFSyncPointTest extends TestCase
 		// we need to make sure that the code is properly updated. If any are removed.
 		// this test will cause compilation errors
 		UCEFSyncPoint[] expectedUCEFSyncPoints = new UCEFSyncPoint[]{ UCEFSyncPoint.READY_TO_POPULATE,
-		                                                  UCEFSyncPoint.READY_TO_RUN,
-		                                                  UCEFSyncPoint.READY_TO_RESIGN };
+		                                                              UCEFSyncPoint.READY_TO_RUN,
+		                                                              UCEFSyncPoint.READY_TO_RESIGN };
 		
 		for(UCEFSyncPoint UCEFSyncPoint : UCEFSyncPoint.values())
 		{

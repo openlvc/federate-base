@@ -36,9 +36,10 @@ import gov.nist.ucef.hla.example.immediate.helpers._ImmediatePingFederate;
 import gov.nist.ucef.hla.example.smart.interactions.Ping;
 import gov.nist.ucef.hla.example.smart.interactions.Pong;
 import gov.nist.ucef.hla.example.smart.reflections.Player;
-import gov.nist.ucef.hla.ucef.SimEnd;
-import gov.nist.ucef.hla.ucef.SimPause;
-import gov.nist.ucef.hla.ucef.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimEnd;
+import gov.nist.ucef.hla.ucef.interaction.SimPause;
+import gov.nist.ucef.hla.ucef.interaction.SimResume;
+import gov.nist.ucef.hla.ucef.interaction.SimStart;
 import gov.nist.ucef.hla.util.Constants;
 import gov.nist.ucef.hla.util.FileUtils;
 
@@ -98,7 +99,7 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 	@Override
 	public boolean step( double currentTime )
 	{
-		// here we end out our interaction and attribute update
+		// here we send out our interaction and attribute update
 		sendInteraction( new Ping().count(  this.count ) );
 		// update the values
 		this.count++;
@@ -141,6 +142,18 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 	////////////////////// UCEF Simulation Control Interaction Callbacks ///////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
+	protected void receiveSimStart( SimStart simStart )
+	{
+		System.out.println( "SimStart signal received. Ready to begin..." );
+	}
+	
+	@Override
+	protected void receiveSimEnd( SimEnd simEnd )
+	{
+		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
+	}
+
+	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
 		System.out.println( "Simulation has been paused." );
@@ -151,24 +164,18 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 	{
 		System.out.println( "Simulation has been resumed." );
 	}
-	
-	@Override
-	protected void receiveSimEnd( SimEnd simEnd )
-	{
-		System.out.println( "SimEnd signal received. Simulation will be terminated..." );
-	}
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
-	 * Utility function to set up some useful configuration
+	 * Utility function to set up salient configuration details for the federate
 	 * 
-	 * @return a usefully populated {@link FederateConfiguration} instance
+	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static FederateConfiguration makeConfig( FederateConfiguration config )
+	private static void initializeConfig( FederateConfiguration config )
 	{
-		config.setFederateName( "Ping" );
+		config.setFederateName( "Ping-"+System.currentTimeMillis() );
 		config.setFederateType( "PingFederate" );
 		config.setFederationName( "PingPongFederation" );
 
@@ -211,8 +218,6 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 		{
 			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
 		}
-
-		return config;
 	}
 
 	/**
@@ -239,7 +244,7 @@ public class ImmediatePingFederate extends _ImmediatePingFederate
 		try
 		{
 			ImmediatePingFederate federate = new ImmediatePingFederate( args );
-			makeConfig( federate.getFederateConfiguration() );
+			initializeConfig( federate.getFederateConfiguration() );
 			federate.runFederate();
 		}
 		catch( Exception e )
