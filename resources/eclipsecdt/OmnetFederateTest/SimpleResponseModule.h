@@ -29,6 +29,8 @@ class SimpleResponseModule : public cSimpleModule
     virtual void initialize();
     virtual void handleMessage( cMessage *msg );
     virtual void finish();
+  private:
+    void solveChallenge( cMessage *msg );
 };
 
 #endif

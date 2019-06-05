@@ -29,13 +29,6 @@
 
 #include "gov/nist/ucef/hla/base/HLAObject.h"
 
-struct Challenge
-{
-    std::string id;
-    int beginIndex;
-    std::string textValue;
-};
-
 struct Response
 {
     std::string challengeId;

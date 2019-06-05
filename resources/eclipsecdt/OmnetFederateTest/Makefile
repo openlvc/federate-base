@@ -5,14 +5,8 @@
 #  opp_makemake -f --deep -O out -I. -I/home/vagrant/Calytrix/federate-base/resources/eclipsecdt/OmnetFederate/base/ucef/omnet -I/home/vagrant/Calytrix/federate-base/src/cpp/FederateBase -L/home/vagrant/Calytrix/federate-base/resources/eclipsecdt/OmnetFederate -L/home/vagrant/Calytrix/federate-base/dist/linux/FederateBase
 #
 
-# Debug configuration suffix
-DEBUG_SUFFIX = ""
-ifneq ($(D),"")
-DEBUG_SUFFIX = "D"
-endif
-
 # Name of target to be created (-o option)
-TARGET = OmnetFederateTest$(DEBUG_SUFFIX)$(EXE_SUFFIX)
+TARGET = OmnetFederateTest$(EXE_SUFFIX)
 TARGET_DIR = ${PWD}/../../../dist/linux/OmnetFederateTest
 
 # User interface (uncomment one) (-u option)
@@ -22,7 +16,7 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(QTENV_LIBS) $(CMDENV_LI
 #USERIF_LIBS = $(QTENV_LIBS)
 
 # C++ include paths (with -I)
-INCLUDE_PATH = -I. -I/home/vagrant/Calytrix/federate-base/resources/eclipsecdt/OmnetFederate/base/ucef/omnet -I/home/vagrant/Calytrix/federate-base/src/cpp/FederateBase
+INCLUDE_PATH = -I. -I/home/vagrant/Calytrix/federate-base/resources/eclipsecdt/OmnetFederate/base/ucef/omnet -I/home/vagrant/Calytrix/federate-base/resources/eclipsecdt/OmnetFederate/base/ucef/omnet/util -I/home/vagrant/Calytrix/federate-base/src/cpp/FederateBase
 
 # Additional object and library files to link with
 EXTRA_OBJS =
@@ -87,6 +81,15 @@ endif
 # >>>
 # <<<
 #------------------------------------------------------------------------------
+
+# Debug configuration suffix
+DEBUG_SUFFIX = ""
+ifneq ("$(D)","")
+DEBUG_SUFFIX = "D"
+endif
+
+TARGET = OmnetFederateTest$(DEBUG_SUFFIX)$(EXE_SUFFIX)
+LIBS = $(LDFLAG_LIBPATH)${PWD}/../../../dist/linux/OmnetFederate $(LDFLAG_LIBPATH)${PWD}/../../../dist/linux/FederateBase -lFederateBase$(DEBUG_SUFFIX) -lOmnetFederate$(DEBUG_SUFFIX) -Wl,--unresolved-symbols=ignore-in-shared-libs
 
 # Main target
 all: $(TARGET_DIR)/$(TARGET)

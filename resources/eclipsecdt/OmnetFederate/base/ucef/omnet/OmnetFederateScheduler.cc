@@ -39,13 +39,11 @@ cEvent* OmnetFederateScheduler::takeNextEvent()
 
     if( !event )
     {
-        std::cout << "fed time " << OmnetFederate::getFederatePtr()->getTime() << std::endl;
         // throw new cTerminationException( E_ENDEDOK );
         OmnetFederate::getFederatePtr()->execute();
         return nullptr;
     }
-    std::cout << "fed time " << OmnetFederate::getFederatePtr()->getTime() << std::endl;
-    std::cout << "event time " << event->getArrivalTime().dbl() << std::endl;
+
     // First try to see if an event is scheduled compared to the time of federate
     double timeDifference = event->getArrivalTime().dbl() - OmnetFederate::getFederatePtr()->getTime();
 

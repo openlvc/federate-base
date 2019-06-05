@@ -96,12 +96,18 @@ public:
      */
     virtual void handleNetMessage( omnetpp::cMessage *msg ) override;
 
+    /**
+     * Get called to teardown Omnet modules
+     */
+    virtual void tearDownModule() override;
+
 private:
-    Response solveChallenge( Challenge &receievedChallenge );
+    //Response solveChallenge( Challenge &receievedChallenge );
     void pressEnterToContinue();
 
 private:
-    std::list<Challenge> remoteChallenges;
+    std::list<std::shared_ptr<const base::HLAInteraction>> remoteChallenges;
+    std::list<std::shared_ptr<base::HLAInteraction>> challengeReply;
     omnetpp::cMessage *timerMessage;
     bool canProcess;
 };

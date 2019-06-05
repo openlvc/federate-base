@@ -15,9 +15,12 @@
 
 #include "OmnetFederateModule.h"
 
+#include "MessageCodec.h"
+
 using namespace base;
 using namespace base::ucef;
 using namespace base::ucef::omnet;
+using namespace base::ucef::omnet::util;
 using namespace omnetpp;
 using namespace std;
 
@@ -37,56 +40,50 @@ OmnetFederateModule::~OmnetFederateModule()
 
 bool OmnetFederateModule::step( double federateTime )
 {
-    if( !canProcess ) return true;
+    if( !challengeReply.size() ) return true;
 
-    list<Challenge> tmpRemoteChallenges = remoteChallenges;
-    remoteChallenges.clear();
+
+    list<shared_ptr<base::HLAInteraction>> tmpReplies = challengeReply;
+    challengeReply.clear();
     // Generate a response for each remote challenge
-    for( auto challenge : tmpRemoteChallenges )
+    for( auto reply : tmpReplies )
     {
-        Response response = solveChallenge( challenge );
-        shared_ptr<HLAInteraction> responseInteraction = make_shared<HLAInteraction>( RESPONSE_INTERACTION );
-        responseInteraction->setValue( "challengeId", response.challengeId );
-        responseInteraction->setValue( "substring", response.resultString );
-        rtiAmbassadorWrapper->sendInteraction( responseInteraction );
-        cout << "Sending respond : " + challenge.id << endl;
+        std::string ans = reply->getAsString( "stringValue" );
+        std::string id = reply->getAsString( "challengeId" );
+        reply->clear();
+        reply->setValue( "substring", ans  );
+        reply->setValue( "challengeId", id  );
+        rtiAmbassadorWrapper->sendInteraction( reply );
+        cout << "\n-----------------------------------------------------" << endl;
+        cout << "Sending Name : " +  reply->getInteractionClassName() << endl;
+        cout << "Sending respond : " +  reply->getAsString( "challengeId" ) << endl;
+        cout << "Answer respond : " +  reply->getAsString( "substring" ) << endl;
+        cout << "-----------------------------------------------------" << endl;
     }
-    canProcess = false;
     return true;
 }
 
 void OmnetFederateModule::receivedAttributeReflection( shared_ptr<const HLAObject> hlaObject,
                                                        double federateTime )
 {
-    Challenge challenge;
-    challenge.id = hlaObject->getAsString( "challengeId" );
-    challenge.textValue = hlaObject->getAsString( "stringValue" );
-    challenge.beginIndex = hlaObject->getAsInt( "beginIndex" );
-
-    remoteChallenges.emplace_back( challenge );
-
-    cout << "Received object challenge id : " + challenge.id << endl;
-    cout << "Received string is           : " + challenge.textValue << endl;
-    cout << "Received index is            : " + to_string( challenge.beginIndex ) << endl;
-    cout << "---------------------------------------------------------------------------------" << endl;
-
+    cout << "\n-----------------------------------------------------" << endl;
+    cout << "Received object reflection but I'm going to ignore it" << endl;
+    cout << "-----------------------------------------------------" << endl;
 }
 
 void OmnetFederateModule::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
                                                double federateTime )
 {
-    Challenge challenge;
-    challenge.id = hlaInt->getAsString( "challengeId" );
-    challenge.textValue = hlaInt->getAsString( "stringValue" );
-    challenge.beginIndex = hlaInt->getAsInt( "beginIndex" );
+    cout << "---------------------------------------------------------" << endl;
+    cout << "Received interaction with," << endl;
+    cout << "--------------------------------------------------------" << endl;
+    cout << "\tChallenge id : " + hlaInt->getAsString( "challengeId" ) << endl;
+    cout << "\tString as    : " + hlaInt->getAsString( "stringValue" ) << endl;
+    cout << "\tIndex as     : " + to_string(hlaInt->getAsInt( "beginIndex" )) << endl << endl;
+    cout << "Adding to the queue for processing" << endl;
+    cout << "--------------------------------------------------------" << endl;
 
-    remoteChallenges.emplace_back( challenge );
-
-    cout << "Received interaction challenge id : " + challenge.id << endl;
-    cout << "Received string is                : " + challenge.textValue << endl;
-    cout << "Received index is                 : " + to_string( challenge.beginIndex ) << endl;
-    cout << "---------------------------------------------------------------------------------" << endl;
-
+    remoteChallenges.emplace_back( hlaInt );
 }
 
 void OmnetFederateModule::initModule()
@@ -96,20 +93,32 @@ void OmnetFederateModule::initModule()
     scheduleAt(simTime(), timerMessage);
 }
 
-void OmnetFederateModule::handleNetMessage( omnetpp::cMessage *msg )
+void OmnetFederateModule::handleNetMessage( cMessage *msg )
 {
     if( msg->isSelfMessage() )
     {
-         cMessage *testMessage = new cMessage( "testMessage" );
-         send( testMessage, "out" );
+        auto tmpRemoteChallenges = remoteChallenges;
+        remoteChallenges.clear();
+        // Generate a response for each remote challenge
+        for( auto challenge : tmpRemoteChallenges )
+        {
+            cMessage* msg = MessageCodec::toCmessage( challenge );
+            send( msg, "out" );
+        }
          scheduleAt(simTime() + getFederateConfiguration()->getTimeStep() * 2, timerMessage);
     }
     else
     {
-        canProcess = true;
-        cancelAndDelete(msg);
+        std::shared_ptr<base::HLAInteraction> interaction = MessageCodec::toInteraction( msg, RESPONSE_INTERACTION );
+        challengeReply.emplace_back( interaction );
+        cancelAndDelete( msg );
     }
 
+}
+
+void OmnetFederateModule::tearDownModule()
+{
+    cancelAndDelete( timerMessage );
 }
 
 void OmnetFederateModule::beforeReadyToPopulate()
@@ -140,19 +149,6 @@ void OmnetFederateModule::beforeExit()
 {
     std::cout << "Before exit." << std::endl;
     pressEnterToContinue();
-}
-
-
-Response OmnetFederateModule::solveChallenge( Challenge &receievedChallenge )
-{
-    string receivedString = receievedChallenge.textValue;
-    int beginIndex = receievedChallenge.beginIndex;
-    string resultStr = receivedString.substr( beginIndex );
-
-    Response response;
-    response.challengeId = receievedChallenge.id;
-    response.resultString = resultStr;
-    return response;
 }
 
 void OmnetFederateModule::pressEnterToContinue()

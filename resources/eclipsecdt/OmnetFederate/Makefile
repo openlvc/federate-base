@@ -5,12 +5,6 @@
 #  opp_makemake --make-so -f --deep -O out -I. -I/home/vagrant/Calytrix/federate-base/src/cpp/FederateBase -L/home/vagrant/Calytrix/federate-base/dist/linux/FederateBase -lFederateBase -Xout
 #
 
-# Debug configuration suffix
-DEBUG_SUFFIX = ""
-ifneq ($(D),"")
-DEBUG_SUFFIX = "D"
-endif
-
 # Name of target to be created (-o option)
 TARGET = $(LIB_PREFIX)OmnetFederate$(DEBUG_SUFFIX)$(SHARED_LIB_SUFFIX)
 TARGET_DIR = ${PWD}/../../../dist/linux/OmnetFederate
@@ -22,7 +16,7 @@ INCLUDE_PATH = -I. -I/home/vagrant/Calytrix/federate-base/src/cpp/FederateBase
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS = $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/dist/linux/FederateBase  -lFederateBase$(DEBUG_SUFFIX)
+LIBS = $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/dist/linux/FederateBase  -lFederateBase
 
 # Output directory
 PROJECT_OUTPUT_DIR = out
@@ -81,6 +75,15 @@ endif
 # >>>
 # <<<
 #------------------------------------------------------------------------------
+
+# Debug configuration suffix
+DEBUG_SUFFIX = ""
+ifneq ("$(D)","")
+DEBUG_SUFFIX = "D"
+endif
+
+TARGET = $(LIB_PREFIX)OmnetFederate$(DEBUG_SUFFIX)$(SHARED_LIB_SUFFIX)
+LIBS = $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/dist/linux/FederateBase  -lFederateBase$(DEBUG_SUFFIX) -Wl,--unresolved-symbols=ignore-in-shared-libs
 
 # Main target
 all: $(TARGET_DIR)/$(TARGET)
