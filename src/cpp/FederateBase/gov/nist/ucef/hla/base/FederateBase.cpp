@@ -38,16 +38,14 @@ namespace base
 
 	void FederateBase::runFederate()
 	{
-		lifecycleState = INITIALIZING;
 		// Prepare this federate for execution
 		federateSetup();
-		lifecycleState = RUNNING;
+
 		// The main execution loop of the federate
 		federateExecute();
-		lifecycleState = CLEANING_UP;
+
 		// Teardown of the federate
 		federateTeardown();
-		lifecycleState = EXPIRED;
 	}
 
 	shared_ptr<FederateConfiguration> FederateBase::getFederateConfiguration()
@@ -441,6 +439,8 @@ namespace base
 
 	void FederateBase::federateSetup()
 	{
+		lifecycleState = INITIALIZING;
+
 		// initialise rti ambassador
 		connectToRti();
 
@@ -484,6 +484,8 @@ namespace base
 
 	bool FederateBase::execute()
 	{
+		lifecycleState = RUNNING;
+
 		bool continueFedEx = step( federateAmbassador->getFederateTime() );
 		if( continueFedEx )
 			advanceTime();
@@ -492,6 +494,8 @@ namespace base
 
 	void FederateBase::federateTeardown()
 	{
+		lifecycleState = CLEANING_UP;
+
 		disableTimePolicy();
 
 		// before resigning the federation hook
@@ -504,6 +508,9 @@ namespace base
 
 		// before exit hook for cleanup
 		tickForCallBacks();
+
+		lifecycleState = EXPIRED;
+
 		beforeExit();
 
 		// resign from this federation
