@@ -111,6 +111,9 @@ public class FederationManager
 	 */
 	private static void initializeConfig( FederateConfiguration config )
 	{
+		System.out.println(">>>>>>>>>>>>>> BANANANSSS");
+		config.fromJSON( "{\"maxJoinasAttempts\":1.23}" );
+		
 		config.setFederateName( FedManConstants.FEDMAN_FEDERATE_NAME );
 		config.setFederateType( FedManConstants.FEDMAN_FEDERATE_TYPE );
 		config.setFederationName( "ManagedFederation" );
@@ -118,6 +121,8 @@ public class FederationManager
 		// a federation manager is allowed to create a required federation
 		config.setCanCreateFederation( true );
 
+		
+		
 		// set up object class reflections to subscribe to (described 
 		// in MIM) to detect joining federates. Note that since this
 		// is a non-UCEF reflection, the `DataType` parameter here 
@@ -150,6 +155,7 @@ public class FederationManager
 			String[] moduleFoms = { fomRootPath + "FederationManager.xml",
 			                        fomRootPath + "SmartPingPong.xml" };
 			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
+			
 			
 			// join modules
 			String[] joinModuleFoms = {};

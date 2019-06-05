@@ -23,7 +23,10 @@
  */
 package gov.nist.ucef.hla.base;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +37,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
@@ -62,15 +71,30 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
-	private static final int DEFAULT_MAX_JOIN_ATTEMPTS = 5;
-	private static final long DEFAULT_JOIN_RETRY_INTERVAL_SEC = 5;
-	private static final boolean DEFAULT_SYNC_BEFORE_RESIGN = false;
+	private static final Logger logger = LogManager.getLogger( FederateBase.class );
 	
-	private static final boolean DEFAULT_IS_TIME_STEPPED = true;
-	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED = false;
-	private static final double DEFAULT_LOOK_AHEAD = 1.0;
-	private static final double DEFAULT_STEP_SIZE = 0.1;
+	// defaults for configuration values
+	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
+	private static final int DEFAULT_MAX_JOIN_ATTEMPTS            = 5;
+	private static final long DEFAULT_JOIN_RETRY_INTERVAL_SEC     = 5;
+	private static final boolean DEFAULT_SYNC_BEFORE_RESIGN       = false;
+	private static final boolean DEFAULT_IS_TIME_STEPPED          = true;
+	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED     = false;
+	private static final double DEFAULT_LOOK_AHEAD                = 1.0;
+	private static final double DEFAULT_STEP_SIZE                 = 0.1;
+
+	// keys for locating values in JSON based configuration data
+	private static final String JSON_CONFIG_KEY_FEDERATE_NAME           = "federateName";
+	private static final String JSON_CONFIG_KEY_FEDERATE_TYPE           = "federateType";
+	private static final String JSON_CONFIG_KEY_FEDERATION_EXEC_NAME    = "federationExecName";
+	private static final String JSON_CONFIG_KEY_CAN_CREATE_FEDERATION   = "canCreateFederation";
+	private static final String JSON_CONFIG_KEY_STEP_SIZE               = "stepSize";
+	private static final String JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS       = "maxJoinAttempts";
+	private static final String JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC = "joinRetryIntervalSec";
+	private static final String JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN      = "syncBeforeResign";
+	private static final String JSON_CONFIG_KEY_IS_TIME_STEPPED         = "isTimeStepped";
+	private static final String JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED    = "callbacksAreEvoked";
+	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -107,8 +131,8 @@ public class FederateConfiguration
 	public FederateConfiguration()
 	{
 		this( "UnnamedFederation",
-		      "Federate" + UUID.randomUUID(),
-		      "FederateType" + UUID.randomUUID() );
+		      "Federate_" + UUID.randomUUID(),
+		      "FederateType_" + UUID.randomUUID() );
 	}
 	
 	/**
@@ -148,6 +172,120 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	/**
+	 * Provide configuration details from a file containing JSON structured data
+	 * 
+	 * Only recognized configuration items in the JSON structure will be processed; any other
+	 * items will be ignored.
+	 * 
+	 * Configuration items not mentioned in the JSON structure will not have their values changed
+	 * (i.e., they will be left in their existing state).
+	 * 
+	 * @param config the file containing the JSON configuration data
+	 */
+	public void fromJSON(File config)
+	{
+		try
+		{
+			// delegate to the string data handler
+			fromJSON( new String( Files.readAllBytes( config.toPath() ) ) );
+		}
+		catch( IOException e )
+		{
+			throw new UCEFException( e, "Unable to read configuration from '%s'.",
+			                         config.getAbsolutePath() );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException( e, "Unable to process configuration from '%s'.",
+			                         config.getAbsolutePath() );
+		}
+	}
+	
+	/**
+	 * Provide configuration details from a {@link String} containing JSON structured data
+	 * 
+	 * Only recognized configuration items in the JSON structure will be processed; any other
+	 * items will be ignored.
+	 * 
+	 * Configuration items not mentioned in the JSON structure will not have their values changed
+	 * (i.e., they will be left in their existing state).
+	 *
+	 * @param config the {@link String} containing the JSON configuration data
+	 */
+	public void fromJSON(String config)
+	{
+		try
+		{
+			Object parsedString = new JSONParser().parse(config);
+			if(parsedString instanceof JSONObject)
+			{
+				JSONObject configData = (JSONObject)parsedString;
+				
+				// show warnings for any unrecognized configuration items found
+				// so that problems can be resolved quickly
+				Set<String> recognizedConfigurationKeys = new HashSet<>();
+				recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
+    				{ 
+                        JSON_CONFIG_KEY_FEDERATE_NAME,
+                        JSON_CONFIG_KEY_FEDERATE_TYPE,
+                        JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
+                        JSON_CONFIG_KEY_CAN_CREATE_FEDERATION,
+                        JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS,
+                        JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC,
+                        JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
+                        JSON_CONFIG_KEY_IS_TIME_STEPPED,
+                        JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED,
+                        JSON_CONFIG_KEY_LOOK_AHEAD,
+                        JSON_CONFIG_KEY_STEP_SIZE
+                    }
+				));
+				for(Object key : configData.keySet())
+				{
+					if(!recognizedConfigurationKeys.contains( key ))
+					{
+						Object value = configData.get(key);
+						logger.warn( String.format( "Configuration item '%s' with "+
+													 "value '%s' in JSON configuration data "+
+													 "is not recognized and will be ignored.",
+						                            key.toString(), value.toString() ) 
+						           );
+					}
+				}
+				
+				// process configuration - note that in *all* cases we try to look 
+				// up the value from the JSON and fall back to the existing value
+				// if there is no value available
+				this.federateName = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATE_NAME, this.federateName );
+				this.federateType = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATE_TYPE, this.federateType );
+				this.federationExecName = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATION_EXEC_NAME, this.federationExecName );
+
+				this.canCreateFederation = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CAN_CREATE_FEDERATION, this.canCreateFederation );
+				this.maxJoinAttempts = jsonIntOrDefault( configData, JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS, this.maxJoinAttempts );
+				this.joinRetryIntervalSec = jsonLongOrDefault( configData, JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC, this.joinRetryIntervalSec );
+
+				this.syncBeforeResign = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN, this.syncBeforeResign );
+
+				this.isTimeStepped = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_IS_TIME_STEPPED, this.isTimeStepped );
+				this.callbacksAreEvoked = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED, this.callbacksAreEvoked );
+				this.lookAhead = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_LOOK_AHEAD, this.lookAhead );
+				this.stepSize = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_STEP_SIZE, this.stepSize );
+			}
+			else
+			{
+				throw new UCEFException( "Unable to find a top level JSON object in configuration data." );
+			}
+		}
+		catch( ParseException e )
+		{
+			throw new UCEFException( e, "Configuration content does not appear to be valid JSON." );
+		}
+		catch( Exception e )
+		{
+			throw new UCEFException( e, "There were problems processing the configuration JSON." );
+		}
+	}
+	
 	public String summary()
 	{
 		String dashRule = "------------------------------------------------------------\n";
@@ -1013,7 +1151,177 @@ public class FederateConfiguration
 	{
 		return toTest != null && !toTest.isEmpty();
 	}
+	
+	/**
+	 * Utility method to extract a {@link String} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 * 
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key 
+	 */
+	private String jsonStringOrDefault( JSONObject root, String key, String defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof String )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
 
+				return (String)value;
+			}
+			
+			throw new UCEFException( "Expected a string value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+		
+		return defaultValue;
+	}
+	
+	/**
+	 * Utility method to extract an {@link Integer} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 * 
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key 
+	 */
+	private int jsonIntOrDefault( JSONObject root, String key, int defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			// integers in JSON data are actually parsed out as longs
+			if( value instanceof Long )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+				
+				return ((Long)value).intValue();
+			}
+			
+			throw new UCEFException( "Expected an integer value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+		
+		return defaultValue;
+	}
+	
+	/**
+	 * Utility method to extract a {@link Long} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 * 
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key 
+	 */
+	private long jsonLongOrDefault( JSONObject root, String key, long defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Long )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+				
+				return (Long)value;
+			}
+			
+			throw new UCEFException( "Expected a long value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+		
+		return defaultValue;
+	}
+	
+	/**
+	 * Utility method to extract a {@link Double} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 * 
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key 
+	 */
+	private double jsonDoubleOrDefault( JSONObject root, String key, double defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Double )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+				
+				return (Double)value;
+			}
+			// be lenient on the parsing of doubles, and allow integer
+			// values to get through as well
+			if( value instanceof Long )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+				
+				return ((Long)value).doubleValue();
+			}
+			
+			throw new UCEFException( "Expected a double value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+		
+		return defaultValue;
+	}
+	
+	/**
+	 * Utility method to extract a {@link Boolean} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 * 
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key 
+	 */
+	private boolean jsonBooleanOrDefault( JSONObject root, String key, boolean defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Boolean )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+				
+				return (Boolean)value;
+			}
+
+			throw new UCEFException( "Expected a boolean value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+		
+		return defaultValue;
+	}
+	
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
