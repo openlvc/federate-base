@@ -181,6 +181,22 @@ public class FederateConfiguration
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
 	 * 
+	 * Currently recognized configuration items are:
+	 * 
+	 * {
+	 *     "federateName":         STRING,
+	 *     "federateType":         STRING,
+	 *     "federationExecName":   STRING,
+	 *     "canCreateFederation":  BOOL,
+	 *     "maxJoinAttempts":      INT,
+	 *     "joinRetryIntervalSec": INT,
+	 *     "syncBeforeResign":     BOOL,
+	 *     "isTimeStepped":        BOOL,
+	 *     "callbacksAreEvoked":   BOOL,
+	 *     "lookAhead":            DOUBLE,
+	 *     "stepSize":             DOUBLE
+	 * }
+	 *   
 	 * @param config the file containing the JSON configuration data
 	 */
 	public void fromJSON(File config)
@@ -211,6 +227,22 @@ public class FederateConfiguration
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
 	 *
+	 * Currently recognized configuration items are:
+	 * 
+	 * {
+	 *     "federateName":         STRING,
+	 *     "federateType":         STRING,
+	 *     "federationExecName":   STRING,
+	 *     "canCreateFederation":  BOOL,
+	 *     "maxJoinAttempts":      INT,
+	 *     "joinRetryIntervalSec": INT,
+	 *     "syncBeforeResign":     BOOL,
+	 *     "isTimeStepped":        BOOL,
+	 *     "callbacksAreEvoked":   BOOL,
+	 *     "lookAhead":            DOUBLE,
+	 *     "stepSize":             DOUBLE
+	 * }
+	 * 
 	 * @param config the {@link String} containing the JSON configuration data
 	 */
 	public void fromJSON(String config)
