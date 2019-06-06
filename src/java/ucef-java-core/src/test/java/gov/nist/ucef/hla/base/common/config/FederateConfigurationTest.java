@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -37,12 +37,12 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.Types.ObjectClass;
-import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.InteractionParameter;
+import gov.nist.ucef.hla.base.Types.ObjectAttribute;
+import gov.nist.ucef.hla.base.Types.ObjectClass;
 import gov.nist.ucef.hla.base.Types.Sharing;
-import gov.nist.ucef.hla.base.Types.DataType;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -82,17 +82,16 @@ public class FederateConfigurationTest extends TestCase
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 
 		assertEquals( federationName, config.getFederationName() );
 		assertEquals( federateName, config.getFederateName() );
 		assertEquals( federateType, config.getFederateType() );
-		
+
 		assertEquals(5, config.getMaxJoinAttempts());
 		assertEquals(5L, config.getJoinRetryInterval());
-		assertEquals(true, config.isTimeStepped());
-		assertEquals(false, config.callbacksAreEvoked());
+		assertEquals(true, config.callbacksAreImmediate());
 		assertEquals(1.0, config.getLookAhead());
 		assertEquals(0.1, config.getStepSize());
 
@@ -113,7 +112,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 
-		// somebody set us up the FOM... 
+		// somebody set us up the FOM...
 		Set<URL> expectedModules = new HashSet<>();
 		Set<URL> expectedJoinModules = new HashSet<>();
 		try
@@ -124,7 +123,7 @@ public class FederateConfigurationTest extends TestCase
 			{
 				expectedModules.add( new File( "resources/foms/"+fom ).toURI().toURL() );
 			}
-			
+
 			// join modules
 			foms = new String[]{"d.xml", "e.xml", "f.xml", "g.xml"};
 			for(String fom : foms)
@@ -136,15 +135,15 @@ public class FederateConfigurationTest extends TestCase
 		{
 			expectedModules.clear();
 			expectedJoinModules.clear();
-			
+
 			System.err.println( "Exception loading one of the FOM modules from disk: " + urle.getMessage() );
 			urle.printStackTrace();
-			
+
 			// bail out now!
 			System.exit( 1 );
 		}
 
-		// set up maps with classes and corresponding lists of attributes to 
+		// set up maps with classes and corresponding lists of attributes to
 		// be published and subscribed to
 		String klassIdBase = "HLAobjectRoot.A.B.C.";
 		Map<String, Collection<String>> tempAttributeDefs = new HashMap<>();
@@ -162,7 +161,7 @@ public class FederateConfigurationTest extends TestCase
 			}
 			expectedPublishedObjectClasses.add(publishedObjectClass);
 		}
-		
+
 		tempAttributeDefs = new HashMap<>();
 		tempAttributeDefs.put( klassIdBase+"E", new HashSet<>(Arrays.asList( new String[] {"c", "d", "e"} ) ));
 		List<ObjectClass> expectedSubscribedObjectClasses = new ArrayList<>();
@@ -178,7 +177,7 @@ public class FederateConfigurationTest extends TestCase
 			}
 			expectedSubscribedObjectClasses.add(publishedObjectClass);
 		}
-		
+
 		// set up lists of interactions to be published and subscribed to
 		String interactionIdBase = "HLAinteractionRoot.T.U.";
 		Collection<String> tempInteractionDefs = new HashSet<>(Arrays.asList( new String[] {interactionIdBase+"V", interactionIdBase+"W"} ));
@@ -198,9 +197,8 @@ public class FederateConfigurationTest extends TestCase
 		int expectedReconnectRetryInterval = 54321;
 		double expectedStepSize = 1.234;
 		double expectedLookAhead = 0.1234;
-		boolean expectedIsTimeStepped = true;
-		boolean expectedCallbacksAreEvoked = true;
-		
+		boolean expectedCallbacksAreImmediate = false;
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName);
 		config.addModules( expectedModules )
 			  .addJoinModules( expectedJoinModules )
@@ -212,20 +210,18 @@ public class FederateConfigurationTest extends TestCase
 			  .setJoinRetryInterval( expectedReconnectRetryInterval )
 			  .setStepSize( expectedStepSize )
 			  .setLookAhead( expectedLookAhead )
-			  .setCallbacksAreEvoked( expectedCallbacksAreEvoked )
-			  .setTimeStepped( expectedIsTimeStepped );
-		
+			  .setCallbacksAreImmediate( expectedCallbacksAreImmediate );
+
 		assertEquals( federationName, config.getFederationName() );
 		assertEquals( federateName, config.getFederateName() );
 		assertEquals( federateType, config.getFederateType() );
-		
+
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts() );
 		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval() );
-		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked() );
-		assertEquals( expectedIsTimeStepped, config.isTimeStepped() );
+		assertEquals( expectedCallbacksAreImmediate, config.callbacksAreImmediate() );
 		assertEquals( expectedLookAhead, config.getLookAhead() );
 		assertEquals( expectedStepSize, config.getStepSize() );
-		
+
 		assertEquals( expectedModules.size(), config.getModules().size() );
 		assertEquals( expectedJoinModules.size(), config.getJoinModules().size() );
 		assertEquals( expectedPublishedObjectClasses.size(), config.getPublishedObjectClasses().size() );
@@ -233,9 +229,9 @@ public class FederateConfigurationTest extends TestCase
 		assertEquals( expectedPublishedInteractions.size(), config.getPublishedInteractions().size() );
 		assertEquals( expectedSubscribedInteractions.size(), config.getSubscribedInteractions().size() );
 	}
-	
+
 	/**
-	 * This tests setting the maximum reconnect attempts 
+	 * This tests setting the maximum reconnect attempts
 	 */
 	public void testMaxReconnectAttempts()
 	{
@@ -243,7 +239,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		int expectedMaxReconnectAttempts = 123;
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedMaxReconnectAttempts != config.getMaxJoinAttempts() );
@@ -251,9 +247,9 @@ public class FederateConfigurationTest extends TestCase
 		config.setMaxJoinAttempts( expectedMaxReconnectAttempts );
 		assertEquals( expectedMaxReconnectAttempts, config.getMaxJoinAttempts());
 	}
-	
+
 	/**
-	 * This tests setting the reconnection wait time 
+	 * This tests setting the reconnection wait time
 	 */
 	public void testReconnectWaitTime()
 	{
@@ -261,7 +257,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		int expectedReconnectRetryInterval = 54321;
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedReconnectRetryInterval != config.getJoinRetryInterval() );
@@ -269,9 +265,9 @@ public class FederateConfigurationTest extends TestCase
 		config.setJoinRetryInterval( expectedReconnectRetryInterval );
 		assertEquals( expectedReconnectRetryInterval, config.getJoinRetryInterval());
 	}
-	
+
 	/**
-	 * This tests setting the step size 
+	 * This tests setting the step size
 	 */
 	public void testStepSize()
 	{
@@ -279,7 +275,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		double expectedStepSize = 1.234;
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedStepSize != config.getStepSize() );
@@ -287,9 +283,9 @@ public class FederateConfigurationTest extends TestCase
 		config.setStepSize( expectedStepSize );
 		assertEquals( expectedStepSize, config.getStepSize());
 	}
-	
+
 	/**
-	 * This tests setting the look ahead 
+	 * This tests setting the look ahead
 	 */
 	public void testLookAhead()
 	{
@@ -297,7 +293,7 @@ public class FederateConfigurationTest extends TestCase
 		String federateName = "federateName";
 		String federateType = "federateType";
 		double expectedLookAhead = 0.1234;
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
 		assertTrue( expectedLookAhead != config.getLookAhead() );
@@ -305,53 +301,35 @@ public class FederateConfigurationTest extends TestCase
 		config.setLookAhead( expectedLookAhead );
 		assertEquals( expectedLookAhead, config.getLookAhead());
 	}
-	
+
 	/**
-	 * This tests setting whether callbacks are evoked or not 
+	 * This tests setting whether callbacks are evoked or not
 	 */
 	public void testCallbacksAreEvoked()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		boolean expectedCallbacksAreEvoked = true;
-		
+		boolean expectedCallbacksAreImmediate = false;
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedCallbacksAreEvoked != config.callbacksAreEvoked());
+		assertTrue( expectedCallbacksAreImmediate != config.callbacksAreImmediate());
 		// try changing the value
-		config.setCallbacksAreEvoked( expectedCallbacksAreEvoked );
-		assertEquals( expectedCallbacksAreEvoked, config.callbacksAreEvoked());
+		config.setCallbacksAreImmediate( expectedCallbacksAreImmediate );
+		assertEquals( expectedCallbacksAreImmediate, config.callbacksAreImmediate());
 	}
-	
+
 	/**
-	 * This tests setting the is time stepped value 
-	 */
-	public void testTimeStepped()
-	{
-		String federationName = "federationName";
-		String federateName = "federateName";
-		String federateType = "federateType";
-		boolean expectedTimeStepped = false;
-		
-		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
-		// sanity check that the default value is not our test value, otherwise this test is pointless
-		assertTrue( expectedTimeStepped != config.isTimeStepped());
-		// try changing the value
-		config.setTimeStepped( expectedTimeStepped );
-		assertEquals( expectedTimeStepped, config.isTimeStepped());
-	}
-	
-	/**
-	 * This tests adding of modules 
+	 * This tests adding of modules
 	 */
 	public void testAddModules()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
-		// somebody set us up the FOM... 
+
+		// somebody set us up the FOM...
 		List<URL> expectedModules = new ArrayList<>();
 		List<URL> extraModules = new ArrayList<>();
 		try
@@ -372,14 +350,14 @@ public class FederateConfigurationTest extends TestCase
 		{
 			expectedModules.clear();
 			extraModules.clear();
-			
+
 			System.err.println( "Exception loading one of the FOM modules from disk: " + urle.getMessage() );
 			urle.printStackTrace();
-			
+
 			// bail out now!
 			System.exit( 1 );
 		}
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.addModules( expectedModules );
 		assertEquals( expectedModules.size(), config.getModules().size());
@@ -396,7 +374,7 @@ public class FederateConfigurationTest extends TestCase
 		// a list of modules method
 		config.addModule( expectedModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
-		
+
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add array of modules - this actually ends up feeding through the adding
@@ -404,17 +382,17 @@ public class FederateConfigurationTest extends TestCase
 		config.addModules( expectedModules.toArray(new URL[0]) );
 		assertEquals( expectedModules.size(), config.getModules().size());
 	}
-	
+
 	/**
-	 * This tests adding of join modules 
+	 * This tests adding of join modules
 	 */
 	public void testAddJoinModules()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
-		// somebody set us up the FOM... 
+
+		// somebody set us up the FOM...
 		List<URL> expectedJoinModules = new ArrayList<>();
 		List<URL> extraJoinModules = new ArrayList<>();
 		try
@@ -435,14 +413,14 @@ public class FederateConfigurationTest extends TestCase
 		{
 			expectedJoinModules.clear();
 			extraJoinModules.clear();
-			
+
 			System.err.println( "Exception loading one of the FOM modules from disk: " + urle.getMessage() );
 			urle.printStackTrace();
-			
+
 			// bail out now!
 			System.exit( 1 );
 		}
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.addJoinModules( expectedJoinModules );
 		assertEquals( expectedJoinModules.size(), config.getJoinModules().size());
@@ -459,7 +437,7 @@ public class FederateConfigurationTest extends TestCase
 		// a list of modules method
 		config.addModule( expectedJoinModules.get( 0 ) );
 		assertEquals( 1, config.getModules().size());
-		
+
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add array of modules - this actually ends up feeding through the adding
@@ -467,21 +445,21 @@ public class FederateConfigurationTest extends TestCase
 		config.addModules( expectedJoinModules.toArray(new URL[0]) );
 		assertEquals( expectedJoinModules.size(), config.getModules().size());
 	}
-	
+
 	/**
-	 * This tests adding of published attributes 
+	 * This tests adding of published attributes
 	 */
 	public void testAddPublishedAttributes()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
+
 		// set up object classes and corresponding attributes to be published
 		ObjectClass objectClass1 = new ObjectClass("HLAobjectRoot.A.B.C", Sharing.PUBLISH);
 		objectClass1.addAttribute( new ObjectAttribute("A", DataType.BOOLEAN, Sharing.PUBLISH ));
 		objectClass1.addAttribute( new ObjectAttribute("B", DataType.BYTE, Sharing.PUBLISH ));
-		
+
 		ObjectClass objectClass2 = new ObjectClass("HLAobjectRoot.X.Y.Z", Sharing.PUBLISH);
 		objectClass2.addAttribute( new ObjectAttribute("M", DataType.CHAR, Sharing.PUBLISH ));
 		objectClass2.addAttribute( new ObjectAttribute("N", DataType.DOUBLE, Sharing.PUBLISH ));
@@ -491,7 +469,7 @@ public class FederateConfigurationTest extends TestCase
 		objectClass2.addAttribute( new ObjectAttribute("R", DataType.SHORT, Sharing.PUBLISH ));
 		objectClass2.addAttribute( new ObjectAttribute("S", DataType.STRING, Sharing.PUBLISH ));
 		objectClass2.addAttribute( new ObjectAttribute("T", DataType.UNKNOWN, Sharing.PUBLISH ));
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.cacheObjectClasses( objectClass1 );
 		assertEquals( 1, config.getPublishedObjectClasses().size());
@@ -507,13 +485,13 @@ public class FederateConfigurationTest extends TestCase
 		// try to add multiple object class reflections at once
 		config.cacheObjectClasses( objectClass1, objectClass2 );
 		assertEquals( 2, config.getPublishedObjectClasses().size());
-		
+
 		// check on reported attributes
 		Set<String> actualClass1AttributeNames = config.getPublishedAttributeNames( objectClass1.name );
 		Set<String> actualClass2AttributeNames = config.getPublishedAttributeNames( objectClass2.name );
 		assertEquals( objectClass1.getAttributes().size(), actualClass1AttributeNames.size() );
 		assertEquals( objectClass2.getAttributes().size(), actualClass2AttributeNames.size() );
-		
+
 		// check reported attribute types
 		for( String attributeName : actualClass1AttributeNames )
 		{
@@ -528,21 +506,21 @@ public class FederateConfigurationTest extends TestCase
 			assertEquals(expectedDataType, actualDataType);
 		}
 	}
-	
+
 	/**
-	 * This tests adding of subscribed attributes 
+	 * This tests adding of subscribed attributes
 	 */
 	public void testAddSubscribedAttributes()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
+
 		// set up object classes and corresponding attributes to be subscribed to
 		ObjectClass objectClass1 = new ObjectClass("HLAobjectRoot.A.B.C", Sharing.SUBSCRIBE);
 		objectClass1.addAttribute( new ObjectAttribute("A", DataType.BOOLEAN, Sharing.SUBSCRIBE ));
 		objectClass1.addAttribute( new ObjectAttribute("B", DataType.BYTE, Sharing.SUBSCRIBE ));
-		
+
 		ObjectClass objectClass2 = new ObjectClass("HLAobjectRoot.X.Y.Z", Sharing.SUBSCRIBE);
 		objectClass2.addAttribute( new ObjectAttribute("M", DataType.CHAR, Sharing.SUBSCRIBE ));
 		objectClass2.addAttribute( new ObjectAttribute("N", DataType.DOUBLE, Sharing.SUBSCRIBE ));
@@ -552,7 +530,7 @@ public class FederateConfigurationTest extends TestCase
 		objectClass2.addAttribute( new ObjectAttribute("R", DataType.SHORT, Sharing.SUBSCRIBE ));
 		objectClass2.addAttribute( new ObjectAttribute("S", DataType.STRING, Sharing.SUBSCRIBE ));
 		objectClass2.addAttribute( new ObjectAttribute("T", DataType.UNKNOWN, Sharing.SUBSCRIBE ));
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.cacheObjectClasses( objectClass1 );
 		assertEquals( 1, config.getSubscribedObjectClasses().size());
@@ -568,13 +546,13 @@ public class FederateConfigurationTest extends TestCase
 		// try to add multiple object class reflections at once
 		config.cacheObjectClasses( objectClass1, objectClass2 );
 		assertEquals( 2, config.getSubscribedObjectClasses().size());
-		
+
 		// check on reported attributes
 		Set<String> actualClass1AttributeNames = config.getSubscribedAttributeNames( objectClass1.name );
 		Set<String> actualClass2AttributeNames = config.getSubscribedAttributeNames( objectClass2.name );
 		assertEquals( objectClass1.getAttributes().size(), actualClass1AttributeNames.size() );
 		assertEquals( objectClass2.getAttributes().size(), actualClass2AttributeNames.size() );
-		
+
 		// check reported attribute types
 		for( String attributeName : actualClass1AttributeNames )
 		{
@@ -589,21 +567,21 @@ public class FederateConfigurationTest extends TestCase
 			assertEquals(expectedDataType, actualDataType);
 		}
 	}
-	
+
 	/**
-	 * This tests adding of published interactions 
+	 * This tests adding of published interactions
 	 */
 	public void testAddPublishedInteractions()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
+
 		// set up lists of interactions to be published
 		InteractionClass interaction1 = new InteractionClass( "HLAinteractionRoot.A.B.C.", Sharing.PUBLISH );
 		interaction1.addParameter( new InteractionParameter("A", DataType.BOOLEAN ));
 		interaction1.addParameter( new InteractionParameter("B", DataType.BYTE ));
-		
+
 		InteractionClass interaction2 = new InteractionClass("HLAobjectRoot.X.Y.Z", Sharing.PUBLISH);
 		interaction2.addParameter( new InteractionParameter("M", DataType.CHAR ));
 		interaction2.addParameter( new InteractionParameter("N", DataType.DOUBLE ));
@@ -613,7 +591,7 @@ public class FederateConfigurationTest extends TestCase
 		interaction2.addParameter( new InteractionParameter("R", DataType.SHORT ));
 		interaction2.addParameter( new InteractionParameter("S", DataType.STRING ));
 		interaction2.addParameter( new InteractionParameter("T", DataType.UNKNOWN ));
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.cacheInteractionClasses( interaction1 );
 		assertEquals( 1, config.getPublishedInteractions().size());
@@ -623,7 +601,7 @@ public class FederateConfigurationTest extends TestCase
 		// add more interactions - should increase the size
 		config.cacheInteractionClasses( interaction2 );
 		assertEquals( 2, config.getPublishedInteractions().size());
-		
+
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple interactions at once
@@ -635,7 +613,7 @@ public class FederateConfigurationTest extends TestCase
 		Set<String> actualInteraction2ParameterNames = config.getParameterNames( interaction2.name );
 		assertEquals( interaction1.getParameters().size(), actualInteraction1ParameterNames.size() );
 		assertEquals( interaction2.getParameters().size(), actualInteraction2ParameterNames.size() );
-		
+
 		// check reported attribute types
 		for( String parameterName : actualInteraction1ParameterNames )
 		{
@@ -650,21 +628,21 @@ public class FederateConfigurationTest extends TestCase
 			assertEquals(expectedDataType, actualDataType);
 		}
 	}
-	
+
 	/**
-	 * This tests adding of published interactions 
+	 * This tests adding of published interactions
 	 */
 	public void testAddSubscribedInteractions()
 	{
 		String federationName = "federationName";
 		String federateName = "federateName";
 		String federateType = "federateType";
-		
+
 		// set up lists of interactions to be subscribed
 		InteractionClass interaction1 = new InteractionClass( "HLAinteractionRoot.A.B.C.", Sharing.SUBSCRIBE );
 		interaction1.addParameter( new InteractionParameter("A", DataType.BOOLEAN ));
 		interaction1.addParameter( new InteractionParameter("B", DataType.BYTE ));
-		
+
 		InteractionClass interaction2 = new InteractionClass("HLAobjectRoot.X.Y.Z", Sharing.SUBSCRIBE);
 		interaction2.addParameter( new InteractionParameter("M", DataType.CHAR ));
 		interaction2.addParameter( new InteractionParameter("N", DataType.DOUBLE ));
@@ -674,7 +652,7 @@ public class FederateConfigurationTest extends TestCase
 		interaction2.addParameter( new InteractionParameter("R", DataType.SHORT ));
 		interaction2.addParameter( new InteractionParameter("S", DataType.STRING ));
 		interaction2.addParameter( new InteractionParameter("T", DataType.UNKNOWN ));
-		
+
 		FederateConfiguration config = new FederateConfiguration( federateName, federateType, federationName );
 		config.cacheInteractionClasses( interaction1 );
 		assertEquals( 1, config.getSubscribedInteractions().size());
@@ -684,19 +662,19 @@ public class FederateConfigurationTest extends TestCase
 		// add more interactions - should increase the size
 		config.cacheInteractionClasses( interaction2 );
 		assertEquals( 2, config.getSubscribedInteractions().size());
-		
+
 		// start again with clean config
 		config = new FederateConfiguration( federateName, federateType, federationName );
 		// try to add multiple interactions at once
 		config.cacheInteractionClasses( interaction1, interaction2 );
 		assertEquals( 2, config.getSubscribedInteractions().size());
-		
+
 		// check on reported parameters
 		Set<String> actualInteraction1ParameterNames = config.getParameterNames( interaction1.name );
 		Set<String> actualInteraction2ParameterNames = config.getParameterNames( interaction2.name );
 		assertEquals( interaction1.getParameters().size(), actualInteraction1ParameterNames.size() );
 		assertEquals( interaction2.getParameters().size(), actualInteraction2ParameterNames.size() );
-		
+
 		// check reported attribute types
 		for( String parameterName : actualInteraction1ParameterNames )
 		{
@@ -711,9 +689,9 @@ public class FederateConfigurationTest extends TestCase
 			assertEquals(expectedDataType, actualDataType);
 		}
 	}
-	
-	
-		
+
+
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////

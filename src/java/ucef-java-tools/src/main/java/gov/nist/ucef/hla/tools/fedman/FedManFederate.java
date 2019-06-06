@@ -305,6 +305,7 @@ public class FedManFederate extends NoOpFederate
 		configuration.setFederationName( argProcessor.federationExecName() );
 		// update the configuration lookahead value so that it is the same
 		// logical step size as obtained from the command line args
+		configuration.setStepSize( argProcessor.logicalStepSize() );
 		configuration.setLookAhead( argProcessor.logicalStepSize() );
 	}
 

@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -76,10 +76,10 @@ public class RTIAmbassadorWrapper
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( RTIAmbassadorWrapper.class );
-	
+
 	private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-	private static final String NULL_TEXT = "NULL"; 
-	
+	private static final String NULL_TEXT = "NULL";
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -98,7 +98,7 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			this.rtiAmbassador = RtiFactoryFactory.getRtiFactory().getRtiAmbassador();
-			
+
 			// cache the commonly used factories from the RTI Ambassador
 			this.timeFactory = (HLAfloat64TimeFactory)rtiAmbassador.getTimeFactory();
 			this.parameterMapFactory = rtiAmbassador.getParameterHandleValueMapFactory();
@@ -118,11 +118,11 @@ public class RTIAmbassadorWrapper
 	{
 		return this.rtiAmbassador;
 	}
-	
-	public void connect( FederateAmbassador federateAmbassador, boolean useEvokedCallbacks )
+
+	public void connect( FederateAmbassador federateAmbassador, boolean useImmediateCallbacks )
 	{
-		CallbackModel callbackModel = useEvokedCallbacks ? CallbackModel.HLA_EVOKED : 
-														   CallbackModel.HLA_IMMEDIATE;
+		CallbackModel callbackModel = useImmediateCallbacks ? CallbackModel.HLA_IMMEDIATE :
+															  CallbackModel.HLA_EVOKED;
 		try
 		{
 			logger.debug( "Federate is connecting..." );
@@ -131,7 +131,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( AlreadyConnected e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that we are already connected to the
 			// federation so we don't need to do it again.
 			logger.info( "The federate is already connected." );
@@ -141,7 +141,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "Failed to connect.", e );
 		}
 	}
-	
+
 	public void createFederationExecution( String federationName, URL[] modules )
 	{
 		try
@@ -153,7 +153,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( FederationExecutionAlreadyExists exists )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that the federation was already created
 			// by someone else so we don't need to. We can just carry on with our business.
 			logger.info( "The federation '{}' already exists, and does not need to be created.",
@@ -178,7 +178,7 @@ public class RTIAmbassadorWrapper
 			              federateName,
 			              federateType,
 			              federationName );
-			rtiAmbassador.joinFederationExecution( federateName, federateType, 
+			rtiAmbassador.joinFederationExecution( federateName, federateType,
 			                                       federationName, joinModules );
 			logger.debug( "Federate '{}' of type '{}' joined federation '{}'.",
 			              federateName,
@@ -210,7 +210,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( e );
 		}
 	}
-	
+
 	public void evokeMultipleCallbacks(double minimumTime, double maximumTime)
 	{
 		try
@@ -284,7 +284,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( FederationExecutionDoesNotExist dne )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that the federation was already destroyed
 			// by someone else so we don't need to.
 			logger.warn( "The federation '{}' does not exist, so it was not destroyed.", federationName );
@@ -292,8 +292,8 @@ public class RTIAmbassadorWrapper
 		catch( FederatesCurrentlyJoined fcj )
 		{
 			// if other federates remain we have to leave it for them to clean up
-			// We catch and deliberately ignore this exception - this is not an error 
-			// condition as such, it just means that other federates remain, so we 
+			// We catch and deliberately ignore this exception - this is not an error
+			// condition as such, it just means that other federates remain, so we
 			// have to leave it for them to clean up.
 		}
 		catch(Exception e)
@@ -305,7 +305,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * This method will attempt to delete the object instance with the given handle. We can only
 	 * delete objects we created, or for which we own the privilegeToDelete attribute.
-	 * 
+	 *
 	 * @param instance the object instance
 	 */
 	public void deleteObjectInstance( HLAObject instance )
@@ -316,7 +316,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * This method will attempt to delete the object instance. We can only delete objects we
 	 * created, or for which we own the privilegeToDelete attribute.
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @param tag the tag (may be null)
 	 * @return the deleted instance
@@ -330,14 +330,14 @@ public class RTIAmbassadorWrapper
 		}
 
 		deleteObjectInstance( instance.instanceHandle, tag );
-		
+
 		return instance;
 	}
 
 	/**
 	 * This method will attempt to delete the object instance with the given handle. We can only
 	 * delete objects we created, or for which we own the privilegeToDelete attribute.
-	 * 
+	 *
 	 * @param handle the handle of the object instance
 	 * @param tag the tag (may be null)
 	 */
@@ -348,23 +348,23 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s object instance handle. Unable to delete object instance.",
 			                         NULL_TEXT );
 		}
-		
+
 		try
 		{
 			boolean debugLogging = logger.isDebugEnabled();
 			String handleSummary = debugLogging ? makeSummary( handle ) : null;
-			
+
 			if( debugLogging )
 				logger.debug( "Deleting object instance {}...", handleSummary );
 
 			rtiAmbassador.deleteObjectInstance( handle, safeByteArray( tag ) );
-			
+
 			if( debugLogging )
 				logger.debug( "Object instance {} was deleted.", handleSummary );
 		}
 		catch( DeletePrivilegeNotHeld e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that the permission to delete this instance
 			// is held by someone else, so we have to let them clean it up.
 		}
@@ -372,29 +372,29 @@ public class RTIAmbassadorWrapper
 		{
 			throw new UCEFException(e, "Unable to delete object instance %s", makeSummary( handle ));
 		}
-	}	
-	
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////// TIME ///////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	public HLAfloat64Time makeHLATime( double time )
 	{
-		// NOTE: LogicalTime create code is Portico specific. 
-		//       You will have to alter this if you move to a different RTI implementation. 
+		// NOTE: LogicalTime create code is Portico specific.
+		//       You will have to alter this if you move to a different RTI implementation.
 		//       As such, it is isolated into a single method so that any changes required
 		//       should be fairly isolated.
 		return this.timeFactory.makeTime( time );
 	}
-	
+
 	public HLAfloat64Interval makeHLAInterval( double interval )
 	{
-		// NOTE: LogicalTimeInterval create code is Portico specific. 
-		//       You will have to alter this if you move to a different RTI implementation. 
+		// NOTE: LogicalTimeInterval create code is Portico specific.
+		//       You will have to alter this if you move to a different RTI implementation.
 		//       As such, it is isolated into a single method so that any changes required
 		//       should be fairly isolated.
-		return timeFactory.makeInterval( interval );		
+		return timeFactory.makeInterval( interval );
 	}
-	
+
 	public void timeAdvanceRequest( double newTime )
 	{
 		try
@@ -408,7 +408,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( e );
 		}
 	}
-	
+
 	public void enableTimeRegulation( double lookAhead )
 	{
 		try
@@ -419,7 +419,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( TimeRegulationAlreadyEnabled e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that time regulation is already enabled
 			// so we don't need to do it again.
 			logger.info( "Time regulation is already enabled, and so does not need to be enabled." );
@@ -429,7 +429,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException(e);
 		}
 	}
-	
+
 	public void disableTimeRegulation()
 	{
 		try
@@ -440,7 +440,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( TimeRegulationIsNotEnabled e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that time regulation is not enabled
 			// so we don't need to disable it.
 			logger.info( "Time regulation is already disabled, and so does not need to be disabled." );
@@ -461,7 +461,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( TimeConstrainedAlreadyEnabled e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that time constrained is already enabled
 			// so we don't need to do it again.
 			logger.info( "Time constraint is already enabled, and so does not need to be enabled." );
@@ -482,7 +482,7 @@ public class RTIAmbassadorWrapper
 		}
 		catch( TimeConstrainedIsNotEnabled e )
 		{
-			// We catch and deliberately ignore this exception - this is not an error 
+			// We catch and deliberately ignore this exception - this is not an error
 			// condition as such, it just means that time constrained is not enabled
 			// so we don't need to disable it.
 			logger.info( "Time constraint is already disabled, and so does not need to be disabled." );
@@ -498,18 +498,18 @@ public class RTIAmbassadorWrapper
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Utility method to create an empty attribute handle set (this will grow as required)
-	 * 
+	 *
 	 * @return an empty attribute handle set
 	 */
 	public AttributeHandleSet makeAttributeHandleSet()
 	{
 		return this.attributeHandleSetFactory.create();
 	}
-	
+
 	/**
 	 * Utility method to create an attribute handle set for an object class and a set of attribute
 	 * names
-	 * 
+	 *
 	 * @param handle the handle for the object class with which the attributes are associated
 	 * @param attributeNames the names of the attributes
 	 * @return the attribute handle set
@@ -524,13 +524,13 @@ public class RTIAmbassadorWrapper
 		}
 		return attributeHandleSet;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////// IDENTIFIER <-> HANDLE LOOKUPS ETC /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * A "safe" way to get an object class name from a handle.
-	 * 
+	 *
 	 * @param handle the object class handle to obtain the object class name for
 	 * @return the corresponding object class name
 	 */
@@ -552,7 +552,7 @@ public class RTIAmbassadorWrapper
 
 	/**
 	 * A "safe" way to get an object class handle from a name.
-	 * 
+	 *
 	 * @param name the object class name to obtain the object class handle for
 	 * @return the corresponding object class handle
 	 */
@@ -574,7 +574,7 @@ public class RTIAmbassadorWrapper
 
 	/**
 	 * A "safe" way to get an object class handle from an object instance handle.
-	 * 
+	 *
 	 * @param handle the object instance handle to obtain the object class handle for
 	 * @return the corresponding object class handle
 	 */
@@ -593,10 +593,10 @@ public class RTIAmbassadorWrapper
 			                         handle );
 		}
 	}
-	
+
 	/**
 	 * A "safe" way to get an object instance handle from an object instance.
-	 * 
+	 *
 	 * @param handle the object instance obtain the object class handle for
 	 * @return the corresponding object class handle
 	 */
@@ -605,13 +605,13 @@ public class RTIAmbassadorWrapper
 		if( instance == null )
 			throw new UCEFException( "%s object instance. Cannot obtain object instance handle.",
 			                         NULL_TEXT );
-		
+
 		return getKnownObjectClassHandle( instance.instanceHandle );
 	}
-	
+
 	/**
 	 * Determine if two {@link HLAObject} instances are of the same kind
-	 * 
+	 *
 	 * @param a an {@link HLAObject} instance to compare
 	 * @param b the other {@link HLAObject} instance to compare
 	 * @return true if both {@link HLAObject} instances are the same kind of object, false
@@ -624,11 +624,11 @@ public class RTIAmbassadorWrapper
 
 		return isOfKind(a, getKnownObjectClassHandle( b.instanceHandle ) );
 	}
-	
+
 	/**
 	 * Determine if an {@link HLAObject} instance has the given
 	 * {@link ObjectClassHandle}
-	 * 
+	 *
 	 * @param object the {@link HLAObject} instance to check
 	 * @param handle the {@link ObjectClassHandle} to compare with
 	 * @return true if the {@link HLAObject} instance has the given
@@ -638,14 +638,14 @@ public class RTIAmbassadorWrapper
 	{
 		if( object == null || handle == null )
 			return false;
-		
+
 		return handle.equals( getKnownObjectClassHandle( object.instanceHandle ) );
 	}
 
 	/**
-	 * A "safe" way to get an attribute name from an object class handle and attribute handle. If 
+	 * A "safe" way to get an attribute name from an object class handle and attribute handle. If
 	 * anything goes wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param objectClassHandle the object class handle with which the attribute handle is associated
 	 * @param attributeHandle the attribute handle to obtain the name for
 	 * @return the corresponding attribute name, or null if anything went wrong
@@ -656,7 +656,7 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			logger.trace( "Retrieving attribute name for attribute handle {} "+
-						  "in the context of object class handle {}...", 
+						  "in the context of object class handle {}...",
 			              attributeHandle, objectClassHandle );
 			return this.rtiAmbassador.getAttributeName( objectClassHandle, attributeHandle );
 		}
@@ -670,9 +670,9 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an attribute handle from an object class handle and attribute name. If 
+	 * A "safe" way to get an attribute handle from an object class handle and attribute name. If
 	 * anything goes wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param handle the object class handle with which the attribute handle is associated
 	 * @param attributeName the attribute name to obtain the handle for
 	 * @return the corresponding attribute handle, or null if anything went wrong
@@ -696,9 +696,9 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A "safe" way to get an interaction class name from an interaction class handle. If anything goes 
+	 * A "safe" way to get an interaction class name from an interaction class handle. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param handle the interaction class handle to obtain the name for
 	 * @return the corresponding interaction class name, or null if anything went wrong
 	 */
@@ -721,7 +721,7 @@ public class RTIAmbassadorWrapper
 
 	/**
 	 * A "safe" way to get an interaction class handle from an interaction.
-	 * 
+	 *
 	 * @param interaction the interaction to obtain the handle for
 	 * @return the corresponding interaction class handle
 	 */
@@ -731,14 +731,14 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s interaction instance. No interaction class handle " +
 									 "could be retrieved.",
 			                         NULL_TEXT );
-		
+
 		return getInteractionClassHandle( interaction.interactionClassName );
 	}
 
 	/**
-	 * A "safe" way to get an interaction handle name from an interaction class name. If anything goes 
+	 * A "safe" way to get an interaction handle name from an interaction class name. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param name the interaction class name to obtain the handle for
 	 * @return the corresponding interaction class handle, or null if anything went wrong
 	 */
@@ -758,11 +758,11 @@ public class RTIAmbassadorWrapper
 			                         name );
 		}
 	}
-	
+
 	/**
 	 * Determine if an {@link HLAInteraction} instance has the given
 	 * {@link InteractionClassHandle}
-	 * 
+	 *
 	 * @param interaction the {@link HLAInteraction} instance to check
 	 * @param handle the {@link InteractionClassHandle} to compare with
 	 * @return true if the {@link HLAInteraction} instance has the given
@@ -772,14 +772,14 @@ public class RTIAmbassadorWrapper
 	{
 		if( interaction == null || handle == null )
 			return false;
-		
+
 		return handle.equals( getInteractionClassHandle( interaction ) );
 	}
-	
+
 	/**
 	 * A "safe" way to get a parameter handle from an interaction class handle and parameter name. If
 	 * anything goes wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param handle the interaction class handle with which the parameter is associated
 	 * @param parameterName the parameter name to obtain the handle for
 	 * @return the corresponding parameter handle, or null if anything went wrong
@@ -801,11 +801,11 @@ public class RTIAmbassadorWrapper
 			                         parameterName, makeSummary(handle) );
 		}
 	}
-	
+
 	/**
 	 * A "safe" way to get a parameter name from an interaction class handle and parameter handle. If
 	 * anything goes wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param interactionClassHandle the interaction class handle with which the parameter is associated
 	 * @param parameterHandle the parameter handle to obtain the name for
 	 * @return the corresponding parameter handle, or null if anything went wrong
@@ -829,11 +829,11 @@ public class RTIAmbassadorWrapper
 			                         parameterHandle, makeSummary(interactionClassHandle) );
 		}
 	}
-	
+
 	/**
 	 * A "safe" way to get an object instance name from an object instance handle. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param handle the object instance handle to obtain the name for
 	 * @return the corresponding object instance name, or null if anything went wrong
 	 */
@@ -856,7 +856,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * A "safe" way to get an object instance handle from an object instance name. If anything goes
 	 * wrong, exceptions are absorbed and a null value is returned
-	 * 
+	 *
 	 * @param name the object instance name to obtain the handle for
 	 * @return the corresponding object instance handle, or null if anything went wrong
 	 */
@@ -876,14 +876,14 @@ public class RTIAmbassadorWrapper
 			                         name );
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// OBJECT REGISTRATION ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will register an {@link HLAObject} instance and return the federation-wide
 	 * unique handle for that instance.
-	 * 
+	 *
 	 * NOTE: if the instance has already been registered (i.e., it already has an instance handle)
 	 * calling this method will have no net effect.
 	 */
@@ -899,7 +899,7 @@ public class RTIAmbassadorWrapper
 
 		return instance;
 	}
-	
+
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
@@ -928,20 +928,20 @@ public class RTIAmbassadorWrapper
 	{
 		return registerObjectInstance( handle, null );
 	}
-	
+
 	/**
 	 * This method will register an instance of the class and will return the federation-wide
 	 * unique handle for that instance.
 	 */
-	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle, 
+	public ObjectInstanceHandle registerObjectInstance( ObjectClassHandle handle,
 	                                                    String instanceIdentifier )
 	{
 		if( handle == null )
 		{
-			throw new UCEFException( "%s object class handle. Cannot register object instance.", 
+			throw new UCEFException( "%s object class handle. Cannot register object instance.",
 			                         NULL_TEXT );
 		}
-		
+
 		ObjectInstanceHandle instanceHandle = null;
 		try
 		{
@@ -952,7 +952,7 @@ public class RTIAmbassadorWrapper
 			}
 			else
 			{
-				logger.trace( "Registering object instance handle {} with instance identifier '{}'...", 
+				logger.trace( "Registering object instance handle {} with instance identifier '{}'...",
 				              handle, instanceIdentifier );
 				instanceHandle = rtiAmbassador.registerObjectInstance( handle, instanceIdentifier );
 			}
@@ -960,12 +960,12 @@ public class RTIAmbassadorWrapper
 		}
 		catch( Exception e )
 		{
-			throw new UCEFException( e, "Failed to register object instance for object class %s", 
+			throw new UCEFException( e, "Failed to register object instance for object class %s",
 			                         makeSummary( handle ) );
 		}
 		return instanceHandle;
-	}	
-	
+	}
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////// ATTRIBUTE MANIPULATION //////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -981,14 +981,14 @@ public class RTIAmbassadorWrapper
 		}
 		return attributes;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////// INTERACTION AND OBJECT INSTANCE CREATION //////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * A utility method to allow simple instantiation of an no-parameter interaction based off an 
+	 * A utility method to allow simple instantiation of an no-parameter interaction based off an
 	 * interaction class name
-	 * 
+	 *
 	 * @param name the interaction class name
 	 * @return the interaction
 	 */
@@ -996,11 +996,11 @@ public class RTIAmbassadorWrapper
 	{
 		return makeInteraction( name, null );
 	}
-	
+
 	/**
 	 * A utility method to allow simple instantiation of an interaction based off an interaction
 	 * name and some parameters
-	 * 
+	 *
 	 * @param name the interaction class name
 	 * @param parameters the parameters (can be null)
 	 * @return the interaction
@@ -1011,9 +1011,9 @@ public class RTIAmbassadorWrapper
 	}
 
 	/**
-	 * A utility method to allow simple instantiation of an object instance based off an object class 
-	 * name and some initial values for the attributes, also registering the instance with the RTI. 
-	 * 
+	 * A utility method to allow simple instantiation of an object instance based off an object class
+	 * name and some initial values for the attributes, also registering the instance with the RTI.
+	 *
 	 * @param name the object class name
 	 * @return the interaction
 	 */
@@ -1021,11 +1021,11 @@ public class RTIAmbassadorWrapper
 	{
 		return makeObjectInstance( className, null );
 	}
-	
+
 	/**
-	 * A utility method to allow simple instantiation of an object instance based off an object class 
+	 * A utility method to allow simple instantiation of an object instance based off an object class
 	 * name and some initial values for the attributes, also registering the instance with the RTI.
-	 * 
+	 *
 	 * @param name the object class name
 	 * @param attributes the initial values for the attributes (can be null)
 	 * @return the interaction
@@ -1048,7 +1048,7 @@ public class RTIAmbassadorWrapper
 	{
 		publishInteractionClass( getInteractionClassHandle( className ) );
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * publishing to the federation.
@@ -1075,9 +1075,9 @@ public class RTIAmbassadorWrapper
 		try
 		{
 			logger.trace( "Registering intent to publish interaction class with handle {}...", handle );
-			
+
 			rtiAmbassador.publishInteractionClass( handle );
-			
+
 			logger.trace( "Registered intent to publish interaction class with handle {}...", handle );
 		}
 		catch( Exception e )
@@ -1086,14 +1086,14 @@ public class RTIAmbassadorWrapper
 			                         makeSummary( handle ) );
 		}
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * publishing to the federation, and to which class they belong.
-	 * 
+	 *
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values
-	 * 
+	 *
 	 * @param className the object class name
 	 * @param attribute the associated attribute class names for publishing
 	 */
@@ -1104,20 +1104,20 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "%s class name. Cannot publish attributes.",
 			                         NULL_TEXT );
 		}
-		
+
 		if( attributes == null )
 		{
 			throw new UCEFException( "%s attributes. Cannot publish attributes for object class '%s'.",
 			                         NULL_TEXT, className );
 		}
-		
+
 		ObjectClassHandle classHandle = getObjectClassHandle( className );
 		if( classHandle == null )
 		{
 			throw new UCEFException( "Unknown object class name '%s'. Cannot publish attributes.",
 			                         className );
 		}
-		
+
 		AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
 		for( String attributeName : attributes )
 		{
@@ -1130,17 +1130,17 @@ public class RTIAmbassadorWrapper
 			}
 			attributeHandleSet.add( attributeHandle );
 		}
-		
+
 		publishObjectClassAttributes( classHandle, attributeHandleSet );
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * publishing to the federation, and to which classes they belong (in bulk).
-	 * 
+	 *
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values
-	 * 
+	 *
 	 * @param publishedAttributes a map relating object class names to the associated attribute
 	 *            class names for publishing
 	 */
@@ -1148,20 +1148,20 @@ public class RTIAmbassadorWrapper
 	{
 		if( publishedAttributes == null || publishedAttributes.isEmpty() )
 			return;
-		
+
 		for( Entry<String,Set<String>> publication : publishedAttributes.entrySet() )
 		{
 			publishObjectClassAttributes( publication.getKey(), publication.getValue() );
 		}
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * publishing to the federation, and to which classes they belong.
-	 * 
+	 *
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values
-	 * 
+	 *
 	 * @param handle the object class handle
 	 * @param attributes the associated attribute handles for publishing
 	 */
@@ -1178,12 +1178,12 @@ public class RTIAmbassadorWrapper
 
 		try
 		{
-			logger.trace( "Publishing object {} class attribute(s) for object class handle {}...", 
+			logger.trace( "Publishing object {} class attribute(s) for object class handle {}...",
 			              handle, attributes.size() );
-			
+
 			rtiAmbassador.publishObjectClassAttributes( handle, attributes );
-			
-			logger.trace( "Published object {} class attribute(s) for object class handle {}...", 
+
+			logger.trace( "Published object {} class attribute(s) for object class handle {}...",
 			              handle, attributes.size() );
 		}
 		catch( Exception e )
@@ -1194,11 +1194,11 @@ public class RTIAmbassadorWrapper
 			                         makeSummary( handle ), makeSummary( handle, attributes ) );
 		}
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of interactions that the federate will be
 	 * interested in hearing about (in bulk) as other federates produce them.
-	 * 
+	 *
 	 * @param classNames the interaction class names to subscribe to
 	 */
 	public void subscribeInteractionClasses( Collection<String> classNames )
@@ -1211,10 +1211,10 @@ public class RTIAmbassadorWrapper
 			subscribeInteractionClass( interactionClassName );
 		}
 	}
-	
+
 	/**
-	 * This method will inform the RTI about a class of interaction that a federate will subscribe to 
-	 * 
+	 * This method will inform the RTI about a class of interaction that a federate will subscribe to
+	 *
 	 * @param className the name of the interaction class to subscribe to
 	 */
 	public void subscribeInteractionClass( String className )
@@ -1230,10 +1230,10 @@ public class RTIAmbassadorWrapper
 
 		subscribeInteractionClass( handle );
 	}
-	
+
 	/**
-	 * This method will inform the RTI about a class of interaction that a federate will subscribe to 
-	 * 
+	 * This method will inform the RTI about a class of interaction that a federate will subscribe to
+	 *
 	 * @param handle the handle of the interaction class to subscribe to
 	 */
 	private void subscribeInteractionClass( InteractionClassHandle handle )
@@ -1253,14 +1253,14 @@ public class RTIAmbassadorWrapper
 			                         makeSummary( handle ) );
 		}
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * interested in hearing about, and to which class they belong.
-	 * 
+	 *
 	 * We need to subscribe to hear about information on attributes of classes created and altered
 	 * in other federates
-	 * 
+	 *
 	 * @param className the object class name
 	 * @param attributes the attribute names to be subscribed to
 	 */
@@ -1272,7 +1272,7 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException( "Unknown object class name '%s'. Cannot subscribe to attributes.",
 			                         className );
 		}
-		
+
 		// package the information into a handle set
 		AttributeHandleSet attributeHandleSet = makeAttributeHandleSet();
 		for( String attributeName : attributes )
@@ -1286,18 +1286,18 @@ public class RTIAmbassadorWrapper
 			}
 			attributeHandleSet.add( attributeHandle );
 		}
-		
+
 		// do the actual subscription
 		subscribeObjectClassAttributes( classHandle, attributeHandleSet );
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * interested in hearing about, and to which classes they belong (in bulk).
-	 * 
+	 *
 	 * We need to subscribe to hear about information on attributes of classes created and altered
 	 * in other federates
-	 * 
+	 *
 	 * @param subscribedAttributes a map which connects object class names to sets of attribute
 	 *            names to be subscribed to
 	 */
@@ -1311,14 +1311,14 @@ public class RTIAmbassadorWrapper
 			subscribeObjectClassAttributes( subscription.getKey(), subscription.getValue() );
 		}
 	}
-	
+
 	/**
 	 * This method will inform the RTI about the types of attributes the federate will be
 	 * publishing to the federation, and which class they are associated with.
-	 * 
+	 *
 	 * This needs to be done before registering instances of the object classes and updating their
 	 * attributes' values
-	 * 
+	 *
 	 * @param handle the handle for the object class whose attributes are to be subscribed to
 	 * @param attributes the attribute handles identifying the attributes to be subscribed to
 	 */
@@ -1337,9 +1337,9 @@ public class RTIAmbassadorWrapper
 		{
 			logger.trace( "Registering subscription to {} attribute(s) on object class with handle {}...",
 			              attributes.size(), handle );
-			
+
 			rtiAmbassador.subscribeObjectClassAttributes( handle, attributes );
-			
+
 			logger.trace( "Registered subscription to {} attribute(s) on object class with handle {}...",
 			              attributes.size(), handle );
 		}
@@ -1351,17 +1351,17 @@ public class RTIAmbassadorWrapper
 			                         makeSummary( handle ), makeSummary( handle, attributes ) );
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// PUBLICATION /////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * This method will send out an attribute update for the specified object instance with the
 	 * given timestamp and tag information.
-	 * 
+	 *
 	 * Federates which are subscribed to a matching combination of class type and attributes will
 	 * receive a notification the next time they tick().
-	 * 
+	 *
 	 * @param instance the instance
 	 * @param tag the tag of the interaction (can be null)
 	 * @param time the timestamp for the interaction (can be null)
@@ -1372,23 +1372,23 @@ public class RTIAmbassadorWrapper
 		if( instance == null )
 			throw new UCEFException( "%s object instance. Cannot update attribute values.",
 			                         NULL_TEXT );
-		
+
 		ObjectInstanceHandle objectInstanceHandle = instance.instanceHandle;
 		try
 		{
 			// we need to build up an AttributeHandleValueMap from the object state
 			AttributeHandleValueMap ahvm = convert( objectInstanceHandle, instance.getState() );
-			
-			// now we have the information we need to do the update   
+
+			// now we have the information we need to do the update
 			logger.trace( "Sending reflection for {} attribute(s) for object instance handle {}...",
 			              ahvm.size(), objectInstanceHandle );
-			
+
 			if( time == null )
 				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, safeByteArray( tag ) );
 			else
-				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm, 
+				rtiAmbassador.updateAttributeValues( objectInstanceHandle, ahvm,
 				                                     safeByteArray( tag ), makeHLATime( time ) );
-			
+
 			logger.trace( "Sent reflection for {} attribute(s) for object instance handle {}.",
 			              ahvm.size(), objectInstanceHandle );
 		}
@@ -1402,7 +1402,7 @@ public class RTIAmbassadorWrapper
 
 	/**
 	 * This method will send out an interaction with a tag and timestamp.
-	 * 
+	 *
 	 * Federates which are subscribed to this type of interaction will receive a notification the next
 	 * time they tick().
 	 *
@@ -1416,23 +1416,23 @@ public class RTIAmbassadorWrapper
 		if( interaction == null )
 			throw new UCEFException( "%s interaction. Cannot send interaction.",
 			                         NULL_TEXT );
-		
+
 		InteractionClassHandle interactionClassHandle = getInteractionClassHandle( interaction );
 		try
 		{
-			// we need to build up a ParameterHandleValueMap from the interaction parameters  
+			// we need to build up a ParameterHandleValueMap from the interaction parameters
 			ParameterHandleValueMap phvm = convert( interactionClassHandle, interaction.getState() );
-			
+
 			// now we have the information we need to do the send
 			logger.trace( "Sending interaction with {} parameter(s) for interaction class handle {}...",
 			              phvm.size(), interactionClassHandle );
-			
+
 			if(time == null)
 				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, safeByteArray( tag ) );
 			else
-				rtiAmbassador.sendInteraction( interactionClassHandle, phvm, 
+				rtiAmbassador.sendInteraction( interactionClassHandle, phvm,
 				                               safeByteArray( tag ), makeHLATime( time ) );
-			
+
 			logger.trace( "Sent interaction with {} parameter(s) for interaction class handle {}.",
 			              phvm.size(), interactionClassHandle );
 		}
@@ -1447,11 +1447,11 @@ public class RTIAmbassadorWrapper
 			                         makeSummary( interactionClassHandle ) );
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////// REQUESTS //////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	public void requestAttributeValueUpdate( HLAObject instance, Set<String> attributes )
 	{
 		requestAttributeValueUpdate( instance, attributes, null );
@@ -1469,13 +1469,13 @@ public class RTIAmbassadorWrapper
 		if( attributes == null )
 			throw new UCEFException( "%s attributes. Cannot request attribute update for %s.",
 			                         NULL_TEXT, makeSummary( instance ) );
-		
+
 		try
 		{
 			ObjectInstanceHandle instanceHandle = instance.instanceHandle;
 			ObjectClassHandle classHandle = getKnownObjectClassHandle( instanceHandle );
 			AttributeHandleSet attributeHandles = makeAttributeHandleSet( classHandle, attributes );
-			
+
 			requestAttributeValueUpdate( instanceHandle, attributeHandles, tag );
 		}
 		catch( Exception e )
@@ -1493,7 +1493,7 @@ public class RTIAmbassadorWrapper
 		if( attributes == null )
 			throw new UCEFException( "%s attribute handle set. Cannot request attribute update for %s.",
 			                         NULL_TEXT, makeSummary( handle ) );
-		
+
 		try
 		{
 			logger.trace( "Sending update request for {} attribute(s) for object instance handle {}...",
@@ -1507,14 +1507,14 @@ public class RTIAmbassadorWrapper
 			throw new UCEFException("Failed to request attribute update %s");
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// Utility Methods ////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * A utility method to convert a map containing parameter names and their associated byte
 	 * values into a populated {@link ParameterHandleValueMap}
-	 * 
+	 *
 	 * @param ich the interaction class handle with which the parameters are associated
 	 * @param source the map containing parameter names and their associated byte values
 	 * @return a populated {@link ParameterHandleValueMap}
@@ -1537,7 +1537,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * A utility method to convert a map containing attribute names and their associated byte
 	 * values into a populated {@link AttributeHandleValueMap}
-	 * 
+	 *
 	 * @param oih the object instance handle with which the attributes are associated
 	 * @param source the map containing attribute names and their associated byte values
 	 * @return a populated {@link AttributeHandleValueMap}
@@ -1557,12 +1557,12 @@ public class RTIAmbassadorWrapper
 		}
 		return result;
 	}
-	
+
 	/**
 	 * A utility method to encapsulate the code needed to convert a
 	 * {@link AttributeHandleValueMap} into a populated map containing attribute names and their
 	 * associated byte values
-	 * 
+	 *
 	 * @param oih the object instance handle with which the attributes are associated
 	 * @param source the map containing attribute names and their associated byte values
 	 * @return a populated {@link Map}
@@ -1583,7 +1583,7 @@ public class RTIAmbassadorWrapper
 	 * A utility method to encapsulate the code needed to convert a
 	 * {@link ParameterHandleValueMap} into a populated map containing parameter names and their
 	 * associated byte values
-	 * 
+	 *
 	 * @param ich the interaction class handle with which the parameters are associated
 	 * @param source the map containing parameter names and their associated byte values
 	 * @return a populated {@link Map}
@@ -1598,10 +1598,10 @@ public class RTIAmbassadorWrapper
 		}
 		return result;
 	}
-	
+
 	/**
 	 * A utility method to provide an zero-length byte array in place of a null as required
-	 * 
+	 *
 	 * @param byteArray the byte array
 	 * @return the original byte array if it is not null, or a zero length byte array otherwise
 	 */
@@ -1609,11 +1609,11 @@ public class RTIAmbassadorWrapper
 	{
 		return byteArray == null ? EMPTY_BYTE_ARRAY : byteArray;
 	}
-	
+
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding object instances
-	 * 
+	 *
 	 * @param instance the object
 	 * @return the details of the object
 	 */
@@ -1621,11 +1621,11 @@ public class RTIAmbassadorWrapper
 	{
 		return makeSummary( instance.getObjectInstanceHandle() );
 	}
-	
+
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding object instances
-	 * 
+	 *
 	 * @param handle the object instance handle
 	 * @return the details of the associated object instance
 	 */
@@ -1665,7 +1665,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding object class handles
-	 * 
+	 *
 	 * @param handle the object class handle
 	 * @return the details of the associated object class
 	 */
@@ -1687,11 +1687,11 @@ public class RTIAmbassadorWrapper
 
 		return details.toString();
 	}
-	
+
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding an attribute handle set (in the context of an object class handle)
-	 * 
+	 *
 	 * @param objectClassHandle the object class handle
 	 * @param attributes the attribute handle set
 	 * @return the details of the associated attributes
@@ -1709,7 +1709,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding an attribute handle (in the context of an object class handle)
-	 * 
+	 *
 	 * @param objectClassHandle the object class handle
 	 * @param attributeHandle the attribute handle
 	 * @return the details of the associated attribute
@@ -1736,7 +1736,7 @@ public class RTIAmbassadorWrapper
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding interactions
-	 * 
+	 *
 	 * @param interaction the interaction
 	 * @return the details of the interaction
 	 */
@@ -1744,11 +1744,11 @@ public class RTIAmbassadorWrapper
 	{
 		return makeSummary( getInteractionClassHandle( interaction) );
 	}
-	
+
 	/**
 	 * A utility method purely for the purpose of constructing meaningful text for error messages
 	 * regarding interaction class handles
-	 * 
+	 *
 	 * @param handle the interaction class handle
 	 * @return the details of the associated interaction class
 	 */
@@ -1770,7 +1770,7 @@ public class RTIAmbassadorWrapper
 
 		return details.toString();
 	}
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

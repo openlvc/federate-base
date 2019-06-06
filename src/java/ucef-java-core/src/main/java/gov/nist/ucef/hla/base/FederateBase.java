@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -47,27 +47,27 @@ public abstract class FederateBase
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( FederateBase.class );
-	
+
 	private static final double MIN_TIME = 0.1;
 	private static final double MAX_TIME = 0.2;
-	
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	protected FederateConfiguration configuration;
-	
+
 	protected RTIAmbassadorWrapper rtiamb;
 	protected FederateAmbassador fedamb;
-	
+
 	protected LifecycleState lifecycleState;
-	
+
 	private Map<ObjectClassHandle, Types.ObjectClass> objectClassByClassHandle;
 	private Map<ObjectInstanceHandle, Types.ObjectClass> objectClassByInstanceHandle;
 	private Map<ObjectInstanceHandle, HLAObject> hlaObjectByInstanceHandle;
 	private Map<InteractionClassHandle, Types.InteractionClass> interactionClassByHandle;
-	
+
 	private final Object mutex_lock = new Object();
-	
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
@@ -77,13 +77,13 @@ public abstract class FederateBase
 		this.fedamb = new FederateAmbassador( this );
 		this.configuration = new FederateConfiguration();
 		this.lifecycleState = LifecycleState.GESTATING;
-		
+
 		this.objectClassByClassHandle = new HashMap<>();
 		this.objectClassByInstanceHandle = new HashMap<>();
 		this.hlaObjectByInstanceHandle = new HashMap<>();
 		this.interactionClassByHandle = new HashMap<>();
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -97,31 +97,31 @@ public abstract class FederateBase
 	protected abstract boolean step( double currentTime ); // == 0
 	protected abstract void beforeReadyToResign();
 	protected abstract void beforeExit();
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	public abstract void receiveObjectRegistration( HLAObject hlaObject );
-	
+
 	public abstract void receiveAttributeReflection( HLAObject hlaObject);
 	public abstract void receiveAttributeReflection( HLAObject hlaObject, double time );
-	
+
 	public abstract void receiveInteraction( HLAInteraction hlaInteraction );
 	public abstract void receiveInteraction( HLAInteraction hlaInteraction, double time );
-	
+
 	public abstract void receiveObjectDeleted( HLAObject hlaObject );
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// Lifecycle State Query //////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Determine the current lifecycle state of this federate.
-	 * 
+	 *
 	 * <b>NOTE:</b> The lifecycyle state is managed by the federate itself (i.e.
 	 * {@link FederateBase} and cannot be manually altered.
-	 * 
+	 *
 	 * See also {@link LifecycleState} for possible states.
-	 * 
+	 *
 	 * This principally provides a mechanism for federate implementations to differentiate between
 	 * the main three cases:
 	 * <ol>
@@ -131,17 +131,17 @@ public abstract class FederateBase
 	 * <li>{@link LifecycleState#CLEANING_UP}: received in {@link #beforeReadyToResign()} or
 	 *         {@link #beforeExit()};</li>
 	 * </ol>
-	 * 
+	 *
 	 * This allows handling of incoming interactions and attribute reflections to be tailored to
 	 * the current lifecycle state of the federate.
-	 * 
+	 *
 	 * @return the current lifecycle state of this federate.
 	 */
 	public LifecycleState getLifecycleState()
 	{
 		return this.lifecycleState;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Federate Business ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,25 +154,25 @@ public abstract class FederateBase
 	{
 		return this.configuration;
 	}
-	
+
 	/**
 	 * This is the main method which carries out the life cycle of the federate
-	 * 
+	 *
 	 * @param configuration the configuration for the federate
 	 */
 	public void runFederate()
 	{
-		// - create and join the Federation, then 
+		// - create and join the Federation, then
 		// - publish and subscribe, and then
-		// - call the beforeReadyToPopulate(), beforeReadyToRun() and 
+		// - call the beforeReadyToPopulate(), beforeReadyToRun() and
 		//   beforeFirstStep() methods
 		this.lifecycleState = LifecycleState.INITIALIZING;
 		federateSetup();
-		
+
 		// - repeatedly call step() until simulation ends
 		this.lifecycleState = LifecycleState.RUNNING;
 		federateExecution();
-		
+
 		// - disable any time policy, then
 		// - call readyToResign() and beforeExit(), and then
 		// - resign and destroy the federation
@@ -180,7 +180,7 @@ public abstract class FederateBase
 		federateTeardown();
 		this.lifecycleState = LifecycleState.EXPIRED;
 	}
-	
+
 	/**
 	 * Carry out all steps required to get the federate ready to run through its main simulation loop
 	 */
@@ -188,7 +188,7 @@ public abstract class FederateBase
 	{
 		createAndJoinFederation();
 		enableTimePolicy();
-		
+
 		publishAndSubscribe();
 
 		tickForCallBacks();
@@ -198,11 +198,11 @@ public abstract class FederateBase
 		tickForCallBacks();
 		beforeReadyToRun();
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
-		
+
 		tickForCallBacks();
 		beforeFirstStep();
 	}
-	
+
 	/**
 	 * Run the federate through its main simulation loop
 	 */
@@ -216,7 +216,7 @@ public abstract class FederateBase
 			advanceTime();
 		}
 	}
-	
+
 	/**
 	 * Carry out all steps required to clean up and exit the federate
 	 */
@@ -226,16 +226,16 @@ public abstract class FederateBase
 
 		tickForCallBacks();
 		beforeReadyToResign();
-		
+
 		if( this.configuration.shouldSyncBeforeResign() )
 			synchronize( UCEFSyncPoint.READY_TO_RESIGN );
-		
+
 		tickForCallBacks();
 		beforeExit();
 
 		resignAndDestroyFederation();
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////// INCOMING INTERACTION/REFLECTION HANDLING /////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,21 +245,21 @@ public abstract class FederateBase
 		{
     		// just delegate to the default handler
     		Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
-    		
+
     		if( objectClass != null )
     		{
     			objectClassByInstanceHandle.put( instanceHandle, objectClass );
-    			
+
     			HLAObject hlaObject = new HLAObject( objectClass.name, instanceHandle );
     			hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
-    			
+
     			receiveObjectRegistration( hlaObject );
     		}
     		else
     		{
-    			logger.warn( "Discovered unrecognized object instance {}", 
+    			logger.warn( "Discovered unrecognized object instance {}",
     			             rtiamb.makeSummary( instanceHandle ) );
-    		}		
+    		}
 		}
 	}
 
@@ -268,7 +268,7 @@ public abstract class FederateBase
 		synchronized( mutex_lock )
 		{
 			HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
-    		
+
     		if( hlaObject != null )
     		{
     			hlaObject.setState( attributes );
@@ -280,7 +280,7 @@ public abstract class FederateBase
    			              	 rtiamb.makeSummary( handle ) );
     		}
 		}
-		
+
 		// just delegate to the default handler
 	}
 
@@ -289,7 +289,7 @@ public abstract class FederateBase
 		synchronized( mutex_lock )
 		{
     		HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
-    		
+
     		if( hlaObject != null )
     		{
     			hlaObject.setState( attributes );
@@ -347,7 +347,7 @@ public abstract class FederateBase
 			// clean up object maps as required
     		Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
     		HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
-    		
+
     		if( objectClass != null && hlaObject != null)
     		{
     			// just delegate to the default handler
@@ -364,10 +364,10 @@ public abstract class FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Create an interaction (with no parameter values)
-	 * 
+	 *
 	 * @param className the name of the interaction class
 	 * @return the interaction
 	 */
@@ -375,10 +375,10 @@ public abstract class FederateBase
 	{
 		return makeInteraction( className, null );
 	}
-	
+
 	/**
 	 * Create an interaction (with no parameter values)
-	 * 
+	 *
 	 * @param className the name of the interaction class
 	 * @param parameters the parameters for the interaction (may be an empty map or null)
 	 * @return the interaction
@@ -387,10 +387,10 @@ public abstract class FederateBase
 	{
 		return rtiamb.makeInteraction( className, parameters );
 	}
-	
+
 	/**
 	 * Create an interaction
-	 * 
+	 *
 	 * @param className the name of the interaction class
 	 * @return the interaction
 	 */
@@ -401,26 +401,26 @@ public abstract class FederateBase
 		{
 			interactionClass = interactionClassByHandle.get( handle );
 		}
-		
+
 		if( interactionClass == null )
 			return null;
 
 		return makeInteraction( interactionClass.name, parameters );
 	}
-	
+
 	/**
 	 * Publish the provided interaction to the federation
-	 * 
+	 *
 	 * @param interaction the interaction
 	 */
 	protected void sendInteraction( HLAInteraction interaction)
 	{
 		rtiamb.sendInteraction( interaction, null, null );
 	}
-	
+
 	/**
 	 * Publish the provided interaction to the federation with a tag (which can be null).
-	 * 
+	 *
 	 * @param interaction the interaction
 	 * @param tag the tag (can be null)
 	 */
@@ -432,7 +432,7 @@ public abstract class FederateBase
 	/**
 	 * Publish the provided interaction to the federation with a tag (which can be null) and
 	 * time-stamp.
-	 * 
+	 *
 	 * @param interaction the interaction
 	 * @param tag the tag (can be null)
 	 * @param time the time-stamp
@@ -445,7 +445,7 @@ public abstract class FederateBase
 	/**
 	 * Register the instance with the RTI. If the instance is already registered, there is no net
 	 * effect (i.e., it will not get re-registered or become a new instance).
-	 * 
+	 *
 	 * @param instance the object instance to be registered
 	 * @return the object instance
 	 */
@@ -453,10 +453,10 @@ public abstract class FederateBase
 	{
 		return this.rtiamb.registerObjectInstance( instance );
 	}
-	
+
 	/**
 	 * Update the provided instance out to the federation with a tag (which can be null).
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 */
@@ -464,10 +464,10 @@ public abstract class FederateBase
 	{
 		rtiamb.updateAttributeValues( instance, null, null );
 	}
-	
+
 	/**
 	 * Update the provided instance out to the federation with a tag (which can be null).
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 */
@@ -479,7 +479,7 @@ public abstract class FederateBase
 	/**
 	 * Update the provided instance out to the federation with a tag (which can be null) and
 	 * time-stamp.
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 * @param time the time-stamp
@@ -488,16 +488,16 @@ public abstract class FederateBase
 	{
 		rtiamb.updateAttributeValues( instance, tag, time );
 	}
-	
+
 	/**
 	 * A utility method to encapsulate the code needed to convert a {@link AttributeHandleValueMap} into
-	 * a populated map containing attribute names and their associated byte values 
-	 * 
+	 * a populated map containing attribute names and their associated byte values
+	 *
 	 * The object instance will most likely have been created in the first place by using the
 	 * {@link #makeObjectInstance(String)} or {@link #makeObjectInstance(String, Map)} method.
-	 * 
+	 *
 	 * We can only delete objects we created, or for which we own the privilegeToDelete attribute.
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @return the deleted instance
 	 */
@@ -508,12 +508,12 @@ public abstract class FederateBase
 
 	/**
 	 * This method will attempt to delete (i.e., de-register) the object instance from the RTI.
-	 * 
+	 *
 	 * The object instance will most likely have been created in the first place by using the
 	 * {@link #makeObjectInstance(String)} or {@link #makeObjectInstance(String, Map)} method.
-	 * 
+	 *
 	 * We can only delete objects we created, or for which we own the privilegeToDelete attribute.
-	 * 
+	 *
 	 * @param instance the object instance
 	 * @param tag the tag (can be null)
 	 * @return the deleted instance
@@ -522,11 +522,11 @@ public abstract class FederateBase
 	{
 		return rtiamb.deleteObjectInstance( instance, tag );
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Connects to the RTI and then creates and joins the federation (as per the provided
 	 * configuration)
@@ -535,12 +535,12 @@ public abstract class FederateBase
 	{
 		beforeFederationJoin();
 
-		rtiamb.connect( fedamb, configuration.callbacksAreEvoked() );
-		
+		rtiamb.connect( fedamb, configuration.callbacksAreImmediate() );
+
 		logger.info( "Federate {} connected to RTI.", configuration.getFederateName() );
-		
+
 		createFederation();
-		
+
 		joinFederation();
 	}
 
@@ -550,7 +550,7 @@ public abstract class FederateBase
 	protected void createFederation()
 	{
 		String federationName = configuration.getFederationName();
-		
+
 		if( !configuration.canCreateFederation() )
 		{
 			// this federate is not allowed to create federations - they must already
@@ -558,13 +558,13 @@ public abstract class FederateBase
 			logger.info( "No permission to create federation {} - skipping creation attempt....", federationName );
 			return;
 		}
-			
+
 		URL[] modules = configuration.getModules().toArray( new URL[0] );
 		rtiamb.createFederationExecution( federationName, modules );
-		
+
 		logger.info( "Federation {} created.", federationName );
 	}
-	
+
 	/**
 	 * Joins the federation, retrying on failures to join (as per the provided configuration)
 	 */
@@ -574,7 +574,7 @@ public abstract class FederateBase
 		String federateName = configuration.getFederateName();
 		String federateType = configuration.getFederateType();
 		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
-		
+
 		int retryCount = 0;
 		long retryInterval = configuration.getJoinRetryInterval();
 		int maxRetries = configuration.getMaxJoinAttempts();
@@ -588,10 +588,10 @@ public abstract class FederateBase
 					logger.warn( "Attempt {} of {} to join federation '{}'...",
 					             (retryCount+1), maxRetries, federationName );
 				}
-				
+
 				rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
 				hasJoinedFederation = true;
-				
+
 				logger.info( "Joined federation '{}'.", federationName );
 			}
 			catch(UCEFException e)
@@ -605,7 +605,7 @@ public abstract class FederateBase
 				delayFor( retryInterval * 1000 );
 			}
 		}
-		
+
 		if( !hasJoinedFederation )
 		{
 			logger.error( "Failed to join federation '{}' after {} attempt{}. Giving up.",
@@ -614,11 +614,11 @@ public abstract class FederateBase
                           (maxRetries == 1 ? "" : "s")  );
 		}
 	}
-	
+
 	/**
 	 * Registers the specified synchronization point, and then waits for the federation to reach
 	 * the same synchronization point
-	 * 
+	 *
 	 * @param syncPoint the UCEF standard synchronization point
 	 */
 	protected void synchronize( UCEFSyncPoint syncPoint )
@@ -628,10 +628,10 @@ public abstract class FederateBase
 		achieveSyncPoint( syncPoint.getLabel() );
 		waitForSyncPointAchievement( syncPoint.getLabel() );
 	}
-	
+
 	/**
 	 * Registers a synchronization point
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 * @param tag a tag to go along with the synchronization point registration (may be null)
 	 */
@@ -644,30 +644,30 @@ public abstract class FederateBase
 
 	/**
 	 * Waits for the announcement of a synchronization point
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 */
 	protected void waitForSyncPointAnnouncement( String label )
 	{
 		while( !fedamb.isAnnounced( label ) )
 		{
-			evokeMultipleCallbacks();
+			tickForCallBacks();
 		}
 	}
-	
+
 	/**
 	 * Check if a synchronization point has been announced
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 */
 	protected boolean isAnnounced( String label )
 	{
 		return fedamb.isAnnounced( label );
 	}
-	
+
 	/**
 	 * Achieves a synchronization point
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 */
 	protected void achieveSyncPoint( String label )
@@ -677,55 +677,40 @@ public abstract class FederateBase
 
 	/**
 	 * Waits for the federation to achieve the synchronization point
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 */
 	protected void waitForSyncPointAchievement( String label )
 	{
 		while( !fedamb.isAchieved( label ) )
 		{
-			evokeMultipleCallbacks();
+			tickForCallBacks();
 		}
 	}
-	
+
 	/**
 	 * Check if a synchronization point has been achieved yet
-	 * 
+	 *
 	 * @param label the synchronization point label
 	 */
 	protected void isAchieved( String label )
 	{
 		fedamb.isAchieved( label );
 	}
-	
+
 	/**
 	 * Advance time according to configuration
 	 */
 	protected void advanceTime()
 	{
-		// advance, or tick, or nothing!
-		if( this.configuration.isTimeStepped() )
-			advanceTime( fedamb.getFederateTime() + this.configuration.getLookAhead() );
-		else if( this.configuration.callbacksAreEvoked() )
-			evokeMultipleCallbacks();
-		else
-			;
-	}
-	
-	/**
-	 * Request a time advance and wait for the advancement
-	 * 
-	 * @param nextTime the time to advance to
-	 */
-	protected void advanceTime( double nextTime )
-	{
+		double nextTime = fedamb.getFederateTime() + this.configuration.getLookAhead();
 		rtiamb.timeAdvanceRequest( nextTime );
 		while( fedamb.getFederateTime() < nextTime )
 		{
-			evokeMultipleCallbacks();
+			tickForCallBacks();
 		}
 	}
-	
+
 	/**
 	 * Utility function to avoid having this same code everywhere - this will likely change in the
 	 * final implementation (i.e., probably not use the MIN_TIME/MAX_TIME parameters), so it will be
@@ -744,7 +729,7 @@ public abstract class FederateBase
 		resignFromFederation( null );
 		destroyFederation();
 	}
-	
+
 	/**
 	 * Resign from the federation
 	 */
@@ -752,7 +737,7 @@ public abstract class FederateBase
 	{
 		if( resignAction == null )
 			resignAction = ResignAction.DELETE_OBJECTS_THEN_DIVEST;
-		
+
 		rtiamb.resignFederationExecution( resignAction );
 	}
 
@@ -763,7 +748,7 @@ public abstract class FederateBase
 	{
 		rtiamb.destroyFederationExecution( configuration.getFederationName() );
 	}
-	
+
 	/**
 	 * Enable the time policy settings
 	 */
@@ -774,7 +759,7 @@ public abstract class FederateBase
 		while( fedamb.isTimeRegulated() == false )
 		{
 			// waiting for callback to confirm it's enabled
-			evokeMultipleCallbacks();
+			tickForCallBacks();
 		}
 
 		// enable time constrained
@@ -782,7 +767,7 @@ public abstract class FederateBase
 		while( fedamb.isTimeConstrained() == false )
 		{
 			// waiting for callback to confirm it's enabled
-			evokeMultipleCallbacks();
+			tickForCallBacks();
 		}
 	}
 
@@ -798,16 +783,16 @@ public abstract class FederateBase
 		rtiamb.disableTimeRegulation();
 		fedamb.setTimeRegulated( false );
 	}
-	
+
 	/**
-	 * Publish and subscribe to all configured interactions and reflected attributes 
+	 * Publish and subscribe to all configured interactions and reflected attributes
 	 */
 	protected void publishAndSubscribe()
 	{
 		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedObjectClasses();
-		for(ObjectClass objectClass : objectClasses)
+		for( ObjectClass objectClass : objectClasses )
 		{
-			if(objectClass.isPublished())
+			if( objectClass.isPublished() )
 			{
 				Set<String> attributes = objectClass.attributes.entrySet()
 					.stream()
@@ -827,20 +812,19 @@ public abstract class FederateBase
 			}
 		}
 		storeObjectClassData( objectClasses );
-		
+
 		Collection<InteractionClass> interactionClasses = configuration.getPublishedAndSubscribedInteractions();
 		// Collection<InteractionClass> interactionClasses = SOMParser.getInteractionClasses(configuration.getSomPaths());
-		
-		
-		for(InteractionClass interactionClass : interactionClasses)
+
+		for( InteractionClass interactionClass : interactionClasses )
 		{
-			if(interactionClass.isPublished())
+			if( interactionClass.isPublished() )
 			{
-				rtiamb.publishInteractionClass( interactionClass.name);
+				rtiamb.publishInteractionClass( interactionClass.name );
 			}
-			if(interactionClass.isSubscribed())
+			if( interactionClass.isSubscribed() )
 			{
-				rtiamb.subscribeInteractionClass( interactionClass.name);
+				rtiamb.subscribeInteractionClass( interactionClass.name );
 			}
 		}
 		storeInteractionClassData( interactionClasses );
@@ -848,27 +832,27 @@ public abstract class FederateBase
 
 	/**
 	 * Publish an interaction
-	 * 
+	 *
 	 * @param className the name of the interaction
 	 */
 	protected void publishInteraction( String className )
 	{
 		rtiamb.publishInteractionClass( className );
 	}
-	
+
 	/**
 	 * Subscribe to an interaction
-	 * 
+	 *
 	 * @param className the name of the interaction
 	 */
 	protected void subscribeInteraction( String className )
 	{
 		rtiamb.subscribeInteractionClass( className );
 	}
-	
+
 	/**
 	 * Publish an attribute reflection
-	 * 
+	 *
 	 * @param className the name of the object to which the attributes belong
 	 * @param attributes the names of the attributes to be published
 	 */
@@ -876,10 +860,10 @@ public abstract class FederateBase
 	{
 		rtiamb.publishObjectClassAttributes( className, attributes );
 	}
-	
+
 	/**
 	 * Subscribe to an attribute reflection
-	 * 
+	 *
 	 * @param className the name of the object to which the attributes belong
 	 * @param attributes the names of the attributes of interest
 	 */
@@ -887,7 +871,7 @@ public abstract class FederateBase
 	{
 		rtiamb.subscribeObjectClassAttributes( className, attributes );
 	}
-	
+
 	private void storeObjectClassData( Collection<Types.ObjectClass> objectClasses )
 	{
 		synchronized( mutex_lock )
@@ -911,15 +895,15 @@ public abstract class FederateBase
 			}
 		}
 	}
-	
+
 	private void tickForCallBacks()
 	{
-		if( this.configuration.callbacksAreEvoked() )
-			evokeMultipleCallbacks();
-		else
+		if( this.configuration.callbacksAreImmediate() )
 			delayFor(1);
-	}	
-	
+		else
+			evokeMultipleCallbacks();
+	}
+
 	private void delayFor(long milliseconds)
 	{
 		try
@@ -931,7 +915,7 @@ public abstract class FederateBase
 			// ignore
 		}
 	}
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

@@ -45,6 +45,12 @@
 					<transportation>HLAreliable</transportation>
 					<order>TimeStamp</order>
 					<interactionClass>
+						<name>SimStart</name>
+						<sharing>PublishSubscribe</sharing>
+						<transportation>HLAreliable</transportation>
+						<order>TimeStamp</order>
+					</interactionClass>
+					<interactionClass>
 						<name>SimEnd</name>
 						<sharing>PublishSubscribe</sharing>
 						<transportation>HLAreliable</transportation>
