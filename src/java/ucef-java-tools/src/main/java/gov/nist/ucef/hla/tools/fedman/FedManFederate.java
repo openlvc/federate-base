@@ -30,8 +30,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import org.apache.commons.cli.ParseException;
-
 import gov.nist.ucef.hla.base.FederateAmbassador;
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAObject;
@@ -75,6 +73,7 @@ public class FedManFederate extends NoOpFederate
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private FedManCmdLineProcessor argProcessor;
+
 	private FedManStartRequirements startRequirements;
 
 	private double logicalSecond;
@@ -100,26 +99,16 @@ public class FedManFederate extends NoOpFederate
 	 *
 	 * @param args command line arguments
 	 */
-	public FedManFederate( String[] args )
+	public FedManFederate( FedManCmdLineProcessor argProcessor )
 	{
 		super();
 
-		argProcessor = new FedManCmdLineProcessor( FedManConstants.EXEC_NAME, FedManConstants.CONSOLE_WIDTH );
-		try
-		{
-			argProcessor.processArgs( args );
-		}
-		catch( ParseException e )
-		{
-			System.err.println( "ERROR: "+ e.getMessage() );
-			argProcessor.showHelp();
-			System.exit( 1 );
-		}
+		this.argProcessor = argProcessor;
 
 		this.maxTime = 30.0;
 		this.nextTimeAdvance = -1;
 
-		this.startRequirements = new FedManStartRequirements( argProcessor.startRequirements() );
+		this.startRequirements = argProcessor.startRequirements();
 		this.logicalSecond = argProcessor.logicalSecond();
 		this.realTimeMultiplier = argProcessor.realTimeMultiplier();
 		this.wallClockStepDelay = argProcessor.wallClockStepDelay();
