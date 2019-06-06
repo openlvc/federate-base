@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -52,18 +52,18 @@ import gov.nist.ucef.hla.base.Types.ObjectClass;
 
 /**
  * The purpose of this class is to encapsulate all data required to configure a federate.
- * 
+ *
  * Most "setter" methods return the FederateConfiguratio instance to support method chaining.
- * 
+ *
  * The main usage pattern is something like:
- * 
- * 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets", 
- * 		                                                          "FederateName", 
+ *
+ * 		FederateConfiguration config = new FederateConfiguration( "TheUnitedFederationOfPlanets",
+ * 		                                                          "FederateName",
  * 		                                                          "TestFederate" );
  * 		config.setLookAhead(0.5)
  * 			.cacheInteractionClasses(
  *              InteractionClass.Pub( PING_INTERACTION_ID ),
- *              InteractionClass.Sub( PONG_INTERACTION_ID ) 
+ *              InteractionClass.Sub( PONG_INTERACTION_ID )
  *          );
  */
 public class FederateConfiguration
@@ -72,14 +72,13 @@ public class FederateConfiguration
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( FederateBase.class );
-	
+
 	// defaults for configuration values
 	private static final boolean DEFAULT_SHOULD_CREATE_FEDERATION = false;
 	private static final int DEFAULT_MAX_JOIN_ATTEMPTS            = 5;
 	private static final long DEFAULT_JOIN_RETRY_INTERVAL_SEC     = 5;
 	private static final boolean DEFAULT_SYNC_BEFORE_RESIGN       = false;
-	private static final boolean DEFAULT_IS_TIME_STEPPED          = true;
-	private static final boolean DEFAULT_ARE_CALLBACKS_EVOKED     = false;
+	private static final boolean DEFAULT_ARE_CALLBACKS_IMMEDIATE  = true;
 	private static final double DEFAULT_LOOK_AHEAD                = 1.0;
 	private static final double DEFAULT_STEP_SIZE                 = 0.1;
 
@@ -92,8 +91,7 @@ public class FederateConfiguration
 	private static final String JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS       = "maxJoinAttempts";
 	private static final String JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC = "joinRetryIntervalSec";
 	private static final String JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN      = "syncBeforeResign";
-	private static final String JSON_CONFIG_KEY_IS_TIME_STEPPED         = "isTimeStepped";
-	private static final String JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED    = "callbacksAreEvoked";
+	private static final String JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE = "callbacksAreImmediate";
 	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
 
 	//----------------------------------------------------------
@@ -104,21 +102,21 @@ public class FederateConfiguration
 	private String federateType;
 	private Set<URL> modules;
 	private Set<URL> joinModules;
-	
+
 	private Set<String> foms;
-	private String som;	
-	
+	private String som;
+
 	private Map<String,Types.InteractionClass> interactionsByName;
 	private Map<String,Types.ObjectClass> objectClassesByName;
 
 	private boolean canCreateFederation;
 	private int maxJoinAttempts;
 	private long joinRetryIntervalSec;
-	
+
 	private boolean syncBeforeResign;
-	
+
 	private boolean isTimeStepped;
-	private boolean callbacksAreEvoked;
+	private boolean callbacksAreImmediate;
 	private double lookAhead;
 	private double stepSize;
 
@@ -134,7 +132,7 @@ public class FederateConfiguration
 		      "Federate_" + UUID.randomUUID(),
 		      "FederateType_" + UUID.randomUUID() );
 	}
-	
+
 	/**
 	 * Constructor - the federation name, federate name and federation types are supplied, and all
 	 * other properties are left as defaults and or empty.
@@ -150,21 +148,20 @@ public class FederateConfiguration
 
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
-		
+
 		this.foms = new HashSet<>();
 		this.som = null;
-		
+
 		this.objectClassesByName = new HashMap<>();
 		this.interactionsByName = new HashMap<>();
-		
+
 		this.canCreateFederation = DEFAULT_SHOULD_CREATE_FEDERATION;
 		this.maxJoinAttempts = DEFAULT_MAX_JOIN_ATTEMPTS;
 		this.joinRetryIntervalSec = DEFAULT_JOIN_RETRY_INTERVAL_SEC;
-		
+
 		this.syncBeforeResign = DEFAULT_SYNC_BEFORE_RESIGN;
-		
-		this.isTimeStepped = DEFAULT_IS_TIME_STEPPED;
-		this.callbacksAreEvoked = DEFAULT_ARE_CALLBACKS_EVOKED;
+
+		this.callbacksAreImmediate = DEFAULT_ARE_CALLBACKS_IMMEDIATE;
 		this.lookAhead = DEFAULT_LOOK_AHEAD;
 		this.stepSize = DEFAULT_STEP_SIZE;
 	}
@@ -174,15 +171,15 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	/**
 	 * Provide configuration details from a file containing JSON structured data
-	 * 
+	 *
 	 * Only recognized configuration items in the JSON structure will be processed; any other
 	 * items will be ignored.
-	 * 
+	 *
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
-	 * 
+	 *
 	 * Currently recognized configuration items are:
-	 * 
+	 *
 	 * {
 	 *     "federateName":         STRING,
 	 *     "federateType":         STRING,
@@ -196,7 +193,7 @@ public class FederateConfiguration
 	 *     "lookAhead":            DOUBLE,
 	 *     "stepSize":             DOUBLE
 	 * }
-	 *   
+	 *
 	 * @param config the file containing the JSON configuration data
 	 */
 	public void fromJSON(File config)
@@ -217,18 +214,18 @@ public class FederateConfiguration
 			                         config.getAbsolutePath() );
 		}
 	}
-	
+
 	/**
 	 * Provide configuration details from a {@link String} containing JSON structured data
-	 * 
+	 *
 	 * Only recognized configuration items in the JSON structure will be processed; any other
 	 * items will be ignored.
-	 * 
+	 *
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
 	 *
 	 * Currently recognized configuration items are:
-	 * 
+	 *
 	 * {
 	 *     "federateName":         STRING,
 	 *     "federateType":         STRING,
@@ -242,7 +239,7 @@ public class FederateConfiguration
 	 *     "lookAhead":            DOUBLE,
 	 *     "stepSize":             DOUBLE
 	 * }
-	 * 
+	 *
 	 * @param config the {@link String} containing the JSON configuration data
 	 */
 	public void fromJSON(String config)
@@ -253,12 +250,12 @@ public class FederateConfiguration
 			if(parsedString instanceof JSONObject)
 			{
 				JSONObject configData = (JSONObject)parsedString;
-				
+
 				// show warnings for any unrecognized configuration items found
 				// so that problems can be resolved quickly
 				Set<String> recognizedConfigurationKeys = new HashSet<>();
 				recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
-    				{ 
+    				{
                         JSON_CONFIG_KEY_FEDERATE_NAME,
                         JSON_CONFIG_KEY_FEDERATE_TYPE,
                         JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
@@ -266,8 +263,7 @@ public class FederateConfiguration
                         JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS,
                         JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC,
                         JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
-                        JSON_CONFIG_KEY_IS_TIME_STEPPED,
-                        JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED,
+                        JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
                         JSON_CONFIG_KEY_LOOK_AHEAD,
                         JSON_CONFIG_KEY_STEP_SIZE
                     }
@@ -280,12 +276,12 @@ public class FederateConfiguration
 						logger.warn( String.format( "Configuration item '%s' with "+
 													 "value '%s' in JSON configuration data "+
 													 "is not recognized and will be ignored.",
-						                            key.toString(), value.toString() ) 
+						                            key.toString(), value.toString() )
 						           );
 					}
 				}
-				
-				// process configuration - note that in *all* cases we try to look 
+
+				// process configuration - note that in *all* cases we try to look
 				// up the value from the JSON and fall back to the existing value
 				// if there is no value available
 				this.federateName = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATE_NAME, this.federateName );
@@ -298,8 +294,7 @@ public class FederateConfiguration
 
 				this.syncBeforeResign = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN, this.syncBeforeResign );
 
-				this.isTimeStepped = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_IS_TIME_STEPPED, this.isTimeStepped );
-				this.callbacksAreEvoked = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CALLBACKS_ARE_EVOKED, this.callbacksAreEvoked );
+				this.callbacksAreImmediate = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE, this.callbacksAreImmediate );
 				this.lookAhead = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_LOOK_AHEAD, this.lookAhead );
 				this.stepSize = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_STEP_SIZE, this.stepSize );
 			}
@@ -317,29 +312,29 @@ public class FederateConfiguration
 			throw new UCEFException( e, "There were problems processing the configuration JSON." );
 		}
 	}
-	
+
 	public String summary()
 	{
 		String dashRule = "------------------------------------------------------------\n";
 		String dotRule = "............................................................\n";
-		
+
 		StringBuilder builder = new StringBuilder();
-		
+
 		builder.append( dashRule );
 		builder.append( "Federation Name            : " + this.federationExecName + "\n" );
 		builder.append( "Federate Name              : " + this.federateName + "\n" );
 		builder.append( "Federate Type              : " + this.federateType + "\n" );
-		
+
 		builder.append( dotRule );
 		builder.append( "Create Federation?         : " + (this.canCreateFederation?"Yes":"No") + "\n" );
 		builder.append( "Maximum Recconect Attempts : " + this.maxJoinAttempts + "\n" );
 		builder.append( "Reconnect Wait Time        : " + this.joinRetryIntervalSec + " seconds\n" );
 		builder.append( "Sync before resigning?     : " + (this.syncBeforeResign?"Yes":"No") + "\n" );
 		builder.append( "Time Stepped?              : " + (this.isTimeStepped?"Yes":"No") + "\n" );
-		builder.append( "Are Callbacks Evoked?      : " + (this.callbacksAreEvoked?"Yes":"No") + "\n" );
+		builder.append( "Are Callbacks Immediate?   : " + (this.callbacksAreImmediate?"Yes":"No") + "\n" );
 		builder.append( "Look Ahead                 : " + this.lookAhead + "\n" );
 		builder.append( "Step Size                  : " + this.stepSize + "\n" );
-		
+
 		builder.append( dotRule );
 		builder.append( "Published Attributes:\n" );
 		Collection<Types.ObjectClass> attributes = getPublishedObjectClasses();
@@ -362,7 +357,7 @@ public class FederateConfiguration
 				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
 			}
 		}
-		
+
 		builder.append( dotRule );
 		builder.append( "Subscribed Attributes:\n" );
 		attributes = getSubscribedObjectClasses();
@@ -385,7 +380,7 @@ public class FederateConfiguration
 				attributeNames.forEach( ( x ) -> builder.append( "\t\t" + x + "\n" ) );
 			}
 		}
-		
+
 		builder.append( dotRule );
 		builder.append( "Published Interactions:\n" );
 		Collection<Types.InteractionClass> interactions = getPublishedInteractions();
@@ -399,7 +394,7 @@ public class FederateConfiguration
 			pubInteractionList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
 			pubInteractionList.forEach( ( x ) -> builder.append( "\t" + x.name + "\n" ) );
 		}
-		
+
 		builder.append( dotRule );
 		builder.append( "Subscribed Interactions:\n" );
 		interactions = getSubscribedInteractions();
@@ -413,9 +408,9 @@ public class FederateConfiguration
 			subInteractionList.sort( ( a, b ) -> a.name.compareTo( b.name ) );
 			subInteractionList.forEach( ( x ) -> builder.append( "\t" + x.name + "\n" ) );
 		}
-		
+
 		builder.append( dashRule );
-		
+
 		return builder.toString();
 	}
 
@@ -424,7 +419,7 @@ public class FederateConfiguration
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Set the federation execution name
-	 * 
+	 *
 	 * @param federationExecName the federation execution name
 	 */
 	public FederateConfiguration setFederationName( String federationExecName )
@@ -432,10 +427,10 @@ public class FederateConfiguration
 		this.federationExecName = federationExecName;
 		return this;
 	}
-	
+
 	/**
 	 * Obtain the configured federation name
-	 * 
+	 *
 	 * @return the configured federation name (not modifiable)
 	 */
 	public String getFederationName()
@@ -443,10 +438,10 @@ public class FederateConfiguration
 		return federationExecName;
 	}
 
-	
+
 	/**
 	 * Set the federate name
-	 * 
+	 *
 	 * @param federateName the federate name
 	 */
 	public FederateConfiguration setFederateName( String federateName )
@@ -454,10 +449,10 @@ public class FederateConfiguration
 		this.federateName = federateName;
 		return this;
 	}
-	
+
 	/**
 	 * Obtain the configured federate name
-	 * 
+	 *
 	 * @return the configured federate name (not modifiable)
 	 */
 	public String getFederateName()
@@ -467,7 +462,7 @@ public class FederateConfiguration
 
 	/**
 	 * Set the federate type
-	 * 
+	 *
 	 * @param federateType the federate type
 	 */
 	public FederateConfiguration setFederateType( String federateType )
@@ -475,10 +470,10 @@ public class FederateConfiguration
 		this.federateType = federateType;
 		return this;
 	}
-	
+
 	/**
 	 * Obtain the configured federate type
-	 * 
+	 *
 	 * @return the configured federate type (not modifiable)
 	 */
 	public String getFederateType()
@@ -489,7 +484,7 @@ public class FederateConfiguration
 	/**
 	 * Configure whether the federate is able to create a federation if the federation is absent
 	 * on startup
-	 * 
+	 *
 	 * @param canCreateFederation if true, the federate can attempt to create the required
 	 *            federation on startup, otherwise it is not allowed to create any new federations
 	 * @return this instance (for method chaining)
@@ -499,21 +494,21 @@ public class FederateConfiguration
 		this.canCreateFederation = canCreateFederation;
 		return this;
 	}
-	
+
 	/**
 	 * Determine whether the federate should be able to create a required federation if it is
 	 * absent
-	 * 
+	 *
 	 * @return true if the federate should be able to create federations, false otherwise
 	 */
 	public boolean canCreateFederation()
 	{
 		return canCreateFederation;
 	}
-	
+
 	/**
 	 * Configure the federate's maximum number of attempts to join a federation
-	 * 
+	 *
 	 * @param maxJoinAttempts the maximum number of attempts to join a federation
 	 * @return this instance (for method chaining)
 	 */
@@ -525,7 +520,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the maximum number of attempts to join a federation
-	 * 
+	 *
 	 * @return the maximum number of attempts to join a federation
 	 */
 	public int getMaxJoinAttempts()
@@ -535,7 +530,7 @@ public class FederateConfiguration
 
 	/**
 	 * Configure the interval, in seconds, between attempts to join a federation
-	 * 
+	 *
 	 * @param retryIntervalSec the interval, in seconds, between attempts to join a federation
 	 * @return this instance (for method chaining)
 	 */
@@ -547,7 +542,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the interval, in seconds, between attempts to join a federation
-	 * 
+	 *
 	 * @return the interval, in seconds, between attempts to join a federation
 	 */
 	public long getJoinRetryInterval()
@@ -557,7 +552,7 @@ public class FederateConfiguration
 
 	/**
 	 * Configure whether the federate should synchronize before resigning from the federation
-	 * 
+	 *
 	 * @param syncBeforeResign if true, synchronize before resigning from the federation, otherwise
 	 *        it's OK to exit without synchronizing
 	 * @return this instance (for method chaining)
@@ -567,21 +562,21 @@ public class FederateConfiguration
 		this.syncBeforeResign = syncBeforeResign;
 		return this;
 	}
-	
+
 	/**
 	 * Determine whether the federate should synchronize before resigning from the federation
-	 * 
-	 * @return true if the federate must synchronize before resigning from the federation, 
+	 *
+	 * @return true if the federate must synchronize before resigning from the federation,
 	 *         otherwise it's OK to exit without synchronizing
 	 */
 	public boolean shouldSyncBeforeResign()
 	{
 		return syncBeforeResign;
 	}
-	
+
 	/**
 	 * Configure the federate's lookahead
-	 * 
+	 *
 	 * @param lookAhead the lookahead
 	 * @return this instance (for method chaining)
 	 */
@@ -592,7 +587,7 @@ public class FederateConfiguration
 	}
 	/**
 	 * Obtain the lookahead
-	 * 
+	 *
 	 * @return the lookahead
 	 */
 	public double getLookAhead()
@@ -603,7 +598,7 @@ public class FederateConfiguration
 
 	/**
 	 * Configure the federate's step size
-	 * 
+	 *
 	 * @param stepSize the step size
 	 * @return this instance (for method chaining)
 	 */
@@ -615,7 +610,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the step size
-	 * 
+	 *
 	 * @return the step size
 	 */
 	public double getStepSize()
@@ -624,52 +619,30 @@ public class FederateConfiguration
 	}
 
 	/**
-	 * Configure whether the federate is configured to be time stepped
-	 * 
-	 * @param isTimeStepped true if the federate to be time stepped, false otherwise
+	 * Configure whether the federate is configured to use immediate or evoked callbacks
+	 *
+	 * @param callbacksAreEvoked true if the federate is configured to use immediate callbacks, false otherwise
 	 * @return this instance (for method chaining)
 	 */
-	public FederateConfiguration setTimeStepped( boolean isTimeStepped )
+	public FederateConfiguration setCallbacksAreImmediate( boolean callbacksAreImmediate )
 	{
-		this.isTimeStepped = isTimeStepped;
+		this.callbacksAreImmediate = callbacksAreImmediate;
 		return this;
 	}
-	
+
 	/**
-	 * Determine if the federate is configured to be time stepped
-	 * 
-	 * @return true if the federate is configured to be time stepped, false otherwise
+	 * Determine if the federate is configured to use immediate or evoked callbacks
+	 *
+	 * @return true if the federate is configured to use immediate callbacks
 	 */
-	public boolean isTimeStepped()
+	public boolean callbacksAreImmediate()
 	{
-		return isTimeStepped;
+		return callbacksAreImmediate;
 	}
-	
-	/**
-	 * Configure whether the federate is configured to use evoked callbacks
-	 * 
-	 * @param callbacksAreEvoked true if the federate is configured to use evoked callbacks, false otherwise
-	 * @return this instance (for method chaining)
-	 */
-	public FederateConfiguration setCallbacksAreEvoked( boolean callbacksAreEvoked )
-	{
-		this.callbacksAreEvoked = callbacksAreEvoked;
-		return this;
-	}
-	
-	/**
-	 * Determine if the federate is configured to use evoked callbacks
-	 * 
-	 * @return true if the federate is configured to use evoked callbacks
-	 */
-	public boolean callbacksAreEvoked()
-	{
-		return callbacksAreEvoked;
-	}
-	
+
 	/**
 	 * Add a FOM module to the configuration
-	 * 
+	 *
 	 * @param module the FOM module to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -680,7 +653,7 @@ public class FederateConfiguration
 
 	/**
 	 * Add FOM modules to the configuration
-	 * 
+	 *
 	 * @param modules the FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -691,7 +664,7 @@ public class FederateConfiguration
 
 	/**
 	 * Add FOM modules to the configuration
-	 * 
+	 *
 	 * @param modules the FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -706,7 +679,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the configured FOM modules
-	 * 
+	 *
 	 * @return the configured FOM modules (not modifiable)
 	 */
 	public Collection<URL> getModules()
@@ -716,7 +689,7 @@ public class FederateConfiguration
 
 	/**
 	 * Add a join FOM module to the configuration
-	 * 
+	 *
 	 * @param joinModule the join FOM module to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -727,7 +700,7 @@ public class FederateConfiguration
 
 	/**
 	 * Add join FOM modules to the configuration
-	 * 
+	 *
 	 * @param joinModules the join FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -738,7 +711,7 @@ public class FederateConfiguration
 
 	/**
 	 * Add join FOM modules to the configuration
-	 * 
+	 *
 	 * @param joinModules the join FOM modules to add to the configuration
 	 * @return this instance (for method chaining)
 	 */
@@ -750,17 +723,17 @@ public class FederateConfiguration
 		}
 		return this;
 	}
-	
+
 	/**
 	 * Obtain the configured join FOM modules
-	 * 
+	 *
 	 * @return the configured join FOM modules (not modifiable)
 	 */
 	public Collection<URL> getJoinModules()
 	{
 		return Collections.unmodifiableSet( joinModules );
 	}
-	
+
 	public Set<String> getFomPaths()
 	{
 		return this.foms;
@@ -790,7 +763,7 @@ public class FederateConfiguration
 	{
 		this.som = path;
 		return this;
-	}	
+	}
 
 	/**
 	 * Add one or more object classes that may be published or subscribed (or both or neither!) by
@@ -856,17 +829,17 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the interactions which are both published *and* subscribed by this federate
-	 * 
+	 *
 	 * @return the interactions which are both published *and* subscribed (not modifiable)
 	 */
 	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
 	{
 		return Collections.unmodifiableCollection( interactionsByName.values() );
 	}
-	
+
 	/**
 	 * Obtain the interactions which are published by this federate.
-	 * 
+	 *
 	 * @return the published interactions (not modifiable)
 	 */
 	public Collection<Types.InteractionClass> getPublishedInteractions()
@@ -879,7 +852,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the interactions which are subscribed to by this federate.
-	 * 
+	 *
 	 * @return the subscribed interactions (not modifiable)
 	 */
 	public Collection<Types.InteractionClass> getSubscribedInteractions()
@@ -892,17 +865,17 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the object classes which are both published *and* subscribed by this federate.
-	 * 
+	 *
 	 * @return the object classes which are both published *and* subscribed (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getPublishedAndSubscribedObjectClasses()
 	{
 		return Collections.unmodifiableCollection( objectClassesByName.values() );
 	}
-	
+
 	/**
 	 * Obtain the object classes which are published by this federate.
-	 * 
+	 *
 	 * @return Obtain the object classes which are published (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getPublishedObjectClasses()
@@ -915,7 +888,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the object classes which are subscribed to by this federate.
-	 * 
+	 *
 	 * @return the object classes which are subscribed (not modifiable)
 	 */
 	public Collection<Types.ObjectClass> getSubscribedObjectClasses()
@@ -925,7 +898,7 @@ public class FederateConfiguration
 			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
 	}
-	
+
 	/**
 	 * Returns the fully qualified names of the interaction classes which are published by this
 	 * federate.
@@ -956,7 +929,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the names of the published attributes of a given object class.
-	 * 
+	 *
 	 * If no object class can be resolved from the given fully qualified object class name, an
 	 * empty {@link Set} is returned.
 	 *
@@ -966,10 +939,10 @@ public class FederateConfiguration
 	public Set<String> getPublishedAttributeNames( String className )
 	{
 		ObjectClass objectClass = this.objectClassesByName.get( className );
-		
+
 		if( objectClass == null )
 			return Collections.emptySet();
-		
+
 		return objectClass.attributes.values()
 			.stream()
 			.filter(attr -> attr.isPublished())
@@ -979,7 +952,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the names of the subscribed attributes of a given object class.
-	 * 
+	 *
 	 * If no object class can be resolved from the given fully qualified object class name, an
 	 * empty {@link Set} is returned.
 	 *
@@ -989,10 +962,10 @@ public class FederateConfiguration
 	public Set<String> getSubscribedAttributeNames( String className )
 	{
 		ObjectClass objectClass = this.objectClassesByName.get( className );
-		
+
 		if( objectClass == null )
 			return Collections.emptySet();
-		
+
 		return objectClass.attributes.values()
 			.stream()
 			.filter(attr -> attr.isSubscribed())
@@ -1002,7 +975,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the names of the parameters of a given interaction class.
-	 * 
+	 *
 	 * If no interaction class can be resolved from the given fully qualified interaction class
 	 * name, an empty {@link Set} is returned.
 	 *
@@ -1012,16 +985,16 @@ public class FederateConfiguration
 	public Set<String> getParameterNames( String interactionName )
 	{
 		InteractionClass interactionClass = this.interactionsByName.get( interactionName );
-		
+
 		if( interactionClass == null )
 			return Collections.emptySet();
-		
+
 		return interactionClass.parameters.keySet();
 	}
 
 	/**
 	 * Obtain the fully qualified names of all object classes published by this federate.
-	 * 
+	 *
 	 * @return the fully qualified names of the published object classes (not modifiable)
 	 */
 	public Set<String> getPublishedClassNames()
@@ -1034,7 +1007,7 @@ public class FederateConfiguration
 
 	/**
 	 * Obtain the fully qualified names of all object classes subscribed to by this federate.
-	 * 
+	 *
 	 * @return the fully qualified names of the subscribed object classes (not modifiable)
 	 */
 	public Set<String> getSubscribedClassNames()
@@ -1044,13 +1017,13 @@ public class FederateConfiguration
 			.map(x -> x.name)
 			.collect(Collectors.toSet());
 	}
-	
+
 	/**
 	 * Returns the data type of the an object class attribute or interaction parameter given the
 	 * fully qualified name and member name
-	 * 
+	 *
 	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned.
-	 * 
+	 *
 	 * NOTE: The fully qualified name of an interaction or object class includes the
 	 * `HLAobjectRoot` or `HLAinteractionRoot` namespace. This means is not possible for names of
 	 * interactions and object classes to collide (even if the "local" name for an interaction and
@@ -1074,7 +1047,7 @@ public class FederateConfiguration
 			InteractionParameter parameter = interactionClass.parameters.get( memberName );
 			return parameter == null ? DataType.UNKNOWN : parameter.dataType;
 		}
-		
+
 		// no interaction match - try to match on known object classes...
 		ObjectClass objectClass = this.objectClassesByName.get( className );
 		if( objectClass != null )
@@ -1083,19 +1056,19 @@ public class FederateConfiguration
 			ObjectAttribute attribute = objectClass.attributes.get( memberName );
 			return attribute == null ? DataType.UNKNOWN : attribute.dataType;
 		}
-		
-		// no interaction or object class found matching the provided 
+
+		// no interaction or object class found matching the provided
 		// fully qualified class name
 		return DataType.UNKNOWN;
 	}
-		
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// Utility Methods /////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Utility method to turn an array of {@link InteractionClass}s into a {@link Collection} of
 	 * {@link InteractionClass}s
-	 * 
+	 *
 	 * @param values the array of {@link InteractionClass}s
 	 * @return a {@link Collection} of {@link InteractionClass}s
 	 */
@@ -1103,11 +1076,11 @@ public class FederateConfiguration
 	{
 		return values == null ? Collections.emptyList() : Arrays.asList( values );
 	}
-	
+
 	/**
 	 * Utility method to turn an array of {@link ObjectClass}s into a {@link Collection} of
 	 * {@link ObjectClass}s
-	 * 
+	 *
 	 * @param values the array of {@link ObjectClass}s
 	 * @return a {@link Collection} of {@link ObjectClass}s
 	 */
@@ -1115,10 +1088,10 @@ public class FederateConfiguration
 	{
 		return values == null ? Collections.emptyList() : Arrays.asList( values );
 	}
-	
+
 	/**
 	 * Utility method to turn an array of {@link URL}s into a {@link Collection} of {@link URL}s
-	 * 
+	 *
 	 * @param values the array of {@link URL}s
 	 * @return a {@link Collection} of {@link URL}s
 	 */
@@ -1130,7 +1103,7 @@ public class FederateConfiguration
 	/**
 	 * Utility method to collect all the non null/non empty {@link String}s in a collection and
 	 * return them as a new {@link Collection}
-	 * 
+	 *
 	 * @param values the values
 	 * @return the {@link Collection} of non-null/non-empty values
 	 */
@@ -1142,7 +1115,7 @@ public class FederateConfiguration
 	/**
 	 * Utility method to collect all the non null/non empty {@link URL}s in a collection and
 	 * return them as a new {@link Collection}
-	 * 
+	 *
 	 * @param values the values
 	 * @return the {@link Collection} of non-null/non-empty values
 	 */
@@ -1153,7 +1126,7 @@ public class FederateConfiguration
 
 	/**
 	 * Utility method to make sure that a string is neither null nor empty
-	 * 
+	 *
 	 * @param toTest the {@link String} to test
 	 * @return true if the string is neither null nor empty, false if it is null or empty
 	 */
@@ -1164,7 +1137,7 @@ public class FederateConfiguration
 
 	/**
 	 * Utility method to make sure that a URL is neither null nor empty
-	 * 
+	 *
 	 * @param toTest the {@link URL} to test
 	 * @return true if the URL is neither null nor empty, false if it is null or empty
 	 */
@@ -1175,7 +1148,7 @@ public class FederateConfiguration
 
 	/**
 	 * Utility method to make sure that a collection is neither null nor empty
-	 * 
+	 *
 	 * @param toTest the {@link Collection} to test
 	 * @return true if the collection is neither null nor empty, false if it is null or empty
 	 */
@@ -1183,16 +1156,16 @@ public class FederateConfiguration
 	{
 		return toTest != null && !toTest.isEmpty();
 	}
-	
+
 	/**
 	 * Utility method to extract a {@link String} value from a {@link JSONObject} based on a
 	 * {@link String} key
-	 * 
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
 	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key 
+	 * @return the extracted value, or the default value if there was no such key
 	 */
 	private String jsonStringOrDefault( JSONObject root, String key, String defaultValue )
 	{
@@ -1206,25 +1179,25 @@ public class FederateConfiguration
 
 				return (String)value;
 			}
-			
+
 			throw new UCEFException( "Expected a string value for '%s' but found '%s'",
 			                         key, value.toString() );
 		}
 		if(logger.isDebugEnabled())
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-		
+
 		return defaultValue;
 	}
-	
+
 	/**
 	 * Utility method to extract an {@link Integer} value from a {@link JSONObject} based on a
 	 * {@link String} key
-	 * 
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
 	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key 
+	 * @return the extracted value, or the default value if there was no such key
 	 */
 	private int jsonIntOrDefault( JSONObject root, String key, int defaultValue )
 	{
@@ -1236,28 +1209,28 @@ public class FederateConfiguration
 			{
 				if(logger.isDebugEnabled())
 					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-				
+
 				return ((Long)value).intValue();
 			}
-			
+
 			throw new UCEFException( "Expected an integer value for '%s' but found '%s'",
 			                         key, value.toString() );
 		}
 		if(logger.isDebugEnabled())
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-		
+
 		return defaultValue;
 	}
-	
+
 	/**
 	 * Utility method to extract a {@link Long} value from a {@link JSONObject} based on a
 	 * {@link String} key
-	 * 
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
 	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key 
+	 * @return the extracted value, or the default value if there was no such key
 	 */
 	private long jsonLongOrDefault( JSONObject root, String key, long defaultValue )
 	{
@@ -1268,28 +1241,28 @@ public class FederateConfiguration
 			{
 				if(logger.isDebugEnabled())
 					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-				
+
 				return (Long)value;
 			}
-			
+
 			throw new UCEFException( "Expected a long value for '%s' but found '%s'",
 			                         key, value.toString() );
 		}
 		if(logger.isDebugEnabled())
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-		
+
 		return defaultValue;
 	}
-	
+
 	/**
 	 * Utility method to extract a {@link Double} value from a {@link JSONObject} based on a
 	 * {@link String} key
-	 * 
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
 	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key 
+	 * @return the extracted value, or the default value if there was no such key
 	 */
 	private double jsonDoubleOrDefault( JSONObject root, String key, double defaultValue )
 	{
@@ -1300,7 +1273,7 @@ public class FederateConfiguration
 			{
 				if(logger.isDebugEnabled())
 					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-				
+
 				return (Double)value;
 			}
 			// be lenient on the parsing of doubles, and allow integer
@@ -1309,28 +1282,28 @@ public class FederateConfiguration
 			{
 				if(logger.isDebugEnabled())
 					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-				
+
 				return ((Long)value).doubleValue();
 			}
-			
+
 			throw new UCEFException( "Expected a double value for '%s' but found '%s'",
 			                         key, value.toString() );
 		}
 		if(logger.isDebugEnabled())
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-		
+
 		return defaultValue;
 	}
-	
+
 	/**
 	 * Utility method to extract a {@link Boolean} value from a {@link JSONObject} based on a
 	 * {@link String} key
-	 * 
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
 	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key 
+	 * @return the extracted value, or the default value if there was no such key
 	 */
 	private boolean jsonBooleanOrDefault( JSONObject root, String key, boolean defaultValue )
 	{
@@ -1341,7 +1314,7 @@ public class FederateConfiguration
 			{
 				if(logger.isDebugEnabled())
 					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-				
+
 				return (Boolean)value;
 			}
 
@@ -1350,10 +1323,10 @@ public class FederateConfiguration
 		}
 		if(logger.isDebugEnabled())
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-		
+
 		return defaultValue;
 	}
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

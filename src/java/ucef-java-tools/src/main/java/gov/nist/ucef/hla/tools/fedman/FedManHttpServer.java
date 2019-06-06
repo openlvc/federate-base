@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -53,10 +53,10 @@ import gov.nist.ucef.hla.base.UCEFException;
 
 /**
  * A simple HTTP server that responds to basic commands for the Federation Manager
- * 
+ *
  * It uses the "default" Java HTTP server which provided by both Oracle and OpenJDK JVMs, and thus
  * has the advantage of being quite compact and requiring no external dependencies.
- * 
+ *
  * If required the underlying mechanism should be able to be easily ported to something like takes
  * (https://github.com/yegor256/takes), nanoHTTPD (https://github.com/NanoHttpd/nanohttpd) or
  * similar.
@@ -68,12 +68,12 @@ public class FedManHttpServer
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( FedManHttpServer.class );
-	
+
 	private static final int HTTP_200_OK = 200;
 	private static final int HTTP_400_BAD_REQUEST = 404;
 	private static final int HTTP_404_NOT_FOUND = 404;
 	private static final int HTTP_405_METHOD_NOT_ALLOWED = 405;
-	
+
 	private static Charset UTF8 = StandardCharsets.UTF_8;
 	private static String CONTENT_TYPE = "Content-Type";
 	// private static String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
@@ -85,17 +85,17 @@ public class FedManHttpServer
 	//----------------------------------------------------------
 	private FedManFederate fedManFederate;
 	private int port;
-	
+
 	private boolean started;
 
 	HttpServer server;
-	
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * @param fedManFederate the federation manager federate (used for callbacks from received
 	 *            queries/commands
 	 * @param port the port on which to laucnh the HTTP server
@@ -104,7 +104,7 @@ public class FedManHttpServer
 	{
 		this.fedManFederate = fedManFederate;
 		this.port = port;
-		
+
 		this.started = false;
 	}
 
@@ -131,31 +131,32 @@ public class FedManHttpServer
             Constants.UCEF_LOGO+"<pre></body></html>"
         );
         */
-		
+
 		// Create a map of the contexts - mainly we do this so that we can create an
 		// index page showing all the available endpoints (we cannot query this
-		// information from the HttpServer after the contexts are added). The 
+		// information from the HttpServer after the contexts are added). The
 		// LinkedHashMap is used here because it maintains the insertion order,
 		// which is mainly useful for organizing the the index page content.
 		LinkedHashMap<String, HttpHandler> endpoints = new LinkedHashMap<>();
 		IndexHandler indexHandler = new IndexHandler(endpoints);
 		endpoints.put( "/",                        indexHandler );
 		// GET requests
-		endpoints.put( "/query/",                  indexHandler ); 
-		endpoints.put( "/query/status/",           new StatusQueryHandler() );
-		endpoints.put( "/query/start-conditions/", new StartConditionQueryHandler() );
-		endpoints.put( "/query/can-start/",        new CanStartQueryHandler() );
-		endpoints.put( "/query/has-started/",      new HasStartedQueryHandler() );
-		endpoints.put( "/query/has-ended/",        new HasEndedQueryHandler() );
-		endpoints.put( "/query/is-paused/",        new IsPausedQueryHandler() );
-		endpoints.put( "/query/is-running/",       new IsRunningQueryHandler() );
+		endpoints.put( "/ping",                   new PingHandler() );
+		endpoints.put( "/query",                  indexHandler );
+		endpoints.put( "/query/status",           new StatusQueryHandler() );
+		endpoints.put( "/query/start-conditions", new StartConditionQueryHandler() );
+		endpoints.put( "/query/can-start",        new CanStartQueryHandler() );
+		endpoints.put( "/query/has-started",      new HasStartedQueryHandler() );
+		endpoints.put( "/query/has-ended",        new HasEndedQueryHandler() );
+		endpoints.put( "/query/is-paused",        new IsPausedQueryHandler() );
+		endpoints.put( "/query/is-running",       new IsRunningQueryHandler() );
 		// POST requests
-		endpoints.put( "/command/",                indexHandler );
-		endpoints.put( "/command/start/",          new StartCommandHandler() );
-		endpoints.put( "/command/pause/",          new PauseCommandHandler() );
-		endpoints.put( "/command/resume/",         new ResumeCommandHandler() );
-		endpoints.put( "/command/end/",            new EndCommandHandler() );
-		
+		endpoints.put( "/command",                indexHandler );
+		endpoints.put( "/command/start",          new StartCommandHandler() );
+		endpoints.put( "/command/pause",          new PauseCommandHandler() );
+		endpoints.put( "/command/resume",         new ResumeCommandHandler() );
+		endpoints.put( "/command/end",            new EndCommandHandler() );
+
 		ExecutorService executor = Executors.newFixedThreadPool(16);
 		try
 		{
@@ -180,7 +181,7 @@ public class FedManHttpServer
 		}
 		logger.info( "Started federation manager HTTP server." );
 	}
-	
+
 	/**
 	 * Stop the HTTP server
 	 */
@@ -189,7 +190,7 @@ public class FedManHttpServer
 		// nothing to do if we're not started!
 		if( !this.started )
 			return;
-		
+
 		logger.info( "Stopping federation manager HTTP server..." );
 		try
 		{
@@ -204,18 +205,18 @@ public class FedManHttpServer
 		{
 			server.notifyAll();
 		}
-		
+
 		this.started = false;
 		logger.info( "Stopped federation manager HTTP server." );
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////// HTTP Response Creation Utility Methods //////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Utility method to provide a JSON response with a HTTP 200 OK status code (most common use
 	 * case)
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param jsonMap the {@link Map} containing the JSON data structure
 	 * @throws IOException
@@ -224,10 +225,10 @@ public class FedManHttpServer
 	{
 		doJSONResponse( httpExchange, HTTP_200_OK, jsonMap );
 	}
-	
+
 	/**
 	 * Utility method to provide a JSON response with the given HTTP status code
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param code the HTTP status code associated with the response
 	 * @param jsonMap the {@link Map} containing the JSON data structure
@@ -238,11 +239,11 @@ public class FedManHttpServer
 		addResponseHeader( httpExchange, CONTENT_TYPE, JSON_UTF8 );
 		doHttpResponse(httpExchange, code, stringToBytes( asJSON( jsonMap ) ));
 	}
-	
+
 	/**
 	 * Utility method to provide an HTML response with a HTTP 200 OK status code (most common use
 	 * case)
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param response the {@link String} containing the HTML
 	 * @throws IOException
@@ -251,10 +252,10 @@ public class FedManHttpServer
 	{
 		doHTMLResponse(httpExchange, HTTP_200_OK, response);
 	}
-	
+
 	/**
 	 * Utility method to provide an HTML response with the given HTTP status code
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param code the HTTP status code associated with the response
 	 * @param response the {@link String} containing the HTML
@@ -265,11 +266,11 @@ public class FedManHttpServer
 		addResponseHeader( httpExchange, CONTENT_TYPE, TEXT_HTML_UTF8 );
 		doHttpResponse(httpExchange, code, stringToBytes(response));
 	}
-	
+
 	/**
 	 * Utility method to write out (i.e, send back) the HTTP response with the given HTTP status
 	 * code
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param code the HTTP status code associated with the response
 	 * @param response the {@link byte[]} containing the response data
@@ -282,10 +283,10 @@ public class FedManHttpServer
 		out.write( response );
 		out.close();
 	}
-	
+
 	/**
 	 * Utility method to add a response header to abstract away repeated code
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param headerName the name of the header to add
 	 * @param headerContent the content for the header
@@ -294,11 +295,11 @@ public class FedManHttpServer
 	{
 		httpExchange.getResponseHeaders().add( headerName, headerContent );
 	}
-	
+
 	/**
 	 * Utility method to add a `timestamp` (current system time in millliseconds) and `path`
 	 * entries to a JSON structure intended as a query response
-	 * 
+	 *
 	 * @param json the JSON structure to update (as a {@link Map<String, Object>} instance
 	 * @param httpExchange the {@link HTTPExchange} instance containing the request (from which
 	 *            the path will be extracted)
@@ -311,14 +312,14 @@ public class FedManHttpServer
 		if(!query.isEmpty())
 			json.put( "query", extractQuery( httpExchange ) );
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////// HTTP Request Inspection Methods /////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Utility method which extracts the request path (the part after the http://HOST:PORT/ and
 	 * before any query parameters) from an incoming request
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance containing the request
 	 * @return the request path
 	 */
@@ -328,10 +329,10 @@ public class FedManHttpServer
 			return "";
 		return httpExchange.getRequestURI().getPath();
 	}
-	
+
 	/**
 	 * Utility method which extracts any query parameters from an incoming request
-	 * 
+	 *
 	 * @param httpExchange the {@link HTTPExchange} instance containing the request
 	 * @return the query parameters as key/value pairs in a {@link Map}
 	 */
@@ -339,11 +340,11 @@ public class FedManHttpServer
 	{
 		if( httpExchange == null )
 			return Collections.emptyMap();
-		
+
 		String queryStr = httpExchange.getRequestURI().getQuery();
 		if(queryStr == null)
 			return Collections.emptyMap();
-		
+
 		Map<String, String> query = new HashMap<>();
 		for(String group : queryStr.split( "&" ))
 		{
@@ -355,13 +356,13 @@ public class FedManHttpServer
 		}
 		return query;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////// Response Encoding Utilities ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * Utility method to convert a string to a byte array, ensuring UTF-8 encoding is used
-	 * 
+	 *
 	 * @param str the {@link String} to convert to bytes
 	 * @return the UTF-8 encoded bytes
 	 */
@@ -369,13 +370,13 @@ public class FedManHttpServer
 	{
 		if(str == null)
 			return "".getBytes( UTF8 );
-		
+
 		return str.getBytes( UTF8 );
 	}
-	
+
 	/**
 	 * Utility method to strip a given character off the start and end of a string
-	 * 
+	 *
 	 * @param original the original string
 	 * @param toStrip the character to strip
 	 * @return the original string with matching characters stripped from the start and end of the
@@ -408,7 +409,7 @@ public class FedManHttpServer
 		}
 		return "{" + jsonItems.stream().collect( Collectors.joining( "," ) ) + "}";
 	}
-	
+
 	/**
 	 * Extremely simple method to turn a map into a JSON string representation
 	 * @return a JSON string of the map contents
@@ -428,19 +429,19 @@ public class FedManHttpServer
 			return val.toString();
 		else if(val instanceof Double)
 		{
-			Double dbl = (Double)val; 
+			Double dbl = (Double)val;
 			if((dbl.isInfinite() || dbl.isNaN()))
 				return "null";
 			return Double.toString( (Double)val );
 		}
 		else if(val instanceof Float)
 		{
-			Float flt = (Float)val; 
+			Float flt = (Float)val;
 			if((flt.isInfinite() || flt.isNaN()))
 				return "null";
 			return Double.toString( (Double)val );
 		}
-		else if( val instanceof Collection || 
+		else if( val instanceof Collection ||
 				 val instanceof String[] || val instanceof char[] ||
 			     val instanceof short[] || val instanceof int[] || val instanceof long[] ||
 			     val instanceof double[] || val instanceof float[] ||
@@ -456,10 +457,10 @@ public class FedManHttpServer
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Utility method to escape strings for use in a JSON string
-	 * 
+	 *
 	 * @param s the {@link String} to be escaped
 	 * @return the escaped string, sfae for use in a JSON string
 	 */
@@ -517,16 +518,16 @@ public class FedManHttpServer
 		}
 		return sb.toString();
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////// HttpHandler Implementations ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
 	 * An abstract implementation of the {@link HttpHandler} interface which accepts only certain
 	 * (specified) request methods, such as GET, POST, etc
-	 * 
+	 *
 	 * Requests with unacceptable methods will receive an HTTP 405 METHOD NOT ALLOWED response.
-	 * 
+	 *
 	 * Requests with accepted methods will be handled by the implementing class.
 	 */
 	private abstract class RequestMethodHandler implements HttpHandler
@@ -535,7 +536,7 @@ public class FedManHttpServer
 
 		/**
 		 * Constructor
-		 * 
+		 *
 		 * @param allowedMethods the allowed request methods
 		 */
 		public RequestMethodHandler( String... allowedMethods )
@@ -555,10 +556,10 @@ public class FedManHttpServer
 				handleRequest( httpExchange );
 			else
 			{
-				// do an HTTP 405 METHOD NOT ALLOWED response 
+				// do an HTTP 405 METHOD NOT ALLOWED response
 				addResponseHeader( httpExchange, CONTENT_TYPE, TEXT_HTML_UTF8 );
 				addResponseHeader( httpExchange, "Allow", String.join( ",", this.allowedMethods ) );
-				// construct error message saying what method was rejected, and 
+				// construct error message saying what method was rejected, and
 				// what methods *are* accepted
 				StringBuilder html = new StringBuilder();
 				html.append( "<html><head><meta charset=\"UTF-8\" /></head><body>");
@@ -578,45 +579,45 @@ public class FedManHttpServer
 		/**
 		 * Extending classes must implement this method to handle requests which use an allowed
 		 * request method
-		 * 
+		 *
 		 * @param httpExchange the {@link HTTPExchange} instance containing the reques and to use
 		 *            to create the response
 		 * @throws IOException
 		 */
 		public abstract void handleRequest( HttpExchange httpExchange ) throws IOException;
 	}
-	
+
 	/**
 	 * A abstract implementation of the {@link RequestMethodHandler} which accepts only GET
 	 * requests.
-	 * 
+	 *
 	 * Requests using other methods will receive an HTTP 405 METHOD NOT ALLOWED response.
 	 */
 	private abstract class GETRequestHandler extends RequestMethodHandler
 	{
 		public GETRequestHandler() { super("GET"); }
-		
+
 		@Override
 		public abstract void handleRequest(HttpExchange httpExchange) throws IOException;
 	}
-	
+
 	/**
 	 * A abstract implementation of the {@link RequestMethodHandler} which accepts only POST
 	 * requests
-	 * 
+	 *
 	 * Requests using other methods will receive an HTTP 405 METHOD NOT ALLOWED response.
 	 */
 	private abstract class POSTRequestHandler extends RequestMethodHandler
 	{
 		public POSTRequestHandler() { super("POST"); }
-		
+
 		@Override
 		public abstract void handleRequest(HttpExchange httpExchange) throws IOException;
 	}
-	
+
 	/**
 	 * A handler for index requests
-	 * 
+	 *
 	 * Response with an HTML page listing the various endpoints with clickable links
 	 */
 	private class IndexHandler extends GETRequestHandler
@@ -627,23 +628,23 @@ public class FedManHttpServer
 		{
 			this.endpointsMap = endpoints;
 		}
-		
+
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String path = extractPath(httpExchange);
-			HttpHandler handler = this.endpointsMap.get(path); 
-			
+			HttpHandler handler = this.endpointsMap.get(path);
+
 			// no handler found, or the index handler, is considered a 404 NOT FOUND error
 			boolean is404 = handler == null || handler.equals( this );
-			
+
 			// compile a list of valid endpoint links
 			List<String> hrefs = this.endpointsMap.entrySet()
 				.stream()
 				.filter(endpoint -> !(endpoint.getValue().equals(this))) // don't include index pages
 				.map(endpoint -> endpoint.getKey())
 				.collect( Collectors.toList() );
-			
+
 			StringBuilder html = new StringBuilder();
 			html.append( "<html>");
 			html.append( "<head>");
@@ -652,7 +653,7 @@ public class FedManHttpServer
 			html.append( "a{text-decoration:none;}");
 			html.append( "</style>");
 			html.append( "</head>");
-			
+
 			html.append( "<body>" );
 			if(is404)
 			{
@@ -667,22 +668,46 @@ public class FedManHttpServer
 			html.append( "</ul><hr>" );
 			html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
 			html.append( "</body></html>" );
-			
+
 			String response = html.toString();
 			int code = is404 ? HTTP_404_NOT_FOUND : HTTP_200_OK;
 			doHTMLResponse( httpExchange, code,response );
 		}
 	}
-	
+
+	/**
+	 * A handler for ping GET requests
+	 *
+	 * Response is a JSON object of the form...
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response": "UCEF Federation Manager"}
+	 *
+	 * ...where:
+	 *
+	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
+	 *  - PATH            is the URL path segment of the query
+	 */
+	private class PingHandler extends GETRequestHandler
+	{
+		@Override
+		public void handleRequest( HttpExchange httpExchange ) throws IOException
+		{
+			Map<String,Object> json = new HashMap<>();
+			addTimestampAndPath(json, httpExchange);
+			json.put( "response", "UCEF Federation Manager" );
+			doJSONResponse( httpExchange, json );
+		}
+	}
+
 	/**
 	 * A handler for status GET requests
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":LIFECYCLE_STATE}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - LIFECYCLE_STATE is the label of the current lifecycle state of the federation
@@ -702,13 +727,13 @@ public class FedManHttpServer
 	/**
 	 * A handler for status GET requests as to whether the simulation can start or not (i.e, have
 	 * the start conditions been met yet?)
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":CAN_START}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - CAN_START       true if the start conditions have been met, false otherwise
@@ -724,7 +749,7 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, json );
 		}
 	}
-	
+
 	/**
 	 * A handler which produces an HTML table summarizing the start conditions to be met for the
 	 * simulation to be able to start
@@ -744,16 +769,16 @@ public class FedManHttpServer
 			html.append( "table, tr, th, td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
 			html.append( "</style>");
 			html.append( "</head>");
-			
+
 			html.append( "<body>" );
 			html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
-			
+
 			html.append( "<table><thead><tr>" );
 			for(String heading : FedManConstants.TABLE_HEADINGS)
 				html.append("<th>"+heading+"</th>");
 			html.append( "</tr></thead><tfoot /><tbody>" );
-			
-			// sorted federate types list	
+
+			// sorted federate types list
 			List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
 			federateTypes.sort( null );
 			for( String federateType : federateTypes )
@@ -765,22 +790,22 @@ public class FedManHttpServer
 				html.append("</tr>");
 			}
 			html.append( "</tbody></table>" );
-			
+
 			html.append( "</html></body>" );
-			
+
 			doHTMLResponse( httpExchange, html.toString() );
 		}
 	}
-	
+
 	/**
 	 * A handler for status GET requests as to whether the simulation has started
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":HAS_STARTED}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - HAS_STARTED     true if the simulation has started, false otherwise
@@ -796,16 +821,16 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status GET requests as to whether the simulation has ended
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":HAS_ENDED}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - HAS_ENDED       true if the simulation has ended, false otherwise
@@ -821,16 +846,16 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status GET requests as to whether the simulation is currently paused
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":IS_PAUSED}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - IS_PAUSED       true if the simulation is paused, false otherwise
@@ -846,16 +871,16 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status GET requests as to whether the simulation is currently running
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
+	 *
 	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":IS_RUNNING}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - IS_RUNNING      true if the simulation is running, false otherwise
@@ -871,17 +896,17 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status POST requests to pause the simulation
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
-	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED, 
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED,
 	 *  "success":SUCCESS, "error":ERROR_MSG}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
@@ -896,7 +921,7 @@ public class FedManHttpServer
 		{
 			int code = HTTP_200_OK;
 			String error = "";
-			
+
 			if(!fedManFederate.hasStarted())
 			{
 				code = HTTP_400_BAD_REQUEST;
@@ -916,7 +941,7 @@ public class FedManHttpServer
 			{
 				fedManFederate.requestSimPause();
 			}
-			
+
 			boolean isOK = code == HTTP_200_OK;
 			Map<String,Object> json = new HashMap<>();
 			addTimestampAndPath(json, httpExchange);
@@ -927,17 +952,17 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, code, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status POST requests to resume the simulation
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
-	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED, 
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED,
 	 *  "success":SUCCESS, "error":ERROR_MSG}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
@@ -952,7 +977,7 @@ public class FedManHttpServer
 		{
 			int code = HTTP_200_OK;
 			String error = "";
-			
+
 			if(!fedManFederate.hasStarted())
 			{
 				code = HTTP_400_BAD_REQUEST;
@@ -972,7 +997,7 @@ public class FedManHttpServer
 			{
 				fedManFederate.requestSimResume();
 			}
-			
+
 			boolean isOK = code == HTTP_200_OK;
 			Map<String,Object> json = new HashMap<>();
 			addTimestampAndPath(json, httpExchange);
@@ -983,17 +1008,17 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, code, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status POST requests to start the simulation
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
-	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED, 
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED,
 	 *  "success":SUCCESS, "error":ERROR_MSG}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
@@ -1008,7 +1033,7 @@ public class FedManHttpServer
 		{
 			int code = HTTP_200_OK;
 			String error = "";
-			
+
 			if( !fedManFederate.canStart() )
 			{
 				code = HTTP_400_BAD_REQUEST;
@@ -1028,7 +1053,7 @@ public class FedManHttpServer
 			{
 				fedManFederate.requestSimStart();
 			}
-			
+
 			boolean isOK = code == HTTP_200_OK;
 			Map<String,Object> json = new HashMap<>();
 			addTimestampAndPath(json, httpExchange);
@@ -1039,17 +1064,17 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, code, json );
 		}
 	}
-	
+
 	/**
 	 * A handler for status POST requests to end the simulation
-	 * 
+	 *
 	 * Response is a JSON object of the form...
-	 * 
-	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED, 
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":OK_OR_FAILED,
 	 *  "success":SUCCESS, "error":ERROR_MSG}
-	 * 
+	 *
 	 * ...where:
-	 * 
+	 *
 	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
 	 *  - PATH            is the URL path segment of the query
 	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
@@ -1064,7 +1089,7 @@ public class FedManHttpServer
 		{
 			int code = HTTP_200_OK;
 			String error = "OK";
-			
+
 			if(!fedManFederate.hasStarted())
 			{
 				code = HTTP_400_BAD_REQUEST;
@@ -1079,7 +1104,7 @@ public class FedManHttpServer
 			{
 				fedManFederate.requestSimEnd();
 			}
-			
+
 			boolean isOK = code == HTTP_200_OK;
 			Map<String,Object> json = new HashMap<>();
 			addTimestampAndPath(json, httpExchange);
@@ -1090,7 +1115,7 @@ public class FedManHttpServer
 			doJSONResponse( httpExchange, code, json );
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -1105,10 +1130,10 @@ public class FedManHttpServer
 	public static void main(String[] args)
 	{
 		String[] testArgs = {
-		    "--federation", "TheFederation",		                 
-		    "--require", "FedABC,1",                 
-		    "--require", "FedXYZ,2",                 
-		}; 
+		    "--federation", "TheFederation",
+		    "--require", "FedABC,1",
+		    "--require", "FedXYZ,2",
+		};
 		FedManHttpServer testing = new FedManHttpServer(new FedManFederate(testArgs), 8080);
 		testing.startServer();
 	}
