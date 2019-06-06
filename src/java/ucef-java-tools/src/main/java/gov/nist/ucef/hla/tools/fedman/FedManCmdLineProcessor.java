@@ -231,6 +231,16 @@ public class FedManCmdLineProcessor
 		return true;
 	}
 
+	/**
+	 * Utility method to extract a {@link String} from a processed command line
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException
+	 */
 	private String extractString(CommandLine cmdLine, String key, String defaultValue) throws ParseException
 	{
 		if(!cmdLine.hasOption( key ))
@@ -239,6 +249,16 @@ public class FedManCmdLineProcessor
 		return cmdLine.getOptionValue( key ).toString();
 	}
 
+	/**
+	 * Utility method to extract a {@link Double} from a processed command line
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException if the extracted value cannot be processed as a {@link Double}
+	 */
 	private double extractDouble(CommandLine cmdLine, String key, double defaultValue) throws ParseException
 	{
 		if(!cmdLine.hasOption( key ))
@@ -250,9 +270,22 @@ public class FedManCmdLineProcessor
 		else if(value instanceof Long)
 			return ((Long)value).doubleValue();
 
-		throw new ParseException( String.format( "Value for '%s' must be a numeric value.", key) );
+		throw new ParseException( String.format( "Value for '%s%s' option must be a numeric value.",
+		                                         (key.length()==1?"-":"--"), key ) );
 	}
 
+	/**
+	 * Utility method to extract a {@link Double} from a processed command line, ensuring that the
+	 * extracted value is greater than 0.0
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException if the extracted value cannot be processed as a {@link Double}, or
+	 *             the value is zero or less
+	 */
 	private double extractGtZeroDouble( CommandLine cmdLine, String key, double defaultValue )
 	    throws ParseException
 	{
@@ -266,10 +299,20 @@ public class FedManCmdLineProcessor
 		{
 			// ignore - fall through
 		}
-		throw new ParseException( String.format( "Value for '%s' must be a numeric value greater than zero.",
-		                                         key ) );
+		throw new ParseException( String.format( "Value for '%s%s' option must be a numeric value greater than zero.",
+		                                         (key.length()==1?"-":"--"), key ) );
 	}
 
+	/**
+	 * Utility method to extract a {@link Integer} from a processed command line
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException if the extracted value cannot be processed as an {@link Integer}
+	 */
 	private int extractInt(CommandLine cmdLine, String key, int defaultValue) throws ParseException
 	{
 		if(!cmdLine.hasOption( key ))
@@ -279,9 +322,22 @@ public class FedManCmdLineProcessor
 		if(value instanceof Long)
 			return ((Long)value).intValue();
 
-		throw new ParseException( String.format( "Value for '%s' must be a whole number.", key) );
+		throw new ParseException( String.format( "Value for '%s%s' must be a whole number.",
+		                                         (key.length()==1?"-":"--"), key ) );
 	}
 
+	/**
+	 * Utility method to extract a {@link Integer} from a processed command line, ensuring that the
+	 * extracted value is greater than 0
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException if the extracted value cannot be processed as an {@link Integer}, or
+	 *             the value is zero or less
+	 */
 	private int extractGtZeroInt( CommandLine cmdLine, String key, int defaultValue )
 		throws ParseException
 	{
@@ -295,10 +351,19 @@ public class FedManCmdLineProcessor
 		{
 			// ignore - fall through
 		}
-		throw new ParseException( String.format( "Value for '%s' must be a whole number greater than zero.",
-		                                         key ) );
+		throw new ParseException( String.format( "Value for '%s%s' must be a whole number greater than zero.",
+		                                         (key.length()==1?"-":"--"), key ) );
 	}
 
+	/**
+	 * Utility method to extract a {@link Map<String, Integer>} from a processed command line,
+	 * representing the start requirements for the federation as federate types to minimum counts
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @return the extracted value
+	 * @throws ParseException if the extracted value cannot be processed
+	 */
 	private Map<String, Integer> extractStartRequirements(CommandLine cmdLine, String key) throws ParseException
 	{
 		String[] values = cmdLine.getOptionValues( key );
@@ -347,12 +412,18 @@ public class FedManCmdLineProcessor
 			// what, just fall through
 		}
 
-		throw new ParseException( String.format( "'%s' is not in the correct format for '%s'. Values must be a " +
-		                                         "federate type name and a number greater than zero separated " +
-		                                         "by a comma. For example, 'FedABC,2'.",
-		                                         lastCheckedItem, key ) );
+		throw new ParseException( String.format( "'%s' is not in the correct format for '%s%s'. Values "+
+												 "must be a federate type name and a whole number "+
+												 "greater than zero separated by a comma. "+
+												 "For example, 'FedABC,2'.",
+												 lastCheckedItem, (key.length()==1?"-":"--"), key ) );
 	}
 
+	/**
+	 * Utility method to build the command line options for the Federation Manager
+	 *
+	 * @return command line options for the Federation Manager
+	 */
 	private Options buildCommandLineOptions()
 	{
 		Option help = Option.builder( CMDLINE_ARG_HELP_SHORT )
@@ -435,6 +506,7 @@ public class FedManCmdLineProcessor
         	.build();
 
 		this.cmdLineOptions = new Options();
+
 		cmdLineOptions.addOption( help );
 		cmdLineOptions.addOption( federationExecNameArg );
 		cmdLineOptions.addOption( federateNameArg );
