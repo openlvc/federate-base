@@ -41,44 +41,57 @@ public class FedManCmdLineProcessor
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// command line arguments and defaults
-	public static final String CMDLINE_ARG_HELP = "help";
-	public static final String CMDLINE_ARG_HELP_SHORT = "h";
+	public static final String CMDLINE_ARG_HELP                       = "help";
+	public static final String CMDLINE_ARG_HELP_SHORT                 = "h";
 	public static final String CMDLINEARG_FEDMAN_FEDERATION_EXEC_NAME = "federation";
 	public static final String CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT = "f";
-	public static final String CMDLINEARG_REQUIRE = "require";
-	public static final String CMDLINEARG_REQUIRE_SHORT = "r";
-	public static final String CMDLINEARG_FEDMAN_FEDERATE_NAME = "fedman-name";
-	public static final String DEFAULT_FEDMAN_FEDERATE_NAME = "FederateManager";
-	public static final String CMDLINEARG_FEDMAN_FEDERATE_TYPE = "fedman-type";
-	public static final String DEFAULT_FEDMAN_FEDERATE_TYPE = "FederateManager";
-	public static final String CMDLINEARG_LOGICAL_SECOND = "logical-second";
-	public static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY = "logical-granularity";
-	public static final String CMDLINEARG_REALTIME_MULTIPLIER = "realtime-multiplier";
+	public static final String CMDLINEARG_REQUIRE                     = "require";
+	public static final String CMDLINEARG_REQUIRE_SHORT               = "r";
+	public static final String CMDLINEARG_FEDMAN_FEDERATE_NAME        = "fedman-name";
+	public static final String DEFAULT_FEDMAN_FEDERATE_NAME           = "FederateManager";
+	public static final String CMDLINEARG_FEDMAN_FEDERATE_TYPE        = "fedman-type";
+	public static final String DEFAULT_FEDMAN_FEDERATE_TYPE           = "FederateManager";
+	public static final String CMDLINEARG_MAX_TIME                    = "max-time";
+	public static final String CMDLINEARG_LOGICAL_SECOND              = "logical-second";
+	public static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY    = "logical-granularity";
+	public static final String CMDLINEARG_REALTIME_MULTIPLIER         = "realtime-multiplier";
+	public static final String CMDLINEARG_NO_HTTP                     = "no-http";
+	public static final String CMDLINEARG_HTTP_PORT                   = "http-port";
 
-	public static final double LOGICAL_SECOND_DEFAULT = 1.0;
-	public static final int LOGICAL_STEP_GRANULARITY_DEFAULT = 1;
-	public static final double REALTIME_MULTIPLIER_DEFAULT = 1.0;
+	public static final double MAX_TIME_DEFAULT                       = Double.MAX_VALUE;
+	public static final double LOGICAL_SECOND_DEFAULT                 = 1.0;
+	public static final int LOGICAL_STEP_GRANULARITY_DEFAULT          = 1;
+	public static final double REALTIME_MULTIPLIER_DEFAULT            = 1.0;
+	public static final boolean PROVIDE_HTTP_ACCESS                   = true;
+	public static final int HTTP_PORT_DEFAULT                         = 8080;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private Map<String, Integer> startRequirements;
 	private String execName;
 	private String federationExecName;
 	private String federateName;
 	private String federateType;
+	private double maxTime;
 	private double logicalSecond;
 	private int logicalStepGranularity;
 	private double realtimeMultiplier;
+	private boolean withHttpService;
+	private int httpServicePort;
+
 	private Options cmdLineOptions;
+
+	private Map<String, Integer> startRequirements;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public FedManCmdLineProcessor( String execName, int consoleWidth )
+	public FedManCmdLineProcessor( String execName )
 	{
 		this.execName = execName;
 		this.startRequirements = new HashMap<>();
+
+		this.withHttpService = true;
 
 		buildCommandLineOptions();
 	}
@@ -109,6 +122,11 @@ public class FedManCmdLineProcessor
 		return this.federateType;
 	}
 
+    public double maxTime()
+    {
+    	return this.maxTime;
+    }
+
     public double logicalSecond()
 	{
 		return this.logicalSecond;
@@ -135,9 +153,19 @@ public class FedManCmdLineProcessor
 		return (long)(oneSecond * this.logicalStepSize());
 	}
 
-	public Map<String,Integer> startRequirements()
+	public FedManStartRequirements startRequirements()
 	{
-		return this.startRequirements;
+		return new FedManStartRequirements(this.startRequirements);
+	}
+
+	public boolean withHttpService()
+	{
+		return this.withHttpService;
+	}
+
+	public int httpServicePort()
+	{
+		return this.httpServicePort;
 	}
 
 	/**
@@ -187,10 +215,21 @@ public class FedManCmdLineProcessor
                                            CMDLINEARG_FEDMAN_FEDERATE_TYPE,
                                            DEFAULT_FEDMAN_FEDERATE_TYPE );
 
+        // NOTE that this is a bit of a double negative - the lack of the
+        //      no-http switch means that withHttpService is true.
+        this.withHttpService = !cmdLine.hasOption( CMDLINEARG_NO_HTTP );
+        this.httpServicePort = extractInRangeInt( cmdLine,
+                                                  CMDLINEARG_HTTP_PORT,
+                                                  0, 65535,
+                                                  HTTP_PORT_DEFAULT );
+
         // we need to sanity check some arguments with respect to each other
         // to ensure that they are "sensible" - in other words, the values
         // are all fine individually, but in combination they might cause
         // some problems
+        this.maxTime = extractGtZeroDouble( cmdLine,
+                                            CMDLINEARG_MAX_TIME,
+                                            MAX_TIME_DEFAULT );
 		this.logicalSecond = extractGtZeroDouble( cmdLine,
 		                                          CMDLINEARG_LOGICAL_SECOND,
 		                                          LOGICAL_SECOND_DEFAULT );
@@ -261,13 +300,13 @@ public class FedManCmdLineProcessor
 	 */
 	private double extractDouble(CommandLine cmdLine, String key, double defaultValue) throws ParseException
 	{
-		if(!cmdLine.hasOption( key ))
-		return defaultValue;
+		if( !cmdLine.hasOption( key ) )
+			return defaultValue;
 
 		Object value = cmdLine.getParsedOptionValue( key );
-		if(value instanceof Double)
+		if( value instanceof Double )
 			return ((Double)value).doubleValue();
-		else if(value instanceof Long)
+		else if( value instanceof Long )
 			return ((Long)value).doubleValue();
 
 		throw new ParseException( String.format( "Value for '%s%s' option must be a numeric value.",
@@ -315,11 +354,11 @@ public class FedManCmdLineProcessor
 	 */
 	private int extractInt(CommandLine cmdLine, String key, int defaultValue) throws ParseException
 	{
-		if(!cmdLine.hasOption( key ))
+		if( !cmdLine.hasOption( key ) )
 			return defaultValue;
 
 		Object value = cmdLine.getParsedOptionValue( key );
-		if(value instanceof Long)
+		if( value instanceof Long )
 			return ((Long)value).intValue();
 
 		throw new ParseException( String.format( "Value for '%s%s' must be a whole number.",
@@ -353,6 +392,38 @@ public class FedManCmdLineProcessor
 		}
 		throw new ParseException( String.format( "Value for '%s%s' must be a whole number greater than zero.",
 		                                         (key.length()==1?"-":"--"), key ) );
+	}
+
+	/**
+	 * Utility method to extract a {@link Integer} from a processed command line, ensuring that the
+	 * extracted value is between the provided minimum and maximum values (inclusive)
+	 *
+	 * @param cmdLine the {@link CommandLine} instance
+	 * @param key the {@link String} key to identify the value to be extracted
+	 * @param min the minimum allowed value (inclusive)
+	 * @param max the maximum allowed value (inclusive)
+	 * @param defaultValue the value to return in the event that no such value is specified in the
+	 *            given {@link CommandLine} instance
+	 * @return the extracted value, or default value in the case that no value could be extracted
+	 * @throws ParseException if the extracted value cannot be processed as an {@link Integer}, or
+	 *             the value is outside the allowed range
+	 */
+	private int extractInRangeInt( CommandLine cmdLine, String key, int min, int max, int defaultValue )
+		throws ParseException
+	{
+		try
+		{
+			int value = extractInt( cmdLine, key, defaultValue );
+			if( value >= min && value <= max )
+				return value;
+		}
+		catch( ParseException pe )
+		{
+			// ignore - fall through
+		}
+		throw new ParseException( String.format( "Value for '%s%s' must be a whole number between %d "+
+												 "and %d (inclusive).",
+		                                         (key.length()==1?"-":"--"), key, min, max ) );
 	}
 
 	/**
@@ -476,6 +547,16 @@ public class FedManCmdLineProcessor
 			.type( PatternOptionBuilder.STRING_VALUE )
 		    .build();
 
+        Option maxTimeArg = Option.builder()
+        	.longOpt( CMDLINEARG_MAX_TIME )
+			.hasArg()
+        	.argName( "max" )
+        	.required( false )
+        	.desc( String.format( "Set the maximum logical time to which the simulation may run." +
+        						  "If unspecified the simulation will run indefinitely." ) )
+        	.type( PatternOptionBuilder.NUMBER_VALUE )
+        	.build();
+
 		Option logicalSecondArg = Option.builder()
         	.longOpt( CMDLINEARG_LOGICAL_SECOND )
 			.required( false )
@@ -505,6 +586,27 @@ public class FedManCmdLineProcessor
 			.type( PatternOptionBuilder.NUMBER_VALUE )
         	.build();
 
+        Option noHttpSwitch = Option.builder()
+        	.longOpt( CMDLINEARG_NO_HTTP )
+        	.required( false )
+        	.desc( String.format( "Turn off the HTTP service which provides REST-like endpoints " +
+        						  "to control the Federation Manager. If unspecified " +
+        						  "the HTTP service will be active (see also --%s).",
+        						  CMDLINEARG_HTTP_PORT) )
+        	.build();
+
+		Option httpPortArg = Option.builder()
+        	.longOpt( CMDLINEARG_HTTP_PORT )
+			.hasArg()
+        	.argName( "port" )
+			.required( false )
+		    .desc( String.format( "Specify the port to provide the HTTP service on. Only relevant if " +
+		    				      "the HTTP service is active (see also --%s). If unspecified, "+
+		    				      "port %d will be used.",
+		    				      CMDLINEARG_NO_HTTP, HTTP_PORT_DEFAULT ) )
+			.type( PatternOptionBuilder.NUMBER_VALUE )
+		    .build();
+
 		this.cmdLineOptions = new Options();
 
 		cmdLineOptions.addOption( help );
@@ -512,9 +614,12 @@ public class FedManCmdLineProcessor
 		cmdLineOptions.addOption( federateNameArg );
 		cmdLineOptions.addOption( federateTypeArg );
 		cmdLineOptions.addOption( requiredFederateTypes );
+		cmdLineOptions.addOption( maxTimeArg );
 		cmdLineOptions.addOption( logicalSecondArg );
 		cmdLineOptions.addOption( logicalStepGranularityArg );
 		cmdLineOptions.addOption( realtimeMultiplierArg );
+		cmdLineOptions.addOption( noHttpSwitch );
+		cmdLineOptions.addOption( httpPortArg );
 
 		return cmdLineOptions;
 	}

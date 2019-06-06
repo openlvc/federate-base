@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.cli.ParseException;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
@@ -62,7 +64,6 @@ public class FederationManager
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 
-
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
@@ -71,12 +72,31 @@ public class FederationManager
 		System.out.println(FedManConstants.UCEF_LOGO);
 		System.out.println(FedManConstants.FEDMAN_LOGO);
 
+		FedManCmdLineProcessor argProcessor = new FedManCmdLineProcessor( FedManConstants.EXEC_NAME );
+
 		try
 		{
-			FedManFederate fedman = new FedManFederate( args );
+			argProcessor.processArgs( args );
+		}
+		catch( ParseException e )
+		{
+			System.err.println( "ERROR: "+ e.getMessage() );
+			argProcessor.showHelp();
+			System.exit( 1 );
+		}
+
+		FedManHttpServer httpServer = null;
+		try
+		{
+			FedManFederate fedman = new FedManFederate( argProcessor );
 			initializeConfig( fedman.getFederateConfiguration() );
-			FedManHttpServer httpServer = new FedManHttpServer(fedman, 8080);
-			httpServer.startServer();
+
+			if( argProcessor.withHttpService() )
+			{
+				httpServer = new FedManHttpServer( fedman, argProcessor.httpServicePort() );
+				httpServer.startServer();
+			}
+
 			fedman.runFederate();
 		}
 		catch(Exception e)
@@ -85,6 +105,11 @@ public class FederationManager
 			System.err.println( e.getMessage() );
 			System.err.println( "Cannot proceed - shutting down now." );
 			System.exit( 1 );
+		}
+
+		if( httpServer != null )
+		{
+			httpServer.stopServer();
 		}
 
 		System.out.println( "Completed - shutting down now." );

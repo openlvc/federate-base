@@ -1134,7 +1134,19 @@ public class FedManHttpServer
 		    "--require", "FedABC,1",
 		    "--require", "FedXYZ,2",
 		};
-		FedManHttpServer testing = new FedManHttpServer(new FedManFederate(testArgs), 8080);
-		testing.startServer();
+
+		try
+		{
+			FedManCmdLineProcessor argProcessor = new FedManCmdLineProcessor("dummy");
+			argProcessor.processArgs( testArgs );
+
+			FedManHttpServer testing = new FedManHttpServer(new FedManFederate(argProcessor), 8080);
+			testing.startServer();
+		}
+		catch( Exception e )
+		{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }
