@@ -34,39 +34,18 @@ namespace base
                 {
 
                 public:
-                    MessageCodec();
-                    virtual ~MessageCodec();
+                    MessageCodec() = default;
+                    virtual ~MessageCodec() = default;
 
                     static inline omnetpp::cMessage* toCmessage( std::shared_ptr<const base::HLAInteraction> hlaInt )
                     {
-                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
-
                         std::string interactionName = hlaInt->getInteractionClassName();
                         omnetpp::cMessage* cMsg = new omnetpp::cMessage( hlaInt->getInteractionClassName().c_str() );
-
-                        std::vector<std::string> params = hlaInt->getParameterNames();
-                        for( auto& paramName : params )
-                        {
-                            DataType dataType = federate->getFederateConfiguration()->getDataType( interactionName, paramName );
-
-                            if( dataType == DATATYPESTRING )
-                                packString( cMsg, paramName, hlaInt->getAsString(paramName) );
-                            else if( dataType == DATATYPESHORT )
-                                packInteger( cMsg, paramName, hlaInt->getAsShort(paramName) );
-                            else if( dataType == DATATYPEINT )
-                                packInteger( cMsg, paramName, hlaInt->getAsInt(paramName) );
-                            else if( dataType == DATATYPELONG )
-                                packInteger( cMsg, paramName, hlaInt->getAsLong(paramName) );
-                            else if( dataType == DATATYPEFLOAT )
-                                packFloat( cMsg, paramName, hlaInt->getAsFloat(paramName) );
-                            else if( dataType == DATATYPEDOUBLE  )
-                                packFloat( cMsg, paramName, hlaInt->getAsDouble(paramName) );
-                            else if( dataType == DATATYPEBOOLEAN)
-                                packBoolean( cMsg, paramName, hlaInt->getAsBool(paramName) );
-                        }
+                        packValue( hlaInt, cMsg );
                         return cMsg;
                     }
 
+                    // how do you go from cMessage to interaction ???
                     static inline std::shared_ptr<base::HLAInteraction> toInteraction( omnetpp::cMessage* cMsg, const std::string &interactionName )
                     {
                         NoOpFederate* federate = OmnetFederate::getFederatePtr();
@@ -105,10 +84,40 @@ namespace base
                        return interaction;
                     }
                 private:
+
+                    // Packs cMessage params into interaction. But this is not logical????
                     template <class T>
-                    static void packValue( std::shared_ptr<base::HLAInteraction> &interaction, const std::string &key, const T &value  )
+                    static void packValue( std::shared_ptr<base::HLAInteraction> &hlaInt, const std::string &key, const T &value  )
                     {
-                        interaction->setValue(key, value);
+                        hlaInt->setValue(key, value);
+                    }
+
+                    // Packs interaction attributes into cMessage
+                    static void packValue( std::shared_ptr<const base::HLAInteraction> hlaInt, omnetpp::cMessage* cMsg )
+                    {
+                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
+
+                        std::vector<std::string> params = hlaInt->getParameterNames();
+                        for( auto &paramName : params )
+                        {
+                            DataType dataType = federate->getFederateConfiguration()->getDataType( hlaInt->getInteractionClassName(), paramName );
+
+                            if( dataType == DATATYPESTRING )
+                                packString( cMsg, paramName, hlaInt->getAsString(paramName) );
+                            else if( dataType == DATATYPESHORT )
+                                packInteger( cMsg, paramName, hlaInt->getAsShort(paramName) );
+                            else if( dataType == DATATYPEINT )
+                                packInteger( cMsg, paramName, hlaInt->getAsInt(paramName) );
+                            else if( dataType == DATATYPELONG )
+                                packInteger( cMsg, paramName, hlaInt->getAsLong(paramName) );
+                            else if( dataType == DATATYPEFLOAT )
+                                packFloat( cMsg, paramName, hlaInt->getAsFloat(paramName) );
+                            else if( dataType == DATATYPEDOUBLE  )
+                                packFloat( cMsg, paramName, hlaInt->getAsDouble(paramName) );
+                            else if( dataType == DATATYPEBOOLEAN)
+                                packBoolean( cMsg, paramName, hlaInt->getAsBool(paramName) );
+                        }
+
                     }
 
                     static void packString( omnetpp::cMessage* cMsg, const std::string &key, const std::string &value  )

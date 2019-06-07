@@ -40,14 +40,14 @@ namespace base
                 //----------------------------------------------------------
 
                 /*
-                 * Get called when initialising this cSimpleModule
+                 * Get called when initializing this cSimpleModule
                  */
                 virtual void initModule() override;
 
                 /*
                  * Get called when a message received from omnet network simulator
                  */
-                virtual void handleNetMessage( omnetpp::cMessage *msg ) override;
+                virtual void handleCMessage( omnetpp::cMessage *msg ) override;
 
                 /*
                  * Get called when exiting from this cSimpleModule
@@ -60,29 +60,36 @@ namespace base
                 OmnetFederate();
                 virtual ~OmnetFederate();
 
-
                 //----------------------------------------------------------
-                //                     Member Methods
+                //                     cSimpleModule methods
                 //----------------------------------------------------------
                 virtual void initialize() override;
                 virtual void finish() override;
 
+                //----------------------------------------------------------
+                //                    Member methods
+                //----------------------------------------------------------
                 /*
                  * Sets the file path of the federate configuration
                  *
-                 * <b>NOTE:</b> Path to the federate configuration must be provided
-                 * in {@link OmnetFederate#initModule}.
+                 * <b>NOTE:</b> Path to the federate configuration must be configured
+                 * inside when initializing modules in {@link OmnetFederate#initModule}.
                  *
                  * @param fedConfigFilePath path to the federate configuration
                  */
                 void setFedConfigPath( const std::string &fedConfigFilePath );
 
             protected:
+                //----------------------------------------------------------
+                //                     cSimpleModule methods
+                //----------------------------------------------------------
                 virtual void handleMessage( omnetpp::cMessage *msg ) override;
 
             private:
-                void initialiseFederate( const std::string &configFilePath );
+                void initializeFederate();
                 void tearDownFederate();
+
+            private:
                 std::string fedConfigFile;
                 static base::ucef::NoOpFederate* thisFedarate;
             };

@@ -41,7 +41,7 @@ void OmnetFederate::initModule()
     cout << "OMnet++ module initializing call ";
 }
 
-void OmnetFederate::handleNetMessage( omnetpp::cMessage *msg )
+void OmnetFederate::handleCMessage( omnetpp::cMessage *msg )
 {
     // send the message out
     cout << "Received message :" << msg->getName();
@@ -56,12 +56,12 @@ void OmnetFederate::tearDownModule()
 void OmnetFederate::initialize()
 {
     initModule();
-    initialiseFederate( fedConfigFile );
+    initializeFederate();
 }
 
 void OmnetFederate::handleMessage( omnetpp::cMessage *msg )
 {
-    handleNetMessage( msg );
+    handleCMessage( msg );
 }
 
 void OmnetFederate::finish()
@@ -70,10 +70,10 @@ void OmnetFederate::finish()
     tearDownModule();
 }
 
-void OmnetFederate::initialiseFederate( const string &configFilePath )
+void OmnetFederate::initializeFederate()
 {
     shared_ptr<base::FederateConfiguration> federateConfig = getFederateConfiguration();
-    federateConfig->loadFromJson( configFilePath );
+    federateConfig->loadFromJson( fedConfigFile );
     federateSetup();
 }
 

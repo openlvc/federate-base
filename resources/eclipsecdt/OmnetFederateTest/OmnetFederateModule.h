@@ -94,7 +94,7 @@ public:
     /**
      * Get called when received Omnet message
      */
-    virtual void handleNetMessage( omnetpp::cMessage *msg ) override;
+    virtual void handleCMessage( omnetpp::cMessage *msg ) override;
 
     /**
      * Get called to teardown Omnet modules
@@ -107,7 +107,7 @@ private:
 
 private:
     std::list<std::shared_ptr<const base::HLAInteraction>> remoteChallenges;
-    std::list<std::shared_ptr<base::HLAInteraction>> challengeReply;
+    std::list<std::shared_ptr<base::HLAInteraction>> challengeResponses;
     omnetpp::cMessage *timerMessage;
     bool canProcess;
 };

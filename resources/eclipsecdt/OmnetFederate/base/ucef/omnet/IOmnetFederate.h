@@ -31,7 +31,7 @@ namespace base
             public:
 
                 /*
-                 * Get called when initialising this cSimpleModule
+                 * Get called when initializing this cSimpleModule
                  */
                 virtual void initModule() = 0;
 
@@ -40,7 +40,7 @@ namespace base
                  *
                  * @param msg represent events, messages, jobs or other entity received
                  */
-                virtual void handleNetMessage( omnetpp::cMessage *msg ) = 0;
+                virtual void handleCMessage( omnetpp::cMessage *msg ) = 0;
 
                 /*
                  * Get called when exiting from this cSimpleModule

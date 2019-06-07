@@ -40,20 +40,24 @@ OmnetFederateModule::~OmnetFederateModule()
 
 bool OmnetFederateModule::step( double federateTime )
 {
-    if( !challengeReply.size() ) return true;
+    if( !challengeResponses.size() ) return true;
 
 
-    list<shared_ptr<base::HLAInteraction>> tmpReplies = challengeReply;
-    challengeReply.clear();
+    list<shared_ptr<base::HLAInteraction>> tmpReplies = challengeResponses;
+    challengeResponses.clear();
     // Generate a response for each remote challenge
     for( auto reply : tmpReplies )
     {
-        std::string ans = reply->getAsString( "stringValue" );
-        std::string id = reply->getAsString( "challengeId" );
+        string ans = reply->getAsString( "stringValue" );
+        string id = reply->getAsString( "challengeId" );
+
         reply->clear();
+
         reply->setValue( "substring", ans  );
         reply->setValue( "challengeId", id  );
+
         rtiAmbassadorWrapper->sendInteraction( reply );
+
         cout << "\n-----------------------------------------------------" << endl;
         cout << "Sending Name : " +  reply->getInteractionClassName() << endl;
         cout << "Sending respond : " +  reply->getAsString( "challengeId" ) << endl;
@@ -89,11 +93,12 @@ void OmnetFederateModule::receivedInteraction( shared_ptr<const HLAInteraction> 
 void OmnetFederateModule::initModule()
 {
     setFedConfigPath( ".//config/fedConfig.json" );
+
     timerMessage = new cMessage("timer");
     scheduleAt(simTime(), timerMessage);
 }
 
-void OmnetFederateModule::handleNetMessage( cMessage *msg )
+void OmnetFederateModule::handleCMessage( cMessage *msg )
 {
     if( msg->isSelfMessage() )
     {
@@ -110,7 +115,7 @@ void OmnetFederateModule::handleNetMessage( cMessage *msg )
     else
     {
         std::shared_ptr<base::HLAInteraction> interaction = MessageCodec::toInteraction( msg, RESPONSE_INTERACTION );
-        challengeReply.emplace_back( interaction );
+        challengeResponses.emplace_back( interaction );
         cancelAndDelete( msg );
     }
 

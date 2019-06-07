@@ -39,12 +39,11 @@ cEvent* OmnetFederateScheduler::takeNextEvent()
 
     if( !event )
     {
-        // throw new cTerminationException( E_ENDEDOK );
         OmnetFederate::getFederatePtr()->execute();
         return nullptr;
     }
 
-    // First try to see if an event is scheduled compared to the time of federate
+    // First try to see if an event is scheduled compared to federate time
     double timeDifference = event->getArrivalTime().dbl() - OmnetFederate::getFederatePtr()->getTime();
 
     while( timeDifference > 0 )
