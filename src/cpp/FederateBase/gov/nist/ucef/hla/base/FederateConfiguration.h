@@ -41,15 +41,31 @@ namespace base
 	class UCEF_API FederateConfiguration
 	{
 		public:
+			static std::string KEY_FEDERATE_NAME;
+			static std::string KEY_FEDERATE_TYPE;
+			static std::string KEY_FEDERATION_EXEC_NAME;
+			static std::string KEY_CAN_CREATE_FEDERATION;
+			static std::string KEY_STEP_SIZE;
+			static std::string KEY_MAX_JOIN_ATTEMPTS;
+			static std::string KEY_JOIN_RETRY_INTERVAL_SEC;
+			static std::string KEY_SYNC_BEFORE_RESIGN;
+			static std::string KEY_CALLBACKS_ARE_IMMEDIATE;
+			static std::string KEY_LOOK_AHEAD;
+			static std::string KEY_TIME_REGULATED;
+			static std::string KEY_TIME_CONSTRAINED;
+			static std::string KEY_FOM_PATH;
+			static std::string KEY_SOM_PATH;
+		public:
 			//----------------------------------------------------------
 			//                     Constructors
 			//----------------------------------------------------------
 			FederateConfiguration();
-
+			virtual ~FederateConfiguration();
 			//----------------------------------------------------------
 			//                     Instance Methods
 			//----------------------------------------------------------
 
+			void loadFromJson( const std::string& configPath );
 			/**
 			 * Returns the name of the federation that this federate wants to join
 			 * 
@@ -160,7 +176,7 @@ namespace base
 			 *
 			 * @param stepSize step size to be set
 			 */
-			void setTimeStepSize( float stepSize );
+			void setTimeStep( float stepSize );
 
 			/**
 			 * Returns the callback mode
@@ -222,9 +238,23 @@ namespace base
 			void setPermisionToCreateFederation( bool permission );
 
 			/**
-			 * Obtain the maximum number of join attempts to the federation
+			 * Returns the retry interval in federation join attempt
 			 *
-			 * @return the maximum number of join attempts to the federation
+			 * @return the retry interval in federation join attempt
+			 */
+			int getRetryInterval();
+
+			/**
+			 * Sets the retry interval in federation join attempt
+			 *
+			 * @param retryInterval retry interval in federation join attempt
+			 */
+			void setRetryInterval( int retryInterval );
+
+			/**
+			 * Returns the number of attempts to be made when joining the configured federation
+			 *
+			 * @return the number of attempts to be made when joining the configured federation
 			 */
 			int getMaxJoinAttempts();
 
@@ -241,7 +271,7 @@ namespace base
 			 * @return true if the federate has to be synchronised to
 			 *              'READY_TO_RESIGN' before resigning.
 			 */
-			bool syncBeforeResign();
+			bool getSyncBeforeResign();
 
 			/**
 			 * Sets the synchronization restriction when resigning
@@ -249,7 +279,7 @@ namespace base
 			 * @param synch true if federate has to be synchronised to 'READY_TO_RESIGN' 
 			 *                   before resigning, false otherwise
 			 */
-			void syncBeforeResign( bool synch );
+			void setSyncBeforeResign( bool synch );
 
 			//----------------------------------------------------------
 			//                 SOM data
@@ -349,6 +379,7 @@ namespace base
 			bool timeRegulated;
 			bool timeConstrained;
 			bool permitToCreateFederation;
+			int retryInterval;
 			int maxJoinAttempts;
 			bool synchBeforeResign;
 			ObjectDataStoreByName objectDataStoreByName;

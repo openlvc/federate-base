@@ -34,6 +34,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1053291196" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.898974593" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -70,6 +71,18 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.so.debug.707752834.1141312174" name="FederateAmbassador.cpp" rcbsApplicability="disable" resourcePath="gov/nist/ucef/hla/base/FederateAmbassador.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.558983625.1147451121">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.558983625.1147451121" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.debug.558983625">
+							<option id="gnu.cpp.compiler.option.include.paths.243441575" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp/FederateBase&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include&quot;"/>
+							</option>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.234896948" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
@@ -107,6 +120,7 @@
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.963177738" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="gnu.cpp.compiler.option.other.other.732104799" name="Other flags" superClass="gnu.cpp.compiler.option.other.other" useByScannerDiscovery="false" value="-c -fmessage-length=0" valueType="string"/>
@@ -144,6 +158,18 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.so.release.721054034.1403678935" name="FederateAmbassador.cpp" rcbsApplicability="disable" resourcePath="gov/nist/ucef/hla/base/FederateAmbassador.cpp" toolsToInvoke="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.1531669495.1724105836">
+						<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.1531669495.1724105836" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.so.release.1531669495">
+							<option id="gnu.cpp.compiler.option.include.paths.1275208075" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../src/cpp/FederateBase&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/tinyxml2&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/ieee1516e&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include/logger&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../lib/cpp/include&quot;"/>
+							</option>
+							<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1528825370" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
+						</tool>
+					</fileInfo>
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>

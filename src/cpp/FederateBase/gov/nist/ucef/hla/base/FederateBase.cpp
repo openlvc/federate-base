@@ -503,7 +503,7 @@ namespace base
 		beforeReadyToResign();
 
 		// now we are ready to resign from this federation
-		if( ucefConfig->syncBeforeResign() )
+		if( ucefConfig->getSyncBeforeResign() )
 			synchronize( READY_TO_RESIGN );
 
 		// before exit hook for cleanup

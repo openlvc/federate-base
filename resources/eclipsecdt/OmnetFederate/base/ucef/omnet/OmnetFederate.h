@@ -68,24 +68,22 @@ namespace base
                 virtual void finish() override;
 
                 /*
-                 * Sets the file path and name of the federate configuration
+                 * Sets the file path of the federate configuration
                  *
-                 * <b>NOTE:</b> Path to the federate configuration must be set
-                 * when overriding {@link OmnetFederate#initModule}.
+                 * <b>NOTE:</b> Path to the federate configuration must be provided
+                 * in {@link OmnetFederate#initModule}.
                  *
                  * @param fedConfigFilePath path to the federate configuration
-                 * @param fedConfigFileName file name of the federate configuration
                  */
-                void setFedConfigPath( std::string fedConfigFilePath, std::string fedConfigFileName );
+                void setFedConfigPath( const std::string &fedConfigFilePath );
 
             protected:
                 virtual void handleMessage( omnetpp::cMessage *msg ) override;
 
             private:
-                void initialiseFederate( std::string configFilePath );
+                void initialiseFederate( const std::string &configFilePath );
                 void tearDownFederate();
-                std::string filePath;
-                std::string fileName;
+                std::string fedConfigFile;
                 static base::ucef::NoOpFederate* thisFedarate;
             };
         }

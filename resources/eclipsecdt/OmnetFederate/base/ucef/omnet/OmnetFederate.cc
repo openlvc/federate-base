@@ -21,7 +21,7 @@ using namespace std;
 
 NoOpFederate* OmnetFederate::thisFedarate = 0;
 
-OmnetFederate::OmnetFederate() : filePath("."), fileName(".")
+OmnetFederate::OmnetFederate() : fedConfigFile(".")
 {
     thisFedarate = dynamic_cast<NoOpFederate*>( this );
 }
@@ -56,7 +56,7 @@ void OmnetFederate::tearDownModule()
 void OmnetFederate::initialize()
 {
     initModule();
-    initialiseFederate(".");
+    initialiseFederate( fedConfigFile );
 }
 
 void OmnetFederate::handleMessage( omnetpp::cMessage *msg )
@@ -70,17 +70,10 @@ void OmnetFederate::finish()
     tearDownModule();
 }
 
-void OmnetFederate::initialiseFederate( string configFilePath )
+void OmnetFederate::initialiseFederate( const string &configFilePath )
 {
     shared_ptr<base::FederateConfiguration> federateConfig = getFederateConfiguration();
-    federateConfig->setFederationName( string("ChallengeResponse") );
-    federateConfig->setFederateName( string("OmnetResponseFederate") );
-    federateConfig->setFederateType( string("OmnetResponseFederate") );
-    federateConfig->setLookAhead( 0.2f );
-    federateConfig->setTimeStepSize( 1.0f );
-    federateConfig->addFomPath( string("ChallengeResponse/fom/ChallengeResponse.xml") );
-    federateConfig->addSomPath( string("ChallengeResponse/som/Response.xml") );
-    federateConfig->setPermisionToCreateFederation( true );
+    federateConfig->loadFromJson( configFilePath );
     federateSetup();
 }
 
@@ -89,8 +82,7 @@ void OmnetFederate::tearDownFederate()
     federateTeardown();
 }
 
-void OmnetFederate::setFedConfigPath( string fedConfigFilePath, string fedConfigFileName )
+void OmnetFederate::setFedConfigPath( const string &fedConfigFilePath )
 {
-    filePath = fedConfigFilePath;
-    fileName = fedConfigFileName;
+    fedConfigFile = fedConfigFilePath;
 }

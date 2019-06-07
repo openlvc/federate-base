@@ -37,7 +37,7 @@ namespace base
 				shared_ptr<HLAInteraction> hlaInteraction;
 				if( interactionClass->name == SimEnd::INTERACTION_NAME )
 				{
-					ucefConfig->syncBeforeResign( true );
+					ucefConfig->setSyncBeforeResign( true );
 					// create correct interaction based on the class name
 					hlaInteraction = make_shared<SimEnd>( interactionClass->name );
 					// populate interaction with received data

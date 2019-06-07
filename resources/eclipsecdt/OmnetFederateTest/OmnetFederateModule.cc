@@ -88,7 +88,7 @@ void OmnetFederateModule::receivedInteraction( shared_ptr<const HLAInteraction> 
 
 void OmnetFederateModule::initModule()
 {
-    setFedConfigPath(".", "fedConfig.json");
+    setFedConfigPath( ".//config/fedConfig.json" );
     timerMessage = new cMessage("timer");
     scheduleAt(simTime(), timerMessage);
 }
