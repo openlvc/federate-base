@@ -26,9 +26,9 @@ package gov.nist.ucef.hla.tools.fedman;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.commons.cli.ParseException;
 
@@ -36,11 +36,11 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.ucef.interactions.SimEnd;
+import gov.nist.ucef.hla.ucef.interactions.SimPause;
+import gov.nist.ucef.hla.ucef.interactions.SimResume;
+import gov.nist.ucef.hla.ucef.interactions.SimStart;
 import gov.nist.ucef.hla.base.UCEFException;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.SimStart;
 
 /**
  *		            ___
@@ -72,8 +72,8 @@ public class FederationManager
 		System.out.println(FedManConstants.UCEF_LOGO);
 		System.out.println(FedManConstants.FEDMAN_LOGO);
 
+		FedManHttpServer httpServer = null;
 		FedManCmdLineProcessor argProcessor = new FedManCmdLineProcessor( FedManConstants.EXEC_NAME );
-
 		try
 		{
 			argProcessor.processArgs( args );
@@ -85,19 +85,37 @@ public class FederationManager
 			System.exit( 1 );
 		}
 
-		FedManHttpServer httpServer = null;
 		try
 		{
-			FedManFederate fedman = new FedManFederate( argProcessor );
-			initializeConfig( fedman.getFederateConfiguration() );
+			FedManFederate federate = new FedManFederate();
+			initializeConfig( federate, argProcessor );
+
+			// TODO!!!!!!!!!!
+			// This all needs to be shifted into the config initialization
+			try
+			{
+				FederateConfiguration config = federate.getFederateConfiguration();
+				// modules
+				String[] moduleFoms = { "fedman-fom.xml" };
+				config.addModules( urlsFromPaths(moduleFoms) );
+
+
+				// join modules
+				String[] joinModuleFoms = {};
+				config.addJoinModules( urlsFromPaths(joinModuleFoms) );
+			}
+			catch( Exception e )
+			{
+				throw new UCEFException("Exception loading one of the FOM modules from disk", e);
+			}
 
 			if( argProcessor.withHttpService() )
 			{
-				httpServer = new FedManHttpServer( fedman, argProcessor.httpServicePort() );
+				httpServer = new FedManHttpServer( federate, argProcessor.httpServicePort() );
 				httpServer.startServer();
 			}
 
-			fedman.runFederate();
+			federate.runFederate();
 		}
 		catch(Exception e)
 		{
@@ -140,19 +158,43 @@ public class FederationManager
 	 *
 	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
-	private static void initializeConfig( FederateConfiguration config )
+	private static void initializeConfig( FedManFederate federate,
+	                                      FedManCmdLineProcessor argProcessor )
 	{
-		config.setFederateName( FedManConstants.FEDMAN_FEDERATE_NAME );
-		config.setFederateType( FedManConstants.FEDMAN_FEDERATE_TYPE );
-		config.setFederationName( "ManagedFederation" );
+		// configure federate specifics from command line args
+		federate.setMaxTime( argProcessor.maxTime() );
+		federate.setLogicalSecond( argProcessor.logicalSecond() );
+		federate.setRealTimeMultiplier( argProcessor.realTimeMultiplier() );
+		federate.setWallClockStepDelay( argProcessor.wallClockStepDelay() );
+		federate.setStartRequirements( argProcessor.startRequirements() );
 
-		// a federation manager is allowed to create a required federation
+		FederateConfiguration config = federate.getFederateConfiguration();
+		// a federation manager is ALWAYS allowed to create the required federation
 		config.setCanCreateFederation( true );
+		// hear about callbacks *immediately*, rather than when evoked, otherwise
+		// we don't know about joined federates until after the ticking starts
+		config.setCallbacksAreImmediate( true ); // use CallbackModel.HLA_IMMEDIATE
+		// config.setLookAhead( 0.25 );
 
-		// set up object class reflections to subscribe to (described
-		// in MIM) to detect joining federates. Note that since this
-		// is a non-UCEF reflection, the `DataType` parameter here
-		// does not really matter too much
+		// configure general federate configuration from command line args
+		config.setFederateName( argProcessor.federateName() );
+		config.setFederateType( argProcessor.federateType() );
+		config.setFederationName( argProcessor.federationExecName() );
+		config.setStepSize( argProcessor.logicalStepSize() );
+		config.setLookAhead( argProcessor.logicalStepSize() );
+
+		// TODO
+        // if( argProcessor.isConfigFileSpecified() )
+        // {
+        //   config.fromJSON( argProcessor.configFile() );
+        // }
+
+		// In order to detect joining federates, we subscribe to a "built in"
+		// object reflection (and related attributes) described in the MIM.
+		// NOTE: this is a bit of a special case, and since we decode it
+		//       internally, the `DataType` parameter of `UNKNOWN` specified
+		//       here for the attributes does not have any bearing on how the
+		//       data in the reflection is unpacked.
 		ObjectClass mimReflection = ObjectClass.Sub( FedManConstants.HLAFEDERATE_OBJECT_CLASS_NAME );
 		for( String attributeName : FedManConstants.HLAFEDERATE_ATTRIBUTE_NAMES )
 		{
@@ -160,66 +202,53 @@ public class FederationManager
 		}
 		config.cacheObjectClasses( mimReflection );
 
-		// The federation manager publishes certain UCEF simulation control interactions
-		config.cacheInteractionClasses(
-            InteractionClass.Pub( SimStart.interactionName() ),
-            InteractionClass.Pub( SimEnd.interactionName() ),
-            InteractionClass.Pub( SimPause.interactionName() ),
-            InteractionClass.Pub( SimResume.interactionName() )
-       	);
-		// hear about callbacks *immediately*, rather than when evoked, otherwise
-		// we don't know about joined federates until after the ticking starts
-		config.setCallbacksAreImmediate( true ); // use CallbackModel.HLA_IMMEDIATE
-
-		config.setLookAhead( 0.25 );
-
-		// somebody set us up the FOM...
-		try
-		{
-			String fomRootPath = FedManConstants.FOMS_ROOT;
-			// modules
-			String[] moduleFoms = { fomRootPath + "FederationManager.xml",
-			                        fomRootPath + "SmartPingPong.xml" };
-			config.addModules( urlsFromPaths(moduleFoms) );
-
-
-			// join modules
-			String[] joinModuleFoms = {};
-			config.addJoinModules( urlsFromPaths(joinModuleFoms) );
-		}
-		catch( Exception e )
-		{
-			throw new UCEFException("Exception loading one of the FOM modules from disk", e);
-		}
+		// The federation manager also publishes certain UCEF simulation control interactions
+		config.cacheInteractionClasses( InteractionClass.Pub( SimStart.interactionName() ),
+		                                InteractionClass.Pub( SimEnd.interactionName() ),
+		                                InteractionClass.Pub( SimPause.interactionName() ),
+		                                InteractionClass.Pub( SimResume.interactionName() ) );
 	}
 
 	/**
 	 * Utility function to set create a bunch of URLs from file paths
 	 *
-	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system,
-	 *       a {@link UCEFException} will be thrown.
+	 * NOTE: if any of the paths don't actually correspond either to a file that exists on the
+	 * file system or a system resource a {@link UCEFException} will be thrown.
 	 *
 	 * @return a list of URLs corresponding to the paths provided
 	 */
-	private static Collection<URL> urlsFromPaths(String[] paths)
+	private static Collection<URL> urlsFromPaths( String[] paths )
 	{
-		List<URL> result = new ArrayList<>();
+		Set<URL> result = new HashSet<>();
 
-		try
+	    try
 		{
-    		for(String path : paths)
-    		{
-    			File file = new File( path );
-    			if(file.isFile())
-    					result.add( new File( path ).toURI().toURL() );
-    			else
-    				throw new UCEFException("The file '%s' does not exist. " +
-    										"Please check the file path.", file.getAbsolutePath());
-    		}
+			for( String path : paths )
+			{
+				File file = new File( path );
+				if( file.isFile() )
+				{
+					result.add( new File( path ).toURI().toURL() );
+				}
+				else
+				{
+					URL fileUrl = FederationManager.class.getClassLoader().getResource( path );
+					if( fileUrl != null )
+					{
+						result.add( fileUrl );
+					}
+					else
+					{
+						throw new UCEFException( "The file '%s' does not exist. " +
+						                         "Please check the file path.",
+						                         file.getAbsolutePath() );
+					}
+				}
+			}
 		}
 		catch( MalformedURLException e )
 		{
-			throw new UCEFException(e);
+			throw new UCEFException( e );
 		}
 
 		return result;

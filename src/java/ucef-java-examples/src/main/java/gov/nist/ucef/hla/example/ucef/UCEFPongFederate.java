@@ -36,11 +36,10 @@ import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.util.FileUtils;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
-import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.SimStart;
+import gov.nist.ucef.hla.ucef.interactions.SimEnd;
+import gov.nist.ucef.hla.ucef.interactions.SimPause;
+import gov.nist.ucef.hla.ucef.interactions.SimResume;
+import gov.nist.ucef.hla.ucef.interactions.SimStart;
 import hla.rti1516e.encoding.EncoderFactory;
 
 /**
@@ -53,7 +52,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  *		       Universal CPS Environment
  *		             for Federation
  * 
- * Example UCEF federate for testing
+ * Example UCEF federate
  */
 public class UCEFPongFederate extends UCEFFederateBase
 {
@@ -246,19 +245,6 @@ public class UCEFPongFederate extends UCEFFederateBase
 		System.out.println( "Simulation has been resumed." );
 	}
 	
-	@Override
-	protected void receiveFederateJoin( FederateJoin federateJoin, double time )
-	{
-		// delegate to method ignoring time
-		receiveFederateJoin(federateJoin);
-	}
-	
-	@Override
-	protected void receiveFederateJoin( FederateJoin federateJoin )
-	{
-		// ignored in this example
-	}
-
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////

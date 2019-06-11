@@ -1,0 +1,30 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<!-- parent pom -->
+	<parent>
+		<groupId>gov.nist.ucef</groupId>
+		<artifactId>ucef-java-all-modules</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	
+	<groupId>gov.nist.ucef.genx.ping</groupId>
+	<artifactId>ucef-java-genx-ping</artifactId>
+	<name>ucef-java-genx-ping</name>
+	<packaging>jar</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>gov.nist.ucef.java.core</groupId>
+			<artifactId>ucef-java-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+	
+</project>

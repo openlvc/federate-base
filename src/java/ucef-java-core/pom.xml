@@ -14,7 +14,6 @@
 	<!-- ucef-java info -->
 	<groupId>gov.nist.ucef.java.core</groupId>
 	<artifactId>ucef-java-core</artifactId>
-	<version>ucef-java-core-0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>ucef-java-core</name>
@@ -36,26 +35,6 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.portico</groupId>
-			<artifactId>portico</artifactId>
-			<version>${portico.version}</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/../src/main/resources/lib/portico-master.jar</systemPath>
-		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

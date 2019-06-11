@@ -41,29 +41,29 @@ public class FedManCmdLineProcessor
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// command line arguments and defaults
-	public static final String CMDLINE_ARG_HELP                       = "help";
-	public static final String CMDLINE_ARG_HELP_SHORT                 = "h";
-	public static final String CMDLINEARG_FEDMAN_FEDERATION_EXEC_NAME = "federation";
-	public static final String CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT = "f";
-	public static final String CMDLINEARG_REQUIRE                     = "require";
-	public static final String CMDLINEARG_REQUIRE_SHORT               = "r";
-	public static final String CMDLINEARG_FEDMAN_FEDERATE_NAME        = "fedman-name";
-	public static final String DEFAULT_FEDMAN_FEDERATE_NAME           = "FederateManager";
-	public static final String CMDLINEARG_FEDMAN_FEDERATE_TYPE        = "fedman-type";
-	public static final String DEFAULT_FEDMAN_FEDERATE_TYPE           = "FederateManager";
-	public static final String CMDLINEARG_MAX_TIME                    = "max-time";
-	public static final String CMDLINEARG_LOGICAL_SECOND              = "logical-second";
-	public static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY    = "logical-granularity";
-	public static final String CMDLINEARG_REALTIME_MULTIPLIER         = "realtime-multiplier";
-	public static final String CMDLINEARG_NO_HTTP                     = "no-http";
-	public static final String CMDLINEARG_HTTP_PORT                   = "http-port";
+	private static final String CMDLINE_ARG_HELP                       = "help";
+	private static final String CMDLINE_ARG_HELP_SHORT                 = "h";
+	private static final String CMDLINEARG_FEDMAN_FEDERATION_EXEC_NAME = "federation";
+	private static final String CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT = "f";
+	private static final String CMDLINEARG_REQUIRE                     = "require";
+	private static final String CMDLINEARG_REQUIRE_SHORT               = "r";
+	private static final String CMDLINEARG_FEDMAN_FEDERATE_NAME        = "fedman-name";
+	private static final String DEFAULT_FEDMAN_FEDERATE_NAME           = "FederateManager";
+	private static final String CMDLINEARG_FEDMAN_FEDERATE_TYPE        = "fedman-type";
+	private static final String DEFAULT_FEDMAN_FEDERATE_TYPE           = "FederateManager";
+	private static final String CMDLINEARG_MAX_TIME                    = "max-time";
+	private static final String CMDLINEARG_LOGICAL_SECOND              = "logical-second";
+	private static final String CMDLINEARG_LOGICAL_STEP_GRANULARITY    = "logical-granularity";
+	private static final String CMDLINEARG_REALTIME_MULTIPLIER         = "realtime-multiplier";
+	private static final String CMDLINEARG_NO_HTTP                     = "no-http";
+	private static final String CMDLINEARG_HTTP_PORT                   = "http-port";
+	private static final String CMDLINEARG_CONFIG_FILE                 = "config";
 
-	public static final double MAX_TIME_DEFAULT                       = Double.MAX_VALUE;
-	public static final double LOGICAL_SECOND_DEFAULT                 = 1.0;
-	public static final int LOGICAL_STEP_GRANULARITY_DEFAULT          = 1;
-	public static final double REALTIME_MULTIPLIER_DEFAULT            = 1.0;
-	public static final boolean PROVIDE_HTTP_ACCESS                   = true;
-	public static final int HTTP_PORT_DEFAULT                         = 8080;
+	private static final double MAX_TIME_DEFAULT                       = Double.MAX_VALUE;
+	private static final double LOGICAL_SECOND_DEFAULT                 = 1.0;
+	private static final int LOGICAL_STEP_GRANULARITY_DEFAULT          = 1;
+	private static final double REALTIME_MULTIPLIER_DEFAULT            = 1.0;
+	private static final int HTTP_PORT_DEFAULT                         = 8080;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -78,6 +78,7 @@ public class FedManCmdLineProcessor
 	private double realtimeMultiplier;
 	private boolean withHttpService;
 	private int httpServicePort;
+	private String configFile;
 
 	private Options cmdLineOptions;
 
@@ -168,6 +169,16 @@ public class FedManCmdLineProcessor
 		return this.httpServicePort;
 	}
 
+	public boolean isConfigFileSpecified()
+	{
+		return this.configFile != null && this.configFile.length() > 0;
+	}
+	
+	public String configFile()
+	{
+		return this.configFile;
+	}
+	
 	/**
 	 * Utility method for validating and processing of command line arguments/options
 	 *
@@ -222,6 +233,8 @@ public class FedManCmdLineProcessor
                                                   CMDLINEARG_HTTP_PORT,
                                                   0, 65535,
                                                   HTTP_PORT_DEFAULT );
+        
+        this.configFile = extractString( cmdLine, CMDLINEARG_CONFIG_FILE, "" );
 
         // we need to sanity check some arguments with respect to each other
         // to ensure that they are "sensible" - in other words, the values
@@ -606,7 +619,16 @@ public class FedManCmdLineProcessor
 		    				      CMDLINEARG_NO_HTTP, HTTP_PORT_DEFAULT ) )
 			.type( PatternOptionBuilder.NUMBER_VALUE )
 		    .build();
-
+		
+        Option configLocation = Option.builder()
+        	.longOpt( CMDLINEARG_CONFIG_FILE )
+			.hasArg()
+        	.argName( "file" )
+		    .desc( String.format( "Set the location of the configuration file for the Federation " +
+		    					  "Manager to use." ) )
+			.type( PatternOptionBuilder.STRING_VALUE )
+		    .build();
+		
 		this.cmdLineOptions = new Options();
 
 		cmdLineOptions.addOption( help );
@@ -620,6 +642,7 @@ public class FedManCmdLineProcessor
 		cmdLineOptions.addOption( realtimeMultiplierArg );
 		cmdLineOptions.addOption( noHttpSwitch );
 		cmdLineOptions.addOption( httpPortArg );
+		cmdLineOptions.addOption( configLocation );
 
 		return cmdLineOptions;
 	}

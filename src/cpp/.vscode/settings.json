@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.log.*": "log",
+        "map": "cpp",
+        "memory": "cpp",
+        "string": "cpp"
+    }
+}

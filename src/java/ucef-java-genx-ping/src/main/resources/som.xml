@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<objectModel xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd" 
+			 xmlns="http://standards.ieee.org/IEEE1516-2010" 
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <modelIdentification>
+        <name>PingPong</name>
+        <type>SOM</type>
+        <version>0.1.0</version>
+        <modificationDate>2019-01-11</modificationDate>
+        <securityClassification>Unclassified</securityClassification>
+        <description>
+            This file was generated from WebGME based on the PingPong project.
+        </description>
+    </modelIdentification>
+    
+    <objects>
+        <objectClass>
+            <name>HLAobjectRoot</name>
+            <sharing>Neither</sharing>
+            <objectClass>
+                <name>Player</name>
+                <sharing>PublishSubscribe</sharing>
+                <attribute>
+                    <name>name</name>
+                    <dataType>string</dataType>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                </attribute>
+            </objectClass>
+        </objectClass>
+    </objects>
+    
+    <interactions>
+        <interactionClass>
+            <name>HLAinteractionRoot</name>
+            <sharing>Neither</sharing>
+            <transportation>HLAreliable</transportation>
+            <order>TimeStamp</order>
+            <interactionClass>
+                <name>Ping</name>
+                <sharing>Publish</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <parameter>
+                    <name>count</name>
+                    <dataType>int</dataType>
+                </parameter>
+            </interactionClass>
+            <interactionClass>
+                <name>Pong</name>
+                <sharing>Subscribe</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <parameter>
+                    <name>letter</name>
+                    <dataType>char</dataType>
+                </parameter>
+            </interactionClass>
+            
+			<interactionClass>
+				<name>UCEFinteractionRoot</name>
+				<sharing>Neither</sharing>
+				<transportation>HLAreliable</transportation>
+				<order>TimeStamp</order>
+		        <interactionClass>
+		            <name>SimulationControl</name>
+		            <sharing>Neither</sharing>
+		            <transportation>HLAreliable</transportation>
+		            <order>TimeStamp</order>
+		            <interactionClass>
+		                <name>SimStart</name>
+		                <sharing>Subscribe</sharing>
+		                <transportation>HLAreliable</transportation>
+		                <order>TimeStamp</order>
+		            </interactionClass>
+		            <interactionClass>
+		                <name>SimEnd</name>
+		                <sharing>Subscribe</sharing>
+		                <transportation>HLAreliable</transportation>
+		                <order>TimeStamp</order>
+		            </interactionClass>
+		            <interactionClass>
+		                <name>SimPause</name>
+		                <sharing>Subscribe</sharing>
+		                <transportation>HLAreliable</transportation>
+		                <order>TimeStamp</order>
+		            </interactionClass>
+		            <interactionClass>
+		                <name>SimResume</name>
+		                <sharing>Subscribe</sharing>
+		                <transportation>HLAreliable</transportation>
+		                <order>TimeStamp</order>
+		            </interactionClass>
+		        </interactionClass>
+	        </interactionClass>
+
+        </interactionClass>
+    </interactions>
+
+</objectModel>

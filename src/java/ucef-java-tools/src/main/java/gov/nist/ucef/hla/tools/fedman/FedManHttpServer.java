@@ -1140,7 +1140,10 @@ public class FedManHttpServer
 			FedManCmdLineProcessor argProcessor = new FedManCmdLineProcessor("dummy");
 			argProcessor.processArgs( testArgs );
 
-			FedManHttpServer testing = new FedManHttpServer(new FedManFederate(argProcessor), 8080);
+			FedManFederate fedmanFederate = new FedManFederate();
+			fedmanFederate.setStartRequirements( argProcessor.startRequirements() );
+			
+			FedManHttpServer testing = new FedManHttpServer(fedmanFederate, 8080);
 			testing.startServer();
 		}
 		catch( Exception e )

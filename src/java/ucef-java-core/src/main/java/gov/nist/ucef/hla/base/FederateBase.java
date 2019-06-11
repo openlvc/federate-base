@@ -583,7 +583,7 @@ public abstract class FederateBase
 		{
 			try
 			{
-				if(retryCount > 0)
+				if( retryCount > 0 )
 				{
 					logger.warn( "Attempt {} of {} to join federation '{}'...",
 					             (retryCount+1), maxRetries, federationName );
@@ -594,7 +594,7 @@ public abstract class FederateBase
 
 				logger.info( "Joined federation '{}'.", federationName );
 			}
-			catch(UCEFException e)
+			catch( UCEFException e )
 			{
 				logger.warn( "Failed to join federation '{}'",
                              federationName );
