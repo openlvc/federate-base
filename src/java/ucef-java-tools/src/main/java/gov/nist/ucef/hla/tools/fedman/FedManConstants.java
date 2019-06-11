@@ -62,9 +62,7 @@ public class FedManConstants
 	
 	// Federate Manager federation naming conventions 
 	public static final String DEFAULT_FEDMAN_FEDERATE_NAME = "FederationManager";
-	public static final String DEFAULT_FEDMAN_FEDERATE_TYPE = "FederationManager";
-	public static final String FEDMAN_FEDERATE_TYPE = DEFAULT_FEDMAN_FEDERATE_NAME;
-	public static final String FEDMAN_FEDERATE_NAME = DEFAULT_FEDMAN_FEDERATE_NAME;
+	public static final String DEFAULT_FEDMAN_FEDERATE_TYPE = DEFAULT_FEDMAN_FEDERATE_NAME;
 
 	// MIM defined attribute reflections for detection of joining federates
 	public static final String HLAFEDERATE_OBJECT_CLASS_NAME = "HLAobjectRoot.HLAmanager.HLAfederate";

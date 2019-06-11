@@ -1,4 +1,6 @@
 /target/
 /logs/
-.settings
 /bin/
+.settings
+**/*.log
+**/*.classpath

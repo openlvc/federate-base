@@ -24,7 +24,7 @@
 package gov.nist.ucef.hla.base;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -40,10 +40,9 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.InteractionParameter;
@@ -93,6 +92,9 @@ public class FederateConfiguration
 	private static final String JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN      = "syncBeforeResign";
 	private static final String JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE = "callbacksAreImmediate";
 	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
+	private static final String JSON_CONFIG_KEY_BASE_FOMS               = "base-foms";
+	private static final String JSON_CONFIG_KEY_JOIN_FOMS               = "join-foms";
+	private static final String JSON_CONFIG_KEY_SOM                     = "som";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -103,7 +105,8 @@ public class FederateConfiguration
 	private Set<URL> modules;
 	private Set<URL> joinModules;
 
-	private Set<String> foms;
+	private Collection<String> baseFoms;
+	private Collection<String> joinFoms;
 	private String som;
 
 	private Map<String,Types.InteractionClass> interactionsByName;
@@ -149,8 +152,9 @@ public class FederateConfiguration
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
 
-		this.foms = new HashSet<>();
-		this.som = null;
+		this.baseFoms = new HashSet<>();
+		this.joinFoms = new HashSet<>();
+		this.som = "";
 
 		this.objectClassesByName = new HashMap<>();
 		this.interactionsByName = new HashMap<>();
@@ -170,52 +174,6 @@ public class FederateConfiguration
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
-	 * Provide configuration details from a file containing JSON structured data
-	 *
-	 * Only recognized configuration items in the JSON structure will be processed; any other
-	 * items will be ignored.
-	 *
-	 * Configuration items not mentioned in the JSON structure will not have their values changed
-	 * (i.e., they will be left in their existing state).
-	 *
-	 * Currently recognized configuration items are:
-	 *
-	 * {
-	 *     "federateName":         STRING,
-	 *     "federateType":         STRING,
-	 *     "federationExecName":   STRING,
-	 *     "canCreateFederation":  BOOL,
-	 *     "maxJoinAttempts":      INT,
-	 *     "joinRetryIntervalSec": INT,
-	 *     "syncBeforeResign":     BOOL,
-	 *     "isTimeStepped":        BOOL,
-	 *     "callbacksAreEvoked":   BOOL,
-	 *     "lookAhead":            DOUBLE,
-	 *     "stepSize":             DOUBLE
-	 * }
-	 *
-	 * @param config the file containing the JSON configuration data
-	 */
-	public void fromJSON(File config)
-	{
-		try
-		{
-			// delegate to the string data handler
-			fromJSON( new String( Files.readAllBytes( config.toPath() ) ) );
-		}
-		catch( IOException e )
-		{
-			throw new UCEFException( e, "Unable to read configuration from '%s'.",
-			                         config.getAbsolutePath() );
-		}
-		catch( Exception e )
-		{
-			throw new UCEFException( e, "Unable to process configuration from '%s'.",
-			                         config.getAbsolutePath() );
-		}
-	}
-
-	/**
 	 * Provide configuration details from a {@link String} containing JSON structured data
 	 *
 	 * Only recognized configuration items in the JSON structure will be processed; any other
@@ -227,92 +185,202 @@ public class FederateConfiguration
 	 * Currently recognized configuration items are:
 	 *
 	 * {
-	 *     "federateName":         STRING,
-	 *     "federateType":         STRING,
-	 *     "federationExecName":   STRING,
-	 *     "canCreateFederation":  BOOL,
-	 *     "maxJoinAttempts":      INT,
-	 *     "joinRetryIntervalSec": INT,
-	 *     "syncBeforeResign":     BOOL,
-	 *     "isTimeStepped":        BOOL,
-	 *     "callbacksAreEvoked":   BOOL,
-	 *     "lookAhead":            DOUBLE,
-	 *     "stepSize":             DOUBLE
+	 *     "federateName":          STRING,
+	 *     "federateType":          STRING,
+	 *     "federationExecName":    STRING,
+	 *     "canCreateFederation":   BOOL,
+	 *     "maxJoinAttempts":       INT,
+	 *     "joinRetryIntervalSec":  INT,
+	 *     "syncBeforeResign":      BOOL,
+	 *     "callbacksAreImmediate": BOOL,
+	 *     "lookAhead":             DOUBLE,
+	 *     "stepSize":              DOUBLE
 	 * }
 	 *
-	 * @param config the {@link String} containing the JSON configuration data
+	 * @param configSource the {@link String} containing either JSON configuration data, or the path to a
+	 *        resource (i.e., a file) containing JSON configuration data.
+	 * @return this {@link FederateConfiguration} instance (for method chaining)
 	 */
-	public void fromJSON(String config)
+	public FederateConfiguration fromJSON( String configSource )
 	{
-		try
+		// see if the configuration source is a file
+		File configFile = getResourceFile( configSource );
+		boolean isFile = configFile != null;
+
+		// assume for the moment that the JSON is coming directly from the
+		// configuration source parameter
+		String json = configSource;
+		if(isFile)
 		{
-			Object parsedString = new JSONParser().parse(config);
-			if(parsedString instanceof JSONObject)
+			// the configuration source is actually a file - read the bytes
+			// from it into a string for processing
+			try
 			{
-				JSONObject configData = (JSONObject)parsedString;
-
-				// show warnings for any unrecognized configuration items found
-				// so that problems can be resolved quickly
-				Set<String> recognizedConfigurationKeys = new HashSet<>();
-				recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
-    				{
-                        JSON_CONFIG_KEY_FEDERATE_NAME,
-                        JSON_CONFIG_KEY_FEDERATE_TYPE,
-                        JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
-                        JSON_CONFIG_KEY_CAN_CREATE_FEDERATION,
-                        JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS,
-                        JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC,
-                        JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
-                        JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
-                        JSON_CONFIG_KEY_LOOK_AHEAD,
-                        JSON_CONFIG_KEY_STEP_SIZE
-                    }
-				));
-				for(Object key : configData.keySet())
-				{
-					if(!recognizedConfigurationKeys.contains( key ))
-					{
-						Object value = configData.get(key);
-						logger.warn( String.format( "Configuration item '%s' with "+
-													 "value '%s' in JSON configuration data "+
-													 "is not recognized and will be ignored.",
-						                            key.toString(), value.toString() )
-						           );
-					}
-				}
-
-				// process configuration - note that in *all* cases we try to look
-				// up the value from the JSON and fall back to the existing value
-				// if there is no value available
-				this.federateName = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATE_NAME, this.federateName );
-				this.federateType = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATE_TYPE, this.federateType );
-				this.federationExecName = jsonStringOrDefault( configData, JSON_CONFIG_KEY_FEDERATION_EXEC_NAME, this.federationExecName );
-
-				this.canCreateFederation = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CAN_CREATE_FEDERATION, this.canCreateFederation );
-				this.maxJoinAttempts = jsonIntOrDefault( configData, JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS, this.maxJoinAttempts );
-				this.joinRetryIntervalSec = jsonLongOrDefault( configData, JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC, this.joinRetryIntervalSec );
-
-				this.syncBeforeResign = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN, this.syncBeforeResign );
-
-				this.callbacksAreImmediate = jsonBooleanOrDefault( configData, JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE, this.callbacksAreImmediate );
-				this.lookAhead = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_LOOK_AHEAD, this.lookAhead );
-				this.stepSize = jsonDoubleOrDefault( configData, JSON_CONFIG_KEY_STEP_SIZE, this.stepSize );
+				json = new String( Files.readAllBytes( configFile.toPath() ) );
 			}
-			else
+			catch( Exception e )
 			{
-				throw new UCEFException( "Unable to find a top level JSON object in configuration data." );
+				throw new UCEFException( e, "Unable to read JSON configuration from '%s'.",
+				                         configFile.getAbsolutePath() );
 			}
 		}
-		catch( ParseException e )
+
+		// at this point, we have a string to work with - make sure it's valid JSON
+		Object parsedString = null;
+		try
 		{
-			throw new UCEFException( e, "Configuration content does not appear to be valid JSON." );
+			parsedString = new JSONParser().parse(json);
 		}
 		catch( Exception e )
 		{
-			throw new UCEFException( e, "There were problems processing the configuration JSON." );
+			String msg = "Configuration is not valid JSON.";
+			if(isFile)
+			{
+				msg = String.format( "Configuration is not valid JSON in '%s'.",
+				                     configFile.getAbsolutePath() );
+			}
+			throw new UCEFException( e, msg );
 		}
+
+		// at this point, we have a valid JSON object of some form, but we
+		// need to make sure that it is a single JSONObject instance (and
+		// not something else like a JSONArray)
+		if(!(parsedString instanceof JSONObject))
+		{
+			String msg = "Could not find root JSON object.";
+			if(isFile)
+			{
+				msg = String.format( "Could not find root JSON object in '%s'.",
+				                     configFile.getAbsolutePath() );
+			}
+			throw new UCEFException( msg );
+		}
+
+		// we now have a JSONObject to extract data from
+		JSONObject configData = (JSONObject)parsedString;
+
+		if(logger.isWarnEnabled())
+		{
+			// for the purposes of debugging problems, show warnings for
+			// any unrecognized configuration items found so that
+			// problems can be resolved quickly (such as typos in the
+			// config JSON keys etc)
+			Set<String> recognizedConfigurationKeys = new HashSet<>();
+			recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
+				{
+	                JSON_CONFIG_KEY_FEDERATE_NAME,
+	                JSON_CONFIG_KEY_FEDERATE_TYPE,
+	                JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
+	                JSON_CONFIG_KEY_CAN_CREATE_FEDERATION,
+	                JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS,
+	                JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC,
+	                JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
+	                JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
+	                JSON_CONFIG_KEY_LOOK_AHEAD,
+	                JSON_CONFIG_KEY_STEP_SIZE,
+	                JSON_CONFIG_KEY_BASE_FOMS,
+	                JSON_CONFIG_KEY_JOIN_FOMS,
+	                JSON_CONFIG_KEY_SOM
+	            }
+			));
+			for(Object key : configData.keySet())
+			{
+				if(!recognizedConfigurationKeys.contains( key ))
+				{
+					Object value = configData.get(key);
+					logger.warn( String.format( "Configuration item '%s' with "+
+												 "value '%s' in JSON configuration data "+
+												 "is not recognized and will be ignored.",
+					                            key.toString(), value.toString() )
+					           );
+				}
+			}
+		}
+
+		// now we can process the configuration data from the JSONObject
+		try
+		{
+			// process configuration - note that in *all* cases we try to look
+			// up the value from the JSON and fall back to the existing value
+			// if there is no value available
+			this.federateName = jsonStringOrDefault( configData,
+			                                         JSON_CONFIG_KEY_FEDERATE_NAME,
+			                                         this.federateName );
+			this.federateType = jsonStringOrDefault( configData,
+			                                         JSON_CONFIG_KEY_FEDERATE_TYPE,
+			                                         this.federateType );
+			this.federationExecName = jsonStringOrDefault( configData,
+			                                               JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
+			                                               this.federationExecName );
+			this.canCreateFederation = jsonBooleanOrDefault( configData,
+			                                                 JSON_CONFIG_KEY_CAN_CREATE_FEDERATION,
+			                                                 this.canCreateFederation );
+			this.maxJoinAttempts = jsonIntOrDefault( configData,
+			                                         JSON_CONFIG_KEY_MAX_JOIN_ATTEMPTS,
+			                                         this.maxJoinAttempts );
+			this.joinRetryIntervalSec = jsonLongOrDefault( configData,
+			                                               JSON_CONFIG_KEY_JOIN_RETRY_INTERVAL_SEC,
+			                                               this.joinRetryIntervalSec );
+			this.syncBeforeResign = jsonBooleanOrDefault( configData,
+			                                              JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
+			                                              this.syncBeforeResign );
+			this.callbacksAreImmediate = jsonBooleanOrDefault( configData,
+			                                                   JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
+			                                                   this.callbacksAreImmediate );
+			this.lookAhead = jsonDoubleOrDefault( configData,
+			                                      JSON_CONFIG_KEY_LOOK_AHEAD,
+			                                      this.lookAhead );
+			this.stepSize = jsonDoubleOrDefault( configData,
+			                                     JSON_CONFIG_KEY_STEP_SIZE,
+			                                     this.stepSize );
+			String extractedSom = jsonStringOrDefault( configData, JSON_CONFIG_KEY_SOM, "" );
+			if( extractedSom.length() > 0 )
+			{
+				this.som = extractedSom;
+				this.interactionsByName.clear();
+				this.objectClassesByName.clear();
+				SOMParser.somToFederateConfig( this.som, this );
+			}
+			Set<String> extractedBaseFoms = jsonStringSetOrDefault( configData,
+			                                                        JSON_CONFIG_KEY_BASE_FOMS,
+			                                                        Collections.emptySet() );
+			if( extractedBaseFoms.size() > 0 )
+			{
+				this.baseFoms = extractedBaseFoms;
+				this.modules.clear();
+				addModules( urlsFromPaths( this.baseFoms ) );
+			}
+			Set<String> extractedJoinFoms = jsonStringSetOrDefault( configData,
+			                                                        JSON_CONFIG_KEY_JOIN_FOMS,
+			                                                        Collections.emptySet() );
+			if( extractedJoinFoms.size() > 0 )
+			{
+				this.joinFoms = extractedJoinFoms;
+				this.joinModules.clear();
+				addJoinModules( urlsFromPaths( this.joinFoms ) );
+			}
+		}
+		catch( Exception e )
+		{
+			String msg = "There was a problem processing the configuration JSON.";
+			if(isFile)
+			{
+				msg = String.format( "There was a problem processing the configuration JSON in '%s'.",
+				                     configFile.getAbsolutePath() );
+			}
+			throw new UCEFException( e, msg );
+		}
+
+		return this;
 	}
 
+	/**
+	 * Creates a human readable summary of the current configuration state.
+	 *
+	 * This is prinicipally for debugging purposes, but could have wider applications.
+	 *
+	 * @return a human readable summary of the current configuration state.
+	 */
 	public String summary()
 	{
 		String dashRule = "------------------------------------------------------------\n";
@@ -321,9 +389,9 @@ public class FederateConfiguration
 		StringBuilder builder = new StringBuilder();
 
 		builder.append( dashRule );
-		builder.append( "Federation Name            : " + this.federationExecName + "\n" );
 		builder.append( "Federate Name              : " + this.federateName + "\n" );
 		builder.append( "Federate Type              : " + this.federateType + "\n" );
+		builder.append( "Federation Name            : " + this.federationExecName + "\n" );
 
 		builder.append( dotRule );
 		builder.append( "Create Federation?         : " + (this.canCreateFederation?"Yes":"No") + "\n" );
@@ -412,6 +480,60 @@ public class FederateConfiguration
 		builder.append( dashRule );
 
 		return builder.toString();
+	}
+
+	/**
+	 * Obtain a {@link File} resource instance based on a path. The resource is looked for on the
+	 * file system and as a resource (as in a packaged JAR)
+	 *
+	 * @param path the path for the resource
+	 * @return the resource as a {@link File} instance, or null if no such resource could be
+	 *         located
+	 */
+	public File getResourceFile( String path )
+	{
+		File file = new File( path );
+		if( file.exists() && file.isFile() )
+			return file;
+
+		URL fileUrl = this.getClass().getClassLoader().getResource( path );
+		if( fileUrl != null )
+			return new File( fileUrl.getFile() );
+
+		return null;
+	}
+
+	/**
+	 * Obtain a {@link URL} resource instance based on a path. The resource is looked for on the
+	 * file system and as a resource (as in a packaged JAR)
+	 *
+	 * @param path the path for the resource
+	 * @return the resource as a {@link URL} instance, or null if no such resource could be
+	 *         located
+	 */
+	public URL getResourceURL( String path )
+	{
+		URL fileUrl = this.getClass().getClassLoader().getResource( path );
+		if( fileUrl != null )
+			return fileUrl;
+
+		File file = new File( path );
+		if( file.exists() && file.isFile() )
+		{
+			try
+			{
+				return file.toURI().toURL();
+			}
+			catch( MalformedURLException e )
+			{
+				// Note that this can't really happen if the file exists,
+				// which we have checked for already. In any case, we'll
+				// ignore this error and just treat it as a file not
+				// found type situation
+			}
+		}
+
+		return null;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -734,20 +856,20 @@ public class FederateConfiguration
 		return Collections.unmodifiableSet( joinModules );
 	}
 
-	public Set<String> getFomPaths()
+	public Collection<String> getFomPaths()
 	{
-		return this.foms;
+		return this.baseFoms;
 	}
 
 	public FederateConfiguration addFomPath( String path )
 	{
-		this.foms.add(path);
+		this.baseFoms.add(path);
 		return this;
 	}
 
 	public FederateConfiguration clearFomPaths()
 	{
-		this.foms.clear();
+		this.baseFoms.clear();
 		return this;
 	}
 
@@ -762,6 +884,11 @@ public class FederateConfiguration
 	public FederateConfiguration addSomPath( String path )
 	{
 		this.som = path;
+
+		this.interactionsByName.clear();
+		this.objectClassesByName.clear();
+		SOMParser.somToFederateConfig( this.som, this );
+
 		return this;
 	}
 
@@ -1161,6 +1288,9 @@ public class FederateConfiguration
 	 * Utility method to extract a {@link String} value from a {@link JSONObject} based on a
 	 * {@link String} key
 	 *
+	 * If the value extracted from the key is not a string, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
@@ -1192,6 +1322,9 @@ public class FederateConfiguration
 	/**
 	 * Utility method to extract an {@link Integer} value from a {@link JSONObject} based on a
 	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not an integer, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
 	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
@@ -1226,6 +1359,9 @@ public class FederateConfiguration
 	 * Utility method to extract a {@link Long} value from a {@link JSONObject} based on a
 	 * {@link String} key
 	 *
+	 * If the value extracted from the key is not a long, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
@@ -1256,7 +1392,13 @@ public class FederateConfiguration
 
 	/**
 	 * Utility method to extract a {@link Double} value from a {@link JSONObject} based on a
-	 * {@link String} key
+	 * {@link String} key.
+	 *
+	 * The content associated with the key is expected to be a double. However it will
+	 * also leniently treat an integer as a double.
+	 *
+	 * If the value extracted from the key is not a double, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
 	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
@@ -1299,6 +1441,9 @@ public class FederateConfiguration
 	 * Utility method to extract a {@link Boolean} value from a {@link JSONObject} based on a
 	 * {@link String} key
 	 *
+	 * If the value extracted from the key is not a boolean, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
 	 * @param root the {@link JSONObject} which is expected to contain the value under the key
 	 * @param key the {@link String} key to retrieve the value with
 	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
@@ -1325,6 +1470,101 @@ public class FederateConfiguration
     		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
 
 		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link Set<String>} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * The content associated with the key is expected to be an array of strings. However it will
+	 * also leniently treat a single string as an array of one string.
+	 *
+	 * If there are any non-string values in the array extracted extracted from the key, the
+	 * entire content is rejected (a {@link UCEFException} will be thrown in this case).
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	private Set<String> jsonStringSetOrDefault( JSONObject root, String key, Set<String> defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Set<String> result = new HashSet<>();
+			Object value = root.get( key );
+			if( value instanceof String )
+			{
+				// leniently treat a single string as an array of one string
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				result.add( value.toString() );
+				return result;
+			}
+
+			if( value instanceof JSONArray )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				JSONArray jsonArray = ((JSONArray)value);
+				for(int idx=0; idx<jsonArray.size(); idx++)
+				{
+					Object current = jsonArray.get( idx );
+					if(current instanceof String)
+					{
+						result.add(current.toString());
+					}
+					else
+					{
+						throw new UCEFException( "Expected an array of strings for '%s' but "+
+												 "encountered non-string value '%s'",
+						                         key, current.toString() );
+					}
+				}
+				return result;
+			}
+
+			throw new UCEFException( "Expected a string or array value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+
+		if(logger.isDebugEnabled())
+    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility function to create a set of {@link URL}s from and array of {@link String} file paths
+	 *
+	 * NOTE: if any of the paths don't actually correspond to a file that exists on the file system,
+	 *       a {@link UCEFException} will be thrown.
+	 *
+	 * @return a list of URLs corresponding to the paths provided
+	 */
+	private Collection<URL> urlsFromPaths( Collection<String> paths )
+	{
+		Set<URL> result = new HashSet<>();
+
+		for( String path : paths )
+		{
+			URL url = getResourceURL( path );
+			if( url != null )
+			{
+				result.add( url );
+			}
+			else
+			{
+				throw new UCEFException( "The file '%s' does not exist. " +
+				                         "Please check the file path.",
+				                         path );
+			}
+		}
+
+		return result;
 	}
 
 	//----------------------------------------------------------

@@ -43,7 +43,7 @@ public class FederateDetails
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	FederateDetails(HLAObject instance)
+	FederateDetails( HLAObject instance )
 	{
 		this.instance = instance;
 	}
@@ -55,21 +55,21 @@ public class FederateDetails
 	{
 		return instance.getAsString( FedManConstants.HLAFEDERATE_NAME_ATTR );
 	}
-	
+
 	public String getFederateType()
 	{
 		return instance.getAsString( FedManConstants.HLAFEDERATE_TYPE_ATTR );
 	}
-	
+
 	public int hashCode()
 	{
 		return getFederateHandle();
 	}
-	
+
 	public int getFederateHandle()
 	{
 		return instance.getAsInt( FedManConstants.HLAFEDERATE_HANDLE_ATTR );
-	}	
+	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////

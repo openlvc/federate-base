@@ -37,7 +37,7 @@ public class Ping extends HLAInteraction
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition
-	private static final String HLA_INTERACTION_ROOT = "HLAInteractionRoot.";
+	private static final String HLA_INTERACTION_ROOT = "HLAinteractionRoot.";
 	private static final String INTERACTION_NAME = HLA_INTERACTION_ROOT+"Ping";
 	
 	// interaction parameters and types

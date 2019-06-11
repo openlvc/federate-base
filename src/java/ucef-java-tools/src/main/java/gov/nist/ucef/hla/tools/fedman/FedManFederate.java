@@ -23,6 +23,7 @@
  */
 package gov.nist.ucef.hla.tools.fedman;
 
+import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -37,10 +38,10 @@ import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.SimStart;
+import gov.nist.ucef.hla.ucef.interactions.SimEnd;
+import gov.nist.ucef.hla.ucef.interactions.SimPause;
+import gov.nist.ucef.hla.ucef.interactions.SimResume;
+import gov.nist.ucef.hla.ucef.interactions.SimStart;
 
 /**
  *		            ___
@@ -63,7 +64,11 @@ public class FedManFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
-	public static final long ONE_SECOND = 1000;
+	private static final long ONE_SECOND = 1000;
+
+	private static final double MAX_TIME_DEFAULT                       = Double.MAX_VALUE;
+	private static final double LOGICAL_SECOND_DEFAULT                 = 1.0;
+	private static final double REAL_TIME_MULTIPLIER_DEFAULT           = 1.0;
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
@@ -72,8 +77,6 @@ public class FedManFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	private FedManCmdLineProcessor argProcessor;
-
 	private FedManStartRequirements startRequirements;
 
 	private double logicalSecond;
@@ -99,24 +102,67 @@ public class FedManFederate extends NoOpFederate
 	 *
 	 * @param args command line arguments
 	 */
-	public FedManFederate( FedManCmdLineProcessor argProcessor )
+	public FedManFederate()
 	{
 		super();
 
-		this.argProcessor = argProcessor;
+		this.maxTime = MAX_TIME_DEFAULT;
+		this.startRequirements = new FedManStartRequirements( Collections.emptyMap() );
+		this.logicalSecond = LOGICAL_SECOND_DEFAULT;
+		this.realTimeMultiplier = REAL_TIME_MULTIPLIER_DEFAULT;
+		this.wallClockStepDelay = (long)(ONE_SECOND / this.realTimeMultiplier);
 
-		this.maxTime = 30.0;
 		this.nextTimeAdvance = -1;
-
-		this.startRequirements = argProcessor.startRequirements();
-		this.logicalSecond = argProcessor.logicalSecond();
-		this.realTimeMultiplier = argProcessor.realTimeMultiplier();
-		this.wallClockStepDelay = argProcessor.wallClockStepDelay();
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	public void setMaxTime( double maxTime )
+	{
+		this.maxTime = maxTime;
+	}
+
+	public double getMaxTime()
+	{
+		return this.maxTime;
+	}
+
+	public void setLogicalSecond( double logicalSecond )
+	{
+		this.logicalSecond = logicalSecond;
+	}
+
+	public double getLogicalSecond()
+	{
+		return this.logicalSecond;
+	}
+
+	public void setRealTimeMultiplier( double realTimeMultiplier )
+	{
+		this.realTimeMultiplier = realTimeMultiplier;
+	}
+
+	public double getRealTimeMultiplier()
+	{
+		return this.realTimeMultiplier;
+	}
+
+	public void setWallClockStepDelay( long wallClockStepDelay )
+	{
+		this.wallClockStepDelay = wallClockStepDelay;
+	}
+
+	public long getWallClockStepDelay()
+	{
+		return this.wallClockStepDelay;
+	}
+
+	public void setStartRequirements(FedManStartRequirements startRequirements)
+	{
+		this.startRequirements = startRequirements;
+	}
+
 	public FedManStartRequirements getStartRequirements()
 	{
 		return this.startRequirements;
@@ -241,6 +287,12 @@ public class FedManFederate extends NoOpFederate
 		try
 		{
 			sendSimEnd();
+			// make sure we un-pause before we end!
+			if( this.simIsPaused )
+			{
+				this.simIsPaused = false;
+				this.simIsPausedCondition.signal();
+			}
 			this.simShouldEnd = true;
 			this.simShouldEndCondition.signal();
 		}
@@ -282,20 +334,6 @@ public class FedManFederate extends NoOpFederate
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
 
 		beforeFirstStep();
-	}
-
-	@Override
-	public void beforeFederationJoin()
-	{
-		// update the federate name, type and federation execution name in
-		// accordance with the values obtained from the command line args
-		configuration.setFederateName( argProcessor.federateName() );
-		configuration.setFederateType( argProcessor.federateType() );
-		configuration.setFederationName( argProcessor.federationExecName() );
-		// update the configuration lookahead value so that it is the same
-		// logical step size as obtained from the command line args
-		configuration.setStepSize( argProcessor.logicalStepSize() );
-		configuration.setLookAhead( argProcessor.logicalStepSize() );
 	}
 
 	@Override
@@ -422,7 +460,11 @@ public class FedManFederate extends NoOpFederate
     		{
         		FederateDetails joinedFederate = new FederateDetails( hlaObject );
         		String federateType = joinedFederate.getFederateType();
-        		if( FedManConstants.FEDMAN_FEDERATE_TYPE.equals( federateType ) )
+        		String federateName = joinedFederate.getFederateName();
+        		String selfType = configuration.getFederateType();
+        		String selfName = configuration.getFederateName();
+        		if( selfType.equals( federateType ) &&
+        			selfName.equals( federateName ) )
         		{
         			// ignore ourself joining...
         			return;

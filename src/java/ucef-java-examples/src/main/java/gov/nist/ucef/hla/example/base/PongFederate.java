@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -48,7 +48,7 @@ import hla.rti1516e.encoding.EncoderFactory;
  *		        <─┴─> <─┴─────┴─────┴─>
  *		       Universal CPS Environment
  *		             for Federation
- * 
+ *
  * Example base federate for testing
  */
 public class PongFederate extends FederateBase
@@ -82,7 +82,7 @@ public class PongFederate extends FederateBase
 	@Override
 	public void beforeFederationJoin()
 	{
-		// nothing to do here 
+		// nothing to do here
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class PongFederate extends FederateBase
 	@Override
 	public void beforeExit()
 	{
-		// no cleanup required before exiting  
+		// no cleanup required before exiting
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,8 +185,8 @@ public class PongFederate extends FederateBase
 	@Override
 	public void receiveInteraction( HLAInteraction hlaInteraction, double time )
 	{
-		// delegate to other receiveInteraction method because 
-		// we ignore time in this example 
+		// delegate to other receiveInteraction method because
+		// we ignore time in this example
 		receiveInteraction( hlaInteraction );
 	}
 
@@ -196,7 +196,7 @@ public class PongFederate extends FederateBase
 	private HLAInteraction makePongInteraction( char letter )
 	{
 		Map<String,byte[]> parameters = new HashMap<>();
-		parameters.put( PONG_PARAM_LETTER, 
+		parameters.put( PONG_PARAM_LETTER,
 		                HLACodecUtils.encode( encoder, letter ) );
 		return makeInteraction( PONG_INTERACTION_ID, parameters );
 	}
@@ -209,10 +209,10 @@ public class PongFederate extends FederateBase
 	private static final String PING_PARAM_COUNT = "count";
 	private static final String PONG_INTERACTION_ID = INTERACTION_ROOT+"Pong";
 	private static final String PONG_PARAM_LETTER = "letter";
-	
+
 	/**
 	 * Utility function to set up salient configuration details for the federate
-	 * 
+	 *
 	 * @param the {@link FederateConfiguration} instance to be initialized
 	 */
 	private static void initializeConfig( FederateConfiguration config )
@@ -226,17 +226,17 @@ public class PongFederate extends FederateBase
            	new InteractionClass( PONG_INTERACTION_ID, Sharing.PUBLISH ),
             new InteractionClass( PING_INTERACTION_ID, Sharing.SUBSCRIBE )
         );
-		
+
 		// somebody set us up the FOM...
 		try
 		{
             String fomRootPath = ExampleConstants.FOMS_ROOT;
 			// modules
-			String[] moduleFoms = { fomRootPath + "PingPong.xml" };
+			String[] moduleFoms = {};
 			config.addModules( FileUtils.urlsFromPaths( moduleFoms ) );
 
 			// join modules
-			String[] joinModuleFoms = {};
+			String[] joinModuleFoms = { fomRootPath + "PingPong.xml" };
 			config.addJoinModules( FileUtils.urlsFromPaths( joinModuleFoms ) );
 		}
 		catch( Exception e )
@@ -248,7 +248,7 @@ public class PongFederate extends FederateBase
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	
+
 	public static void main( String[] args )
 	{
 		System.out.println( ExampleConstants.UCEF_LOGO );

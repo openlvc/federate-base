@@ -27,6 +27,7 @@ import hla.rti1516e.RtiFactoryFactory;
 import hla.rti1516e.encoding.DecoderException;
 import hla.rti1516e.encoding.EncoderFactory;
 import hla.rti1516e.encoding.HLAboolean;
+import hla.rti1516e.encoding.HLAbyte;
 import hla.rti1516e.encoding.HLAfloat32BE;
 import hla.rti1516e.encoding.HLAfloat64BE;
 import hla.rti1516e.encoding.HLAinteger16BE;
@@ -54,6 +55,29 @@ public class HLACodecUtils
 		catch( RTIinternalError e )
 		{
 			throw new UCEFException("Failed to initialize HLA encode/decode utilities.", e);
+		}
+	}
+	
+	/**
+	 * Decode HLA byte array representation of a bye
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param bytes the HLA byte array
+	 * @return the decoded value
+	 */
+	public static short asByte( EncoderFactory encoderFactory, byte[] bytes )
+	{
+		HLAbyte value = makeHLAType(encoderFactory, (byte)0);
+		try
+		{
+			value.decode( bytes );
+			return value.getValue();
+		}
+		catch( DecoderException de )
+		{
+			throw new UCEFException( de,
+			                         "Unable to decode byte array of length %d as a short.",
+			                         bytes.length );
 		}
 	}
 	
@@ -261,6 +285,18 @@ public class HLACodecUtils
 	}
 	
 	/**
+	 * Encode a byte to an HLA byte array representation 
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode 
+	 * @return the HLA byte array
+	 */
+	public static byte[] encode(EncoderFactory encoderFactory, byte value)
+	{
+		return makeHLAType(encoderFactory, value).toByteArray();
+	}
+	
+	/**
 	 * Encode a short to an HLA byte array representation 
 	 * 
 	 * @param encoderFactory the encoder instance to use
@@ -342,6 +378,18 @@ public class HLACodecUtils
 	public static byte[] encode(EncoderFactory encoderFactory, String value)
 	{
 		return makeHLAType( encoderFactory, value ).toByteArray();
+	}
+	
+	/**
+	 * Encode a byte to an {@link HLAbyte} representation 
+	 * 
+	 * @param encoderFactory the encoder instance to use
+	 * @param value the value to encode
+	 * @return the {@link HLAbyte}
+	 */
+	private static HLAbyte makeHLAType(EncoderFactory encoderFactory, byte value)
+	{
+		return encoderFactory.createHLAbyte(value);
 	}
 	
 	/**

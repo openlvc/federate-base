@@ -13,11 +13,8 @@
 	<!-- ucef-java-examples info -->
 	<groupId>gov.nist.ucef.java.examples</groupId>
 	<artifactId>ucef-java-examples</artifactId>
-	<version>ucef-java-examples-0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-
 	<name>ucef-java-examples</name>
-	<url>http://maven.apache.org</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -27,19 +24,12 @@
 		<dependency>
 			<groupId>gov.nist.ucef.java.core</groupId>
 			<artifactId>ucef-java-core</artifactId>
-			<version>ucef-java-core-0.0.1-SNAPSHOT</version>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>gov.nist.ucef.java.tools</groupId>
 			<artifactId>ucef-java-tools</artifactId>
 			<version>ucef-java-tools-0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.portico</groupId>
-			<artifactId>portico</artifactId>
-			<version>${portico.version}</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/../src/main/resources/lib/portico-master.jar</systemPath>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
@@ -48,17 +38,4 @@
 		</dependency>
 	</dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

@@ -25,11 +25,10 @@ package gov.nist.ucef.hla.ucef;
 
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.ucef.interaction.FederateJoin;
-import gov.nist.ucef.hla.ucef.interaction.SimEnd;
-import gov.nist.ucef.hla.ucef.interaction.SimPause;
-import gov.nist.ucef.hla.ucef.interaction.SimResume;
-import gov.nist.ucef.hla.ucef.interaction.SimStart;
+import gov.nist.ucef.hla.ucef.interactions.SimEnd;
+import gov.nist.ucef.hla.ucef.interactions.SimPause;
+import gov.nist.ucef.hla.ucef.interactions.SimResume;
+import gov.nist.ucef.hla.ucef.interactions.SimStart;
 
 /**
  * An abstract class with all required method implementations in which perform no operation
@@ -149,13 +148,4 @@ public abstract class NoOpFederate extends UCEFFederateBase
 		// delegate to method ignoring time parameter
 		receiveSimResume( simResume );
 	}
-
-	@Override
-	protected void receiveFederateJoin( FederateJoin federateJoin ) { }
-	
-	@Override
-	protected void receiveFederateJoin( FederateJoin federateJoin, double time ) {
-		// delegate to method ignoring time parameter
-		receiveFederateJoin( federateJoin );
-	}		
 }
