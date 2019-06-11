@@ -85,6 +85,8 @@ public class FedManFederate extends NoOpFederate
 	private long nextTimeAdvance;
 	private double maxTime;
 
+	private boolean isWaitingForFederates;
+
 	private final Object mutex_lock = new Object();
 
 	volatile boolean simShouldStart = false;
@@ -111,6 +113,7 @@ public class FedManFederate extends NoOpFederate
 		this.logicalSecond = LOGICAL_SECOND_DEFAULT;
 		this.realTimeMultiplier = REAL_TIME_MULTIPLIER_DEFAULT;
 		this.wallClockStepDelay = (long)(ONE_SECOND / this.realTimeMultiplier);
+		this.isWaitingForFederates = false;
 
 		this.nextTimeAdvance = -1;
 	}
@@ -166,6 +169,11 @@ public class FedManFederate extends NoOpFederate
 	public FedManStartRequirements getStartRequirements()
 	{
 		return this.startRequirements;
+	}
+
+	public boolean isWaitingForFederates()
+	{
+		return this.isWaitingForFederates;
 	}
 
 	public boolean canStart()
@@ -348,6 +356,8 @@ public class FedManFederate extends NoOpFederate
 		int lastJoinedCount = -1;
 		int currentJoinedCount = startRequirements.joinedCount();
 
+		// we are currently waiting for federates to join
+		this.isWaitingForFederates = true;
 		while( !startRequirements.canStart() )
 		{
 			currentJoinedCount = startRequirements.joinedCount();
@@ -371,6 +381,8 @@ public class FedManFederate extends NoOpFederate
 			}
 			count++;
 		}
+		// we have all our required federates - we're not waiting any more
+		this.isWaitingForFederates = false;
 
 		System.out.println( String.format( "\n%d of %d federates have joined.",
 		                                   startRequirements.totalFederatesRequired(),
