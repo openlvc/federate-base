@@ -1,6 +1,7 @@
 /target/
 /logs/
-/bin/
+**/bin/
 .settings
 **/*.log
 **/*.classpath
+**/*.factorypath
