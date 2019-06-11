@@ -696,6 +696,7 @@ public class FedManHttpServer
 			html.append( "<body>" );
 			if(is404)
 			{
+				html.append( "<pre>\r\n"+FedManConstants.FEDMAN_LOGO+"\r\n</pre>" );
 				html.append( "<h1>404 - Not Found</h1><hr>");
 				html.append( "<p>Valid endpoints:</p>" );
 			}
