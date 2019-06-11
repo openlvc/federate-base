@@ -76,7 +76,7 @@ public class FedManHttpServer
 
 	private static Charset UTF8 = StandardCharsets.UTF_8;
 	private static String CONTENT_TYPE = "Content-Type";
-	// private static String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
+	private static String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
 	private static String TEXT_HTML_UTF8     = "text/html; charset=UTF-8";
 	private static String JSON_UTF8          = "application/json; charset=UTF-8";
 
@@ -141,21 +141,22 @@ public class FedManHttpServer
 		IndexHandler indexHandler = new IndexHandler(endpoints);
 		endpoints.put( "/",                        indexHandler );
 		// GET requests
-		endpoints.put( "/ping",                   new PingHandler() );
-		endpoints.put( "/query",                  indexHandler );
-		endpoints.put( "/query/status",           new StatusQueryHandler() );
-		endpoints.put( "/query/start-conditions", new StartConditionQueryHandler() );
-		endpoints.put( "/query/can-start",        new CanStartQueryHandler() );
-		endpoints.put( "/query/has-started",      new HasStartedQueryHandler() );
-		endpoints.put( "/query/has-ended",        new HasEndedQueryHandler() );
-		endpoints.put( "/query/is-paused",        new IsPausedQueryHandler() );
-		endpoints.put( "/query/is-running",       new IsRunningQueryHandler() );
+		endpoints.put( "/ping",                           new PingHandler() );
+		endpoints.put( "/query",                          indexHandler );
+		endpoints.put( "/query/status",                   new StatusQueryHandler() );
+		endpoints.put( "/query/start-conditions",         new StartConditionQueryHandler() );
+		endpoints.put( "/query/can-start",                new CanStartQueryHandler() );
+		endpoints.put( "/query/has-started",              new HasStartedQueryHandler() );
+		endpoints.put( "/query/has-ended",                new HasEndedQueryHandler() );
+		endpoints.put( "/query/is-paused",                new IsPausedQueryHandler() );
+		endpoints.put( "/query/is-running",               new IsRunningQueryHandler() );
+		endpoints.put( "/query/is-waiting-for-federates", new IsWaitingForFederatesToJoinQueryHandler() );
 		// POST requests
-		endpoints.put( "/command",                indexHandler );
-		endpoints.put( "/command/start",          new StartCommandHandler() );
-		endpoints.put( "/command/pause",          new PauseCommandHandler() );
-		endpoints.put( "/command/resume",         new ResumeCommandHandler() );
-		endpoints.put( "/command/end",            new EndCommandHandler() );
+		endpoints.put( "/command",                        indexHandler );
+		endpoints.put( "/command/start",                  new StartCommandHandler() );
+		endpoints.put( "/command/pause",                  new PauseCommandHandler() );
+		endpoints.put( "/command/resume",                 new ResumeCommandHandler() );
+		endpoints.put( "/command/end",                    new EndCommandHandler() );
 
 		ExecutorService executor = Executors.newFixedThreadPool(16);
 		try
@@ -213,6 +214,33 @@ public class FedManHttpServer
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////// HTTP Response Creation Utility Methods //////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Utility method to provide a plain text response with a HTTP 200 OK status code (most common use
+	 * case)
+	 *
+	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
+	 * @param content the {@link String} containing the simple text content
+	 * @throws IOException
+	 */
+	private void doSimpleResponse( HttpExchange httpExchange, String content) throws IOException
+	{
+		doSimpleResponse( httpExchange, HTTP_200_OK, content );
+	}
+
+	/**
+	 * Utility method to provide a plain text response with the given HTTP status code
+	 *
+	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
+	 * @param code the HTTP status code associated with the response
+	 * @param content the {@link String} containing the simple text content
+	 * @throws IOException
+	 */
+	private void doSimpleResponse( HttpExchange httpExchange, int code, String content ) throws IOException
+	{
+		addResponseHeader( httpExchange, CONTENT_TYPE, TEXT_PLAIN_UTF8 );
+		doHttpResponse( httpExchange, code, stringToBytes( content ) );
+	}
+
 	/**
 	 * Utility method to provide a JSON response with a HTTP 200 OK status code (most common use
 	 * case)
@@ -546,6 +574,17 @@ public class FedManHttpServer
 			                                                                     Collectors.toSet() );
 		}
 
+		public boolean isSimple( HttpExchange httpExchange )
+		{
+			return !isJSON( httpExchange );
+		}
+
+		public boolean isJSON( HttpExchange httpExchange )
+		{
+			Map<String,String> query = extractQuery( httpExchange );
+			return query.getOrDefault( "json", "false" ).equalsIgnoreCase( "true" );
+		}
+
 		@Override
 		public void handle( HttpExchange httpExchange )
 		    throws IOException
@@ -692,10 +731,17 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", "UCEF Federation Manager" );
-			doJSONResponse( httpExchange, json );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, "UCEF Federation Manager" );
+			}
+			else
+			{
+    			Map<String,Object> json = new HashMap<>();
+    			addTimestampAndPath(json, httpExchange);
+    			json.put( "response", "UCEF Federation Manager" );
+    			doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -717,10 +763,18 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.getLifecycleState().getLabel() );
-			doJSONResponse( httpExchange, json );
+			String lifecycleLable = fedManFederate.getLifecycleState().getLabel();
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, lifecycleLable );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", lifecycleLable );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -743,10 +797,18 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.getStartRequirements().canStart() );
-			doJSONResponse( httpExchange, json );
+			String canStart = Boolean.toString( fedManFederate.getStartRequirements().canStart() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, canStart );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", canStart );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -815,10 +877,18 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.hasStarted() );
-			doJSONResponse( httpExchange, json );
+			String hasStarted = Boolean.toString( fedManFederate.hasStarted() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, hasStarted );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", hasStarted );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -840,10 +910,18 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.hasEnded() );
-			doJSONResponse( httpExchange, json );
+			String hasEnded = Boolean.toString( fedManFederate.hasEnded() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, hasEnded );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", hasEnded );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -865,10 +943,18 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.isPaused() );
-			doJSONResponse( httpExchange, json );
+			String isPaused = Boolean.toString( fedManFederate.isPaused() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, isPaused );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", isPaused );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -890,10 +976,52 @@ public class FedManHttpServer
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", fedManFederate.isRunning() );
-			doJSONResponse( httpExchange, json );
+			String isRunning = Boolean.toString( fedManFederate.isRunning() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, isRunning );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", isRunning );
+				doJSONResponse( httpExchange, json );
+			}
+		}
+	}
+
+	/**
+	 * A handler for status GET requests as to whether the simulation is waiting for federates to join
+	 * (so that it can meet its start requirements)
+	 *
+	 * Response is a JSON object of the form...
+	 *
+	 * {"timestamp":TIMESTAMP, "path":REQUEST_PATH, "response":IS_WAITING}
+	 *
+	 * ...where:
+	 *
+	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
+	 *  - PATH            is the URL path segment of the query
+	 *  - IS_WAITING      true if the manager is waiting for federates to join, false otherwise
+	 */
+	private class IsWaitingForFederatesToJoinQueryHandler extends GETRequestHandler
+	{
+		@Override
+		public void handleRequest( HttpExchange httpExchange ) throws IOException
+		{
+			String isWaiting = Boolean.toString( fedManFederate.isWaitingForFederates() );
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, isWaiting );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", isWaiting );
+				doJSONResponse( httpExchange, json );
+			}
 		}
 	}
 
@@ -943,13 +1071,21 @@ public class FedManHttpServer
 			}
 
 			boolean isOK = code == HTTP_200_OK;
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", isOK ? "OK" : "FAILED" );
-			json.put( "success", isOK );
-			if( !isOK )
-				json.put( "error", error );
-			doJSONResponse( httpExchange, code, json );
+			String responseContent = isOK ? "OK" : "FAILED";
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, responseContent + (isOK ? "" : ": " + error) );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", responseContent );
+				json.put( "success", isOK );
+				if( !isOK )
+					json.put( "error", error );
+				doJSONResponse( httpExchange, code, json );
+			}
 		}
 	}
 
@@ -999,13 +1135,21 @@ public class FedManHttpServer
 			}
 
 			boolean isOK = code == HTTP_200_OK;
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", isOK ? "OK" : "FAILED" );
-			json.put( "success", isOK );
-			if( !isOK )
-				json.put( "error", error );
-			doJSONResponse( httpExchange, code, json );
+			String responseContent = isOK ? "OK" : "FAILED";
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, responseContent + (isOK ? "" : ": " + error) );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", responseContent );
+				json.put( "success", isOK );
+				if( !isOK )
+					json.put( "error", error );
+				doJSONResponse( httpExchange, code, json );
+			}
 		}
 	}
 
@@ -1055,13 +1199,21 @@ public class FedManHttpServer
 			}
 
 			boolean isOK = code == HTTP_200_OK;
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", isOK ? "OK" : "FAILED" );
-			json.put( "success", isOK );
-			if( !isOK )
-				json.put( "error", error );
-			doJSONResponse( httpExchange, code, json );
+			String responseContent = isOK ? "OK" : "FAILED";
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, responseContent + (isOK ? "" : ": " + error) );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", responseContent );
+				json.put( "success", isOK );
+				if( !isOK )
+					json.put( "error", error );
+				doJSONResponse( httpExchange, code, json );
+			}
 		}
 	}
 
@@ -1106,13 +1258,21 @@ public class FedManHttpServer
 			}
 
 			boolean isOK = code == HTTP_200_OK;
-			Map<String,Object> json = new HashMap<>();
-			addTimestampAndPath(json, httpExchange);
-			json.put( "response", isOK ? "OK" : "FAILED" );
-			json.put( "success", isOK );
-			if( !isOK )
-				json.put( "error", error );
-			doJSONResponse( httpExchange, code, json );
+			String responseContent = isOK ? "OK" : "FAILED";
+			if( isSimple( httpExchange ) )
+			{
+				doSimpleResponse( httpExchange, responseContent + (isOK ? "" : ": " + error) );
+			}
+			else
+			{
+				Map<String,Object> json = new HashMap<>();
+				addTimestampAndPath( json, httpExchange );
+				json.put( "response", responseContent );
+				json.put( "success", isOK );
+				if( !isOK )
+					json.put( "error", error );
+				doJSONResponse( httpExchange, code, json );
+			}
 		}
 	}
 
@@ -1142,7 +1302,7 @@ public class FedManHttpServer
 
 			FedManFederate fedmanFederate = new FedManFederate();
 			fedmanFederate.setStartRequirements( argProcessor.startRequirements() );
-			
+
 			FedManHttpServer testing = new FedManHttpServer(fedmanFederate, 8080);
 			testing.startServer();
 		}
