@@ -35,7 +35,7 @@ code could appear "mysterious", and generating too much code would make
 it hard for a developer (especially one unfamiliar with HLA) to identify
 where to begin. It is hoped that the the correct balance has been struck.
 
-###`base` package
+### `base` package
 
 Contains a "helper" class which the `GenXPingFederate` extends, and
 provides implementation for receiving interactions and attribute 
@@ -47,12 +47,12 @@ It also "enforces" the implementation of the handler functions by
 declaring abstract implementations of them (they are implemented in
 the `main` federate class - see above). 
 
-###`interactions` package
+### `interactions` package
 
 Contains implementations of the interactions which are published and/or
 subscribed to by the `main` federate.
 
-###`reflections` package
+### `reflections` package
 
 Contains implementations of the attribute reflections which are 
 published and/or subscribed to by the `main` federate.
