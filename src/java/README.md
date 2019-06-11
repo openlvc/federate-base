@@ -25,7 +25,7 @@ If you see an error message such as…
 - From the command line `cd` to the root folder (i.e., the folder that this `README.md` is in)
 - `> mvn clean verify install`
 - Once the initial build sequence has completed, `cd` into one of the sub-folders, such as `ucef-java-tools`
-- Run the main method with `mvn exec:java -Dexec.mainClass="gov.nist.ucef.hla.tools.fedman.FederationManager" -Dexec.args="--help"`
+- Run the main method with `mvn exec:java -Dexec.mainClass="gov.nist.ucef.hla.tools.fedman.FederationManager" -Dexec.args="--help"` or similar, as required.
 
 ### Troublshooting
 If you see an error message such as…
