@@ -31,7 +31,7 @@
 	<!--                            -Dfile=./src/main/resources/lib/portico-master.jar               -->
 	<!--                                                                                             -->
 	<!-- The argument for -Dversion *must* match the value in the <portico.version> property as      -->
-	<!-- defined above in this file.                                                                        -->
+	<!-- defined above in this file.                                                                 -->
 	<!--                                                                                             -->
 	<!-- See...                                                                                      -->
 	<!-- https://stackoverflow.com/questions/4955635/how-to-add-local-jar-files-to-a-maven-project/36602256#36602256 -->
