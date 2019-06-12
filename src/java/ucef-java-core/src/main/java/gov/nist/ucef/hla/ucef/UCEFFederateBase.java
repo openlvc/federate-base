@@ -226,8 +226,23 @@ public abstract class UCEFFederateBase extends FederateBase
 	@Override
 	protected void waitForSyncPointAchievement( String label )
 	{
-		// TODO - get the timeout value from the the federate configuration
-		//        (including "infinite"/wait forever option)
+		// TODO -------------------------------------------------------
+		// NOTE: This is placeholder code until the Portico updates
+		//       are finalized to support querying of synchronization
+		//       labels and statuses which will allow this to be 
+		//       handled far more effectively.
+		
+		//       It's possible that the timeout may be kept (in 
+		//       addition to the mechanism of directly querying
+		//       synchronization point status), but as it creates the
+		//       unfortunate side effect of allowing a federate to
+		//       potentially "jump ahead" due to an extended (but 
+		//       legitimate) delay in a synch point being achieved,
+		//       it's likely that it will be removed entirely.
+		// NOTE: if we keep this timeout, obtaining a timeout value
+		//       from the the federate configuration (including 
+		//       "infinite"/wait forever option) would be desirable.
+		// TODO -------------------------------------------------------
 		long timeoutDuration = 15000;
 		long timeoutTime = System.currentTimeMillis() + timeoutDuration;
 		boolean hasTimedOut = false;
