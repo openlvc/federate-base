@@ -14,6 +14,5 @@ local.properties
 **/x64/
 **/Debug/
 **/Release/
-**/ExampleFederate/libFederateBase.so
-**/ExampleFederate/.gitignore
+**/target/
 
