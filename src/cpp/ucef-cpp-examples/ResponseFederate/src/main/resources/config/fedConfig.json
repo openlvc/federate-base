@@ -1,0 +1,12 @@
+{
+    "federateName":"ResponseFederate",
+    "federateType":"ResponseFederate",
+    "federationExecName":"ChallengeResponseFederate",
+    "canCreateFederation":true,
+    "maxJoinAttempts":2,
+    "joinRetryIntervalSec":5,
+    "syncBeforeResign":true,
+    "callbacksAreImmediate":true,
+    "lookAhead":0.2,
+    "stepSize":1
+}

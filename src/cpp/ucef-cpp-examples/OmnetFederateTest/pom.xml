@@ -1,0 +1,122 @@
+<project xmlns = "http://maven.apache.org/POM/4.0.0"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+   http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>nist.gov.ucef</groupId>
+		<artifactId>Multi-Modules</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<groupId>nist.gov.ucef.examples</groupId>
+	<artifactId>OmnetFederateTest</artifactId>
+   	<packaging>nar</packaging>
+
+	<properties>
+	   	<skipTests>true</skipTests>
+ 	   	<src.dir>src/main</src.dir>
+		<omnet.dir>/opt/omnetpp/omnetpp-5.2.1</omnet.dir>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>nist.gov.ucef</groupId>
+			<artifactId>federatebase</artifactId>
+			<version>1.0</version>
+			<type>nar</type>
+		</dependency>
+
+		<dependency>
+			<groupId>nist.gov.ucef.omnet</groupId>
+			<artifactId>OmnetFederate</artifactId>
+			<version>1.0</version>
+			<type>nar</type>
+		</dependency>
+	</dependencies>
+
+	<build>		
+		<plugins>
+			<plugin>
+				<groupId>com.github.maven-nar</groupId>
+				<artifactId>nar-maven-plugin</artifactId>
+				<version>3.6.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<libraries>
+						    <library>
+						      <type>executable</type>
+						      <run>false</run>
+						    </library>
+					</libraries>
+					<cpp>
+						<name>gcc</name>
+						<sourceDirectory>${src.dir}</sourceDirectory>
+
+						<options>
+							<option>-std=c++11</option>
+							<option>-fPIC</option>
+							<option>-O3</option>
+							<option>-Wall</option>
+							<option>-fmessage-length=0</option>
+							<option>-c</option>
+						</options>
+
+					</cpp>
+
+					<linker>
+						<libs>							
+							<lib>
+								<name>oppmain</name>
+								<type>static</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>oppcmdenv</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>oppsim</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>oppcommon</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>oppnedxml</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>opptkenv</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>oppenvir</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+							<lib>
+								<name>opplayout</name>
+								<type>shared</type>
+								<directory>${omnet.dir}/lib</directory>
+							</lib>
+
+						</libs>
+						<options>
+							<option>-Wl,--no-as-needed</option>
+							<option>-Wl,--unresolved-symbols=ignore-in-shared-libs</option>
+						</options>
+					</linker>
+					
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

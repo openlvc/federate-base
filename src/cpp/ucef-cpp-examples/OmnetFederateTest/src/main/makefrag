@@ -1,0 +1,1 @@
+LIBS += -Wl,--unresolved-symbols=ignore-in-object-files

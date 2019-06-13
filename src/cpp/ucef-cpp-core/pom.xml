@@ -1,0 +1,94 @@
+<project xmlns = "http://maven.apache.org/POM/4.0.0"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+   http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>nist.gov.ucef</groupId>
+		<artifactId>Multi-Modules</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<artifactId>federatebase</artifactId>
+   	<packaging>nar</packaging>
+
+	<properties>
+	   	<skipTests>true</skipTests>
+ 	    	<src.dir>src/main</src.dir>
+		<portico.lib>ext/lib/portico-2.1.0/linux</portico.lib>
+		<tinyxml.lib>ext/lib/tinyxml2/linux</tinyxml.lib>
+	</properties>
+
+	<build>		
+		<plugins>
+			<plugin>
+				<groupId>com.github.maven-nar</groupId>
+				<artifactId>nar-maven-plugin</artifactId>
+				<version>3.6.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<libraries>
+						<library>
+							<type>shared</type>
+							<run>false</run>
+						</library>
+					</libraries>
+					<cpp>
+						<name>gcc</name>
+						<sourceDirectory>${src.dir}</sourceDirectory>						
+						
+ 						<includePaths>                            				
+                            				<includePath>
+								<path>${project.basedir}/${src.dir}/include</path>
+                            			 	</includePath>
+							<includePath>
+								<path>${project.basedir}/ext/include/ieee1516e</path>
+                            			 	</includePath>
+							<includePath>
+								<path>${project.basedir}/ext/include/tinyxml2</path>
+                            			 	</includePath>
+							<includePath>
+								<path>${project.basedir}/ext/include/logger</path>
+                            			 	</includePath>
+							<includePath>
+								<path>${project.basedir}/ext/include</path>
+                            			 	</includePath>	
+     						 </includePaths>
+ 						<options>
+							<option>-std=c++11</option>
+							<option>-fPIC</option>
+							<option>-O3</option>
+							<option>-Wall</option>
+							<option>-fmessage-length=0</option>
+							<option>-c</option>
+						</options>
+					</cpp>
+					<linker>
+						<libs>
+							<lib>
+						       		<name>rti1516e64</name>
+								<type>shared</type>
+								<directory>${portico.lib}</directory>
+						      	</lib>
+						    	<lib>
+								<name>fedtime1516e64</name>
+								<type>shared</type>
+								<directory>${portico.lib}</directory>
+						      	</lib>
+						    	<lib>
+								<name>Tinyxml2</name>
+								<type>static</type>
+								<directory>${tinyxml.lib}</directory>
+						      	</lib>
+						</libs>
+						<sysLibs>
+							    <sysLib>
+							      	<name>pthread</name>
+							    </sysLib>
+						</sysLibs> 
+					</linker>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
