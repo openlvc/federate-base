@@ -15,4 +15,5 @@ local.properties
 **/Debug/
 **/Release/
 **/target/
+**/src/main/*.so
 
