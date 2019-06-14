@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for $(LIB_PREFIX)OmnetFederate
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -O out -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include -L/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/debug -Xout
+#  opp_makemake --make-so -f --deep -O out -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include -L/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release -Xout
 #
 
 # Name of target to be created (-o option)
@@ -16,7 +16,7 @@ INCLUDE_PATH = -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS = $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/debug
+LIBS = $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release
 
 # Output directory
 PROJECT_OUTPUT_DIR = out
@@ -55,7 +55,7 @@ include $(CONFIGFILE)
 # Simulation kernel and user interface libraries
 OMNETPP_LIBS = -loppenvir$D $(KERNEL_LIBS) $(SYS_LIBS)
 ifneq ($(TOOLCHAIN_NAME),clangc2)
-LIBS += -Wl,-rpath,$(abspath /home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/debug)
+LIBS += -Wl,-rpath,$(abspath /home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release)
 endif
 
 COPTS = $(CFLAGS) $(IMPORT_DEFINES)  $(INCLUDE_PATH) -I$(OMNETPP_INCL_DIR)

@@ -15,11 +15,20 @@
 
 #include "base/ucef/omnet/OmnetFederate.h"
 
+#include <algorithm>
+
+#include "gov/nist/ucef/util/Logger.h"
+
 using namespace base::ucef;
 using namespace base::ucef::omnet;
+using namespace base::util;
+using namespace omnetpp;
 using namespace std;
 
+
 NoOpFederate* OmnetFederate::thisFedarate = 0;
+
+string OmnetFederate::KEY_HLA_MSG_FILTER = "hlaIncoming";
 
 OmnetFederate::OmnetFederate() : fedConfigFile(".")
 {
@@ -36,32 +45,10 @@ NoOpFederate* OmnetFederate::getFederatePtr()
     return thisFedarate;
 }
 
-void OmnetFederate::initModule()
-{
-    cout << "OMnet++ module initializing call ";
-}
-
-void OmnetFederate::handleCMessage( omnetpp::cMessage *msg )
-{
-    // send the message out
-    cout << "Received message :" << msg->getName();
-    delete(msg);
-}
-
-void OmnetFederate::tearDownModule()
-{
-    cout << "OMnet++ module tear down call ";
-}
-
 void OmnetFederate::initialize()
 {
     initModule();
     initializeFederate();
-}
-
-void OmnetFederate::handleMessage( omnetpp::cMessage *msg )
-{
-    handleCMessage( msg );
 }
 
 void OmnetFederate::finish()
@@ -70,10 +57,38 @@ void OmnetFederate::finish()
     tearDownFederate();
 }
 
+void OmnetFederate::handleMessage( cMessage *msg )
+{
+    handleCMessage( msg );
+}
+
+void OmnetFederate::setFedConfigPath( const string &fedConfigFilePath )
+{
+    fedConfigFile = fedConfigFilePath;
+}
+
+void OmnetFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
+                                         double federateTime )
+{
+    auto it = std::find( hlaMsgFilter.begin(), hlaMsgFilter.end(), hlaInt->getInteractionClassName() );
+    if( it != hlaMsgFilter.end() )
+    {
+        receivedHlaInteraction( hlaInt, federateTime );
+    }
+    else
+    {
+        Logger::getInstance().log(" Received :" + hlaInt->getInteractionClassName() + " and ignoring it", LevelInfo );
+    }
+}
+
 void OmnetFederate::initializeFederate()
 {
     shared_ptr<base::FederateConfiguration> federateConfig = getFederateConfiguration();
+
     federateConfig->loadFromJson( fedConfigFile );
+
+    hlaMsgFilter = federateConfig->getValueAsString( fedConfigFile, KEY_HLA_MSG_FILTER );
+
     federateSetup();
 }
 
@@ -82,7 +97,3 @@ void OmnetFederate::tearDownFederate()
     federateTeardown();
 }
 
-void OmnetFederate::setFedConfigPath( const string &fedConfigFilePath )
-{
-    fedConfigFile = fedConfigFilePath;
-}

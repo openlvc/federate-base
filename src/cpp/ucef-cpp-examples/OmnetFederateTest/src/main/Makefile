@@ -2,7 +2,7 @@
 # OMNeT++/OMNEST Makefile for OmnetFederateTest
 #
 # This file was generated with the command:
-#  opp_makemake -f --deep -O out -KOMNETFEDERATE_PROJ=/home/vagrant/Calytrix/Root/ucef-omnet/src/main -I. -I$$\(OMNETFEDERATE_PROJ\)/include -I/home/vagrant/Calytrix/Root/ucef-cpp-core/src/main/include -I$$\(OMNETFEDERATE_PROJ\) -Iinclude -I/home/vagrant/Calytrix/Root/ucef-cpp-examples/ucef-cpp-core/src/main/include -L$$\(OMNETFEDERATE_PROJ\)/out/release -L/home/vagrant/Calytrix/Root/ucef-cpp-core/eclipse/Release -L$$\(OMNETFEDERATE_PROJ\) -lFederateBase -lOmnetFederate$$\(D\)
+#  opp_makemake -f --deep -O out -KOMNETFEDERATE_PROJ=/home/vagrant/Calytrix/federate-base/src/cpp/ucef-omnet/src/main -I. -I$$\(OMNETFEDERATE_PROJ\)/include -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include -I$$\(OMNETFEDERATE_PROJ\) -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-examples/ucef-cpp-core/src/main/include -L$$\(OMNETFEDERATE_PROJ\)/out/release -L/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release -L$$\(OMNETFEDERATE_PROJ\) -lOmnetFederate$$\(D\)
 #
 
 # Name of target to be created (-o option)
@@ -19,16 +19,16 @@ USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(QTENV_LIBS) $(CMDENV_LI
 INCLUDE_PATH = \
     -I. \
     -I$(OMNETFEDERATE_PROJ)/include \
-    -I/home/vagrant/Calytrix/Root/ucef-cpp-core/src/main/include \
+    -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include \
     -I$(OMNETFEDERATE_PROJ) \
     -Iinclude \
-    -I/home/vagrant/Calytrix/Root/ucef-cpp-examples/ucef-cpp-core/src/main/include
+    -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-examples/ucef-cpp-core/src/main/include
 
 # Additional object and library files to link with
 EXTRA_OBJS =
 
 # Additional libraries (-L, -l options)
-LIBS = $(LDFLAG_LIBPATH)$(OMNETFEDERATE_PROJ)/out/release $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/Root/ucef-cpp-core/eclipse/Release $(LDFLAG_LIBPATH)$(OMNETFEDERATE_PROJ)  -lFederateBase -lOmnetFederate$(D)
+LIBS = $(LDFLAG_LIBPATH)$(OMNETFEDERATE_PROJ)/out/release $(LDFLAG_LIBPATH)/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release $(LDFLAG_LIBPATH)$(OMNETFEDERATE_PROJ) -lFederateBase -lOmnetFederate$(D)
 
 # Output directory
 PROJECT_OUTPUT_DIR = out
@@ -45,7 +45,7 @@ MSGFILES =
 SMFILES =
 
 # Other makefile variables (-K)
-OMNETFEDERATE_PROJ=/home/vagrant/Calytrix/Root/ucef-omnet/src/main
+OMNETFEDERATE_PROJ=/home/vagrant/Calytrix/federate-base/src/cpp/ucef-omnet/src/main
 
 #------------------------------------------------------------------------------
 
@@ -70,7 +70,7 @@ include $(CONFIGFILE)
 # Simulation kernel and user interface libraries
 OMNETPP_LIBS = $(OPPMAIN_LIB) $(USERIF_LIBS) $(KERNEL_LIBS) $(SYS_LIBS)
 ifneq ($(TOOLCHAIN_NAME),clangc2)
-LIBS += -Wl,-rpath,$(abspath $(OMNETFEDERATE_PROJ)/out/release) -Wl,-rpath,$(abspath /home/vagrant/Calytrix/Root/ucef-cpp-core/eclipse/Release) -Wl,--unresolved-symbols=ignore-in-shared-libs
+LIBS += -Wl,-rpath,$(abspath $(OMNETFEDERATE_PROJ)/out/release) -Wl,-rpath,$(abspath /home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release) -Wl,--unresolved-symbols=ignore-in-shared-libs
 endif
 
 COPTS = $(CFLAGS) $(IMPORT_DEFINES)  $(INCLUDE_PATH) -I$(OMNETPP_INCL_DIR)

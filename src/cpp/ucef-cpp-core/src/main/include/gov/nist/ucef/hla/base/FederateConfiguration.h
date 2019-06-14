@@ -65,7 +65,21 @@ namespace base
 			//                     Instance Methods
 			//----------------------------------------------------------
 
+			/**
+			 * Return the array values of a given configuration as a list
+			 *
+			 * @param configPath path to the federate config json
+			 * @param key config key to seek in federate configuration
+			 */
+			std::list<std::string> getValueAsString( const std::string& configPath, const std::string& key );
+
+			/**
+			 * Configure this federate using the given federate config file
+			 *
+			 * @param configPath path to the federate config json
+			 */
 			void loadFromJson( const std::string& configPath );
+
 			/**
 			 * Returns the name of the federation that this federate wants to join
 			 * 

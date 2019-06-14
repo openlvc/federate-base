@@ -82,7 +82,7 @@ namespace base
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedAttributeReflection( std::shared_ptr<const HLAObject> hlaObject,
-			                                         double federateTime ) = 0;
+			                                          double federateTime ) = 0;
 
 			/**
 			 * Get called whenever RTI receives a new object interaction
@@ -94,7 +94,7 @@ namespace base
 			 * @param federateTime the current logical time of the federate
 			 */
 			virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInteraction,
-			                                 double federateTime ) = 0;
+			                                  double federateTime ) = 0;
 
 			/**
 			 * Get called whenever RTI receives a object deletion call

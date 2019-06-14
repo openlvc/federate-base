@@ -51,6 +51,54 @@ namespace base
 
 	}
 
+	list<string> FederateConfiguration::getValueAsString( const string& configPath, const string& key )
+	{
+		list<string> jsonArrayValues;
+
+		Logger::getInstance().log( "Looking for key : " + key + " in " + configPath, LevelInfo );
+		ifstream ifs( configPath );
+		if ( !ifs.is_open() )
+		{
+			Logger::getInstance().log( "Could not open the config file for reading,"
+									   "Returning an empty list", LevelWarn );
+			return jsonArrayValues;
+		}
+
+		IStreamWrapper isw { ifs };
+
+		Document doc {};
+		doc.ParseStream( isw );
+		if( doc.HasParseError() )
+		{
+			stringstream ss;
+			ss << "Error  : " << doc.GetParseError()  << '\n'
+			   << "Offset : " << doc.GetErrorOffset() << '\n';
+			Logger::getInstance().log( ss.str(), LevelError );
+			return jsonArrayValues;
+		}
+
+		Value::ConstMemberIterator it = doc.FindMember( key.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			auto values = it->value.GetArray();
+			for( Value::ConstValueIterator itr = values.Begin(); itr != values.End(); ++itr)
+			{
+				string tmpValue = (*itr).GetString();
+				jsonArrayValues.push_back( tmpValue );
+
+				Logger::getInstance().log( "Value " + tmpValue + " is added to allow list.", LevelInfo );
+
+			}
+		}
+		else
+		{
+			string errorMsg = "Config key " + key + " could not be found.";
+			errorMsg += " Returning an empty list";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
+		return jsonArrayValues;
+	}
+
 	void FederateConfiguration::loadFromJson( const string &configPath )
 	{
 		Logger::getInstance().log( "Federate config path is set to : " + configPath, LevelInfo );
@@ -62,263 +110,262 @@ namespace base
 			                           "trying to run with the default configuration values", LevelError );
 		}
 
-		 IStreamWrapper isw { ifs };
+		IStreamWrapper isw { ifs };
 
-		 Document doc {};
-		 doc.ParseStream( isw );
-		 if( doc.HasParseError() )
-		 {
-			 stringstream ss;
-			 ss << "Error  : " << doc.GetParseError()  << '\n'
-                << "Offset : " << doc.GetErrorOffset() << '\n';
-			 Logger::getInstance().log( ss.str(), LevelError );
+		Document doc {};
+		doc.ParseStream( isw );
+		if( doc.HasParseError() )
+		{
+			stringstream ss;
+			ss << "Error  : " << doc.GetParseError()  << '\n'
+			<< "Offset : " << doc.GetErrorOffset() << '\n';
+			Logger::getInstance().log( ss.str(), LevelError );
 
-		 }
+		}
 
-		 //---------------------------------
-		 // Start loading config values
-		 //---------------------------------
-		 Logger::getInstance().log( "Reading federate configuration", LevelInfo );
+		//---------------------------------
+		// Start loading config values
+		//---------------------------------
+		Logger::getInstance().log( "Reading federate configuration", LevelInfo );
 
-		 // Federation name
-		 Value::ConstMemberIterator it = doc.FindMember( KEY_FEDERATION_EXEC_NAME.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setFederationName( it->value.GetString() );
+		// Federation name
+		Value::ConstMemberIterator it = doc.FindMember( KEY_FEDERATION_EXEC_NAME.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setFederationName( it->value.GetString() );
 
-			 string msg = "Using " + getFederationName() + " as the federation name.";
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_FEDERATION_EXEC_NAME + " could not be found.";
-			 errorMsg += " Using " + getFederationName() + " as the default federation name.";
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Using " + getFederationName() + " as the federation name.";
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_FEDERATION_EXEC_NAME + " could not be found.";
+			errorMsg += " Using " + getFederationName() + " as the default federation name.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Federate name
-		 it = doc.FindMember( KEY_FEDERATE_NAME.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setFederateName( it->value.GetString() );
+		// Federate name
+		it = doc.FindMember( KEY_FEDERATE_NAME.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setFederateName( it->value.GetString() );
 
-			 string msg = "Using " + getFederateName() + " as the federate name.";
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_FEDERATE_NAME + " could not be found.";
-			 errorMsg += " Using " + getFederateName() + " as the default federate name.";
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Using " + getFederateName() + " as the federate name.";
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_FEDERATE_NAME + " could not be found.";
+			errorMsg += " Using " + getFederateName() + " as the default federate name.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Federate type
-		 it = doc.FindMember( KEY_FEDERATE_TYPE.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setFederateType( it->value.GetString() );
+		// Federate type
+		it = doc.FindMember( KEY_FEDERATE_TYPE.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setFederateType( it->value.GetString() );
 
-			 string msg = "Using " + getFederateType() + " as the federate type.";
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_FEDERATE_TYPE + " could not be found.";
-			 errorMsg += " Using " + getFederateType() + " as the default federate type.";
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Using " + getFederateType() + " as the federate type.";
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_FEDERATE_TYPE + " could not be found.";
+			errorMsg += " Using " + getFederateType() + " as the default federate type.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Create permission
-		 it = doc.FindMember( KEY_CAN_CREATE_FEDERATION.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setPermisionToCreateFederation( it->value.GetBool() );
+		// Create permission
+		it = doc.FindMember( KEY_CAN_CREATE_FEDERATION.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setPermisionToCreateFederation( it->value.GetBool() );
 
-			 string msg = "Setting federation creation permission to : ";
-			 msg+= isPermittedToCreateFederation() ? "True" : "False";
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_CAN_CREATE_FEDERATION + " could not be found.";
-			 errorMsg += "Setting federation creation permission to : " + isPermittedToCreateFederation();
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Setting federation creation permission to : ";
+			msg+= isPermittedToCreateFederation() ? "True" : "False";
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_CAN_CREATE_FEDERATION + " could not be found.";
+			errorMsg += "Setting federation creation permission to : " + isPermittedToCreateFederation();
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Step size
-		 it = doc.FindMember( KEY_STEP_SIZE.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setTimeStep( it->value.GetFloat() );
+		// Step size
+		it = doc.FindMember( KEY_STEP_SIZE.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setTimeStep( it->value.GetFloat() );
 
-			 string msg = "Setting time step size to : " + to_string( getTimeStep() );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_STEP_SIZE + " could not be found.";
-			 errorMsg += "Setting time step size to : " + to_string( getTimeStep() );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Setting time step size to : " + to_string( getTimeStep() );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_STEP_SIZE + " could not be found.";
+			errorMsg += "Setting time step size to : " + to_string( getTimeStep() );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Joint attempts
-		 it = doc.FindMember( KEY_MAX_JOIN_ATTEMPTS.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setMaxJoinAttempts( it->value.GetInt() );
+		// Joint attempts
+		it = doc.FindMember( KEY_MAX_JOIN_ATTEMPTS.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setMaxJoinAttempts( it->value.GetInt() );
 
-			 string msg = "Setting maximum join attempts to : " + to_string( getMaxJoinAttempts() );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_MAX_JOIN_ATTEMPTS + " could not be found.";
-			 errorMsg += " Setting maximum join attempts to : " + to_string( getMaxJoinAttempts() );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Setting maximum join attempts to : " + to_string( getMaxJoinAttempts() );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_MAX_JOIN_ATTEMPTS + " could not be found.";
+			errorMsg += " Setting maximum join attempts to : " + to_string( getMaxJoinAttempts() );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Retry interval
-		 it = doc.FindMember( KEY_JOIN_RETRY_INTERVAL_SEC.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setRetryInterval( it->value.GetInt() );
+		// Retry interval
+		it = doc.FindMember( KEY_JOIN_RETRY_INTERVAL_SEC.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setRetryInterval( it->value.GetInt() );
 
-			 string msg = "Setting retry interval to : " + to_string( getRetryInterval() );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_JOIN_RETRY_INTERVAL_SEC + " could not be found.";
-			 errorMsg += " Setting retry interval to : " + to_string( getRetryInterval() );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Setting retry interval to : " + to_string( getRetryInterval() );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_JOIN_RETRY_INTERVAL_SEC + " could not be found.";
+			errorMsg += " Setting retry interval to : " + to_string( getRetryInterval() );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Synch before resign
-		 it = doc.FindMember( KEY_SYNC_BEFORE_RESIGN.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setSyncBeforeResign( it->value.GetBool() );
+		// Synch before resign
+		it = doc.FindMember( KEY_SYNC_BEFORE_RESIGN.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setSyncBeforeResign( it->value.GetBool() );
 
-			 string msg = string( "Setting synch before resign to : " ) + ( getSyncBeforeResign() ? "True" : "False" );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_SYNC_BEFORE_RESIGN + " could not be found.";
-			 errorMsg += string( " Setting synch before resign to : " ) + ( getSyncBeforeResign() ? "True" : "False" );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = string( "Setting synch before resign to : " ) + ( getSyncBeforeResign() ? "True" : "False" );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_SYNC_BEFORE_RESIGN + " could not be found.";
+			errorMsg += string( " Setting synch before resign to : " ) + ( getSyncBeforeResign() ? "True" : "False" );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Immediate callback
-		 it = doc.FindMember( KEY_CALLBACKS_ARE_IMMEDIATE.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setImmediate( it->value.GetBool() );
+		// Immediate callback
+		it = doc.FindMember( KEY_CALLBACKS_ARE_IMMEDIATE.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setImmediate( it->value.GetBool() );
 
-			 string msg = string( "Setting immediate callbacks to : " ) + ( isImmediate() ? "True" : "False" );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_CALLBACKS_ARE_IMMEDIATE + " could not be found.";
-			 errorMsg += string( " Setting immediate callbacks to : " ) + ( isImmediate() ? "True" : "False" );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = string( "Setting immediate callbacks to : " ) + ( isImmediate() ? "True" : "False" );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_CALLBACKS_ARE_IMMEDIATE + " could not be found.";
+			errorMsg += string( " Setting immediate callbacks to : " ) + ( isImmediate() ? "True" : "False" );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Look ahead
-		 it = doc.FindMember( KEY_LOOK_AHEAD.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setLookAhead( it->value.GetFloat() );
+		// Look ahead
+		it = doc.FindMember( KEY_LOOK_AHEAD.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setLookAhead( it->value.GetFloat() );
 
-			 string msg = "Setting look ahead to : " + to_string( getLookAhead() );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_LOOK_AHEAD + " could not be found.";
-			 errorMsg += " Setting look ahead to : " + to_string( getLookAhead() );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = "Setting look ahead to : " + to_string( getLookAhead() );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_LOOK_AHEAD + " could not be found.";
+			errorMsg += " Setting look ahead to : " + to_string( getLookAhead() );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Time Regulated
-		 it = doc.FindMember( KEY_TIME_REGULATED.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setTimeRegulated( it->value.GetBool() );
+		// Time Regulated
+		it = doc.FindMember( KEY_TIME_REGULATED.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setTimeRegulated( it->value.GetBool() );
 
-			 string msg = string( "Setting time regulated to : " ) + ( isTimeRegulated() ? "True" : "False" );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_TIME_REGULATED + " could not be found.";
-			 errorMsg += string( " Setting time regulated to : " ) + ( isTimeRegulated() ? "True" : "False" );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = string( "Setting time regulated to : " ) + ( isTimeRegulated() ? "True" : "False" );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_TIME_REGULATED + " could not be found.";
+			errorMsg += string( " Setting time regulated to : " ) + ( isTimeRegulated() ? "True" : "False" );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // Time Constrained
-		 it = doc.FindMember( KEY_TIME_CONSTRAINED.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 setTimeConstrained( it->value.GetBool() );
+		// Time Constrained
+		it = doc.FindMember( KEY_TIME_CONSTRAINED.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			setTimeConstrained( it->value.GetBool() );
 
-			 string msg = string( "Setting time constrained to : " ) + ( isTimeConstrained() ? "True" : "False" );
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_TIME_CONSTRAINED + " could not be found.";
-			 errorMsg += string( " Setting time constrained to : " ) + ( isTimeConstrained() ? "True" : "False" );
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+			string msg = string( "Setting time constrained to : " ) + ( isTimeConstrained() ? "True" : "False" );
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_TIME_CONSTRAINED + " could not be found.";
+			errorMsg += string( " Setting time constrained to : " ) + ( isTimeConstrained() ? "True" : "False" );
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-		 // FOM path
-		 it = doc.FindMember( KEY_FOM_PATH.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 string fomPaths = it->value.GetString();
-			 stringstream ss( fomPaths );
-			 string item;
-			 while( std::getline(ss, item, ',') )
-			 {
-				 addFomPath(item);
-			 }
+		// FOM path
+		it = doc.FindMember( KEY_FOM_PATH.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			string fomPaths = it->value.GetString();
+			stringstream ss( fomPaths );
+			string item;
+			while( std::getline(ss, item, ',') )
+			{
+				addFomPath(item);
+			}
 
+			string msg = string( "Using FOM path : " ) + fomPaths;
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_FOM_PATH + " could not be found.";
+			errorMsg += " Running without a FOM path.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-			 string msg = string( "Using FOM path : " ) + fomPaths;
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_FOM_PATH + " could not be found.";
-			 errorMsg += " Running without a FOM path.";
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
+		// SOM path
+		it = doc.FindMember( KEY_SOM_PATH.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			string somPaths = it->value.GetString();
+			stringstream ss( somPaths );
+			string item;
+			while( std::getline(ss, item, ',') )
+			{
+				addSomPath(item);
+			}
 
-		 // SOM path
-		 it = doc.FindMember( KEY_SOM_PATH.c_str() );
-		 if( it != doc.MemberEnd() )
-		 {
-			 string somPaths = it->value.GetString();
-			 stringstream ss( somPaths );
-			 string item;
-			 while( std::getline(ss, item, ',') )
-			 {
-				 addSomPath(item);
-			 }
+			string msg = string( "Using SOM path : " ) + somPaths;
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_SOM_PATH + " could not be found.";
+			errorMsg += " Running without a SOM path.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
 
-			 string msg = string( "Using SOM path : " ) + somPaths;
-			 Logger::getInstance().log( msg, LevelInfo );
-		 }
-		 else
-		 {
-			 string errorMsg = "Config key " + KEY_SOM_PATH + " could not be found.";
-			 errorMsg += " Running without a SOM path.";
-			 Logger::getInstance().log( errorMsg, LevelWarn );
-		 }
-
-		 Logger::getInstance().log( "Reading Federate configuration completed", LevelInfo );
+		Logger::getInstance().log( "Reading Federate configuration completed", LevelInfo );
 	}
 
 	string FederateConfiguration::getFederationName()

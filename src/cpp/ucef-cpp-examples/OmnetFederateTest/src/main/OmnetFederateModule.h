@@ -34,6 +34,25 @@ public:
     virtual ~OmnetFederateModule();
 
     //----------------------------------------------------------
+    //                IOmnetFederate Methods
+    //----------------------------------------------------------
+
+    /**
+     * Get called to initialize Omnet modules
+     */
+    virtual void initModule() override;
+
+    /**
+     * Get called when received Omnet message
+     */
+    virtual void handleCMessage( omnetpp::cMessage *msg ) override;
+
+    /**
+     * Get called to teardown Omnet modules
+     */
+    virtual void tearDownModule() override;
+
+    //----------------------------------------------------------
     //                Federate Methods
     //----------------------------------------------------------
 
@@ -66,40 +85,15 @@ public:
     virtual void beforeExit() override;
 
     /**
-     * Get called whenever RTI receives a object class update
-     */
-    virtual void receivedAttributeReflection( std::shared_ptr<const base::HLAObject> hlaObject,
-                                              double federateTime ) override;
-
-    /**
      * Get called whenever RTI receives a new object interaction
      */
-    virtual void receivedInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
-                                      double federateTime ) override;
+    virtual void receivedHlaInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
+                                         double federateTime ) override;
 
     /**
      * Step function of this federate
      */
     virtual bool step( double federateTime ) override;
-
-    //----------------------------------------------------------
-    //                IOmnetFederate Methods
-    //----------------------------------------------------------
-
-    /**
-     * Get called to initialize Omnet modules
-     */
-    virtual void initModule() override;
-
-    /**
-     * Get called when received Omnet message
-     */
-    virtual void handleCMessage( omnetpp::cMessage *msg ) override;
-
-    /**
-     * Get called to teardown Omnet modules
-     */
-    virtual void tearDownModule() override;
 
 private:
     //Response solveChallenge( Challenge &receievedChallenge );

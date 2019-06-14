@@ -26,33 +26,17 @@ namespace base
     {
         namespace omnet
         {
+
             class OmnetFederate : public IOmnetFederate
             {
             public:
+                static std::string KEY_HLA_MSG_FILTER;
                 //----------------------------------------------------------
                 //                     Static methods
                 //----------------------------------------------------------
 
                 static base::ucef::NoOpFederate* getFederatePtr();
 
-                //----------------------------------------------------------
-                //                IOmnetFederate interface implementation
-                //----------------------------------------------------------
-
-                /*
-                 * Get called when initializing this cSimpleModule
-                 */
-                virtual void initModule() override;
-
-                /*
-                 * Get called when a message received from omnet network simulator
-                 */
-                virtual void handleCMessage( omnetpp::cMessage *msg ) override;
-
-                /*
-                 * Get called when exiting from this cSimpleModule
-                 */
-                virtual void tearDownModule() override;
 
                 //----------------------------------------------------------
                 //                     Constructors
@@ -65,6 +49,13 @@ namespace base
                 //----------------------------------------------------------
                 virtual void initialize() override;
                 virtual void finish() override;
+
+                //----------------------------------------------------------
+                //                     No-op federate methods
+                //----------------------------------------------------------
+
+                virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInt,
+                                                  double federateTime ) override;
 
                 //----------------------------------------------------------
                 //                    Member methods
@@ -92,6 +83,7 @@ namespace base
             private:
                 std::string fedConfigFile;
                 static base::ucef::NoOpFederate* thisFedarate;
+                std::list<std::string> hlaMsgFilter;
             };
         }
     }
