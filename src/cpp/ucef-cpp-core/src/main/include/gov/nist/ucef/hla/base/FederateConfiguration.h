@@ -252,14 +252,14 @@ namespace base
 			void setPermisionToCreateFederation( bool permission );
 
 			/**
-			 * Returns the retry interval in federation join attempt
+			 * Returns the retry interval in seconds for federation join attempt
 			 *
 			 * @return the retry interval in federation join attempt
 			 */
 			int getRetryInterval();
 
 			/**
-			 * Sets the retry interval in federation join attempt
+			 * Sets the retry interval in seconds for federation join attempt
 			 *
 			 * @param retryInterval retry interval in federation join attempt
 			 */

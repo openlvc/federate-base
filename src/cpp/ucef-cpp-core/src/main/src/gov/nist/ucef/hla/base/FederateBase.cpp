@@ -89,6 +89,7 @@ namespace base
 	{
 		bool hasJoined = false;
 		int attemptCount = 0;
+		double retryInterval = ucefConfig->getRetryInterval();
 		while( !hasJoined )
 		{
 			try
@@ -107,8 +108,8 @@ namespace base
 			{
 				attemptCount++;
 				Logger::getInstance().log( "Failed to join : " + ucefConfig->getFederationName(), LevelWarn );
-				Logger::getInstance().log( "Retrying in : " + to_string(0.01) + " seconds.", LevelWarn );
-				this_thread::sleep_for( chrono::microseconds(10) );
+				Logger::getInstance().log( "Retrying in : " + to_string(retryInterval) + " seconds.", LevelWarn );
+				this_thread::sleep_for( chrono::seconds(retryInterval) );
 
 				if( attemptCount >= ucefConfig->getMaxJoinAttempts() )
 				{
