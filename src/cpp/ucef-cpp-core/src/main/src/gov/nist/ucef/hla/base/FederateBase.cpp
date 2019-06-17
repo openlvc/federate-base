@@ -557,7 +557,7 @@ namespace base
 		// immediately achieve the announced synch point
 		achieveSynchronization( synchPointStr );
 
-		logger.log( "Waiting till the federation achieve synchronization " +
+		logger.log( "Waiting till the federation achieve synchronization point " +
 		            ConversionHelper::SynchPointToString(point), LevelInfo );
 
 		int timeoutDuration = 15; // in seconds
@@ -571,8 +571,8 @@ namespace base
 
 		while( !this->isAchieved(synchPointStr) && !hasTimeout )
 		{
-			logger.log( "Waiting till the federation achieve synchronization " +
-						ConversionHelper::SynchPointToString(point), LevelDebug );
+			logger.log( "Waiting till the federation achieve synchronization point " +
+			            ConversionHelper::SynchPointToString(point), LevelDebug );
 			tickForCallBacks();
 
 			time_t currentTime;

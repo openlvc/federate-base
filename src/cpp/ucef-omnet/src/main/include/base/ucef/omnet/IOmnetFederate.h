@@ -46,13 +46,40 @@ namespace base
                  */
                 virtual void handleCMessage( omnetpp::cMessage *msg ) = 0;
 
+                /**
+                 * This method is called inside the main update loop.
+                 *
+                 * @param federateTime the current logical time of this federate
+                 */
+                virtual bool step( double federateTime ) override { return true; }
+
+
+                /**
+                 * Get called whenever Omnet++ receives an hla interaction relevant to this federate.
+                 * <p/>
+                 *
+                 * HLA interactions can be filtered by specifying 'hlaIncoming' key and its values in array format in
+                 * federate config file.
+                 *
+                 * E.g. "hlaIncoming" : [ "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction",
+                 *                        "HLAobjectRoot.ParentObject.ChallengeObject" ]
+                 *
+                 * @param hlaInteraction Stores the received parameter updates relevant to the interaction class represented
+                 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
+                 *                       methods to get the values of the received parameter updates. Since no type checking
+                 *                       is carried out it is important to use the right methods to obtain the correct values.
+                 * @param federateTime the current logical time of the federate
+                 */
+                virtual void receivedHlaInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt, double federateTime ) = 0;
+
+
                 /*
                  * Get called when exiting from this cSimpleModule
                  */
                 virtual void tearDownModule() = 0;
 
                 //----------------------------------------------------------
-                //   Federate methods to be implemented in user code
+                //   Federate life-cycle methods to be implemented in user code
                 //----------------------------------------------------------
 
                 /**
@@ -82,32 +109,6 @@ namespace base
                  * Get called just before resigning from the federation
                  */
                 virtual void beforeExit() override {}
-
-                /**
-                 * This method is called inside the main update loop.
-                 *
-                 * @param federateTime the current logical time of this federate
-                 */
-                virtual bool step( double federateTime ) override { return true; }
-
-                /**
-                 * Get called whenever Omnet++ receives an hla interaction relevant to this federate.
-                 * <p/>
-                 *
-                 * HLA interactions can be filtered by specifying 'hlaIncoming' key and its values in array format in
-                 * federate config file.
-                 *
-                 * E.g. "hlaIncoming" : [ "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction",
-                 *                        "HLAobjectRoot.ParentObject.ChallengeObject" ]
-                 *
-                 * @param hlaInteraction Stores the received parameter updates relevant to the interaction class represented
-                 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
-                 *                       methods to get the values of the received parameter updates. Since no type checking
-                 *                       is carried out it is important to use the right methods to obtain the correct values.
-                 * @param federateTime the current logical time of the federate
-                 */
-                virtual void receivedHlaInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt, double federateTime ) = 0;
-
             };
         }
     }

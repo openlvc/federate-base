@@ -39,10 +39,10 @@ network OmnetFederateNet
         src: OmnetFederateModule {
             @display("p=66,163");
         }
-        response: SimpleResponseModule {
+        responder: SimpleResponseModule {
             @display("p=235,48;i=block/rxtx");
         }
     connections:
-        src.out --> {  delay = 1000ms; } --> response.in;
-        src.in <-- {  delay = 1000ms; } <-- response.out;
+        src.out --> {  delay = 1000ms; } --> responder.in;
+        src.in <-- {  delay = 1000ms; } <-- responder.out;
 }

@@ -37,11 +37,17 @@ namespace base
                     MessageCodec() = default;
                     virtual ~MessageCodec() = default;
 
-                    static inline omnetpp::cMessage* toCmessage( std::shared_ptr<const base::HLAInteraction> hlaInt )
+                    /*
+                     * Adds interaction parameters to the given cMessage
+                     *
+                     * @param cMsg message to pack interaction parameters
+                     * @param hlaInt interaction to extract parameters from
+                     */
+                    static inline omnetpp::cMessage* packValues( omnetpp::cMessage* cMsg, std::shared_ptr<const base::HLAInteraction> hlaInt )
                     {
                         std::string interactionName = hlaInt->getInteractionClassName();
-                        omnetpp::cMessage* cMsg = new omnetpp::cMessage( hlaInt->getInteractionClassName().c_str() );
-                        packValue( hlaInt, cMsg );
+                        cMsg->setName( interactionName.c_str() );
+                        packValue( cMsg, hlaInt );
                         return cMsg;
                     }
 
@@ -93,7 +99,7 @@ namespace base
                     }
 
                     // Packs interaction attributes into cMessage
-                    static void packValue( std::shared_ptr<const base::HLAInteraction> hlaInt, omnetpp::cMessage* cMsg )
+                    static void packValue( omnetpp::cMessage* cMsg, std::shared_ptr<const base::HLAInteraction> hlaInt )
                     {
                         NoOpFederate* federate = OmnetFederate::getFederatePtr();
 

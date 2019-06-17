@@ -12,5 +12,5 @@
     "fomPath":"ChallengeResponse/fom/ChallengeResponse.xml",
     "somPath":"ChallengeResponse/som/Response.xml",
     "hlaIncoming" : ["HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction",
-		      "HLAobjectRoot.ParentObject.ChallengeObject"]
+		     "HLAobjectRoot.ParentObject.ChallengeObject"]
 }

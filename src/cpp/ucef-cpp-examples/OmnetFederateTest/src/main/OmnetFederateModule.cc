@@ -59,10 +59,11 @@ void OmnetFederateModule::handleCMessage( cMessage *msg )
         // Generate a response for each remote challenge
         for( auto challenge : tmpRemoteChallenges )
         {
-            cMessage* msg = MessageCodec::toCmessage( challenge );
+            cMessage* msg = new cMessage();
+            msg = MessageCodec::packValues(msg, challenge );
             send( msg, "out" );
         }
-         scheduleAt( simTime() + getFederateConfiguration()->getTimeStep() * 2, timerMessage );
+        scheduleAt( simTime() + getFederateConfiguration()->getTimeStep() * 2, timerMessage );
     }
     else
     {
