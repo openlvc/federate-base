@@ -156,6 +156,13 @@ namespace base
 			 */
 			bool execute();
 
+			/**
+			 * Determine if this federate is a "late joiner"
+			 *
+			 * @return true if the federate is a late joiner, false otherwise
+			 */
+			bool isLateJointer();
+
 		protected:
 			//----------------------------------------------------------
 			//                    Business Logic
@@ -327,5 +334,6 @@ namespace base
 			base::InteractionDataStoreByHash interactionDataStoreByHash;
 			base::ObjectDataStoreByInstance objectDataStoreByInstance;
 			LifecycleState lifecycleState;
+			std::set<SynchPoint> syncPointTimeouts;
 	};
 }

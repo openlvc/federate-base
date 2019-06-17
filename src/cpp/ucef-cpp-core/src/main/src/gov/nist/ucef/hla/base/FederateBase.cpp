@@ -26,7 +26,8 @@ namespace base
 	FederateBase::FederateBase() : rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
 	                               federateAmbassador( make_shared<FederateAmbassador>(this) ),
 	                               ucefConfig( make_shared<FederateConfiguration>() ),
-	                               lifecycleState( LIFE_CYCLE_UNKNOWN )
+	                               lifecycleState( LIFE_CYCLE_UNKNOWN ),
+	                               syncPointTimeouts()
 	{
 
 	}
@@ -363,6 +364,11 @@ namespace base
 		}
 	}
 
+	bool FederateBase::isLateJointer()
+	{
+		auto it = syncPointTimeouts.find( READY_TO_POPULATE );
+		return (it != syncPointTimeouts.end() ? true : false);
+	}
 	//----------------------------------------------------------
 	//                    Business Logic
 	//----------------------------------------------------------
@@ -404,6 +410,7 @@ namespace base
 		bool hasJoined = false;
 		int attemptCount = 0;
 		int retryInterval = ucefConfig->getRetryInterval();
+
 		while( !hasJoined )
 		{
 			try
@@ -550,12 +557,34 @@ namespace base
 		// immediately achieve the announced synch point
 		achieveSynchronization( synchPointStr );
 
-		logger.log( "Waiting till the federation achieve synchronization " + ConversionHelper::SynchPointToString(point), LevelInfo );
-		while( !this->isAchieved(synchPointStr) )
+		logger.log( "Waiting till the federation achieve synchronization " +
+		            ConversionHelper::SynchPointToString(point), LevelInfo );
+
+		int timeoutDuration = 15; // in seconds
+
+		time_t startTime;
+		startTime = time (NULL);
+
+		time_t timeOutAt = startTime + timeoutDuration;
+
+		bool hasTimeout = false;
+
+		while( !this->isAchieved(synchPointStr) && !hasTimeout )
 		{
 			logger.log( "Waiting till the federation achieve synchronization " +
 						ConversionHelper::SynchPointToString(point), LevelDebug );
 			tickForCallBacks();
+
+			time_t currentTime;
+			currentTime = time (NULL);
+			hasTimeout = currentTime > timeOutAt;
+
+			if( hasTimeout )
+			{
+				syncPointTimeouts.emplace( point );
+				logger.log( "Achieving synchronization point " +
+				            synchPointStr + " due to timeout.", LevelInfo);
+			}
 		}
 
 		logger.log( "Federation achieved synchronization Point " +
