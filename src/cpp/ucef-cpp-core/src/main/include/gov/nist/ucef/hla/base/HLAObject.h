@@ -284,9 +284,9 @@ namespace base
 			std::vector<std::string> getAttributeNames() const;
 
 			/**
-			 * Returns the fully qulified name of this HLA Object as specified in SOM.
+			 * Returns the fully qualified name of this HLA Object as specified in SOM.
 			 *
-			 * @return the fully qulified name of this HLA Object as specified in SOM.
+			 * @return the fully qualified name of this HLA Object as specified in SOM.
 			 */
 			std::string getClassName() const;
 

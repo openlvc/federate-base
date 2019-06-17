@@ -71,11 +71,6 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>include/gov/nist/ucef/config.h</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/include/gov/nist/ucef/config.h</locationURI>
-		</link>
-		<link>
 			<name>include/gov/nist/ucef/hla</name>
 			<type>2</type>
 			<locationURI>virtual:/virtual</locationURI>

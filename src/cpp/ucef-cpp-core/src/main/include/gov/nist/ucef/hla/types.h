@@ -177,7 +177,7 @@ namespace base
 	};
 
 	/**
-	 * Type neutral representation of attrbiute and parameter values
+	 * Type neutral representation of attribute and parameter values
 	 *
 	 *  @see HLAObject
 	 *  @see HLAInteraction
@@ -195,18 +195,18 @@ namespace base
 	// unordered_map because we do not need any ordering
 	// what we need is a faster way to get the object class
 
-	// to resolve ObjectClass from an object class name of an incoming object
+	// To resolve ObjectClass from an object class name of an incoming object
 	typedef std::unordered_map<std::string, std::shared_ptr<ObjectClass>> ObjectDataStoreByName;
-	// to resolve ObjectClass from an object class handle's hash of an incoming object
+	// To resolve ObjectClass from the hash of the object class handle of an incoming object
 	typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByHash;
-	// to resolve ObjectClass from an object instance handle's hash of an incoming object
+	// To resolve ObjectClass from the hash of the object instance handle of an incoming object
 	typedef std::unordered_map<long, std::shared_ptr<ObjectClass>> ObjectDataStoreByInstance;
-	// to resolve ObjectInstanceHandle from an object instance handle's hash of an outgoing object
+	// To resolve ObjectInstanceHandle from the hash of the object instance handle of an outgoing object
 	typedef std::unordered_map<long, std::shared_ptr<rti1516e::ObjectInstanceHandle>> ObjectInstanceStoreByHash;
 
-	// to resolve InteractionClass data from an interaction class name of an incoming object
+	// To resolve InteractionClass data from an interaction class name of an incoming object
 	typedef std::unordered_map<std::string, std::shared_ptr<InteractionClass>> InteractionDataStoreByName;
-	// to resolve InteractionClass data from an interaction class handle's hash of an incoming object
+	// To resolve InteractionClass data from the hash of the interaction class handle of an incoming object
 	typedef std::unordered_map<long, std::shared_ptr<InteractionClass>> InteractionDataStoreByHash;
 
 	namespace util
@@ -425,7 +425,7 @@ namespace base
 				/**
 				 * Converts a string to a wstring
 				 * 
-				 * @param str the msg that required wstring representation
+				 * @param str the message that required wstring representation
 				 * @return the wstring representation of a string
 				 */
 				static std::wstring s2ws( const std::string& str )

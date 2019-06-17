@@ -51,7 +51,7 @@ namespace base
                 virtual void finish() override;
 
                 //----------------------------------------------------------
-                //                     No-op federate methods
+                //                     No-Op federate methods
                 //----------------------------------------------------------
 
                 virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInt,

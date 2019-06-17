@@ -60,7 +60,7 @@ namespace base
 			//       IFederateBase interface implementation
 			//----------------------------------------------------------
 			/**
-			 * Starts the execution of the Federate.
+			 * Starts the execution of the federate.
 			 * <p/>
 			 * This method must be called after creating an instance of
 			 * {@link IFederateBase} to start the execution of federate life-cycle.
@@ -77,7 +77,7 @@ namespace base
 			/**
 			 * Determine the current lifecycle state of this federate.
 			 *
-			 * <b>NOTE:</b> The lifecycyle state is managed by the federate itself 
+			 * <b>NOTE:</b> The lifecycle state is managed by the federate itself
 			 * and cannot be manually altered.
 			 * <p/>
 			 * This principally provides a mechanism for federate implementations to differentiate between
@@ -100,6 +100,11 @@ namespace base
 			 * See {@link LifecycleState} for all possible states.
 			 */
 			LifecycleState getLifecycleState();
+
+			/**
+			 * Returns federate's logical time
+			 */
+			double getTime();
 
 			//----------------------------------------------------------
 			//                    Business Logic
@@ -147,11 +152,6 @@ namespace base
 			void incomingObjectDeletion( long objectInstanceHash );
 
 			/**
-			 * Returns federate's logical time
-			 */
-			double getTime();
-
-			/**
 			 * The main execution of the federate
 			 */
 			bool execute();
@@ -161,7 +161,7 @@ namespace base
 			//                    Business Logic
 			//----------------------------------------------------------
 			/**
-			 * Returns an Interactionclass mapped to the given hash identifier
+			 * Returns the interaction class instance mapped to the given hash identifier
 			 * of a HLA object interaction class
 			 *
 			 * @param hash hash identifier of a HLA object interaction class
@@ -189,23 +189,16 @@ namespace base
 			void advanceTime();
 
 			/**
-			 * Populates a given interaction with received parameter values
+			 * Announces a synchronization point to the federation
 			 *
-			 * @param interactionClassName the name of the interaction class
-			 * @param hlaInteraction HLA interaction instance that needs to be
-			 *                       populated
-			 * @param parameterValues a map that holds parameters and values of the
-			 *                        received interaction
+			 * @param synchPoint the name of the synchronization point to be announced
 			 */
-			void populateInteraction( const std::string& interactionClassName,
-			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
-			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
-
+			void registerSyncPoint( std::string& synchPoint );
 
 			/**
-			 * Achieve the specified synchronisation point
+			 * Achieve the specified synchronization point
 			 *
-			 * @param synchPoint the name of the synchronisation point to be achieved
+			 * @param synchPoint the name of the synchronization point to be achieved
 			 */
 			void achieveSynchronization( std::string& synchPoint );
 
@@ -219,11 +212,17 @@ namespace base
 			bool isAchieved( std::string& synchPoint );
 
 			/**
-			 * Announces a synchronisation point to the federation
+			 * Populates a given interaction with received parameter values
 			 *
-			 * @param synchPoint the name of the synchronisation point to be announced
+			 * @param interactionClassName the name of the interaction class
+			 * @param hlaInteraction HLA interaction instance that needs to be
+			 *                       populated
+			 * @param parameterValues a map that holds parameters and values of the
+			 *                        received interaction
 			 */
-			void synchronize( std::string& synchPoint );
+			void populateInteraction( const std::string& interactionClassName,
+			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
+			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 
 		private:
 			//----------------------------------------------------------
@@ -312,7 +311,7 @@ namespace base
 			 * Ticks RTI for callbacks
 			 * <p/>
 			 * If HLA_IMMEDIATE callback mechanism is used the main thread will be blocked
-			 * for a fixed time; while explicit tikcing is used in HLA_EVOKED mode.
+			 * for a fixed time; while explicit ticking is used in HLA_EVOKED mode.
 			 *
 			 */
 			inline void tickForCallBacks();

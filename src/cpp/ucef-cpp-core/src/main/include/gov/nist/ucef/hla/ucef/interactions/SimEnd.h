@@ -27,11 +27,6 @@
  */
 #pragma once
 
-#ifdef _WIN32
-#include <functional>
-#endif
-
-
 #include "gov/nist/ucef/hla/ucef/interactions/UCEFInteraction.h"
 
 namespace base
@@ -42,7 +37,7 @@ namespace base
 		 * The {@link SimEnd} is a UCEF specific interaction
 		 * to inform simulation end event.
 		 */
-		class UCEF_API SimEnd : public UCEFInteraction
+		class SimEnd : public UCEFInteraction
 		{
 		public:
 			static const std::string INTERACTION_NAME;

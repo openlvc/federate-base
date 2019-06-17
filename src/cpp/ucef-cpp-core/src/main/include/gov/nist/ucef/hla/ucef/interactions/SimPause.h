@@ -27,10 +27,6 @@
  */
 #pragma once
 
-#ifdef _WIN32
-#include <functional>
-#endif
-
 #include "gov/nist/ucef/hla/ucef/interactions/UCEFInteraction.h"
 
 namespace base
@@ -41,7 +37,7 @@ namespace base
 		 * The {@link SimPause} is a UCEF specific interaction
 		 * to inform simulation pause event.
 		 */
-		class UCEF_API SimPause : public UCEFInteraction
+		class SimPause : public UCEFInteraction
 		{
 		public:
 			static const std::string INTERACTION_NAME;

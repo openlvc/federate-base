@@ -40,7 +40,7 @@ namespace base
                 virtual void initModule() = 0;
 
                 /*
-                 * Get called when a message received from omnet network simulator
+                 * Get called when a message received from Omnet++ network simulator
                  *
                  * @param msg represent events, messages, jobs or other entity received
                  */
@@ -100,7 +100,7 @@ namespace base
                  * E.g. "hlaIncoming" : [ "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction",
                  *                        "HLAobjectRoot.ParentObject.ChallengeObject" ]
                  *
-                 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
+                 * @param hlaInteraction Stores the received parameter updates relevant to the interaction class represented
                  *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
                  *                       methods to get the values of the received parameter updates. Since no type checking
                  *                       is carried out it is important to use the right methods to obtain the correct values.

@@ -53,13 +53,327 @@ namespace base
 		return ucefConfig;
 	}
 
+	LifecycleState FederateBase::getLifecycleState()
+	{
+		return this->lifecycleState;
+	}
+
+	double FederateBase::getTime()
+	{
+		return federateAmbassador->getFederateTime();
+	}
+
+	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
+	{
+		lock_guard<mutex> lock( threadSafeLock );
+		Logger& logger = Logger::getInstance();
+
+		shared_ptr<ObjectClass> objectClass = getObjectClassByClassHandle( objectClassHash );
+		if( objectClass )
+		{
+			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
+			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelInfo );
+			objectDataStoreByInstance[objectInstanceHash] = objectClass;
+			receivedObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
+			                            federateAmbassador->getFederateTime() );
+
+		}
+		else
+		{
+			logger.log( "Discovered an unknown object with class id " +
+			            to_string(objectClassHash), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingAttributeReflection( long objectInstanceHash,
+	                                                map<AttributeHandle, VariableLengthData> const& attributeValues )
+	{
+		lock_guard<mutex> lock( threadSafeLock );
+		Logger& logger = Logger::getInstance();
+		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
+		if( objectClass )
+		{
+			logger.log( "Received attribute update for " + objectClass->name, LevelInfo );
+			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name , objectInstanceHash );
+
+			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
+			if( !classHandle.isValid() )
+			{
+				logger.log( "No valid class handle found for the received attribute update of " +
+				            objectClass->name, LevelWarn);
+				return;
+			}
+
+			for( auto& incomingAttributeValue : attributeValues )
+			{
+				string attName = rtiAmbassadorWrapper->getAttributeName( classHandle, incomingAttributeValue.first );
+				if( attName == "" )
+				{
+					logger.log( "No valid attribute name found for the received attribute with id : " +
+				                to_string(incomingAttributeValue.first.hash()), LevelWarn);
+					continue;
+				}
+
+				size_t size = incomingAttributeValue.second.size();
+				const void* data = incomingAttributeValue.second.data();
+				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
+				memcpy( arr.get(), data, size );
+				hlaObject->setValue( attName, arr, size );
+			}
+			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
+			                             federateAmbassador->getFederateTime() );
+		}
+		else
+		{
+			logger.log( string("Received attribute update of an unknown object."), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingInteraction( long interactionHash,
+	                                        const ParameterHandleValueMap& parameterValues )
+	{
+		lock_guard<mutex> lock( threadSafeLock );
+		Logger& logger = Logger::getInstance();
+		shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
+		logger.log( "Received interaction update for " + interactionClass->name, LevelInfo );
+		if( interactionClass )
+		{
+			shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
+			populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
+			                     federateAmbassador->getFederateTime() );
+		}
+		else
+		{
+			logger.log( "Received an unknown interaction with interaction id " +
+			             to_string(interactionHash), LevelWarn );
+		}
+	}
+
+	void FederateBase::incomingObjectDeletion( long objectInstanceHash )
+	{
+		lock_guard<mutex> lock( threadSafeLock );
+		Logger& logger = Logger::getInstance();
+
+		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
+		logger.log( "Received object removed notification for HLAObject with id :" +
+		             to_string(objectInstanceHash), LevelInfo );
+
+		bool success = deleteIncomingInstanceHandle( objectInstanceHash );
+		if( success )
+		{
+			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
+			            " successfully removed from the incoming map.", LevelInfo );
+			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
+			receivedObjectDeletion( const_pointer_cast<const HLAObject>(hlaObject) );
+		}
+		else
+			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
+			            " could not find for deletion.", LevelWarn );
+	}
+
+	shared_ptr<InteractionClass> FederateBase::getInteractionClass( long hash )
+	{
+		if( interactionDataStoreByHash.find( hash ) != interactionDataStoreByHash.end() )
+		{
+			return interactionDataStoreByHash[hash];
+		}
+		return nullptr;
+	}
+
+	void FederateBase::federateSetup()
+	{
+		lifecycleState = INITIALIZING;
+
+		// initialise rti ambassador
+		connectToRti();
+
+		// create federation
+		createFederation();
+		// join the federation
+		joinFederation();
+		// enables time management policy for this federate
+		enableTimePolicy();
+
+		// inform RTI about the data we are going publish and subscribe
+		publishAndSubscribe();
+
+		// lifecycle hook
+		tickForCallBacks();
+		beforeReadyToPopulate();
+
+		// now we are ready to populate the federation
+		synchronize( READY_TO_POPULATE );
+
+		// before federate run hook
+		tickForCallBacks();
+		beforeReadyToRun();
+
+		// now we are ready to run this federate
+		synchronize( READY_TO_RUN );
+
+		// just before the first update hook
+		tickForCallBacks();
+		beforeFirstStep();
+	}
+
+	void FederateBase::federateExecute()
+	{
+		while( true )
+		{
+			if( !execute() )
+				break;
+		}
+	}
+
+	bool FederateBase::execute()
+	{
+		lifecycleState = RUNNING;
+
+		bool continueFedEx = step( federateAmbassador->getFederateTime() );
+		if( continueFedEx )
+			advanceTime();
+		return continueFedEx;
+	}
+
+	void FederateBase::federateTeardown()
+	{
+		lifecycleState = CLEANING_UP;
+
+		disableTimePolicy();
+
+		// before resigning the federation hook
+		tickForCallBacks();
+		beforeReadyToResign();
+
+		// now we are ready to resign from this federation
+		if( ucefConfig->getSyncBeforeResign() )
+			synchronize( READY_TO_RESIGN );
+
+		// before exit hook for cleanup
+		tickForCallBacks();
+
+		lifecycleState = EXPIRED;
+
+		beforeExit();
+
+		// resign from this federation
+		resignAndDestroy();
+	}
+
+	void FederateBase::advanceTime()
+	{
+		Logger& logger = Logger::getInstance();
+
+		double requestedTime = federateAmbassador->getFederateTime() + ucefConfig->getTimeStep();
+		try
+		{
+			rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+
+		// wait for the rti grant the requested time advancement
+		logger.log( "Request a time advance to " + to_string(requestedTime), LevelInfo );
+		while( federateAmbassador->getFederateTime() < requestedTime )
+		{
+			logger.log( "Waiting for the logical time of this federate to advance to " +
+			            to_string( requestedTime ), LevelDebug );
+
+			tickForCallBacks();
+		}
+		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
+	}
+
+	void FederateBase::registerSyncPoint( string& synchPoint )
+	{
+		Logger& logger = Logger::getInstance();
+
+		// announce synch point to the federation
+		try
+		{
+			rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPoint );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+
+		logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelInfo );
+		while( !federateAmbassador->isAnnounced(synchPoint) )
+		{
+			logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelDebug);
+			tickForCallBacks();
+		}
+
+		logger.log("Successfully announced the synchronization Point " + synchPoint, LevelInfo);
+	}
+
+	void FederateBase::achieveSynchronization( string& synchPoint )
+	{
+		try
+		{
+			rtiAmbassadorWrapper->synchronizationPointAchieved( synchPoint );
+		}
+		catch( UCEFException& )
+		{
+			throw;
+		}
+	}
+
+	bool FederateBase::isAchieved( string& synchPoint )
+	{
+		bool achieved = federateAmbassador->isAchieved( synchPoint );
+		return achieved;
+	}
+
+	void FederateBase::populateInteraction( const string& interactionClassName,
+	                                        shared_ptr<HLAInteraction>& hlaInteraction,
+	                                        const ParameterHandleValueMap& parameterValues )
+	{
+		Logger& logger = Logger::getInstance();
+		InteractionClassHandle interactionHandle =
+			rtiAmbassadorWrapper->getInteractionHandle( interactionClassName );
+
+		if( !interactionHandle.isValid() )
+		{
+			logger.log( "No valid interaction handle found for the received interaction of " +
+			            interactionClassName, LevelWarn );
+			return;
+		}
+
+		for( auto& incomingParameterValue : parameterValues )
+		{
+			string paramName =
+				rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
+			if( paramName == "" )
+			{
+				logger.log( "No valid parameter name found for the received parameter with id : " +
+				            to_string(incomingParameterValue.first.hash()), LevelWarn);
+				continue;
+			}
+
+			size_t size = incomingParameterValue.second.size();
+			const void* data = incomingParameterValue.second.data();
+			shared_ptr<void> arr(new char[size](), [](char *p) { delete[] p; });
+			memcpy( arr.get(), data, size );
+			hlaInteraction->setValue( paramName, arr, size );
+		}
+	}
+
+	//----------------------------------------------------------
+	//                    Business Logic
+	//----------------------------------------------------------
+
 	void FederateBase::connectToRti()
 	{
 		try
 		{
 			rtiAmbassadorWrapper->connect( federateAmbassador, ucefConfig->isImmediate() );
 			Logger::getInstance().log( ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
-		} 
+		}
 		catch( UCEFException& )
 		{
 			throw;
@@ -89,7 +403,7 @@ namespace base
 	{
 		bool hasJoined = false;
 		int attemptCount = 0;
-		double retryInterval = ucefConfig->getRetryInterval();
+		int retryInterval = ucefConfig->getRetryInterval();
 		while( !hasJoined )
 		{
 			try
@@ -97,11 +411,11 @@ namespace base
 				Logger::getInstance().log( "Trying to join : " + ucefConfig->getFederationName(), LevelInfo );
 
 				rtiAmbassadorWrapper->joinFederation( ucefConfig->getFederateName(),
-				                                      ucefConfig->getFederateType(),
-				                                      ucefConfig->getFederationName() );
+													  ucefConfig->getFederateType(),
+													  ucefConfig->getFederationName() );
 
 				Logger::getInstance().log( ucefConfig->getFederateName() + " joined the federation " +
-				                           ucefConfig->getFederationName() + ".", LevelInfo );
+										   ucefConfig->getFederationName() + ".", LevelInfo );
 				hasJoined = true;
 			}
 			catch( UCEFException& )
@@ -227,183 +541,47 @@ namespace base
 		}
 	}
 
-	void FederateBase::achieveSynchronization( string& synchPoint )
-	{
-		try
-		{
-			rtiAmbassadorWrapper->synchronizationPointAchieved( synchPoint );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
-	}
-
-	bool FederateBase::isAchieved( string& synchPoint )
-	{
-		bool achieved = federateAmbassador->isAchieved( synchPoint );
-		return achieved;
-	}
-
-	void FederateBase::synchronize( string& synchPoint )
-	{
-		Logger& logger = Logger::getInstance();
-
-		// announce synch point to the federation
-		try
-		{
-			rtiAmbassadorWrapper->registerFederationSynchronizationPoint( synchPoint );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
-
-		logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelInfo );
-		while( !federateAmbassador->isAnnounced(synchPoint) )
-		{
-			logger.log( "Waiting for the announcement of synchronization Point " + synchPoint, LevelDebug);
-			tickForCallBacks();
-		}
-
-		logger.log("Successfully announced the synchronization Point " + synchPoint, LevelInfo);
-	}
-
 	void FederateBase::synchronize( SynchPoint point )
 	{
 		Logger& logger = Logger::getInstance();
 		string synchPointStr = ConversionHelper::SynchPointToString( point );
-		synchronize( synchPointStr );
+		registerSyncPoint( synchPointStr );
 
-		// immedietly achieve the announced synch point
+		// immediately achieve the announced synch point
 		achieveSynchronization( synchPointStr );
 
 		logger.log( "Waiting till the federation achieve synchronization " + ConversionHelper::SynchPointToString(point), LevelInfo );
 		while( !this->isAchieved(synchPointStr) )
 		{
 			logger.log( "Waiting till the federation achieve synchronization " +
-			            ConversionHelper::SynchPointToString(point), LevelDebug );
+						ConversionHelper::SynchPointToString(point), LevelDebug );
 			tickForCallBacks();
 		}
 
 		logger.log( "Federation achieved synchronization Point " +
-		            ConversionHelper::SynchPointToString(point), LevelInfo );
+					ConversionHelper::SynchPointToString(point), LevelInfo );
 	}
 
-	LifecycleState FederateBase::getLifecycleState()
+	void FederateBase::resignAndDestroy()
 	{
-		return this->lifecycleState;
-	}
-
-	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
-	{
-		lock_guard<mutex> lock( threadSafeLock );
 		Logger& logger = Logger::getInstance();
-
-		shared_ptr<ObjectClass> objectClass = getObjectClassByClassHandle( objectClassHash );
-		if( objectClass )
+		//----------------------------------------------------------
+		//            delete object instance handles
+		//----------------------------------------------------------
+		logger.log( string("Federate ") + ucefConfig->getFederateName()  + " resigning from federation " +
+					ucefConfig->getFederationName(), LevelInfo );
+		try
 		{
-			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
-			logger.log( "Discovered new object named " + hlaObject->getClassName(), LevelInfo );
-			objectDataStoreByInstance[objectInstanceHash] = objectClass;
-			receivedObjectRegistration( const_pointer_cast<const HLAObject>(hlaObject),
-			                            federateAmbassador->getFederateTime() );
-
+			rtiAmbassadorWrapper->resign();
 		}
-		else
+		catch( UCEFException& )
 		{
-			logger.log( "Discovered an unknown object with class id " +
-			            to_string(objectClassHash), LevelWarn );
+			throw;
 		}
+		logger.log( string("Federate ") + ucefConfig->getFederateName() + " resigned from federation " +
+					ucefConfig->getFederationName(), LevelInfo );
 	}
 
-	void FederateBase::incomingAttributeReflection( long objectInstanceHash,
-	                                                map<AttributeHandle, VariableLengthData> const& attributeValues )
-	{
-		lock_guard<mutex> lock( threadSafeLock );
-		Logger& logger = Logger::getInstance();
-		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
-		if( objectClass )
-		{
-			logger.log( "Received attribute update for " + objectClass->name, LevelInfo );
-			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name , objectInstanceHash );
-
-			ObjectClassHandle classHandle = rtiAmbassadorWrapper->getClassHandle( objectClass->name );
-			if( !classHandle.isValid() )
-			{
-				logger.log( "No valid class handle found for the received attribute update of " +
-				            objectClass->name, LevelWarn);
-				return;
-			}
-
-			for( auto& incomingAttributeValue : attributeValues )
-			{
-				string attName = rtiAmbassadorWrapper->getAttributeName( classHandle, incomingAttributeValue.first );
-				if( attName == "" )
-				{
-					logger.log( "No valid attribute name found for the received attribute with id : " +
-				                to_string(incomingAttributeValue.first.hash()), LevelWarn);
-					continue;
-				}
-
-				size_t size = incomingAttributeValue.second.size();
-				const void* data = incomingAttributeValue.second.data();
-				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
-				memcpy( arr.get(), data, size );
-				hlaObject->setValue( attName, arr, size );
-			}
-			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
-			                             federateAmbassador->getFederateTime() );
-		}
-		else
-		{
-			logger.log( string("Received attribute update of an unknown object."), LevelWarn );
-		}
-	}
-
-	void FederateBase::incomingInteraction( long interactionHash,
-	                                        const ParameterHandleValueMap& parameterValues )
-	{
-		lock_guard<mutex> lock( threadSafeLock );
-		Logger& logger = Logger::getInstance();
-		shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
-		logger.log( "Received interaction update for " + interactionClass->name, LevelInfo );
-		if( interactionClass )
-		{
-			shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
-			populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-			receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
-			                     federateAmbassador->getFederateTime() );
-		}
-		else
-		{
-			logger.log( "Received an unknown interation with interaction id " +
-			             to_string(interactionHash), LevelWarn );
-		}
-	}
-
-	void FederateBase::incomingObjectDeletion( long objectInstanceHash )
-	{
-		lock_guard<mutex> lock( threadSafeLock );
-		Logger& logger = Logger::getInstance();
-
-		shared_ptr<ObjectClass> objectClass = getObjectClassByInstanceHandle( objectInstanceHash );
-		logger.log( "Received object removed notification for HLAObject with id :" +
-		             to_string(objectInstanceHash), LevelInfo );
-
-		bool success = deleteIncomingInstanceHandle( objectInstanceHash );
-		if( success )
-		{
-			logger.log( "HLAObject with id :" + to_string( objectInstanceHash ) +
-			            " successsfully removed from the incoming map.", LevelInfo );
-			shared_ptr<HLAObject> hlaObject = make_shared<HLAObject>( objectClass->name, objectInstanceHash );
-			receivedObjectDeletion( const_pointer_cast<const HLAObject>(hlaObject) );
-		}
-		else
-			logger.log( "HLAObject with id :" + to_string(objectInstanceHash) +
-			            " could not find for deletion.", LevelWarn );
-	}
-	
 	shared_ptr<ObjectClass> FederateBase::getObjectClassByClassHandle( long hash )
 	{
 		if( objectDataStoreByHash.find( hash ) != objectDataStoreByHash.end() )
@@ -429,183 +607,6 @@ namespace base
 		return success;
 	}
 
-	shared_ptr<InteractionClass> FederateBase::getInteractionClass( long hash )
-	{
-		if( interactionDataStoreByHash.find( hash ) != interactionDataStoreByHash.end() )
-		{
-			return interactionDataStoreByHash[hash];
-		}
-		return nullptr;
-	}
-
-	void FederateBase::federateSetup()
-	{
-		lifecycleState = INITIALIZING;
-
-		// initialise rti ambassador
-		connectToRti();
-
-		// create federation
-		createFederation();
-		// join the federation
-		joinFederation();
-		// enables time management policy for this federate
-		enableTimePolicy();
-
-		// inform RTI about the data we are going publish and subscribe
-		publishAndSubscribe();
-
-		// lifecycle hook
-		tickForCallBacks();
-		beforeReadyToPopulate();
-
-		// now we are ready to populate the federation
-		synchronize( READY_TO_POPULATE );
-
-		// before federate run hook
-		tickForCallBacks();
-		beforeReadyToRun();
-
-		// now we are ready to run this federate
-		synchronize( READY_TO_RUN );
-
-		// just before the first update hook
-		tickForCallBacks();
-		beforeFirstStep();
-	}
-
-	void FederateBase::federateExecute()
-	{
-		while( true )
-		{
-			if( !execute() )
-				break;
-		}
-	}
-
-	bool FederateBase::execute()
-	{
-		lifecycleState = RUNNING;
-
-		bool continueFedEx = step( federateAmbassador->getFederateTime() );
-		if( continueFedEx )
-			advanceTime();
-		return continueFedEx;
-	}
-
-	void FederateBase::federateTeardown()
-	{
-		lifecycleState = CLEANING_UP;
-
-		disableTimePolicy();
-
-		// before resigning the federation hook
-		tickForCallBacks();
-		beforeReadyToResign();
-
-		// now we are ready to resign from this federation
-		if( ucefConfig->getSyncBeforeResign() )
-			synchronize( READY_TO_RESIGN );
-
-		// before exit hook for cleanup
-		tickForCallBacks();
-
-		lifecycleState = EXPIRED;
-
-		beforeExit();
-
-		// resign from this federation
-		resignAndDestroy();
-	}
-
-	void FederateBase::advanceTime()
-	{
-		Logger& logger = Logger::getInstance();
-
-		double requestedTime = federateAmbassador->getFederateTime() + ucefConfig->getTimeStep();
-		try
-		{
-			rtiAmbassadorWrapper->timeAdvanceRequest( requestedTime );
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
-
-		// wait for the rti grant the requested time advancement
-		logger.log( "Request a time advance to " + to_string(requestedTime), LevelInfo );
-		while( federateAmbassador->getFederateTime() < requestedTime )
-		{
-			logger.log( "Waiting for the logical time of this federate to advance to " +
-			            to_string( requestedTime ), LevelDebug );
-
-			tickForCallBacks();
-		}
-		logger.log( "The logical time of this federate advanced to " + to_string( requestedTime ), LevelInfo );
-	}
-
-	double FederateBase::getTime()
-	{
-		return federateAmbassador->getFederateTime();
-	}
-
-	void FederateBase::populateInteraction( const string& interactionClassName,
-	                                        shared_ptr<HLAInteraction>& hlaInteraction,
-	                                        const ParameterHandleValueMap& parameterValues )
-	{
-		Logger& logger = Logger::getInstance();
-		InteractionClassHandle interactionHandle =
-			rtiAmbassadorWrapper->getInteractionHandle( interactionClassName );
-
-		if( !interactionHandle.isValid() )
-		{
-			logger.log( "No valid interaction handle found for the received interaction of " +
-			            interactionClassName, LevelWarn );
-			return;
-		}
-
-		for( auto& incomingParameterValue : parameterValues )
-		{
-			string paramName =
-				rtiAmbassadorWrapper->getParameterName( interactionHandle, incomingParameterValue.first );
-			if( paramName == "" )
-			{
-				logger.log( "No valid parameter name found for the received parameter with id : " +
-				            to_string(incomingParameterValue.first.hash()), LevelWarn);
-				continue;
-			}
-
-			size_t size = incomingParameterValue.second.size();
-			const void* data = incomingParameterValue.second.data();
-			shared_ptr<void> arr(new char[size](), [](char *p) { delete[] p; });
-			memcpy( arr.get(), data, size );
-			hlaInteraction->setValue( paramName, arr, size );
-		}
-	}
-
-	void FederateBase::resignAndDestroy()
-	{
-		Logger& logger = Logger::getInstance();
-		//----------------------------------------------------------
-		//            delete object instance handles
-		//----------------------------------------------------------
-		logger.log( string("Federate ") + ucefConfig->getFederateName()  + " resigning from federation " +
-		            ucefConfig->getFederationName(), LevelInfo );
-		try
-		{
-			rtiAmbassadorWrapper->resign();
-		}
-		catch( UCEFException& )
-		{
-			throw;
-		}
-		logger.log( string("Federate ") + ucefConfig->getFederateName() + " resigned from federation " +
-		            ucefConfig->getFederationName(), LevelInfo );
-	}
-
-	//----------------------------------------------------------
-	//                    Business Logic
-	//----------------------------------------------------------
 	void FederateBase::storeObjectClassData( vector<shared_ptr<ObjectClass>>& objectClasses )
 	{
 		//----------------------------------------------------------
@@ -623,6 +624,29 @@ namespace base
 			{
 				// store the ObjectClass in m_objectCacheStoreByHash for later use
 				objectDataStoreByHash.insert( make_pair( classHandle.hash(), objectClass ) );
+			}
+		}
+	}
+
+	void FederateBase::storeInteractionClassData( vector<shared_ptr<InteractionClass>>& interactionClasses )
+	{
+		//----------------------------------------------------------
+		//     Store interaction class and parameter handles
+		//----------------------------------------------------------
+
+		// try to update interaction classes with correct interaction and parameter rti handles
+		for( auto& interactionClass : interactionClasses )
+		{
+			// store interaction class in m_objectCacheStoreByName for later use
+			ucefConfig->cacheInteractionClass( interactionClass );
+
+			// now store the ObjectClass in m_objectCacheStoreByHash for later use
+			InteractionClassHandle interactionHandle =
+			                     rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
+			if( interactionHandle.isValid() )
+			{
+				interactionDataStoreByHash.insert(
+				                make_pair( interactionHandle.hash(), interactionClass ) );
 			}
 		}
 	}
@@ -706,29 +730,6 @@ namespace base
 			rtiAmbassadorWrapper->subscribeObjectClassAttributes( classHandle,
 			                                                      subAttributes );
 
-		}
-	}
-
-	void FederateBase::storeInteractionClassData( vector<shared_ptr<InteractionClass>>& interactionClasses )
-	{
-		//----------------------------------------------------------
-		//     Store interaction class and parametere handles
-		//----------------------------------------------------------
-
-		// try to update interaction classes with correct interaction and parameter rti handles
-		for( auto& interactionClass : interactionClasses )
-		{
-			// store interaction class in m_objectCacheStoreByName for later use
-			ucefConfig->cacheInteractionClass( interactionClass );
-
-			// now store the ObjectClass in m_objectCacheStoreByHash for later use
-			InteractionClassHandle interactionHandle =
-			                     rtiAmbassadorWrapper->getInteractionHandle( interactionClass->name );
-			if( interactionHandle.isValid() )
-			{
-				interactionDataStoreByHash.insert(
-				                make_pair( interactionHandle.hash(), interactionClass ) );
-			}
 		}
 	}
 
