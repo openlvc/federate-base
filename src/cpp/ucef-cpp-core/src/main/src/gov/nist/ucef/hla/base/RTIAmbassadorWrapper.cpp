@@ -530,7 +530,7 @@ namespace base
 	}
 
 	string RTIAmbassadorWrapper::getParameterName( const InteractionClassHandle& interactionHandle,
-	                                                const ParameterHandle& parameterHandle )
+	                                               const ParameterHandle& parameterHandle )
 	{
 		Logger& logger = Logger::getInstance();
 		wstring paramName = L"";

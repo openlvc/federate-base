@@ -44,7 +44,7 @@ namespace base
 		/**
 		 * The {@link UCEFFederateBase} extends {@link FederateBase} to implement UCEF specific hla federate
 		 */
-		class UCEF_API UCEFFederateBase : public FederateBase
+		class UCEFFederateBase : public FederateBase
 		{
 		public:
 
@@ -77,9 +77,9 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation start interaction
+			 * Get called whenever RTI receives UCEF specific simulation start interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimStart interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimStart interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -88,9 +88,9 @@ namespace base
 			virtual void receivedSimStart( std::shared_ptr<const SimStart> hlaInteraction,
 			                               double federateTime ) = 0;
 			/**
-			 * Get called whenever RTI receives ucef specific simulation end interaction
+			 * Get called whenever RTI receives UCEF specific simulation end interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimEnd interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimEnd interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -100,9 +100,9 @@ namespace base
 			                             double federateTime ) = 0;
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation pause interaction
+			 * Get called whenever RTI receives UCEF specific simulation pause interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimPause interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimPause interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -112,9 +112,9 @@ namespace base
 			                                double federateTime ) = 0;
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation resume interaction
+			 * Get called whenever RTI receives UCEF specific simulation resume interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimResume interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimResume interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.

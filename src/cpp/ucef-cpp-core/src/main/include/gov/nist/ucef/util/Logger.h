@@ -52,7 +52,7 @@ namespace base
 			//----------------------------------------------------------
 		public:
 			/*
-			 * Returns a singelton instance of the {@link Logger}.
+			 * Returns a singleton instance of the {@link Logger}.
 			 * <p/>
 			 * By default the logging level of the Logger is set to
 			 * LogLevel::LevelInfo.

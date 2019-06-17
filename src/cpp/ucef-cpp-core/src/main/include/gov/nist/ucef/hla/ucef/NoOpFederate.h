@@ -89,7 +89,7 @@ namespace base
 			 * Get called whenever RTI discovers a new object instance
 			 *
 			 * @param hlaObject a simplified representation of the discovered object.
-			 *                  At this satge, the discovered object will only have a valid fully qualified
+			 *                  At this stage, the discovered object will only have a valid fully qualified
 			 *                  name and a unique identifier (@link HLAInteraction#getInstanceId()).
 			 * @param federateTime the current logical time of the federate
 			 */
@@ -99,7 +99,7 @@ namespace base
 			/**
 			 * Get called whenever RTI receives a object class update
 			 *
-			 * @param hlaObject Stores the received attribute updates relavant to the object class represented by
+			 * @param hlaObject Stores the received attribute updates relevant to the object class represented by
 			 *                  {@link HLAOBject#getClassName()}. Use {@link HLAOBject#getAs***} methods
 			 *                  to get the values of the received attribute updates. Since no type checking
 			 *                  is carried out it is important to use the right methods to obtain the correct values.
@@ -111,7 +111,7 @@ namespace base
 			/**
 			 * Get called whenever RTI receives a new object interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the interaction class represented
+			 * @param hlaInteraction Stores the received parameter updates relevant to the interaction class represented
 			 *                       by {@link HLAInteraction#getClassName()}. Use {@link HLAInteraction#getAs***}
 			 *                       methods to get the values of the received parameter updates. Since no type checking
 			 *                       is carried out it is important to use the right methods to obtain the correct values.
@@ -129,9 +129,9 @@ namespace base
 			virtual void receivedObjectDeletion( std::shared_ptr<const HLAObject> hlaObject ) override {}
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation start interaction
+			 * Get called whenever RTI receives UCEF specific simulation start interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimStart interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimStart interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -141,9 +141,9 @@ namespace base
 			                               double federateTime ) override {}
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation end interaction
+			 * Get called whenever RTI receives UCEF specific simulation end interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimEnd interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimEnd interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -153,9 +153,9 @@ namespace base
 			                             double federateTime ) override {}
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation pause interaction
+			 * Get called whenever RTI receives UCEF specific simulation pause interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimPause interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimPause interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.
@@ -165,9 +165,9 @@ namespace base
 			                                double federateTime ) override {}
 
 			/**
-			 * Get called whenever RTI receives ucef specific simulation resume interaction
+			 * Get called whenever RTI receives UCEF specific simulation resume interaction
 			 *
-			 * @param hlaInteraction Stores the received parameter updates relavant to the SimResume interaction.
+			 * @param hlaInteraction Stores the received parameter updates relevant to the SimResume interaction.
 			 *                       Use {@link HLAInteraction#getAs***} methods to get the values of the
 			 *                       received parameter updates. Since no type checking is carried out it is
 			 *                       important to use the right methods to obtain the correct values.

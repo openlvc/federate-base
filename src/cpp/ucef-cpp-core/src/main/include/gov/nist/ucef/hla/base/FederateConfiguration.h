@@ -203,7 +203,7 @@ namespace base
 			 * Sets the callback mode
 			 *
 			 * @param callbackMode set to true if HLAImmediate to be used,
-			 *        othrewise HLAEvoked is used
+			 *        otherwise HLAEvoked is used
 			 */
 			void setImmediate( bool callbackMode );
 
@@ -217,7 +217,7 @@ namespace base
 			/**
 			 * Configure this federate to be a time regulated federate
 			 *
-			 * @param timeRegulated set to true if this federate must be initialised as a
+			 * @param timeRegulated set to true if this federate must be initialized as a
 			 *        time regulated federate, false otherwise
 			 */
 			void setTimeRegulated( bool timeRegulated );
@@ -232,7 +232,7 @@ namespace base
 			/**
 			 * Configure this federate to be a time-constrained federate
 			 *
-			 * @param timeConstrained set to true if this federate must be initialised as a
+			 * @param timeConstrained set to true if this federate must be initialized as a
 			 *        time-constrained, false otherwise
 			 */
 			void setTimeConstrained( bool timeConstrained );
@@ -245,7 +245,7 @@ namespace base
 			bool isPermittedToCreateFederation();
 
 			/**
-			 * Sets the permisson to create the federation if it is absent on startup
+			 * Sets the permission to create the federation if it is absent on startup
 			 *
 			 * @param permission if true, federate can attempt to create the federation on startup
 			 */
@@ -282,7 +282,7 @@ namespace base
 			/**
 			 * Returns the synchronization restriction when resigning
 			 *
-			 * @return true if the federate has to be synchronised to
+			 * @return true if the federate has to be synchronized to
 			 *              'READY_TO_RESIGN' before resigning.
 			 */
 			bool getSyncBeforeResign();
@@ -290,7 +290,7 @@ namespace base
 			/**
 			 * Sets the synchronization restriction when resigning
 			 *
-			 * @param synch true if federate has to be synchronised to 'READY_TO_RESIGN' 
+			 * @param synch true if federate has to be synchronized to 'READY_TO_RESIGN'
 			 *                   before resigning, false otherwise
 			 */
 			void setSyncBeforeResign( bool synch );

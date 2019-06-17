@@ -264,7 +264,7 @@ class ChallengeFederate : public NoOpFederate
 					{
 						errorLog << msg;
 					}
-					// Since we received a reply fo this challange, we can delete this instace from RTI now
+					// Since we received a reply for this challenge, we can delete this instance from RTI now
 					auto tmpObject = static_pointer_cast<HLAObject>( itSentObject->second );
 					rtiAmbassadorWrapper->deleteObjectInstance( tmpObject );
 					sentChallengeObjects.erase( itSentObject );
