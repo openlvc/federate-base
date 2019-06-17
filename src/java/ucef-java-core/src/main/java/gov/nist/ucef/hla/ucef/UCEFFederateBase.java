@@ -61,14 +61,6 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( UCEFFederateBase.class );
 
-	// if a federate joins after the READY_TO_RUN and READY_TO_POPULATE sync points
-	// have already been achieved by the federation, it is a "late joiner" and does
-	// not need to wait for the SimStart even to enter the simulation loop (because
-	// the rest of the simulation has already started).
-	private static final UCEFSyncPoint[] LATE_JOIN_SYNC_POINTS = { UCEFSyncPoint.READY_TO_RUN,
-	                                                               UCEFSyncPoint.READY_TO_POPULATE
-	                                                             };
-
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -229,18 +221,18 @@ public abstract class UCEFFederateBase extends FederateBase
 		// TODO -------------------------------------------------------
 		// NOTE: This is placeholder code until the Portico updates
 		//       are finalized to support querying of synchronization
-		//       labels and statuses which will allow this to be 
+		//       labels and statuses which will allow this to be
 		//       handled far more effectively.
-		
-		//       It's possible that the timeout may be kept (in 
+
+		//       It's possible that the timeout may be kept (in
 		//       addition to the mechanism of directly querying
 		//       synchronization point status), but as it creates the
 		//       unfortunate side effect of allowing a federate to
-		//       potentially "jump ahead" due to an extended (but 
+		//       potentially "jump ahead" due to an extended (but
 		//       legitimate) delay in a synch point being achieved,
 		//       it's likely that it will be removed entirely.
 		// NOTE: if we keep this timeout, obtaining a timeout value
-		//       from the the federate configuration (including 
+		//       from the the federate configuration (including
 		//       "infinite"/wait forever option) would be desirable.
 		// TODO -------------------------------------------------------
 		long timeoutDuration = 15000;
@@ -375,26 +367,19 @@ public abstract class UCEFFederateBase extends FederateBase
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
-	 * Determine if this federate is a "late joiner"
+	 * Determine if this federate is a "late joiner".
+	 *
+	 * If a federate joins after the READY_TO_RUN sync point it is a "late joiner" and does
+	 * not need to wait for the SimStart to enter the simulation loop (because the rest of
+	 * the simulation has already started).
 	 *
 	 * @return true if the federate is a late joiner, false otherwise
 	 */
 	protected boolean isLateJoiner()
 	{
-		// for a federate to be a late joiner, it must have timed out
-		// trying to achieve *all* sync points corresponding to before
-		// the simulation starts
-		for(UCEFSyncPoint syncPoint : LATE_JOIN_SYNC_POINTS)
-		{
-			if(!this.syncPointTimeouts.contains( syncPoint.getLabel() ))
-			{
-				// didn't time out on this sync point - not a late joiner
-				return false;
-			}
-		}
-
-		// timed out on all relevant sync points - we are late to the federation
-		return true;
+		// TODO NOTE See other notes in this file regarding the substitution of a timeout
+		// mechanism with MOM interactions to determine sync point statuses
+		return this.syncPointTimeouts.contains( UCEFSyncPoint.READY_TO_RUN.getLabel() );
 	}
 
 	//----------------------------------------------------------
