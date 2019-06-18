@@ -27,12 +27,46 @@
  */
 #pragma once
 
-#ifdef _WIN32
-	#ifdef UCEF_EXPORTS
-		#define UCEF_API __declspec(dllexport)
-	#else
-		#define UCEF_API __declspec(dllimport)
-	#endif
-#else
-	#define UCEF_API
-#endif
+#include <string>
+
+namespace base
+{
+	namespace util
+	{
+
+		class JsonParser
+		{
+			//----------------------------------------------------------
+			//                    Static methods
+			//----------------------------------------------------------
+		public:
+			/*
+			 * Returns a singleton instance of the {@link JsonParser}.
+			 */
+			static JsonParser& getInstance();
+
+			//----------------------------------------------------------
+			//                    Private methods
+			//----------------------------------------------------------
+		private:
+			JsonParser();
+
+			//----------------------------------------------------------
+			//       Deleted copy and assignment constructors
+			//----------------------------------------------------------
+		public:
+			JsonParser( JsonParser const& ) = delete;
+			void operator=( JsonParser const& ) = delete;
+
+			//----------------------------------------------------------
+			//       Members to parse Json string
+			//----------------------------------------------------------
+			bool getValueAsBool( std::string& json, std::string& key );
+			int getValueAsInt( std::string& json, std::string& key );
+			long getValueAsLong( std::string& json, std::string& key );
+			float getValueAsFloat( std::string& json, std::string& key );
+			double getValueAsDouble( std::string& json, std::string& key );
+			std::string getValueAsString( std::string& json, std::string& key );
+		};
+	}
+}

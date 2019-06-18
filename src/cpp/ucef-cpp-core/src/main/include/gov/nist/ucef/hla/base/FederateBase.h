@@ -44,7 +44,7 @@ namespace base
 	 * a simplified interface in order to easily create a functional federate that can participate in 
 	 * distributed simulation.
 	 */
-	class UCEF_API FederateBase : public IFederateBase
+	class FederateBase : public IFederateBase
 	{
 		public:
 

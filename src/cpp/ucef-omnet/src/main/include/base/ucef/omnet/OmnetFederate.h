@@ -16,9 +16,10 @@
 #ifndef OMNETFEDERATE_H_
 #define OMNETFEDERATE_H_
 
-#include "IOmnetFederate.h"
-
 #include <omnetpp.h>
+#include <list>
+
+#include "gov/nist/ucef/hla/ucef/NoOpFederate.h"
 
 namespace base
 {
@@ -27,10 +28,10 @@ namespace base
         namespace omnet
         {
 
-            class OmnetFederate : public IOmnetFederate
+            class OmnetFederate : public omnetpp::cSimpleModule, public base::ucef::NoOpFederate
             {
             public:
-                static std::string KEY_HLA_MSG_FILTER;
+
                 //----------------------------------------------------------
                 //                     Static methods
                 //----------------------------------------------------------
@@ -54,21 +55,16 @@ namespace base
                 //                     No-Op federate methods
                 //----------------------------------------------------------
 
-                virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInt,
-                                                  double federateTime ) override;
-
-                //----------------------------------------------------------
-                //                    Member methods
-                //----------------------------------------------------------
-                /*
-                 * Sets the file path of the federate configuration
-                 *
-                 * <b>NOTE:</b> Path to the federate configuration must be configured
-                 * inside when initializing modules in {@link OmnetFederate#initModule}.
-                 *
-                 * @param fedConfigFilePath path to the federate configuration
+                /**
+                 * Step function of this federate
                  */
-                void setFedConfigPath( const std::string &fedConfigFilePath );
+                virtual bool step( double federateTime ) override;
+
+                /**
+                 * Get called whenever RTI receives a new object interaction
+                 */
+                virtual void receivedInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
+                                                  double federateTime ) override;
 
             protected:
                 //----------------------------------------------------------
@@ -81,9 +77,25 @@ namespace base
                 void tearDownFederate();
 
             private:
+
+                omnetpp::cMessage *selfMessage;
+                int selfMessageStepSize;
+
+                std::mutex toOmnetLock;
+                std::mutex toHlaLock;
+                std::list<std::shared_ptr<const base::HLAInteraction>> interactionsToOmnet;
+                std::list<std::shared_ptr<base::HLAInteraction>> interactionsToRti;
+
+                std::string federateName;
+                std::string hostName;
                 std::string fedConfigFile;
+                std::string networkInteractionName;
+
                 static base::ucef::NoOpFederate* thisFedarate;
-                std::list<std::string> hlaMsgFilter;
+                static std::string KEY_DST_OMNET_HOST;
+                static std::string KEY_OMNET_HOST;
+                static std::string KEY_ORG_CLASS;
+                static std::string KEY_SRC_OMNET_HOST;
             };
         }
     }

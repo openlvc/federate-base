@@ -31,7 +31,6 @@
 #include <mutex>
 
 #include "gov/nist/ucef/hla/base/FederateConfiguration.h"
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 #include "gov/nist/ucef/hla/base/HLAObject.h"
 #include "RTIAmbassadorWrapper.h"
@@ -48,7 +47,7 @@ namespace base
 	 * as they arrive. Finally, helper methods, given for users to query the SOM data which may useful in
 	 * object class and interaction class creation and update.
 	 */
-	class UCEF_API IFederateBase
+	class IFederateBase
 	{
 		public:
 			//----------------------------------------------------------

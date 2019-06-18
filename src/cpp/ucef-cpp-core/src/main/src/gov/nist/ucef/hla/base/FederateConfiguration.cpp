@@ -51,7 +51,7 @@ namespace base
 
 	}
 
-	list<string> FederateConfiguration::getValueAsString( const string& configPath, const string& key )
+	list<string> FederateConfiguration::getValuesAsList( const string& configPath, const string& key )
 	{
 		list<string> jsonArrayValues;
 
@@ -97,6 +97,46 @@ namespace base
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
 		return jsonArrayValues;
+	}
+
+	string FederateConfiguration::getValueAsString( const string& configPath, const string& key )
+	{
+		string jsonValue = "";
+
+		Logger::getInstance().log( "Looking for key : " + key + " in " + configPath, LevelInfo );
+		ifstream ifs( configPath );
+		if ( !ifs.is_open() )
+		{
+			Logger::getInstance().log( "Could not open the config file for reading,"
+									   "Returning an empty list", LevelWarn );
+			return jsonValue;
+		}
+
+		IStreamWrapper isw { ifs };
+
+		Document doc {};
+		doc.ParseStream( isw );
+		if( doc.HasParseError() )
+		{
+			stringstream ss;
+			ss << "Error  : " << doc.GetParseError()  << '\n'
+			   << "Offset : " << doc.GetErrorOffset() << '\n';
+			Logger::getInstance().log( ss.str(), LevelError );
+			return jsonValue;
+		}
+
+		Value::ConstMemberIterator it = doc.FindMember( key.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			jsonValue = it->value.GetString();
+		}
+		else
+		{
+			string errorMsg = "Config key " + key + " could not be found.";
+			errorMsg += " Returning an empty value";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
+		return jsonValue;
 	}
 
 	void FederateConfiguration::loadFromJson( const string &configPath )

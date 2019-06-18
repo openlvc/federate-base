@@ -35,7 +35,6 @@
 #include <mutex>
 #include <vector>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 
 namespace base
@@ -48,7 +47,7 @@ namespace base
 	 * @see RTIAmbassadorWrapper#sendInteraction( std::shared_ptr<HLAInteraction>& )
 	 * @see IFederateBase#receiveInteraction( std::shared_ptr<const HLAInteraction>& )
 	 */
-	class UCEF_API HLAInteraction
+	class HLAInteraction
 	{
 		public:
 			//----------------------------------------------------------

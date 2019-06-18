@@ -1,0 +1,15 @@
+{
+    "federateName":"OmnetFederate",
+    "federateType":"OmnetFederate",
+    "federationExecName":"UCEFFederation",
+    "canCreateFederation":true,
+    "maxJoinAttempts":2,
+    "joinRetryIntervalSec":5,
+    "syncBeforeResign":true,
+    "callbacksAreImmediate":true,
+    "lookAhead":0.2,
+    "stepSize":1,
+    "fomPath":"ObjectModels/fom/UCEF-EXP-A.xml",
+    "somPath":"ObjectModels/som/UCEF-EXP-A-OMNET.xml",
+    "hostName" : "OmnetHostA"
+}

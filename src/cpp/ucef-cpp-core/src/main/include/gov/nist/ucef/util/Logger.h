@@ -30,7 +30,6 @@
 #include <memory>
 #include <string>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 
 namespace spdlog

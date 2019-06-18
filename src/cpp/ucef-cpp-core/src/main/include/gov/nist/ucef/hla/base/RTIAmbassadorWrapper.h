@@ -30,7 +30,6 @@
 #include <memory>
 #include <set>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/base/HLAObject.h"
 #include "gov/nist/ucef/hla/base/HLAInteraction.h"
 #include "gov/nist/ucef/hla/types.h"
@@ -74,7 +73,7 @@ namespace base
 	 *  <li> {@link #deleteObjectInstance( std::shared_ptr<HLAObject>& )} with a valid instance of a {@link HLAObject}
 	 * </ul>
 	 */
-	class UCEF_API RTIAmbassadorWrapper
+	class RTIAmbassadorWrapper
 	{
 		public:
 			//----------------------------------------------------------

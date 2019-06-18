@@ -1,13 +1,19 @@
 #
-# OMNeT++/OMNEST Makefile for $(LIB_PREFIX)OmnetFederate
+# OMNeT++/OMNEST Makefile for OmnetFederate
 #
 # This file was generated with the command:
-#  opp_makemake --make-so -f --deep -O out -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include -L/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release -Xout
+#  opp_makemake -f --deep -O out -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include -L/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release -Xout
 #
 
 # Name of target to be created (-o option)
-TARGET = $(LIB_PREFIX)OmnetFederate$(D)$(SHARED_LIB_SUFFIX)
+TARGET = OmnetFederate$(D)$(EXE_SUFFIX)
 TARGET_DIR = .
+
+# User interface (uncomment one) (-u option)
+USERIF_LIBS = $(ALL_ENV_LIBS) # that is, $(TKENV_LIBS) $(QTENV_LIBS) $(CMDENV_LIBS)
+#USERIF_LIBS = $(CMDENV_LIBS)
+#USERIF_LIBS = $(TKENV_LIBS)
+#USERIF_LIBS = $(QTENV_LIBS)
 
 # C++ include paths (with -I)
 INCLUDE_PATH = -I. -Iinclude -I/home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/src/main/include
@@ -24,7 +30,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/src/base/ucef/omnet/OmnetFederate.o $O/src/base/ucef/omnet/OmnetFederateScheduler.o
+OBJS = $O/src/base/ucef/omnet/OmnetFederate.o $O/src/base/ucef/omnet/OmnetFederateScheduler.o $O/src/base/ucef/omnet/util/MessageCodec.o
 
 # Message files
 MSGFILES =
@@ -53,7 +59,7 @@ endif
 include $(CONFIGFILE)
 
 # Simulation kernel and user interface libraries
-OMNETPP_LIBS = -loppenvir$D $(KERNEL_LIBS) $(SYS_LIBS)
+OMNETPP_LIBS = $(OPPMAIN_LIB) $(USERIF_LIBS) $(KERNEL_LIBS) $(SYS_LIBS)
 ifneq ($(TOOLCHAIN_NAME),clangc2)
 LIBS += -Wl,-rpath,$(abspath /home/vagrant/Calytrix/federate-base/src/cpp/ucef-cpp-core/eclipse/Release)
 endif
@@ -88,9 +94,8 @@ endif
 
 $O/$(TARGET): $(OBJS)  $(wildcard $(EXTRA_OBJS)) Makefile $(CONFIGFILE)
 	@$(MKPATH) $O
-	@echo Creating shared library: $@
-	$(Q)$(SHLIB_LD) -o $O/$(TARGET) $(OBJS) $(EXTRA_OBJS) $(AS_NEEDED_OFF) $(WHOLE_ARCHIVE_ON) $(LIBS) $(WHOLE_ARCHIVE_OFF) $(OMNETPP_LIBS) $(LDFLAGS)
-	$(Q)$(SHLIB_POSTPROCESS) $O/$(TARGET)
+	@echo Creating executable: $@
+	$(Q)$(CXX) $(LDFLAGS) -o $O/$(TARGET) $(OBJS) $(EXTRA_OBJS) $(AS_NEEDED_OFF) $(WHOLE_ARCHIVE_ON) $(LIBS) $(WHOLE_ARCHIVE_OFF) $(OMNETPP_LIBS)
 
 .PHONY: all clean cleanall depend msgheaders smheaders
 

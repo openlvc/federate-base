@@ -30,7 +30,6 @@
 #include <string>
 #include <vector>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 
 namespace base
@@ -38,7 +37,7 @@ namespace base
 	/**
 	 * The {@link FederateConfiguration} class allows to provide configuration details to a federate as required.
 	 */
-	class UCEF_API FederateConfiguration
+	class FederateConfiguration
 	{
 		public:
 			static std::string KEY_FEDERATE_NAME;
@@ -66,12 +65,20 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
-			 * Return the array values of a given configuration as a list
+			 * Return the associated values of a given configuration key as a list
 			 *
 			 * @param configPath path to the federate config json
 			 * @param key config key to seek in federate configuration
 			 */
-			std::list<std::string> getValueAsString( const std::string& configPath, const std::string& key );
+			std::list<std::string> getValuesAsList( const std::string& configPath, const std::string& key );
+
+			/**
+			 * Return the associated value of a given configuration key
+			 *
+			 * @param configPath path to the federate config json
+			 * @param key config key to seek in federate configuration
+			 */
+			std::string getValueAsString( const std::string& configPath, const std::string& key );
 
 			/**
 			 * Configure this federate using the given federate config file
