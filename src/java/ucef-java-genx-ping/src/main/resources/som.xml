@@ -22,16 +22,88 @@
                 <name>Player</name>
                 <sharing>PublishSubscribe</sharing>
                 <attribute>
-                    <name>name</name>
-                    <dataType>string</dataType>
+                    <name>someBoolean</name>
+                    <dataType>HLAboolean</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
                     <sharing>PublishSubscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someByte</name>
+                    <dataType>HLAbyte</dataType>
                     <updateType>NA</updateType>
                     <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someChar</name>
+                    <dataType>HLAunicodeChar</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someDouble</name>
+                    <dataType>HLAfloat64BE</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someFloat</name>
+                    <dataType>HLAfloat32BE</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someInt</name>
+                    <dataType>HLAinteger32BE</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someLong</name>
+                    <dataType>HLAinteger64BE</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someName</name>
+                    <dataType>HLAunicodeString</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                </attribute>
+                <attribute>
+                    <name>someShort</name>
+                    <dataType>HLAinteger16BE</dataType>
+                    <updateType>NA</updateType>
+                    <ownership>NoTransfer</ownership>
+                    <sharing>PublishSubscribe</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
                 </attribute>
             </objectClass>
-        </objectClass>
+	    </objectClass>
     </objects>
     
     <interactions>
@@ -46,8 +118,40 @@
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
                 <parameter>
-                    <name>count</name>
-                    <dataType>int</dataType>
+                    <name>someBoolean</name>
+                    <dataType>HLAboolean</dataType>
+                </parameter>
+                <parameter>
+                    <name>someByte</name>
+                    <dataType>HLAbyte</dataType>
+                </parameter>
+                <parameter>
+                    <name>someChar</name>
+                    <dataType>HLAunicodeChar</dataType>
+                </parameter>
+                <parameter>
+                    <name>someDouble</name>
+                    <dataType>HLAfloat64BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someFloat</name>
+                    <dataType>HLAfloat32BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someInt</name>
+                    <dataType>HLAinteger32BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someLong</name>
+                    <dataType>HLAinteger64BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someShort</name>
+                    <dataType>HLAinteger16BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someString</name>
+                    <dataType>HLAunicodeString</dataType>
                 </parameter>
             </interactionClass>
             <interactionClass>
@@ -56,11 +160,43 @@
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
                 <parameter>
-                    <name>letter</name>
-                    <dataType>char</dataType>
+                    <name>someBoolean</name>
+                    <dataType>HLAboolean</dataType>
+                </parameter>
+                <parameter>
+                    <name>someByte</name>
+                    <dataType>HLAbyte</dataType>
+                </parameter>
+                <parameter>
+                    <name>someChar</name>
+                    <dataType>HLAunicodeChar</dataType>
+                </parameter>
+                <parameter>
+                    <name>someDouble</name>
+                    <dataType>HLAfloat64BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someFloat</name>
+                    <dataType>HLAfloat32BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someInt</name>
+                    <dataType>HLAinteger32BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someLong</name>
+                    <dataType>HLAinteger64BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someShort</name>
+                    <dataType>HLAinteger16BE</dataType>
+                </parameter>
+                <parameter>
+                    <name>someString</name>
+                    <dataType>HLAunicodeString</dataType>
                 </parameter>
             </interactionClass>
-            
+
 			<interactionClass>
 				<name>UCEFinteractionRoot</name>
 				<sharing>Neither</sharing>
