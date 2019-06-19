@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -62,7 +62,7 @@ public class HLACodecUtilsTest extends TestCase
 	{
 		this.encoder = HLACodecUtils.getEncoder();
 	}
-	
+
 	/**
 	 * Test encoding/decoding of character values
 	 */
@@ -72,12 +72,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(char expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			char actual = HLACodecUtils.asChar( this.encoder, 
+			char actual = HLACodecUtils.asChar( this.encoder,
 			                                    HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	/**
 	 * Test encoding/decoding of short values
 	 */
@@ -87,12 +87,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(short expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			short actual = HLACodecUtils.asShort( this.encoder, 
+			short actual = HLACodecUtils.asShort( this.encoder,
 			                                      HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	/**
 	 * Test encoding/decoding of integer values
 	 */
@@ -102,12 +102,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(int expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			int actual = HLACodecUtils.asInt( this.encoder, 
+			int actual = HLACodecUtils.asInt( this.encoder,
 			                                  HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	/**
 	 * Test encoding/decoding of long values
 	 */
@@ -117,7 +117,7 @@ public class HLACodecUtilsTest extends TestCase
 		for(long expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			long actual = HLACodecUtils.asLong( this.encoder, 
+			long actual = HLACodecUtils.asLong( this.encoder,
 			                                    HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
@@ -132,12 +132,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(float expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			float actual = HLACodecUtils.asFloat( this.encoder, 
+			float actual = HLACodecUtils.asFloat( this.encoder,
 			                                      HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	/**
 	 * Test encoding/decoding of double values
 	 */
@@ -147,12 +147,27 @@ public class HLACodecUtilsTest extends TestCase
 		for(double expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			double actual = HLACodecUtils.asDouble( this.encoder, 
+			double actual = HLACodecUtils.asDouble( this.encoder,
 			                                        HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
+	/**
+	 * Test encoding/decoding of byte values
+	 */
+	public void testByte()
+	{
+		byte[] testValues = {(byte)0, (byte)1,(byte)-1,(byte)123,(byte)-123};
+		for(byte expected : testValues)
+		{
+			// run through an encode/decode cycle, should come out the same
+			byte actual = HLACodecUtils.asByte( this.encoder,
+			                                    HLACodecUtils.encode( this.encoder, expected ) );
+			assertEquals( expected, actual );
+		}
+	}
+
 	/**
 	 * Test encoding/decoding of boolean values
 	 */
@@ -162,12 +177,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(boolean expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			boolean actual = HLACodecUtils.asBoolean( this.encoder, 
+			boolean actual = HLACodecUtils.asBoolean( this.encoder,
 			                                          HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	/**
 	 * Test encoding/decoding of strings
 	 */
@@ -177,12 +192,12 @@ public class HLACodecUtilsTest extends TestCase
 		for(String expected : testValues)
 		{
 			// run through an encode/decode cycle, should come out the same
-			String actual = HLACodecUtils.asString( this.encoder, 
+			String actual = HLACodecUtils.asString( this.encoder,
 			                                        HLACodecUtils.encode( this.encoder, expected ) );
 			assertEquals( expected, actual );
 		}
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////

@@ -23,100 +23,96 @@
  */
 package gov.nist.hla.genx.base;
 
-import gov.nist.hla.genx.interactions.Ping;
-import gov.nist.hla.genx.reflections.Player;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.ucef.NoOpFederate;
 
+import gov.nist.hla.genx.interactions.Ping;
+import gov.nist.hla.genx.reflections.Player;
+
 /**
- *		            ___
- *		          _/   \_     _     _
- *		         / \   / \   / \   / \
- *		        ( U )─( C )─( E )─( F )
- *		         \_/   \_/   \_/   \_/
- *		        <─┴─> <─┴─────┴─────┴─>
- *		       Universal CPS Environment
- *		             for Federation
- *
+ *                    ___
+ *                  _/   \_     _     _
+ *                 / \   / \   / \   / \
+ *                ( U )─( C )─( E )─( F )
+ *                 \_/   \_/   \_/   \_/
+ *                <─┴─> <─┴─────┴─────┴─>
+ *               Universal CPS Environment
+ *                     for Federation
  */
 public abstract class _GenxPongFederate extends NoOpFederate
 {
-	//----------------------------------------------------------
-	//                   STATIC VARIABLES
-	//----------------------------------------------------------
+    //----------------------------------------------------------
+    //                   STATIC VARIABLES
+    //----------------------------------------------------------
 
-	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
-	//----------------------------------------------------------
+    //----------------------------------------------------------
+    //                   INSTANCE VARIABLES
+    //----------------------------------------------------------
 
-	//----------------------------------------------------------
-	//                      CONSTRUCTORS
-	//----------------------------------------------------------
-	public _GenxPongFederate()
-	{
-		super();
-	}
+    //----------------------------------------------------------
+    //                      CONSTRUCTORS
+    //----------------------------------------------------------
+    public _GenxPongFederate()
+    {
+        super();
+    }
 
-	//----------------------------------------------------------
-	//                    INSTANCE METHODS
-	//----------------------------------------------------------
+    //----------------------------------------------------------
+    //                    INSTANCE METHODS
+    //----------------------------------------------------------
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	@Override
-	public void receiveInteraction( HLAInteraction hlaInteraction )
-	{
-		String interactionClassName = hlaInteraction.getInteractionClassName();
-		if( Ping.interactionClassName().equals( interactionClassName ) )
-		{
-			receivePingInteraction( new Ping( hlaInteraction ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected interaction of type '%s'",
-			                                   interactionClassName ) );
-		}
-	}
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////// RTI Callback Methods ///////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public void receiveInteraction( HLAInteraction hlaInteraction )
+    {
+        String interactionClassName = hlaInteraction.getInteractionClassName();
+        if( Ping.interactionClassName().equals( interactionClassName ) )
+        {
+            receivePingInteraction( new Ping( hlaInteraction ) );
+        }
+        else
+        {
+            // this is unexpected - we shouldn't receive any thing we didn't subscribe to
+            System.err.println( String.format( "Received an unexpected interaction of type '%s'",
+                                                interactionClassName ) );
+        }
+    }
 
-	@Override
-	public void receiveAttributeReflection( HLAObject hlaObject )
-	{
-		String objectClassName = hlaObject.getObjectClassName();
-		if( Player.objectClassName().equals( objectClassName ) )
-		{
-			receivePlayerUpdate( new Player( hlaObject ) );
-		}
-		else
-		{
-			// this is unexpected - we shouldn't receive any thing we didn't subscribe to
-			System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
-			                                   objectClassName ) );
-		}
-	}
+    @Override
+    public void receiveAttributeReflection( HLAObject hlaObject )
+    {
+        String objectClassName = hlaObject.getObjectClassName();
+        if( Player.objectClassName().equals( objectClassName ) )
+        {
+            receivePlayerUpdate( new Player( hlaObject ) );
+        }
+        else
+        {
+            // this is unexpected - we shouldn't receive any thing we didn't subscribe to
+            System.err.println( String.format( "Received an unexpected attribute reflection of type '%s'",
+                                                objectClassName ) );
+        }
+    }
 
-	////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////// Internal Utility Methods /////////////////////////////////
-	////////////////////////////////////////////////////////////////////////////////////////////
-	protected Player register( Player player ) { return (Player)super.register( player ); }
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////// Internal Utility Methods /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////
+    protected Player register( Player player ) { return (Player)super.register( player ); }
 
-	/**
-	 * Handle receipt of a {@link Ping}
-	 *
-	 * @param ping the interaction to handle
-	 */
-	protected abstract void receivePingInteraction( Ping ping );
+    /**
+    * Handle receipt of a {@link Ping} interaction.
+    *
+    * @param ping the interaction to handle
+    */
+    protected abstract void receivePingInteraction( Ping ping );
 
-	/**
-	 * Handle receipt of a {@link Player}
-	 *
-	 * @param player the object to handle
-	 */
-	protected abstract void receivePlayerUpdate( Player player );
-
-	//----------------------------------------------------------
-	//                     STATIC METHODS
-	//----------------------------------------------------------
+    /**
+    * Handle receipt of a {@link Player} object attribute reflection.
+    *
+    * @param player the object attribute reflection to handle
+    */
+    protected abstract void receivePlayerUpdate( Player player );
 }

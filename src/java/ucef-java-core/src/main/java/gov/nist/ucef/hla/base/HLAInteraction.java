@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -33,7 +33,7 @@ import hla.rti1516e.encoding.EncoderFactory;
 /**
  * The purpose of this class is to provide (as much as is possible) methods which are common to all
  * federate interactions in order to minimize the amount of code required in UCEF HLA federate
- * implementations. 
+ * implementations.
  */
 public class HLAInteraction
 {
@@ -47,7 +47,7 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	protected final String interactionClassName;
 	protected Map<String, byte[]> parameters;
-	
+
 	// used for encoding/decoding byte array representations of interaction parameters
 	protected EncoderFactory encoder;
 
@@ -58,10 +58,10 @@ public class HLAInteraction
 	//----------------------------------------------------------
 	/**
 	 * Construct a new interaction instance with no parameter values
-	 * 
+	 *
 	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
 	 * to create a new {@link HLAInteraction}
-	 * 
+	 *
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 */
 	protected HLAInteraction( String interactionClassName )
@@ -71,10 +71,10 @@ public class HLAInteraction
 
 	/**
 	 * Construct a new interaction instance with parameter values
-	 * 
+	 *
 	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
 	 * to create a new {@link HLAInteraction}
-	 * 
+	 *
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 * @param parameters the parameter values for the interaction (may be empty or null)
 	 */
@@ -89,28 +89,28 @@ public class HLAInteraction
 
 	/**
 	 * Construct from another {@link HLAInteraction} instance.
-	 * 
+	 *
 	 * NOTE: this will result in an instance which is "linked" to the original instance.
-	 * 
+	 *
 	 * NOTE: Generally speaking the RTIAmbassadorWrapper's makeInteraction() method should be used
 	 * to create a new {@link HLAInteraction}
-	 * 
+	 *
 	 * @param interaction the interaction to use as the base
 	 */
 	protected HLAInteraction( HLAInteraction interaction )
 	{
 		this.interactionClassName = interaction.interactionClassName;
 		this.parameters = interaction.parameters;
-		
+
 		this.encoder = interaction.encoder;
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
 	 * Provide a hash code, suitable for indexing in a map
-	 * 
+	 *
 	 * NOTE: Interactions of the same *type* are considered equivalent. This is because interactions are
 	 *       transient, so there are no "instances" of an interaction as such.
 	 */
@@ -120,7 +120,7 @@ public class HLAInteraction
 		// delegate to the cached interaction class handle
 		return this.interactionClassName.hashCode();
 	}
-	
+
     ////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,14 +132,14 @@ public class HLAInteraction
 	{
 		return this.interactionClassName;
 	}
-	
+
 	/**
 	 * Determine if this instance has a parameter with the given name.
-	 * 
+	 *
 	 * NOTE: this does not mean that the named parameter is initialized, only that a parameter value
 	 * could be queried using the given name. See {@link #isPresent(String)} for checking whether the
 	 * value for the named parameter has actually been initialized.
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return true if the parameter is known by this instance, false otherwise
 	 */
@@ -147,15 +147,15 @@ public class HLAInteraction
 	{
 		return this.parameters.containsKey( parameterName );
 	}
-	
+
 	/**
 	 * Determine if the named parameter has been initialized (i.e. has a value)
-	 * 
-	 * In practice, this means that the byte array value associated with the 
-	 * named parameter is: 
+	 *
+	 * In practice, this means that the byte array value associated with the
+	 * named parameter is:
 	 *  - non null, and
 	 *  - not empty (i.e., is not zero bytes in length)
-	 * 
+	 *
 	 * @param parameterName the name of the attribute
 	 * @return true if the parameter as a value defined for it, false otherwise
 	 */
@@ -164,10 +164,21 @@ public class HLAInteraction
 		byte[] rawValue = getRawValue( parameterName );
 		return rawValue != null && rawValue.length != 0;
 	}
-	
+
+	/**
+	 * Obtain the value for the named parameter as a byte
+	 *
+	 * @param parameterName the name of the parameter
+	 * @return the value
+	 */
+	public byte getAsByte( String parameterName )
+	{
+		return HLACodecUtils.asByte( this.encoder, getRawValue( parameterName ) );
+	}
+
 	/**
 	 * Obtain the value for the named parameter as a short
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -175,10 +186,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asShort( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as an integer
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -186,10 +197,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asInt( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a long
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -197,10 +208,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asLong( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a float
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -208,10 +219,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asFloat( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a double
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -219,10 +230,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asDouble( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a boolean
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -230,10 +241,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asBoolean( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a char
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -241,10 +252,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asChar( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the value for the named parameter as a string
-	 * 
+	 *
 	 * @param parameterName the name of the parameter
 	 * @return the value
 	 */
@@ -252,10 +263,10 @@ public class HLAInteraction
 	{
 		return HLACodecUtils.asString( this.encoder, getRawValue( parameterName ) );
 	}
-	
+
 	/**
 	 * Obtain the raw byte array value of a parameter from the handle
-	 * 
+	 *
 	 * @param handle the parameter handle
 	 * @return the raw byte array value of a parameter from the handle, or null if the given
 	 *         handle is not related to this interaction or the parameter has not been initialized
@@ -269,10 +280,10 @@ public class HLAInteraction
 		}
 		return result;
 	}
-    
+
 	/**
-	 * Set the value of a parameter to a short 
-	 * 
+	 * Set the value of a parameter to a short
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -280,10 +291,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to an integer 
-	 * 
+	 * Set the value of a parameter to an integer
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -291,10 +302,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a long 
-	 * 
+	 * Set the value of a parameter to a long
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -302,10 +313,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a float 
-	 * 
+	 * Set the value of a parameter to a float
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -313,10 +324,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a double 
-	 * 
+	 * Set the value of a parameter to a double
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -324,10 +335,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a float 
-	 * 
+	 * Set the value of a parameter to a float
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -335,10 +346,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a character 
-	 * 
+	 * Set the value of a parameter to a character
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -346,10 +357,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
-	 * Set the value of a parameter to a string 
-	 * 
+	 * Set the value of a parameter to a string
+	 *
 	 * @param parameterName the name of the parameter
 	 * @param value the value to set
 	 */
@@ -357,10 +368,10 @@ public class HLAInteraction
 	{
 		setRawValue( parameterName, HLACodecUtils.encode( this.encoder, value ) );
 	}
-	
+
 	/**
 	 * Set the the raw byte array value of a parameter from the parameter name
-	 * 
+	 *
 	 * @param parameterName the parameter name
 	 * @param value the new raw byte array value
 	 */
@@ -378,18 +389,18 @@ public class HLAInteraction
     		}
 		}
 	}
-	
+
     /**
      * Get the current value of all parameters of this interaction.
      *
-     * @return An map of parameters handle names to their current values (note that this is not 
+     * @return An map of parameters handle names to their current values (note that this is not
      * 		   modifiable but reflects changes made to the underlying data)
      */
     public Map<String, byte[]> getState()
     {
     	return Collections.unmodifiableMap( this.parameters );
     	/*
-    	Map<String, byte[]> result = new HashMap<>(); 
+    	Map<String, byte[]> result = new HashMap<>();
 		synchronized( mutex_lock )
 		{
 			for( Entry<String,byte[]> entry : this.parameters.entrySet())
@@ -402,11 +413,22 @@ public class HLAInteraction
 		}
 		return result;
 		*/
-    }
-    
+	}
+
 	/**
 	 * Set the current value of multiple parameters this object instance.
-	 * 
+	 *
+	 * @param other the {@link HLAInteraction} instance with state values to update from
+	 * @return this instance
+	 */
+	public HLAInteraction setState( HLAInteraction other )
+	{
+		return setState( other.getState() );
+	}
+
+	/**
+	 * Set the current value of multiple parameters this object instance.
+	 *
 	 * @param parameters the parameters and values to update from
 	 * @return this instance
 	 */
@@ -418,12 +440,12 @@ public class HLAInteraction
 		}
 		return this;
 	}
-    
+
 	/**
 	 * Clear all parameters
-	 * 
+	 *
 	 * NOTE: After this method is called, there will be no parameters defined.
-	 * 
+	 *
 	 * @return this instance
 	 */
 	public HLAInteraction clearState()
@@ -434,7 +456,7 @@ public class HLAInteraction
 		}
 		return this;
 	}
-	
+
 	/**
 	 * Get the parameter identifiers of this interaction.
 	 *
@@ -444,7 +466,7 @@ public class HLAInteraction
 	{
 		return Collections.unmodifiableSet( this.parameters.keySet() );
 	}
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
