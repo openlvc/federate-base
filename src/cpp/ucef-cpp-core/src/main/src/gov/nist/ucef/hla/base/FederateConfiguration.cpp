@@ -30,6 +30,15 @@ namespace base
 	string FederateConfiguration::KEY_TIME_CONSTRAINED        = "timeConstrained";
 	string FederateConfiguration::KEY_FOM_PATH                = "fomPath";
 	string FederateConfiguration::KEY_SOM_PATH                = "somPath";
+	string FederateConfiguration::KEY_OMNET_INTERACTIONS      = "omnetInteractions";
+	// Params in network interactions and cMessages
+	string FederateConfiguration::KEY_DST_OMNET_HOST          = "dstOmnetHost";
+	string FederateConfiguration::KEY_SRC_OMNET_HOST          = "srcOmnetHost";
+	string FederateConfiguration::KEY_ORG_CLASS               = "wrappedClassName";
+	string FederateConfiguration::KEY_NET_DATA                = "data";
+	// Keys in fedconfig file
+	string FederateConfiguration::KEY_OMNET_HOST              = "hostName";
+	string FederateConfiguration::KEY_NET_INT_NAME            = "networkInteractionName";
 
 	FederateConfiguration::FederateConfiguration() : federationName( "BaseFederation" ),
 	                                                 federateName( "Federate" + to_string(rand()) ),

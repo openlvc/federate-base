@@ -75,12 +75,11 @@ namespace base
             private:
                 void initializeFederate();
                 void tearDownFederate();
+                void processToHla();
+                void processToOmnet();
 
             private:
-
-                omnetpp::cMessage *selfMessage;
-                int selfMessageStepSize;
-
+                bool shouldContinue;
                 std::mutex toOmnetLock;
                 std::mutex toHlaLock;
                 std::list<std::shared_ptr<const base::HLAInteraction>> interactionsToOmnet;
@@ -92,10 +91,6 @@ namespace base
                 std::string networkInteractionName;
 
                 static base::ucef::NoOpFederate* thisFedarate;
-                static std::string KEY_DST_OMNET_HOST;
-                static std::string KEY_OMNET_HOST;
-                static std::string KEY_ORG_CLASS;
-                static std::string KEY_SRC_OMNET_HOST;
             };
         }
     }

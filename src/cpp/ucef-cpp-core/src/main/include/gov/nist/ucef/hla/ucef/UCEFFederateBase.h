@@ -72,6 +72,22 @@ namespace base
 			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues ) override;
 
 		protected:
+
+			/**
+			 * Initialize fededrate configuration from a JSON config file
+			 *
+			 * @param configFilePath path to the federate config json
+			 */
+			void initConfigFromJson( std::string configFilePath );
+
+			/**
+			 * Sends an interaction to the federation
+			 *
+			 * @param hlaInteraction object that holds the values of the interaction
+			 *        parameters that need to be published by this federate
+			 */
+			void sendInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
 			//----------------------------------------------------------
 			//                     Callback Methods
 			//----------------------------------------------------------
@@ -127,7 +143,10 @@ namespace base
 			 */
 			virtual void federateExecute() override;
 		private:
+			std::string getJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
+		private:
 			bool simEndReceived;
+			std::string configFilePath;
 		};
 	}
 }

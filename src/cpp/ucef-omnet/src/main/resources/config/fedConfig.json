@@ -11,5 +11,6 @@
     "stepSize":1,
     "fomPath":"ObjectModels/fom/UCEF-EXP-A.xml",
     "somPath":"ObjectModels/som/UCEF-EXP-A-OMNET.xml",
-    "hostName" : "OmnetHostA"
+    "hostName" : "OmnetHostA",
+    "networkInteractionName" : "HLAinteractionRoot.NetworkInteraction"
 }

@@ -41,9 +41,10 @@ namespace base
                     packValue( cMsgTo, hlaIntFrom );
                 }
 
+                // Find interaction parameters in cMessage and pack them into a interaction
                 void MessageCodec::packValues( shared_ptr<HLAInteraction> hlaIntTo, cMessage* cMsgFrom   )
                 {
-                   bool hasData = cMsgFrom->hasPar("data");
+                   bool hasData = cMsgFrom->hasPar( FederateConfiguration::KEY_NET_DATA.c_str() );
                    if( hasData )
                    {
                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
@@ -53,10 +54,15 @@ namespace base
                        string data = cMsgFrom->par("data").stringValue();
 
                        string interactionClassName = hlaIntTo->getInteractionClassName();
+
+                       // Get parameters of this interaction
                        vector<string> params = fedConfig->getParameterNames( interactionClassName );
                        for( auto& param : params )
                        {
+                           // Figure out the data type of the parameter
                            DataType dataType = fedConfig->getDataType( interactionClassName, param );
+
+                           // Now extract the parameter value from JSON string
                            if( dataType == DATATYPESTRING )
                            {
                               string value = parser.getValueAsString( data, param  );
@@ -92,12 +98,11 @@ namespace base
                                bool value = parser.getValueAsBool( data, param );
                                hlaIntTo->setValue( param, value );
                            }
-
                        }
                    }
                 }
 
-                // Packs interaction attributes into cMessage
+                // Packs interaction parameters into a cMessage
                 void MessageCodec::packValue( cMessage* cMsgTo, shared_ptr<const HLAInteraction> hlaIntFrom )
                 {
                     NoOpFederate* federate = OmnetFederate::getFederatePtr();

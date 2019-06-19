@@ -22,7 +22,6 @@ using namespace base::util;
 
 namespace base
 {
-
 	FederateBase::FederateBase() : rtiAmbassadorWrapper( new RTIAmbassadorWrapper() ),
 	                               federateAmbassador( make_shared<FederateAmbassador>(this) ),
 	                               ucefConfig( make_shared<FederateConfiguration>() ),

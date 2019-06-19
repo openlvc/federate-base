@@ -229,7 +229,8 @@ namespace base
 			 */
 			void populateInteraction( const std::string& interactionClassName,
 			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
-			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+			                          const std::map<rti1516e::ParameterHandle,
+			                          rti1516e::VariableLengthData>& parameterValues );
 
 		private:
 			//----------------------------------------------------------
@@ -335,5 +336,6 @@ namespace base
 			base::ObjectDataStoreByInstance objectDataStoreByInstance;
 			LifecycleState lifecycleState;
 			std::set<SynchPoint> syncPointTimeouts;
+
 	};
 }

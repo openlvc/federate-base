@@ -106,9 +106,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>include/gov/nist/ucef/util/JsonParser.cpp</name>
+			<name>include/gov/nist/ucef/util/JsonParser.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/src/gov/nist/ucef/util/JsonParser.cpp</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/include/gov/nist/ucef/util/JsonParser.h</locationURI>
 		</link>
 		<link>
 			<name>include/gov/nist/ucef/util/Logger.h</name>
@@ -131,9 +131,9 @@
 			<locationURI>virtual:/virtual</locationURI>
 		</link>
 		<link>
-			<name>src/gov/nist/ucef/util/JsonParser.h</name>
+			<name>src/gov/nist/ucef/util/JsonParser.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/include/gov/nist/ucef/util/JsonParser.h</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/src/gov/nist/ucef/util/JsonParser.cpp</locationURI>
 		</link>
 		<link>
 			<name>src/gov/nist/ucef/util/Logger.cpp</name>
