@@ -1,8 +1,8 @@
 
 {
-    "federation-name":        "ManagedFederation",
     "fedman-name":            "FederationManager",
 	"fedman-type":            "FederationManager",
+    "federation-name":        "ManagedFederation",
 	"require":
 	[
 		{"type":"PingFederate", "count":1},
