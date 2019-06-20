@@ -1,6 +1,11 @@
 
 {
-    "federateName":          "FederationManager",
-    "federateType":          "FederationManager",
-    "federationExecName":    "ManagedFederation",
+    "federation-name":        "ManagedFederation",
+    "fedman-name":            "FederationManager",
+	"fedman-type":            "FederationManager",
+	"require":
+	[
+		{"type":"PingFederate", "count":1},
+		{"type":"PongFederate", "count":1}
+	]
 }

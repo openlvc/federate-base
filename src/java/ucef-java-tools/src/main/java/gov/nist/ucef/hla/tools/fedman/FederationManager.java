@@ -84,6 +84,18 @@ public class FederationManager
 			argProcessor.showHelp();
 			System.exit( 1 );
 		}
+		if( !argProcessor.hasFederationExecName() )
+		{
+			System.err.println( "ERROR: No federation execution name was specified." );
+			argProcessor.showHelp();
+			System.exit( 1 );
+		}
+		if( !argProcessor.hasStartRequirements() )
+		{
+			System.err.println( "ERROR: No federation start requirements were specified." );
+			argProcessor.showHelp();
+			System.exit( 1 );
+		}
 
 		try
 		{
@@ -99,7 +111,6 @@ public class FederationManager
 				String[] moduleFoms = { "fedman-fom.xml" };
 				config.addModules( urlsFromPaths(moduleFoms) );
 
-
 				// join modules
 				String[] joinModuleFoms = {};
 				config.addJoinModules( urlsFromPaths(joinModuleFoms) );
@@ -109,7 +120,7 @@ public class FederationManager
 				throw new UCEFException("Exception loading one of the FOM modules from disk", e);
 			}
 
-			if( argProcessor.withHttpService() )
+			if( argProcessor.withHttpServiceActive() )
 			{
 				httpServer = new FedManHttpServer( federate, argProcessor.httpServicePort() );
 				httpServer.startServer();
@@ -177,9 +188,9 @@ public class FederationManager
 		// config.setLookAhead( 0.25 );
 
 		// configure general federate configuration from command line args
+		config.setFederationName( argProcessor.federationExecName() );
 		config.setFederateName( argProcessor.federateName() );
 		config.setFederateType( argProcessor.federateType() );
-		config.setFederationName( argProcessor.federationExecName() );
 		config.setStepSize( argProcessor.logicalStepSize() );
 		config.setLookAhead( argProcessor.logicalStepSize() );
 
