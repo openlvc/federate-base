@@ -104,7 +104,7 @@ public class HLACodecUtilsTest extends TestCase
 			// run through an encode/decode cycle, should come out the same
 			int actual = HLACodecUtils.asInt( this.encoder,
 			                                  HLACodecUtils.encode( this.encoder, expected ) );
-			assertEquals( expected, actual );
+ 			assertEquals( expected, actual );
 		}
 	}
 

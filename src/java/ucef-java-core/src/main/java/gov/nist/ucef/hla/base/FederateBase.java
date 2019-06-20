@@ -755,19 +755,25 @@ public abstract class FederateBase
 	protected void enableTimePolicy()
 	{
 		// enable time regulation based on configuration
-		rtiamb.enableTimeRegulation( configuration.getLookAhead() );
-		while( fedamb.isTimeRegulated() == false )
+		if( configuration.isTimeRegulated() )
 		{
-			// waiting for callback to confirm it's enabled
-			tickForCallBacks();
+			rtiamb.enableTimeRegulation( configuration.getLookAhead() );
+			while( fedamb.isTimeRegulated() == false )
+			{
+				// waiting for callback to confirm it's enabled
+				tickForCallBacks();
+			}
 		}
 
-		// enable time constrained
-		rtiamb.enableTimeConstrained();
-		while( fedamb.isTimeConstrained() == false )
+		// enable time constrained based on configuration
+		if( configuration.isTimeConstrained() )
 		{
-			// waiting for callback to confirm it's enabled
-			tickForCallBacks();
+			rtiamb.enableTimeConstrained();
+			while( fedamb.isTimeConstrained() == false )
+			{
+				// waiting for callback to confirm it's enabled
+				tickForCallBacks();
+			}
 		}
 	}
 

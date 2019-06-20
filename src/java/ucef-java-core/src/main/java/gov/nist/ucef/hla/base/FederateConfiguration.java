@@ -80,6 +80,8 @@ public class FederateConfiguration
 	private static final boolean DEFAULT_ARE_CALLBACKS_IMMEDIATE  = true;
 	private static final double DEFAULT_LOOK_AHEAD                = 1.0;
 	private static final double DEFAULT_STEP_SIZE                 = 0.1;
+	private static final boolean DEFAULT_IS_TIME_CONSTRAINED      = true;
+	private static final boolean DEFAULT_IS_TIME_REGULATED        = true;
 
 	// keys for locating values in JSON based configuration data
 	private static final String JSON_CONFIG_KEY_FEDERATE_NAME           = "federateName";
@@ -92,6 +94,8 @@ public class FederateConfiguration
 	private static final String JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN      = "syncBeforeResign";
 	private static final String JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE = "callbacksAreImmediate";
 	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
+	private static final String JSON_CONFIG_KEY_TIME_CONSTRAINED        = "timeConstrained";
+	private static final String JSON_CONFIG_KEY_TIME_REGULATED          = "timeRegulated";
 	private static final String JSON_CONFIG_KEY_BASE_FOMS               = "base-foms";
 	private static final String JSON_CONFIG_KEY_JOIN_FOMS               = "join-foms";
 	private static final String JSON_CONFIG_KEY_SOM                     = "som";
@@ -122,6 +126,8 @@ public class FederateConfiguration
 	private boolean callbacksAreImmediate;
 	private double lookAhead;
 	private double stepSize;
+	private boolean isTimeConstrained;
+	private boolean isTimeRegulated;
 
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
@@ -168,6 +174,9 @@ public class FederateConfiguration
 		this.callbacksAreImmediate = DEFAULT_ARE_CALLBACKS_IMMEDIATE;
 		this.lookAhead = DEFAULT_LOOK_AHEAD;
 		this.stepSize = DEFAULT_STEP_SIZE;
+
+		this.isTimeConstrained = DEFAULT_IS_TIME_CONSTRAINED;
+		this.isTimeRegulated = DEFAULT_IS_TIME_REGULATED;
 	}
 
 	//----------------------------------------------------------
@@ -277,6 +286,8 @@ public class FederateConfiguration
 	                JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
 	                JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
 	                JSON_CONFIG_KEY_LOOK_AHEAD,
+	            	JSON_CONFIG_KEY_TIME_CONSTRAINED,
+	            	JSON_CONFIG_KEY_TIME_REGULATED,
 	                JSON_CONFIG_KEY_STEP_SIZE,
 	                JSON_CONFIG_KEY_BASE_FOMS,
 	                JSON_CONFIG_KEY_JOIN_FOMS,
@@ -327,6 +338,12 @@ public class FederateConfiguration
 			this.callbacksAreImmediate = jsonBooleanOrDefault( configData,
 			                                                   JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
 			                                                   this.callbacksAreImmediate );
+			this.isTimeConstrained = jsonBooleanOrDefault( configData,
+			                                               JSON_CONFIG_KEY_TIME_CONSTRAINED,
+			                                               this.isTimeConstrained );
+			this.isTimeRegulated = jsonBooleanOrDefault( configData,
+			                                             JSON_CONFIG_KEY_TIME_REGULATED,
+			                                             this.isTimeRegulated );
 			this.lookAhead = jsonDoubleOrDefault( configData,
 			                                      JSON_CONFIG_KEY_LOOK_AHEAD,
 			                                      this.lookAhead );
@@ -717,7 +734,6 @@ public class FederateConfiguration
 		return lookAhead;
 	}
 
-
 	/**
 	 * Configure the federate's step size
 	 *
@@ -738,6 +754,50 @@ public class FederateConfiguration
 	public double getStepSize()
 	{
 		return stepSize;
+	}
+
+	/**
+	 * Configure the federate's time constraint policy
+	 *
+	 * @param isTimeRegulated true if time constraint is enabled, false otherwise
+	 * @return this instance (for method chaining)
+	 */
+	public FederateConfiguration setTimeConstrained( boolean isTimeConstrained )
+	{
+		this.isTimeConstrained = isTimeConstrained;
+		return this;
+	}
+
+	/**
+	 * Obtain the federate's time constraint policy
+	 *
+	 * @return the federate's time constraint policy
+	 */
+	public boolean isTimeConstrained()
+	{
+		return this.isTimeConstrained;
+	}
+
+	/**
+	 * Configure the federate's time regulation policy
+	 *
+	 * @param isTimeRegulated true if time reglulation is enabled, false otherwise
+	 * @return this instance (for method chaining)
+	 */
+	public FederateConfiguration setTimeRegulated( boolean isTimeRegulated )
+	{
+		this.isTimeRegulated = isTimeRegulated;
+		return this;
+	}
+
+	/**
+	 * Obtain the federate's time regulation policy
+	 *
+	 * @return the federate's time regulation policy
+	 */
+	public boolean isTimeRegulated()
+	{
+		return this.isTimeRegulated;
 	}
 
 	/**
