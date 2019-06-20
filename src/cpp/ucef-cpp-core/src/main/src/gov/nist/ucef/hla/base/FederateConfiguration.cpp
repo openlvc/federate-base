@@ -94,9 +94,6 @@ namespace base
 			{
 				string tmpValue = (*itr).GetString();
 				jsonArrayValues.push_back( tmpValue );
-
-				Logger::getInstance().log( "Value " + tmpValue + " is added to allow list.", LevelInfo );
-
 			}
 		}
 		else
@@ -105,6 +102,18 @@ namespace base
 			errorMsg += " Returning an empty list";
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
+
+		if( jsonArrayValues.size() )
+		{
+			string logMsg = "Config key " + key + " found. Returning values : \n";
+
+			for(string val : jsonArrayValues)
+			{
+				logMsg += val + '\n';
+			}
+			Logger::getInstance().log( logMsg, LevelInfo );
+		}
+
 		return jsonArrayValues;
 	}
 
@@ -138,6 +147,9 @@ namespace base
 		if( it != doc.MemberEnd() )
 		{
 			jsonValue = it->value.GetString();
+
+			string logMsg = "Config key " + key + " found. Returning : " + jsonValue;
+			Logger::getInstance().log( logMsg, LevelInfo );
 		}
 		else
 		{
@@ -145,6 +157,7 @@ namespace base
 			errorMsg += " Returning an empty value";
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
+
 		return jsonValue;
 	}
 

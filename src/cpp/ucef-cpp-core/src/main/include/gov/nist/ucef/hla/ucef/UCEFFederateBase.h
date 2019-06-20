@@ -81,7 +81,12 @@ namespace base
 			void initConfigFromJson( std::string configFilePath );
 
 			/**
-			 * Sends an interaction to the federation
+			 * Sends an interaction to the federation that this federate is part of.
+			 * <p/>
+			 * When sending an interaction to the federation this method will fist check
+			 * whether the passed interaction type is designated to an OMNeT federate. This can
+			 * be specified in federate config file. If so, it will first convert the passed
+			 * interaction into a Network interaction type before sending to the federation.
 			 *
 			 * @param hlaInteraction object that holds the values of the interaction
 			 *        parameters that need to be published by this federate

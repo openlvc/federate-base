@@ -1,0 +1,69 @@
+<project xmlns = "http://maven.apache.org/POM/4.0.0"
+   xmlns:xsi = "http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation = "http://maven.apache.org/POM/4.0.0
+   http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   <modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>nist.gov.ucef</groupId>
+		<artifactId>Multi-Modules</artifactId>
+		<version>1.0</version>
+	</parent>
+
+	<groupId>nist.gov.ucef.examples</groupId>
+	<artifactId>PingFederate</artifactId>
+   	<packaging>nar</packaging>
+
+	<properties>
+		<skipTests>true</skipTests>
+ 	    	<src.dir>src/main</src.dir>
+	</properties>
+
+	<dependencies>
+	    	<dependency>
+	      		<groupId>nist.gov.ucef</groupId>
+	      		<artifactId>federatebase</artifactId>
+	      		<version>1.0</version>
+	      		<type>nar</type>
+	    	</dependency>
+	</dependencies>
+
+	<build>		
+		<plugins>
+			<plugin>
+				<groupId>com.github.maven-nar</groupId>
+				<artifactId>nar-maven-plugin</artifactId>
+				<version>3.6.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<libraries>
+						    <library>
+						      <type>executable</type>
+						      <run>false</run>
+						    </library>
+					</libraries>
+					<cpp>
+						<name>gcc</name>
+						<sourceDirectory>${src.dir}</sourceDirectory>
+
+						<options>
+							<option>-std=c++11</option>
+							<option>-fPIC</option>
+							<option>-O3</option>
+							<option>-Wall</option>
+							<option>-fmessage-length=0</option>
+							<option>-c</option>
+						</options>
+
+					</cpp>
+
+					<linker>
+						<options>
+							<option>-Wl,--unresolved-symbols=ignore-in-shared-libs</option>
+						</options>
+					</linker>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>

@@ -1,0 +1,21 @@
+{
+    "federateName":"PingFederate",
+    "federateType":"PingFederate",
+    "federationExecName":"PingPongOmnetFederation",
+    "canCreateFederation":true,
+    "maxJoinAttempts":2,
+    "joinRetryIntervalSec":5,
+    "syncBeforeResign":true,
+    "callbacksAreImmediate":true,
+    "lookAhead":0.2,
+    "stepSize":1,
+    "timeConstrained":false,
+    "timeRegulated":true,
+    "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
+    "somPath":"resources//ObjectModels//som//UCEF-EXP-PING.xml",
+    "srcOmnetHost":"OmnetHostA",
+    "dstOmnetHost":"OmnetHostC",
+    "networkInteractionName":"HLAinteractionRoot.NetworkInteraction",
+    "omnetInteractions" : ["HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.PingInteraction",
+		           "HLAobjectRoot.ParentObject.PingObject"]
+}

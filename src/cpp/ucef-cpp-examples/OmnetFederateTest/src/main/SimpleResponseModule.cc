@@ -23,17 +23,7 @@ void SimpleResponseModule::initialize() {}
 
 void SimpleResponseModule::handleMessage( cMessage *msg )
 {
-   solveChallenge( msg );
    send( msg, "out");
-}
-
-void SimpleResponseModule::solveChallenge( cMessage *msg )
-{
-
-    string challengeStr = msg->par("stringValue").stringValue();
-    long beginIndex = msg->par("beginIndex").longValue();
-    string resultStr = challengeStr.substr( beginIndex );
-    msg->par("stringValue").setStringValue( resultStr.c_str() );
 }
 
 void SimpleResponseModule::finish() {}

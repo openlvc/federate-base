@@ -17,12 +17,34 @@
 // TODO auto-generated type
 //
 
-simple OmnetFederateModule
+simple OmnetFederateModuleA
+{
+    @display("i=block/join");
+    gates:
+        output out;
+}
+
+simple OmnetFederateModuleB
 {
     @display("i=block/join");
     gates:
         input in;
         output out;
+}
+
+simple OmnetFederateModuleC
+{
+    @display("i=block/join");
+    gates:
+        input in;
+        output out;
+}
+
+simple OmnetFederateModuleD
+{
+    @display("i=block/join");
+    gates:
+        input in;
 }
 
 simple SimpleResponseModule
@@ -36,13 +58,25 @@ network OmnetFederateNet
 {
     @display("bgb=297,264");
     submodules:
-        src: OmnetFederateModule {
+        omA: OmnetFederateModuleA {
             @display("p=66,163");
         }
-        responder: SimpleResponseModule {
-            @display("p=235,48;i=block/rxtx");
+        omB: OmnetFederateModuleB {
+            @display("p=146,163");
+        }
+        omC: OmnetFederateModuleC {
+            @display("p=226,163");
+        }
+        omD: OmnetFederateModuleD {
+            @display("p=306,163");
+        }
+        sim: SimpleResponseModule {
+            @display("p=106,48;i=block/rxtx");
         }
     connections:
-        src.out --> {  delay = 1000ms; } --> responder.in;
-        src.in <-- {  delay = 1000ms; } <-- responder.out;
+        omA.out --> {  delay = 1000ms; } --> sim.in;
+        omB.in <-- {  delay = 1000ms; } <-- sim.out;
+        omB.out --> {  delay = 1000ms; } --> omC.in;
+        omD.in <-- {  delay = 1000ms; } <-- omC.out;
+                
 }

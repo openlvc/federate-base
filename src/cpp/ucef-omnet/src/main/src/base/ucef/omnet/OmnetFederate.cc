@@ -30,12 +30,11 @@ using namespace std;
 
 NoOpFederate* OmnetFederate::thisFedarate = 0;
 
-OmnetFederate::OmnetFederate() : fedConfigFile( "\\resources\\fedConfig.json" ),
+OmnetFederate::OmnetFederate() : fedConfigFile( ".//resources//config//fedConfig.json" ),
                                  networkInteractionName( "HLAinteractionRoot.NetworkInteraction" ),
                                  shouldContinue( true )
 {
     thisFedarate = dynamic_cast<NoOpFederate*>( this );
-    initConfigFromJson( fedConfigFile );
 }
 
 OmnetFederate::~OmnetFederate()
@@ -50,15 +49,21 @@ NoOpFederate* OmnetFederate::getFederatePtr()
 
 void OmnetFederate::initialize()
 {
+    Logger& logger = Logger::getInstance();
+
     initializeFederate();
 
-    auto fedConfig = thisFedarate->getFederateConfiguration();
+    auto fedConfig = getFederatePtr()->getFederateConfiguration();
 
     federateName = fedConfig->getFederateName();
     hostName = fedConfig->getValueAsString( fedConfigFile, FederateConfiguration::KEY_OMNET_HOST );
     string tmpValue = fedConfig->getValueAsString( fedConfigFile, FederateConfiguration::KEY_NET_INT_NAME );
     if( tmpValue != "" )
         networkInteractionName = tmpValue;
+
+    logger.log( "Host name of this module set to " + hostName , LevelInfo );
+    logger.log( "Network interaction name set to " + networkInteractionName , LevelInfo );
+    scheduleAt(simTime(), new cMessage);
 }
 
 void OmnetFederate::finish()
@@ -70,6 +75,13 @@ void OmnetFederate::finish()
 void OmnetFederate::handleMessage( cMessage *cMsg )
 {
     Logger& logger = Logger::getInstance();
+    if( cMsg->isSelfMessage() )
+    {
+        processToOmnet();
+        delete cMsg;
+        scheduleAt( simTime() + getFederatePtr()->getFederateConfiguration()->getTimeStep() * 4, new cMessage );
+        return;
+    }
 
     // check message got the destination host param
     if( cMsg->hasPar(FederateConfiguration::KEY_DST_OMNET_HOST.c_str()) )
@@ -80,7 +92,7 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
        if( dstOmnetHost.compare(hostName) == 0 )
        {
            string logMsg = "Received a packet designated to " +  hostName + ". Trying to create an interaction for it." ;
-           logger.log( logMsg, LevelDebug );
+           logger.log( logMsg, LevelInfo );
 
            // check message got the wrapped class name so we can re-construct the correct interaction
            if( cMsg->hasPar(FederateConfiguration::KEY_ORG_CLASS.c_str()) )
@@ -105,21 +117,22 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
        }
        else
        {
-           string msg = "Received a packet designated to " +  dstOmnetHost + ". I am going to ignore it" ;
-           logger.log( msg, LevelDebug );
+           send( cMsg, "out" );
+           string msg = "Received a packet designated to " +  dstOmnetHost + ". I am going to simply forward it" ;
+           logger.log( msg, LevelInfo );
        }
     }
     else
     {
-       string msg = "Received packet doesn't contain parameter " +  FederateConfiguration::KEY_DST_OMNET_HOST + ". I am going to ignore it" ;
+       string msg = "Received packet doesn't contain parameter " +  FederateConfiguration::KEY_DST_OMNET_HOST + ". I am going to simply forward it" ;
        logger.log( msg, LevelDebug );
+       send( cMsg, "out" );
     }
 
 }
 
 bool OmnetFederate::step( double federateTime )
 {
-    processToOmnet();
     processToHla();
     return shouldContinue;
 }
@@ -136,25 +149,30 @@ void OmnetFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt
 
         if( designatedOmnetFederate.compare(hostName) == 0 )
         {
+            string msg = "Received an network interaction designated to me (" + designatedOmnetFederate  + ") I am going to send this to OMNeT simulation.";
+            logger.log( msg, LevelInfo );
+
             unique_lock<mutex> lock( toOmnetLock );
             interactionsToOmnet.push_back( hlaInt );
             lock.unlock();
         }
         else
         {
-            string msg = "Received an network interaction designated to " + designatedOmnetFederate + " OMNeT federate. I am going to ignore it";
+            string msg = "Received an network interaction designated to " + designatedOmnetFederate + " OMNeT federate. ";
+            msg += hostName  + " going to ignore it.";
             logger.log( msg, LevelInfo );
         }
     }
     else
     {
-        string msg = "Received an unknown interaction " + interactionClassname + ". I am going to ignore it";
+        string msg = "Received an unknown interaction to me (" + hostName  + ") going to ignore it.";
         logger.log( msg, LevelWarn );
     }
 }
 
 void OmnetFederate::initializeFederate()
 {
+    initConfigFromJson( fedConfigFile );
     federateSetup();
 }
 
@@ -189,12 +207,13 @@ void OmnetFederate::processToOmnet()
 
     for( auto interaction : cpyInteractionsToOmnet )
     {
-        cMessage* outMsg = new cPacket();
+        cMessage* outMsg = new cMessage();
         MessageCodec::packValues( outMsg, interaction );
+
         send( outMsg, "out" );
 
         string logMsg = "Sending a packet to OMNeT simulation for the received interaction " +  interaction->getInteractionClassName();
-        logger.log( logMsg, LevelDebug );
+        logger.log( logMsg, LevelInfo );
     }
 }
 

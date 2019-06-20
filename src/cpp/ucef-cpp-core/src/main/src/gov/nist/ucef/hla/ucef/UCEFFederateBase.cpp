@@ -43,13 +43,16 @@ namespace base
 			list<string> omnetInteractions =
 					ucefConfig->getValuesAsList( configFilePath, FederateConfiguration::KEY_OMNET_INTERACTIONS );
 
-			// If not an Omnet routed interaction send to RTO
+			// If not an Omnet routed interaction send to RTI
 			if( find(omnetInteractions.begin(), omnetInteractions.end(), intClassName) == omnetInteractions.end() )
 			{
+				logger.log( "Sending interaction class " + intClassName + " to RTI", LevelInfo );
 				rtiAmbassadorWrapper->sendInteraction( hlaInteraction );
 			}
 			else
 			{
+				string logMsg = "Converting interaction class " + intClassName + " to a network interaction";
+				logger.log( logMsg, LevelInfo );
 				// Here we need to build a network interaction before sending it out
 				string netInteractionName =
 						ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_NET_INT_NAME );
@@ -60,8 +63,7 @@ namespace base
 
 				string jsonStr = getJsonString( hlaInteraction );
 
-				string logMsg = "Parameters of interaction class " + intClassName + " converted to \n" + jsonStr;
-				logger.log(logMsg, LevelDebug );
+				logger.log( "Params of this interaction got converted to \n" + jsonStr, LevelInfo);
 
 				shared_ptr<HLAInteraction> netInteraction = make_shared<HLAInteraction>( netInteractionName );
 
@@ -70,6 +72,10 @@ namespace base
 				netInteraction->setValue( FederateConfiguration::KEY_SRC_OMNET_HOST, srcOmnetHost );
 				netInteraction->setValue( FederateConfiguration::KEY_DST_OMNET_HOST, dstOmnetHost );
 				netInteraction->setValue( FederateConfiguration::KEY_NET_DATA, jsonStr );
+
+
+				logger.log( "Sending network interaction to RTI", LevelInfo );
+
 				rtiAmbassadorWrapper->sendInteraction( netInteraction );
 			}
 
@@ -81,7 +87,10 @@ namespace base
 			lock_guard<mutex> lock( threadSafeLock );
 			Logger& logger = Logger::getInstance();
 			shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
-			logger.log( "Received interaction update for " + interactionClass->name, LevelInfo );
+			string logMsg = "Federate " + ucefConfig->getFederateName();
+			logMsg = logMsg + " received an interaction " + interactionClass->name;
+
+			logger.log( logMsg, LevelDebug );
 			if( interactionClass )
 			{
 				shared_ptr<HLAInteraction> hlaInteraction;
@@ -150,13 +159,13 @@ namespace base
 			d.SetObject();
 			Document::AllocatorType& allocator = d.GetAllocator();
 
-			Value obj( kObjectType );
-
 			// Get parameters of this interaction
 			string intClassName = hlaInteraction->getInteractionClassName();
 			vector<string> params = ucefConfig->getParameterNames( intClassName );
 			for( auto& param : params )
 			{
+				if( !hlaInteraction->isPresent(param) ) continue;
+
 				// Figure out the data type of the parameter
 				DataType dataType = ucefConfig->getDataType( intClassName, param );
 
@@ -164,34 +173,30 @@ namespace base
 				if( dataType == DATATYPESTRING )
 				{
 					string parmVal = hlaInteraction->getAsString( param );
-					Value val;
-					val.SetString( parmVal.c_str(), static_cast<SizeType>(parmVal.length()), allocator );
+					Value val( parmVal.c_str(), allocator );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPEBOOLEAN )
 				{
 					bool parmVal = hlaInteraction->getAsBool( param );
-					Value val;
-					val.SetBool( parmVal );
+					Value val( parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPESHORT )
 				{
 					short parmVal = hlaInteraction->getAsShort( param );
-					Value val;
-					val.SetInt( (int)parmVal );
+					Value val( (int)parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPEINT  )
 				{
 					int parmVal = hlaInteraction->getAsInt( param );
-					Value val;
-					val.SetInt( parmVal );
+					Value val( parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPELONG )
 				{
@@ -199,23 +204,21 @@ namespace base
 					Value val;
 					val.SetInt64( parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPEFLOAT )
 				{
 					float parmVal = hlaInteraction->getAsFloat( param );
-					Value val;
-					val.SetFloat(parmVal );
+					Value val( parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 				else if( dataType == DATATYPEDOUBLE )
 				{
 					double parmVal = hlaInteraction->getAsDouble( param );
-					Value val;
-					val.SetDouble( parmVal );
+					Value val( parmVal );
 					Value key( param.c_str(), allocator );
-					obj.AddMember( key, val, allocator );
+					d.AddMember( key, val, allocator );
 				}
 			}
 

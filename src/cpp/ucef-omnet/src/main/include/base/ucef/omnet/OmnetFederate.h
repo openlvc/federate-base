@@ -71,6 +71,8 @@ namespace base
                 //                     cSimpleModule methods
                 //----------------------------------------------------------
                 virtual void handleMessage( omnetpp::cMessage *msg ) override;
+            protected:
+                std::string fedConfigFile;
 
             private:
                 void initializeFederate();
@@ -87,7 +89,6 @@ namespace base
 
                 std::string federateName;
                 std::string hostName;
-                std::string fedConfigFile;
                 std::string networkInteractionName;
 
                 static base::ucef::NoOpFederate* thisFedarate;

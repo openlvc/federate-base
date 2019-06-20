@@ -8,8 +8,6 @@
 #include "ChallengeObject.h"
 #include "ResponseInteraction.h"
 
-#include "gov/nist/ucef/config.h"
-
 #include "gov/nist/ucef/hla/base/HLAInteraction.h"
 #include "gov/nist/ucef/hla/base/HLAObject.h"
 #include "gov/nist/ucef/hla/base/UCEFException.h"

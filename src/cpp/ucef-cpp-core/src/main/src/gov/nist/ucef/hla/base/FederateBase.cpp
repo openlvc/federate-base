@@ -6,6 +6,7 @@
 
 #include "gov/nist/ucef/hla/base/FederateAmbassador.h"
 #include "gov/nist/ucef/util/Logger.h"
+#include "gov/nist/ucef/util/JsonParser.h"
 #include "gov/nist/ucef/util/SOMParser.h"
 #include "gov/nist/ucef/hla/types.h"
 #include "gov/nist/ucef/hla/base/FederateConfiguration.h"
@@ -28,7 +29,7 @@ namespace base
 	                               lifecycleState( LIFE_CYCLE_UNKNOWN ),
 	                               syncPointTimeouts()
 	{
-
+		JsonParser::getInstance();
 	}
 
 	FederateBase::~FederateBase()
@@ -559,7 +560,7 @@ namespace base
 		logger.log( "Waiting till the federation achieve synchronization point " +
 		            ConversionHelper::SynchPointToString(point), LevelInfo );
 
-		int timeoutDuration = 15; // in seconds
+		int timeoutDuration = 5; // in seconds
 
 		time_t startTime;
 		startTime = time (NULL);

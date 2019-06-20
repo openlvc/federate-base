@@ -1,0 +1,18 @@
+{
+    "federateName":"OmnetFederateB",
+    "federateType":"OmnetFederateB",
+    "federationExecName":"PingPongOmnetFederation",
+    "canCreateFederation":true,
+    "maxJoinAttempts":2,
+    "joinRetryIntervalSec":5,
+    "syncBeforeResign":true,
+    "callbacksAreImmediate":true,
+    "lookAhead":0.2,
+    "stepSize":1,
+    "timeConstrained":false,
+    "timeRegulated":true,
+    "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
+    "somPath":"resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml",
+    "hostName":"OmnetHostB",
+    "networkInteractionName":"HLAinteractionRoot.NetworkInteraction"
+}
