@@ -7,5 +7,11 @@
 	[
 		{"type":"PingFederate", "count":1},
 		{"type":"PongFederate", "count":1}
-	]
+	],
+	"max-time": 999999.0,
+	"logical-second": 1.0,
+	"logical-granularity": 1,
+	"realtime-multiplier": 1.0,
+	"http-service": true,
+	"http-port": 8088
 }
