@@ -3,8 +3,11 @@ JAVA_MAIN_CLASS="gov.nist.hla.genx.GenxPingFederate"
 HTTP_HOST=localhost
 HTTP_PORT=8888
 
+# utility function used to concatenate the list of command line arguments
+# to this bash script into a space delimited string
 function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
+# verify Maven exists
 MVN=`which mvn`
 if [ -z "$MVN" ]
 then
@@ -12,6 +15,7 @@ then
     exit
 fi
 
+# verify curl exists
 CURL=`which curl`
 if [ -z "$CURL" ]
 then
@@ -19,12 +23,11 @@ then
     exit
 fi
 
-
+# periodically check on the federation manager's REST-like endpoints on 
+# its HTTP service to determine when it's a good time to start
 CURL_RESPONSE=""
 while [ "$CURL_RESPONSE" != "true" ]
 do
-    # 'ping' the HTTP server on the federation manager
-    # to determine when it's a good time to start
     CURL_RESPONSE=$($CURL -s http://$HTTP_HOST:$HTTP_PORT/query/is-waiting-for-federates/)
     if [ "$CURL_RESPONSE" != "true" ]
     then

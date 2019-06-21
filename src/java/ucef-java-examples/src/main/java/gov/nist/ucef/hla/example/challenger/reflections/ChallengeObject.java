@@ -23,8 +23,14 @@
  */
 package gov.nist.ucef.hla.example.challenger.reflections;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
+import gov.nist.ucef.hla.base.Types.DataType;
 
 public class ChallengeObject extends HLAObject
 {
@@ -34,14 +40,18 @@ public class ChallengeObject extends HLAObject
 	// HLA identifier of this type of object - must match FOM definition
 	private static final String OBJECT_CLASS_NAME = "HLAobjectRoot.ParentObject.ChallengeObject";
 	
-	// object attributes and types
-	private static final String ATTRIBUTE_KEY_BEGININDEX = "beginIndex";
-	private static final String ATTRIBUTE_KEY_STRINGVALUE = "stringValue";
-	private static final String ATTRIBUTE_KEY_CHALLENGEID = "challengeId";
-	
-	private static final String[] ATTRIBUTE_NAMES = { ATTRIBUTE_KEY_BEGININDEX, 
-	                                                  ATTRIBUTE_KEY_STRINGVALUE,
-	                                                  ATTRIBUTE_KEY_CHALLENGEID };
+    // reflection attribute and types
+    private static final String ATTRIBUTE_KEY_BEGININDEX = "beginIndex";
+    private static final DataType ATTRIBUTE_TYPE_BEGININDEX = DataType.INT;
+    private static final String ATTRIBUTE_KEY_STRINGVALUE = "stringValue";
+    private static final DataType ATTRIBUTE_TYPE_STRINGVALUE = DataType.STRING;
+    private static final String ATTRIBUTE_KEY_CHALLENGEID = "challengeId";
+    private static final DataType ATTRIBUTE_TYPE_CHALLENGEID = DataType.STRING;
+
+    // a map for finding a data type for an attribute name - this is to provide
+    // quick lookups and avoid iterating over all attributes
+    private static final Map<String,DataType> ATTRIBUTES_LOOKUP =
+        Collections.unmodifiableMap( initializeMapping() );
 	
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -126,23 +136,73 @@ public class ChallengeObject extends HLAObject
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	/**
-	 * Obtain the HLA object class name identifying this type of object
-	 * 
-	 * @return the HLA object class name identifying this type of object
-	 */
-	public static String objectClassName()
-	{
-		return OBJECT_CLASS_NAME;
-	}
-	
-	/**
-	 * Obtain the HLA attribute names associated with this type of object
-	 * 
-	 * @return the HLA attribute names associated with this type of object
-	 */
-	public static String[] attributeNames()
-	{
-		return ATTRIBUTE_NAMES;
-	}
+    /**
+    * Obtain the HLA object name identifying this type of object
+    *
+    * @return the HLA object name identifying this object
+    */
+    public static String objectClassName()
+    {
+        return OBJECT_CLASS_NAME;
+    }
+
+    /**
+    * Determine whether a named attribute is associated with this kind of object
+    *
+    * @param attribute the name of the attribute to check for
+    * @return true if the named attribute is associated with this kind of object,
+    *         and false otherwise
+    */
+    public static boolean hasAttribute( String attribute )
+    {
+        return ATTRIBUTES_LOOKUP.containsKey( attribute );
+    }
+
+    /**
+    * Obtain the names of the attributes associated with this kind of object
+    *
+    * @return a {@link Set<String>} containing the {@link String} names of the attributes
+    */
+    public static Set<String> attributeNames()
+    {
+        return ATTRIBUTES_LOOKUP.keySet();
+    }
+
+    /**
+    * Obtain the {@link DataType} of a attribute of this kind of object
+    *
+    * @param attribute the name of the attribute to obtain the type for
+    * @return a {@link DataType} corresponding to the type of the attribute. If no such
+    *         attribute exists for this object, {@link DataType#UNKNOWN} will be
+    *         returned.
+    */
+    public static DataType attributeType( String attribute )
+    {
+        return ATTRIBUTES_LOOKUP.getOrDefault( attribute, DataType.UNKNOWN );
+    }
+
+    /**
+    * Obtain the attributes associated with this kind of object
+    *
+    * @return an (unmodifiable) {@link Map} associating the {@link String} names of the
+    *         attributes and their {@link DataType}s
+    */
+    public static Map<String,DataType> attributes()
+    {
+        return Collections.unmodifiableMap( ATTRIBUTES_LOOKUP );
+    }
+    
+    /**
+    * Private initializer method for the attribute-datatype lookup map
+    *
+    * @return a lookup map which pairs attribute names and the corresponding {@link DataType}s
+    */
+    private static Map<String,DataType> initializeMapping()
+    {
+        Map<String,DataType> lookupMap = new HashMap<String,DataType>();
+        lookupMap.put( ATTRIBUTE_KEY_BEGININDEX, ATTRIBUTE_TYPE_BEGININDEX );
+        lookupMap.put( ATTRIBUTE_KEY_STRINGVALUE, ATTRIBUTE_TYPE_STRINGVALUE );
+        lookupMap.put( ATTRIBUTE_KEY_CHALLENGEID, ATTRIBUTE_TYPE_CHALLENGEID );
+        return lookupMap;
+    }
 }
