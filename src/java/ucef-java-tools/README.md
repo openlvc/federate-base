@@ -11,24 +11,50 @@ it is to...
 - initially *create* a federation (it is generally the only federate 
   which should be allowed to do so)
 - monitor joining federates to determine whether that certain conditions
-  are met which will allow te start of a simulation run
+  are met which will allow the start of a simulation run
 - control the stepping forward of time in the federation
 - issue `SimPause`, `SimResume` and `SimEnd` control interactions; well behaved
-  UCEF federates behave in accordance with this interaction signalling system.
+  UCEF federates behave in accordance with this interaction signaling system.
 
 It also provides simple keyboard controls and a REST-like interface via a 
 basic HTTP service as control mechanisms.
 
+## Quick Start
+
+The Federation Manager can be run using Maven:
+
+> **NOTE:** The first run of these may take some time as Maven retrieves required resources.
+
+You can use the command line directly, like so:
+```
+mvn exec:java -Dexec.mainClass="gov.nist.ucef.hla.tools.fedman.FederationManager" -Dexec.args="..."
+```
+The `-Dexec.args` section should, of course, be filled with command line arguments as required. 
+
+There are also utility batch and shell script file provided to make this somewhat simpler - for 
+example...
+```
+feredation-manager.bat --federation-name TheFederation --require FedABC,1 --require FedXYZ,2
+```
+...on Windows, or...
+```
+feredation-manager.sh --federation-name TheFederation --require FedABC,1 --require FedXYZ,2
+```
+...on *nix systems.
+
+Configuration options are detailed in the following section.
+
 ## Configuration
 
-The Federation Manager may be configured via the command line, a JSON formatted
-configuration file, or both.
+The Federation Manager may be configured via command line options, a JSON formatted
+configuration file, or a combination of both.
 
-If specified, JSON configuration file content is processed first, and then any
-command line arguments supplied will act as overrides.
+If a JSON configuration file specified, its content is processed first, and 
+then any command line arguments supplied will act as overrides.
 
-This makes it possible to start with a "general" JSON configuration file, and
-tweak individual simulation runs with command line arguments as required.
+This makes it possible, for example to start with a "general" JSON configuration 
+file containing default values, and tweak individual simulation runs with command 
+line arguments as required.
 
 > **NOTE:** At a minumum, You *must* configure...
  - a federation name and
