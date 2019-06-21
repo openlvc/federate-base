@@ -276,18 +276,19 @@ public class FedManCmdLineProcessor
         // optional arguments
         this.federateName = extractCmdLineString( cmdLine,
                                            CMDLINE_ARG_FEDMAN_FEDERATE_NAME,
-                                           FEDMAN_FEDERATE_NAME_DEFAULT );
+                                           this.federateName );
         this.federateType = extractCmdLineString( cmdLine,
                                            CMDLINE_ARG_FEDMAN_FEDERATE_TYPE,
-                                           FEDMAN_FEDERATE_TYPE_DEFAULT );
+                                           this.federateType );
 
         // NOTE that this is a bit of a double negative - the lack of the
         //      no-http switch means that withHttpService is true.
-        this.withHttpServiceActive = !cmdLine.hasOption( CMDLINE_SWITCH_NO_HTTP_SERVICE );
+        if(this.withHttpServiceActive)
+        	this.withHttpServiceActive = !cmdLine.hasOption( CMDLINE_SWITCH_NO_HTTP_SERVICE );
         this.httpServicePort = extractCmdLineInRangeInt( cmdLine,
                                                   CMDLINE_ARG_HTTP_PORT,
                                                   0, 65535,
-                                                  HTTP_PORT_DEFAULT );
+                                                  this.httpServicePort );
 
         // we need to sanity check some arguments with respect to each other
         // to ensure that they are "sensible" - in other words, the values
@@ -295,16 +296,16 @@ public class FedManCmdLineProcessor
         // some problems
         this.maxTime = extractCmdLineGtZeroDouble( cmdLine,
                                             CMDLINE_ARG_MAX_TIME,
-                                            MAX_TIME_DEFAULT );
+                                            this.maxTime );
 		this.logicalSecond = extractCmdLineGtZeroDouble( cmdLine,
 		                                          CMDLINE_ARG_LOGICAL_SECOND,
-		                                          LOGICAL_SECOND_DEFAULT );
+		                                          this.logicalSecond );
 		this.logicalStepGranularity = extractCmdLineGtZeroInt( cmdLine,
 		                                                CMDLINE_ARG_LOGICAL_STEP_GRANULARITY,
-		                                                LOGICAL_STEP_GRANULARITY_DEFAULT );
+		                                                this.logicalStepGranularity );
 		this.realtimeMultiplier = extractCmdLineGtZeroDouble( cmdLine,
 		                                               CMDLINE_ARG_REALTIME_MULTIPLIER,
-		                                               REALTIME_MULTIPLIER_DEFAULT );
+		                                               this.realtimeMultiplier );
 
 		double oneSecond = 1000.0 / this.realtimeMultiplier;
 		double logicalStepSize = logicalSecond / logicalStepGranularity;
@@ -741,7 +742,7 @@ public class FedManCmdLineProcessor
 			if( value instanceof Boolean )
 			{
 				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s' in configuration file", value, key ) );
+					logger.debug( String.format( "Found value %s for item '%s' in configuration file", value, key ) );
 
 				return (Boolean)value;
 			}
