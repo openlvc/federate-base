@@ -596,8 +596,12 @@ public abstract class FederateBase
 			}
 			catch( UCEFException e )
 			{
-				logger.warn( "Failed to join federation '{}'",
-                             federationName );
+				logger.warn( "Failed to join federation '{}'", federationName );
+				if(logger.isDebugEnabled())
+				{
+					logger.debug( e.getLocalizedMessage() );
+					e.printStackTrace();
+				}
 				if( ++retryCount < maxRetries )
 					logger.warn( "Retrying in {} second{}...",
                                  retryInterval,
@@ -612,6 +616,9 @@ public abstract class FederateBase
                           federationName,
                           maxRetries,
                           (maxRetries == 1 ? "" : "s")  );
+			// if we can't join the federation, there is no point in 
+			// continuing at all - just exit now with non-zero exit code
+			System.exit( 1 );
 		}
 	}
 

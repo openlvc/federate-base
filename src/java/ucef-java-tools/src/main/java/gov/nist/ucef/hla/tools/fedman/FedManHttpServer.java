@@ -29,7 +29,6 @@ import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -44,6 +43,8 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -65,7 +66,7 @@ import gov.nist.ucef.hla.base.UCEFException;
 public class FedManHttpServer
 {
 	//----------------------------------------------------------
-	//                    STATIC VARIABLES
+	//					STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( FedManHttpServer.class );
 
@@ -77,11 +78,11 @@ public class FedManHttpServer
 	private static Charset UTF8 = StandardCharsets.UTF_8;
 	private static String CONTENT_TYPE = "Content-Type";
 	private static String TEXT_PLAIN_UTF8 = "text/plain; charset=UTF-8";
-	private static String TEXT_HTML_UTF8     = "text/html; charset=UTF-8";
-	private static String JSON_UTF8          = "application/json; charset=UTF-8";
+	private static String TEXT_HTML_UTF8	 = "text/html; charset=UTF-8";
+	private static String JSON_UTF8		  = "application/json; charset=UTF-8";
 
 	//----------------------------------------------------------
-	//                   INSTANCE VARIABLES
+	//				   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private FedManFederate fedManFederate;
 	private int port;
@@ -91,13 +92,13 @@ public class FedManHttpServer
 	HttpServer server;
 
 	//----------------------------------------------------------
-	//                      CONSTRUCTORS
+	//					  CONSTRUCTORS
 	//----------------------------------------------------------
 	/**
 	 * Constructor
 	 *
 	 * @param fedManFederate the federation manager federate (used for callbacks from received
-	 *            queries/commands
+	 *			queries/commands
 	 * @param port the port on which to laucnh the HTTP server
 	 */
 	public FedManHttpServer(FedManFederate fedManFederate, int port)
@@ -109,7 +110,7 @@ public class FedManHttpServer
 	}
 
 	//----------------------------------------------------------
-	//                    INSTANCE METHODS
+	//					INSTANCE METHODS
 	//----------------------------------------------------------
 	/**
 	 * Start the HTTP server
@@ -126,37 +127,37 @@ public class FedManHttpServer
 		// create a single instance of the 404 handler that we can use repeatedly
 		/*
 		SimpleErrorHandler generic404Handler = new SimpleErrorHandler(
-            HTTP_404_NOT_FOUND,
-            "<html><head><meta charset=\"UTF-8\" /></head><body><h1>404 - Not Found</h1><pre>"+
-            Constants.UCEF_LOGO+"<pre></body></html>"
-        );
-        */
+			HTTP_404_NOT_FOUND,
+			"<html><head><meta charset=\"UTF-8\" /></head><body><h1>404 - Not Found</h1><pre>"+
+			Constants.UCEF_LOGO+"<pre></body></html>"
+		);
+		*/
 
 		// Create a map of the contexts - mainly we do this so that we can create an
 		// index page showing all the available endpoints (we cannot query this
 		// information from the HttpServer after the contexts are added). The
 		// LinkedHashMap is used here because it maintains the insertion order,
 		// which is mainly useful for organizing the the index page content.
-		LinkedHashMap<String, HttpHandler> endpoints = new LinkedHashMap<>();
+		LinkedHashMap<String, RequestMethodHandler> endpoints = new LinkedHashMap<>();
 		IndexHandler indexHandler = new IndexHandler(endpoints);
-		endpoints.put( "/",                        indexHandler );
+		endpoints.put( "/",						indexHandler );
 		// GET requests
-		endpoints.put( "/ping",                           new PingHandler() );
-		endpoints.put( "/query",                          indexHandler );
-		endpoints.put( "/query/status",                   new StatusQueryHandler() );
-		endpoints.put( "/query/start-conditions",         new StartConditionQueryHandler() );
-		endpoints.put( "/query/can-start",                new CanStartQueryHandler() );
-		endpoints.put( "/query/has-started",              new HasStartedQueryHandler() );
-		endpoints.put( "/query/has-ended",                new HasEndedQueryHandler() );
-		endpoints.put( "/query/is-paused",                new IsPausedQueryHandler() );
-		endpoints.put( "/query/is-running",               new IsRunningQueryHandler() );
+		endpoints.put( "/ping",						   new PingHandler() );
+		endpoints.put( "/query",						  indexHandler );
+		endpoints.put( "/query/status",				   new StatusQueryHandler() );
+		endpoints.put( "/query/start-conditions",		 new StartConditionQueryHandler() );
+		endpoints.put( "/query/can-start",				new CanStartQueryHandler() );
+		endpoints.put( "/query/has-started",			  new HasStartedQueryHandler() );
+		endpoints.put( "/query/has-ended",				new HasEndedQueryHandler() );
+		endpoints.put( "/query/is-paused",				new IsPausedQueryHandler() );
+		endpoints.put( "/query/is-running",			   new IsRunningQueryHandler() );
 		endpoints.put( "/query/is-waiting-for-federates", new IsWaitingForFederatesToJoinQueryHandler() );
 		// POST requests
-		endpoints.put( "/command",                        indexHandler );
-		endpoints.put( "/command/start",                  new StartCommandHandler() );
-		endpoints.put( "/command/pause",                  new PauseCommandHandler() );
-		endpoints.put( "/command/resume",                 new ResumeCommandHandler() );
-		endpoints.put( "/command/end",                    new EndCommandHandler() );
+		endpoints.put( "/command",						indexHandler );
+		endpoints.put( "/command/start",				  new StartCommandHandler() );
+		endpoints.put( "/command/pause",				  new PauseCommandHandler() );
+		endpoints.put( "/command/resume",				 new ResumeCommandHandler() );
+		endpoints.put( "/command/end",					new EndCommandHandler() );
 
 		ExecutorService executor = Executors.newFixedThreadPool(16);
 		try
@@ -165,7 +166,7 @@ public class FedManHttpServer
 			server.setExecutor(executor);
 
 			// iterate through the endpoints and link the contexts to the handlers
-			for(Entry<String,HttpHandler> endpoint : endpoints.entrySet())
+			for(Entry<String,RequestMethodHandler> endpoint : endpoints.entrySet())
 			{
 				String context = endpoint.getKey();
 				HttpHandler handler = endpoint.getValue();
@@ -178,7 +179,7 @@ public class FedManHttpServer
 		catch( Exception e )
 		{
 			throw new UCEFException( e, "Could not start federation manager HTTP server on port " +
-			                            this.port );
+										this.port );
 		}
 		logger.info( "Started federation manager HTTP server." );
 	}
@@ -246,12 +247,12 @@ public class FedManHttpServer
 	 * case)
 	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
-	 * @param jsonMap the {@link Map} containing the JSON data structure
+	 * @param jsonObj the {@link JSONObject} containing the data structure
 	 * @throws IOException
 	 */
-	private void doJSONResponse( HttpExchange httpExchange, Map<String,Object> jsonMap) throws IOException
+	private void doJSONResponse( HttpExchange httpExchange, JSONObject jsonObj ) throws IOException
 	{
-		doJSONResponse( httpExchange, HTTP_200_OK, jsonMap );
+		doJSONResponse( httpExchange, HTTP_200_OK, jsonObj );
 	}
 
 	/**
@@ -259,13 +260,13 @@ public class FedManHttpServer
 	 *
 	 * @param httpExchange the {@link HTTPExchange} instance to use to create the response
 	 * @param code the HTTP status code associated with the response
-	 * @param jsonMap the {@link Map} containing the JSON data structure
+	 * @param jsonObj the {@link JSONObject} containing the data structure
 	 * @throws IOException
 	 */
-	private void doJSONResponse( HttpExchange httpExchange, int code, Map<String,Object> jsonMap) throws IOException
+	private void doJSONResponse( HttpExchange httpExchange, int code, JSONObject jsonObj ) throws IOException
 	{
 		addResponseHeader( httpExchange, CONTENT_TYPE, JSON_UTF8 );
-		doHttpResponse(httpExchange, code, stringToBytes( asJSON( jsonMap ) ));
+		doHttpResponse( httpExchange, code, stringToBytes( jsonObj.toJSONString() ) );
 	}
 
 	/**
@@ -330,15 +331,21 @@ public class FedManHttpServer
 	 *
 	 * @param json the JSON structure to update (as a {@link Map<String, Object>} instance
 	 * @param httpExchange the {@link HTTPExchange} instance containing the request (from which
-	 *            the path will be extracted)
+	 *			the path will be extracted)
 	 */
-	private void addTimestampAndPath( Map<String,Object> json, HttpExchange httpExchange )
+	@SuppressWarnings("unchecked")
+	private void addTimestampAndPath( JSONObject json, HttpExchange httpExchange )
 	{
 		json.put( "timestamp", System.currentTimeMillis() );
 		json.put( "path", strip( extractPath( httpExchange ), '/' ) );
-		Map<String,String> query = extractQuery( httpExchange ) ;
-		if(!query.isEmpty())
+		Map<String,String> query = extractQuery( httpExchange );
+		if( !query.isEmpty() )
+		{
+			JSONObject jsonQuery = new JSONObject();
+			for( Entry<String,String> entry : query.entrySet() )
+				jsonQuery.put( entry.getKey(), entry.getValue() );
 			json.put( "query", extractQuery( httpExchange ) );
+		}
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -408,143 +415,11 @@ public class FedManHttpServer
 	 * @param original the original string
 	 * @param toStrip the character to strip
 	 * @return the original string with matching characters stripped from the start and end of the
-	 *         string
+	 *		 string
 	 */
 	private String strip(String original, char toStrip)
 	{
 		return original.replaceAll(toStrip+"$|^"+toStrip, "");
-	}
-
-	/**
-	 * Extremely simple method to turn a map into a JSON string representation
-	 * @return a JSON string of the map contents
-	 */
-	@SuppressWarnings("rawtypes")
-	private String asJSON(Map<Object, Object> data)
-	{
-		List<String> jsonItems = new ArrayList<>();
-		for( Entry entry : data.entrySet() )
-		{
-			Object key = entry.getKey();
-			Object value = entry.getValue();
-			if( key != null && value != null )
-			{
-				String keyStr = escape( key.toString() );
-				String valueStr = asJSON( value );
-				if( valueStr != null )
-					jsonItems.add( "\"" + keyStr + "\":" + valueStr );
-			}
-		}
-		return "{" + jsonItems.stream().collect( Collectors.joining( "," ) ) + "}";
-	}
-
-	/**
-	 * Extremely simple method to turn a map into a JSON string representation
-	 * @return a JSON string of the map contents
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private String asJSON(Object val)
-	{
-		if(val == null)
-			return null;
-		else if(val instanceof String)
-			return "\""+escape(val.toString())+"\"";
-		else if(val instanceof Character)
-			return "\""+val.toString()+"\"";
-		else if(val instanceof Boolean)
-			return Boolean.toString( (Boolean)val );
-		else if(val instanceof Number)
-			return val.toString();
-		else if(val instanceof Double)
-		{
-			Double dbl = (Double)val;
-			if((dbl.isInfinite() || dbl.isNaN()))
-				return "null";
-			return Double.toString( (Double)val );
-		}
-		else if(val instanceof Float)
-		{
-			Float flt = (Float)val;
-			if((flt.isInfinite() || flt.isNaN()))
-				return "null";
-			return Double.toString( (Double)val );
-		}
-		else if( val instanceof Collection ||
-				 val instanceof String[] || val instanceof char[] ||
-			     val instanceof short[] || val instanceof int[] || val instanceof long[] ||
-			     val instanceof double[] || val instanceof float[] ||
-			     val instanceof boolean[] ||
-			     val instanceof Object[]
-			    )
-		{
-			return "["+Stream.of(val).map( x -> asJSON(x) ).collect( Collectors.joining(",") )+"]";
-		}
-		else if( val instanceof Map )
-		{
-			return asJSON((Map)val);
-		}
-		return null;
-	}
-
-	/**
-	 * Utility method to escape strings for use in a JSON string
-	 *
-	 * @param s the {@link String} to be escaped
-	 * @return the escaped string, sfae for use in a JSON string
-	 */
-	private String escape(String s)
-	{
-		StringBuilder sb = new StringBuilder();
-		final int len = s.length();
-		for( int i = 0; i < len; i++ )
-		{
-			char ch = s.charAt( i );
-			switch( ch )
-			{
-				case '"':
-					sb.append( "\\\"" );
-					break;
-				case '\\':
-					sb.append( "\\\\" );
-					break;
-				case '\b':
-					sb.append( "\\b" );
-					break;
-				case '\f':
-					sb.append( "\\f" );
-					break;
-				case '\n':
-					sb.append( "\\n" );
-					break;
-				case '\r':
-					sb.append( "\\r" );
-					break;
-				case '\t':
-					sb.append( "\\t" );
-					break;
-				case '/':
-					sb.append( "\\/" );
-					break;
-				default:
-					//Reference: http://www.unicode.org/versions/Unicode5.1.0/
-					if( (ch >= '\u0000' && ch <= '\u001F') || (ch >= '\u007F' && ch <= '\u009F') ||
-					    (ch >= '\u2000' && ch <= '\u20FF') )
-					{
-						String ss = Integer.toHexString( ch );
-						sb.append( "\\u" );
-						for( int k = 0; k < 4 - ss.length(); k++ )
-						{
-							sb.append( '0' );
-						}
-						sb.append( ss.toUpperCase() );
-					}
-					else
-					{
-						sb.append( ch );
-					}
-			}
-		}
-		return sb.toString();
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -569,11 +444,16 @@ public class FedManHttpServer
 		 */
 		public RequestMethodHandler( String... allowedMethods )
 		{
-			this.allowedMethods =
-			    Stream.of( allowedMethods ).map( m -> m.toUpperCase() ).collect(
-			                                                                     Collectors.toSet() );
+			this.allowedMethods = Stream.of( allowedMethods )
+				.map( m -> m.toUpperCase() )
+				.collect( Collectors.toSet() );
 		}
 
+		public Set<String> allowedMethods()
+		{
+			return this.allowedMethods;
+		}
+		
 		public boolean isSimple( HttpExchange httpExchange )
 		{
 			return !isJSON( httpExchange );
@@ -587,7 +467,7 @@ public class FedManHttpServer
 
 		@Override
 		public void handle( HttpExchange httpExchange )
-		    throws IOException
+			throws IOException
 		{
 			String requestMethod = httpExchange.getRequestMethod().toUpperCase();
 			boolean isValid = this.allowedMethods.contains( requestMethod );
@@ -620,7 +500,7 @@ public class FedManHttpServer
 		 * request method
 		 *
 		 * @param httpExchange the {@link HTTPExchange} instance containing the reques and to use
-		 *            to create the response
+		 *			to create the response
 		 * @throws IOException
 		 */
 		public abstract void handleRequest( HttpExchange httpExchange ) throws IOException;
@@ -661,9 +541,9 @@ public class FedManHttpServer
 	 */
 	private class IndexHandler extends GETRequestHandler
 	{
-		private Map<String,HttpHandler> endpointsMap;
+		private Map<String,RequestMethodHandler> endpointsMap;
 
-		public IndexHandler(Map<String, HttpHandler> endpoints)
+		public IndexHandler(Map<String, RequestMethodHandler> endpoints)
 		{
 			this.endpointsMap = endpoints;
 		}
@@ -672,24 +552,23 @@ public class FedManHttpServer
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String path = extractPath(httpExchange);
-			HttpHandler handler = this.endpointsMap.get(path);
+			RequestMethodHandler handler = this.endpointsMap.get(path);
 
 			// no handler found, or the index handler, is considered a 404 NOT FOUND error
 			boolean is404 = handler == null || handler.equals( this );
-
-			// compile a list of valid endpoint links
-			List<String> hrefs = this.endpointsMap.entrySet()
-				.stream()
-				.filter(endpoint -> !(endpoint.getValue().equals(this))) // don't include index pages
-				.map(endpoint -> endpoint.getKey())
-				.collect( Collectors.toList() );
 
 			StringBuilder html = new StringBuilder();
 			html.append( "<html>");
 			html.append( "<head>");
 			html.append( "<meta charset=\"UTF-8\" />");
 			html.append( "<style>");
-			html.append( "a{text-decoration:none;}");
+			html.append( "table{border-collapse:collapse;}");
+			html.append( "table, tr, th, td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
+			html.append( "a{text-decoration:none;}" );
+			html.append( ".inline{display:inline;}" );
+			html.append( ".link-button{background:none;border:none;padding:0;margin:0;color:blue;text-decoration:none;cursor:pointer;font-size:1em;font-family:serif;}" );
+			html.append( ".link-button:focus{outline:none;}" );
+			html.append( ".link-button:active {color:red;}" );
 			html.append( "</style>");
 			html.append( "</head>");
 
@@ -700,12 +579,60 @@ public class FedManHttpServer
 				html.append( "<h1>404 - Not Found</h1><hr>");
 				html.append( "<p>Valid endpoints:</p>" );
 			}
-			html.append( "<ul>" );
-			for(String href : hrefs )
+			html.append( "<table>" );
+			html.append( "<thead><tr><th>Allowed Request Method(s)</th><th>Text Response</th><th>JSON Response</th><tr></thead>" );
+			html.append( "<tfoot></tfoot>" );
+			html.append( "<tbody>" );
+			
+			// compile a list of valid endpoint links
+			List<Entry<String,RequestMethodHandler>> endpointEntries = this.endpointsMap.entrySet()
+				.stream()
+				.filter(endpoint -> !(endpoint.getValue().equals(this))) // don't include index pages
+				.collect( Collectors.toList() );
+
+			for(Entry<String,RequestMethodHandler> endpointEntry : endpointEntries )
 			{
-				html.append( "<li><a href=\""+href+"\">"+href+"</a></li>" );
+				String currentHref = endpointEntry.getKey();
+				RequestMethodHandler currentHandler = endpointEntry.getValue();
+				Set<String> allowedMethods = currentHandler.allowedMethods();
+				boolean canGET = allowedMethods.contains( "GET" ); 
+				boolean canPOST = allowedMethods.contains( "POST" );
+				String allowedMethodsStr = currentHandler.allowedMethods().stream().collect( Collectors.joining(", ") );
+				html.append( "<tr>" );
+				html.append( "<td>"+allowedMethodsStr+"</td>");
+				if(canPOST)
+				{
+					// this creates a "faux link" which sends a POST request
+					// It is actually a button to trigger the POST styled up to look like a link
+					for( int i = 0; i < 2; i++ )
+					{
+						boolean withJson = i % 2 == 1;
+						String actualHref = currentHref + (withJson ? "?json=true" : "");
+						html.append( "<td>" );
+						html.append( "<form method=\"post\" action=\""+actualHref+"\" class=\"inline\">" );
+						html.append( "<input type=\"hidden\">" );
+						html.append( "<button title=\"POST to "+actualHref+"\" type=\"submit\" class=\"link-button\">" );
+						html.append( currentHref );
+						html.append( "</button>" );
+						html.append( "</form>" );
+						html.append( "</td>" );
+					}
+				}
+				else if(canGET)
+				{
+					for( int i = 0; i < 2; i++ )
+					{
+						boolean withJson = i % 2 == 1;
+						String actualHref = currentHref + (withJson ? "?json=true" : "");
+						html.append( "<td>" );
+						html.append( "<a title=\"GET from "+actualHref+"\" href=\""+actualHref+"\">"+currentHref+"</a>" );
+						html.append( "</td>" );
+					}
+				}
+				html.append( "</td></tr>" );
 			}
-			html.append( "</ul><hr>" );
+			html.append( "</tbody></table><hr>" );
+			
 			html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
 			html.append( "</body></html>" );
 
@@ -724,12 +651,13 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
 	 */
 	private class PingHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			if( isSimple( httpExchange ) )
@@ -738,10 +666,10 @@ public class FedManHttpServer
 			}
 			else
 			{
-    			Map<String,Object> json = new HashMap<>();
-    			addTimestampAndPath(json, httpExchange);
-    			json.put( "response", "UCEF Federation Manager" );
-    			doJSONResponse( httpExchange, json );
+				JSONObject json = new JSONObject();
+				addTimestampAndPath(json, httpExchange);
+				json.put( "response", "UCEF Federation Manager" );
+				doJSONResponse( httpExchange, json );
 			}
 		}
 	}
@@ -755,13 +683,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
 	 *  - LIFECYCLE_STATE is the label of the current lifecycle state of the federation
 	 */
 	private class StatusQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String lifecycleLable = fedManFederate.getLifecycleState().getLabel();
@@ -771,7 +700,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", lifecycleLable );
 				doJSONResponse( httpExchange, json );
@@ -789,13 +718,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - CAN_START       true if the start conditions have been met, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - CAN_START	   true if the start conditions have been met, false otherwise
 	 */
 	private class CanStartQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String canStart = Boolean.toString( fedManFederate.getStartRequirements().canStart() );
@@ -805,7 +735,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", canStart );
 				doJSONResponse( httpExchange, json );
@@ -823,40 +753,62 @@ public class FedManHttpServer
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			FedManStartRequirements requirements = fedManFederate.getStartRequirements();
-			StringBuilder html = new StringBuilder();
-			html.append( "<html>");
-			html.append( "<head>");
-			html.append( "<meta charset=\"UTF-8\">");
-			html.append( "<style>");
-			html.append( "table{border-collapse:collapse;}");
-			html.append( "table, tr, th, td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
-			html.append( "</style>");
-			html.append( "</head>");
-
-			html.append( "<body>" );
-			html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
-
-			html.append( "<table><thead><tr>" );
-			for(String heading : FedManConstants.TABLE_HEADINGS)
-				html.append("<th>"+heading+"</th>");
-			html.append( "</tr></thead><tfoot /><tbody>" );
-
-			// sorted federate types list
-			List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
-			federateTypes.sort( null );
-			for( String federateType : federateTypes )
+			if( isSimple( httpExchange ) )
 			{
-				html.append("<tr>");
-				html.append("<td>"+federateType+"</td>");
-				html.append("<td>"+requirements.startRequirements.get( federateType )+"</td>");
-				html.append("<td>"+requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size()+"</td>");
-				html.append("</tr>");
+				StringBuilder html = new StringBuilder();
+				html.append( "<html>");
+				html.append( "<head>");
+				html.append( "<meta charset=\"UTF-8\">");
+				html.append( "<style>");
+				html.append( "table{border-collapse:collapse;}");
+				html.append( "table, tr, th, td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
+				html.append( "</style>");
+				html.append( "</head>");
+	
+				html.append( "<body>" );
+				html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
+	
+				html.append( "<table><thead><tr>" );
+				for(String heading : FedManConstants.TABLE_HEADINGS)
+					html.append("<th>"+heading+"</th>");
+				html.append( "</tr></thead><tfoot /><tbody>" );
+	
+				// sorted federate types list
+				List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
+				federateTypes.sort( null );
+				for( String federateType : federateTypes )
+				{
+					html.append("<tr>");
+					html.append("<td>"+federateType+"</td>");
+					html.append("<td>"+requirements.startRequirements.get( federateType )+"</td>");
+					html.append("<td>"+requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size()+"</td>");
+					html.append("</tr>");
+				}
+				html.append( "</tbody></table>" );
+	
+				html.append( "</html></body>" );
+	
+				doHTMLResponse( httpExchange, html.toString() );
 			}
-			html.append( "</tbody></table>" );
-
-			html.append( "</html></body>" );
-
-			doHTMLResponse( httpExchange, html.toString() );
+			else
+			{
+				JSONObject jsonObj = new JSONObject();
+				addTimestampAndPath( jsonObj, httpExchange );
+				JSONArray requirementsArray = new JSONArray();
+				jsonObj.put("response", requirementsArray);
+				List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
+				federateTypes.sort( null );
+				for( String federateType : federateTypes )
+				{
+					JSONObject requirementState = new JSONObject();
+					requirementState.put( "type", federateType );
+					requirementState.put( "count", requirements.startRequirements.get( federateType ) );
+					requirementState.put( "joined", requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size() );
+					requirementsArray.add( requirementState );
+				}
+				doJSONResponse( httpExchange, jsonObj );
+			}
+			
 		}
 	}
 
@@ -869,13 +821,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - HAS_STARTED     true if the simulation has started, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - HAS_STARTED	 true if the simulation has started, false otherwise
 	 */
 	private class HasStartedQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String hasStarted = Boolean.toString( fedManFederate.hasStarted() );
@@ -885,7 +838,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", hasStarted );
 				doJSONResponse( httpExchange, json );
@@ -902,13 +855,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - HAS_ENDED       true if the simulation has ended, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - HAS_ENDED	   true if the simulation has ended, false otherwise
 	 */
 	private class HasEndedQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String hasEnded = Boolean.toString( fedManFederate.hasEnded() );
@@ -918,7 +872,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", hasEnded );
 				doJSONResponse( httpExchange, json );
@@ -935,13 +889,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - IS_PAUSED       true if the simulation is paused, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - IS_PAUSED	   true if the simulation is paused, false otherwise
 	 */
 	private class IsPausedQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String isPaused = Boolean.toString( fedManFederate.isPaused() );
@@ -951,7 +906,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", isPaused );
 				doJSONResponse( httpExchange, json );
@@ -968,13 +923,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - IS_RUNNING      true if the simulation is running, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - IS_RUNNING	  true if the simulation is running, false otherwise
 	 */
 	private class IsRunningQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String isRunning = Boolean.toString( fedManFederate.isRunning() );
@@ -984,7 +940,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", isRunning );
 				doJSONResponse( httpExchange, json );
@@ -1002,13 +958,14 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - IS_WAITING      true if the manager is waiting for federates to join, false otherwise
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - IS_WAITING	  true if the manager is waiting for federates to join, false otherwise
 	 */
 	private class IsWaitingForFederatesToJoinQueryHandler extends GETRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			String isWaiting = Boolean.toString( fedManFederate.isWaitingForFederates() );
@@ -1018,7 +975,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", isWaiting );
 				doJSONResponse( httpExchange, json );
@@ -1036,16 +993,17 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
-	 *  - SUCCESS         true: if the request succeeded, false otherwise
-	 *  - ERROR_MSG       an explanatory error message in the case that the request failed,
-	 *                    otherwise this key/value is absent from the JSON
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - OK_OR_FAILED	"OK": if the request succeeded, "FAILED" otherwise
+	 *  - SUCCESS		 true: if the request succeeded, false otherwise
+	 *  - ERROR_MSG	   an explanatory error message in the case that the request failed,
+	 *					otherwise this key/value is absent from the JSON
 	 */
 	private class PauseCommandHandler extends POSTRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			int code = HTTP_200_OK;
@@ -1079,7 +1037,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", responseContent );
 				json.put( "success", isOK );
@@ -1100,16 +1058,17 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
-	 *  - SUCCESS         true: if the request succeeded, false otherwise
-	 *  - ERROR_MSG       an explanatory error message in the case that the request failed,
-	 *                    otherwise this key/value is absent from the JSON
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - OK_OR_FAILED	"OK": if the request succeeded, "FAILED" otherwise
+	 *  - SUCCESS		 true: if the request succeeded, false otherwise
+	 *  - ERROR_MSG	   an explanatory error message in the case that the request failed,
+	 *					otherwise this key/value is absent from the JSON
 	 */
 	private class ResumeCommandHandler extends POSTRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			int code = HTTP_200_OK;
@@ -1143,7 +1102,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", responseContent );
 				json.put( "success", isOK );
@@ -1164,16 +1123,17 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
-	 *  - SUCCESS         true: if the request succeeded, false otherwise
-	 *  - ERROR_MSG       an explanatory error message in the case that the request failed,
-	 *                    otherwise this key/value is absent from the JSON
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - OK_OR_FAILED	"OK": if the request succeeded, "FAILED" otherwise
+	 *  - SUCCESS		 true: if the request succeeded, false otherwise
+	 *  - ERROR_MSG	   an explanatory error message in the case that the request failed,
+	 *					otherwise this key/value is absent from the JSON
 	 */
 	private class StartCommandHandler extends POSTRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			int code = HTTP_200_OK;
@@ -1207,7 +1167,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", responseContent );
 				json.put( "success", isOK );
@@ -1228,16 +1188,17 @@ public class FedManHttpServer
 	 *
 	 * ...where:
 	 *
-	 *  - TIMESTAMP       is the system time in milliseconds at the time the request was processed
-	 *  - PATH            is the URL path segment of the query
-	 *  - OK_OR_FAILED    "OK": if the request succeeded, "FAILED" otherwise
-	 *  - SUCCESS         true: if the request succeeded, false otherwise
-	 *  - ERROR_MSG       an explanatory error message in the case that the request failed,
-	 *                    otherwise this key/value is absent from the JSON
+	 *  - TIMESTAMP	   is the system time in milliseconds at the time the request was processed
+	 *  - PATH			is the URL path segment of the query
+	 *  - OK_OR_FAILED	"OK": if the request succeeded, "FAILED" otherwise
+	 *  - SUCCESS		 true: if the request succeeded, false otherwise
+	 *  - ERROR_MSG	   an explanatory error message in the case that the request failed,
+	 *					otherwise this key/value is absent from the JSON
 	 */
 	private class EndCommandHandler extends POSTRequestHandler
 	{
 		@Override
+		@SuppressWarnings("unchecked")
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			int code = HTTP_200_OK;
@@ -1266,7 +1227,7 @@ public class FedManHttpServer
 			}
 			else
 			{
-				Map<String,Object> json = new HashMap<>();
+				JSONObject json = new JSONObject();
 				addTimestampAndPath( json, httpExchange );
 				json.put( "response", responseContent );
 				json.put( "success", isOK );
@@ -1282,7 +1243,7 @@ public class FedManHttpServer
 	////////////////////////////////////////////////////////////////////////////////////////////
 
 	//----------------------------------------------------------
-	//                     STATIC METHODS
+	//					 STATIC METHODS
 	//----------------------------------------------------------
 	/**
 	 * Test code only
@@ -1291,9 +1252,9 @@ public class FedManHttpServer
 	public static void main(String[] args)
 	{
 		String[] testArgs = {
-		    "--federation", "TheFederation",
-		    "--require", "FedABC,1",
-		    "--require", "FedXYZ,2",
+			"--federation", "TheFederation",
+			"--require", "FedABC,1",
+			"--require", "FedXYZ,2",
 		};
 
 		try

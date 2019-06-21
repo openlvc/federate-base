@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.cli.ParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
@@ -63,6 +65,7 @@ public class FederationManager
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final Logger logger = LogManager.getLogger( FederationManager.class );
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
@@ -102,8 +105,6 @@ public class FederationManager
 			FedManFederate federate = new FedManFederate();
 			initializeConfig( federate, argProcessor );
 
-			// TODO!!!!!!!!!!
-			// This all needs to be shifted into the config initialization
 			try
 			{
 				FederateConfiguration config = federate.getFederateConfiguration();
@@ -124,6 +125,10 @@ public class FederationManager
 			{
 				httpServer = new FedManHttpServer( federate, argProcessor.httpServicePort() );
 				httpServer.startServer();
+			}
+			else
+			{
+				logger.info( "HTTP service disabled by config. Skipping HTTP service startup." );
 			}
 
 			federate.runFederate();
