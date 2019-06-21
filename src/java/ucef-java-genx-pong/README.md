@@ -9,6 +9,26 @@ of done" for validating WebGME modifications.
 As such, it is somewhat temporary, and may be removed in the final
 deliverables.
 
+## Quick Start
+
+A utility batch and shell script file are provided to make startup simple 
+example...
+
+```
+run-pong-federate.bat
+```
+...on Windows, or...
+```
+run-pong-federate.sh
+```
+...on *nix systems.
+
+The script will query the Federation Manager's HTTP service to determine
+when it is ready to accept federate joins, and then join the federation
+automatically.
+
+For further details, please inspect the contents of the script files.
+
 # Breakdown
 
 ## src/main/java
