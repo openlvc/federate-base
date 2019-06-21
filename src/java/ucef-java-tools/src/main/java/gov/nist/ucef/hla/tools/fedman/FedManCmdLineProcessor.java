@@ -83,7 +83,7 @@ public class FedManCmdLineProcessor
 	private static final int LOGICAL_STEP_GRANULARITY_DEFAULT          = 1;
 	private static final double REALTIME_MULTIPLIER_DEFAULT            = 1.0;
 	private static final boolean HTTP_SERVICE_ACTIVE_DEFAULT           = true;
-	private static final int HTTP_PORT_DEFAULT                         = 8080;
+	private static final int HTTP_PORT_DEFAULT                         = 8888;
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -433,7 +433,10 @@ public class FedManCmdLineProcessor
 					CMDLINE_ARG_LOGICAL_SECOND,
 					CMDLINE_ARG_LOGICAL_STEP_GRANULARITY,
 					CMDLINE_ARG_REALTIME_MULTIPLIER,
-					CMDLINE_SWITCH_NO_HTTP_SERVICE,
+					// note that the JSON is slightly different to command line here
+					// since it can accept true or false for HTTP service activation
+					// - compare with CMDLINE_SWITCH_NO_HTTP_SERVICE
+					JSON_CONFIG_KEY_WITH_HTTP,
 					CMDLINE_ARG_HTTP_PORT
 				}
 			));
