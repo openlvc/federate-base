@@ -69,7 +69,7 @@
                 <name>NetworkInteraction</name>
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
- 		<sharing>Publish</sharing>
+ 		<sharing>Neither</sharing>
                 <parameter> 
                     <name>wrappedClassName</name>
                     <dataType>String</dataType>
@@ -163,7 +163,7 @@
                     <order>TimeStamp</order>
                     <interactionClass>
                         <name>PingInteraction</name>
-			<sharing>Publish</sharing>
+			<sharing>Subscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <parameter> 
@@ -173,7 +173,7 @@
                     </interactionClass>
                     <interactionClass>
                         <name>PongInteraction</name>
-			<sharing>Subscribe</sharing>
+			<sharing>Publish</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <parameter> 

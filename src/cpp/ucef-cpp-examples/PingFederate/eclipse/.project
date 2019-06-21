@@ -29,7 +29,17 @@
 		<link>
 			<name>PingFederate.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeFederate.cpp</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/PingFederate.cpp</locationURI>
+		</link>
+		<link>
+			<name>PingFederate.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/PingFederate.h</locationURI>
+		</link>
+		<link>
+			<name>main.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/main.cpp</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>

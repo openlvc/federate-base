@@ -49,7 +49,6 @@ namespace base
                    {
                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
                        auto fedConfig = federate->getFederateConfiguration();
-                       JsonParser& parser = JsonParser::getInstance();
 
                        string data = cMsgFrom->par("data").stringValue();
 
@@ -65,37 +64,37 @@ namespace base
                            // Now extract the parameter value from JSON string
                            if( dataType == DATATYPESTRING )
                            {
-                              string value = parser.getValueAsString( data, param  );
+                              string value = JsonParser::getValueAsString( data, param  );
                               hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPESHORT )
                            {
-                               short value = (short)parser.getValueAsInt( data, param );
+                               short value = (short)JsonParser::getValueAsInt( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEINT )
                            {
-                               int value = parser.getValueAsInt( data, param );
+                               int value = JsonParser::getValueAsInt( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPELONG )
                            {
-                               long value = parser.getValueAsLong( data, param );
+                               long value = JsonParser::getValueAsLong( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEFLOAT )
                            {
-                               float value = parser.getValueAsFloat( data, param );
+                               float value = JsonParser::getValueAsFloat( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEDOUBLE  )
                            {
-                               double value = parser.getValueAsDouble( data, param );
+                               double value = JsonParser::getValueAsDouble( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEBOOLEAN)
                            {
-                               bool value = parser.getValueAsBool( data, param );
+                               bool value = JsonParser::getValueAsBool( data, param );
                                hlaIntTo->setValue( param, value );
                            }
                        }

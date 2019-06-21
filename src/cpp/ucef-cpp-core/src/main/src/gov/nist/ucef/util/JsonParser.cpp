@@ -10,11 +10,6 @@ namespace base
 {
 	namespace util
 	{
-		JsonParser& JsonParser::getInstance()
-		{
-			static JsonParser instance;
-			return instance;
-		}
 
 		bool JsonParser::getValueAsBool( std::string& json, std::string& key )
 		{

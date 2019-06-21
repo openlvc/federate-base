@@ -29,7 +29,7 @@ namespace base
 	                               lifecycleState( LIFE_CYCLE_UNKNOWN ),
 	                               syncPointTimeouts()
 	{
-		JsonParser::getInstance();
+
 	}
 
 	FederateBase::~FederateBase()

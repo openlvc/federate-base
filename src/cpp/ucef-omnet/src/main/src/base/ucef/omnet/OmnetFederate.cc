@@ -53,21 +53,22 @@ void OmnetFederate::initialize()
 
     initializeFederate();
 
-    auto fedConfig = getFederatePtr()->getFederateConfiguration();
-
-    federateName = fedConfig->getFederateName();
-    hostName = fedConfig->getValueAsString( fedConfigFile, FederateConfiguration::KEY_OMNET_HOST );
-    string tmpValue = fedConfig->getValueAsString( fedConfigFile, FederateConfiguration::KEY_NET_INT_NAME );
+    federateName = getFederateConfiguration()->getFederateName();
+    hostName = getFederateConfiguration()->getValueAsString( fedConfigFile, FederateConfiguration::KEY_OMNET_HOST );
+    string tmpValue = getFederateConfiguration()->getValueAsString( fedConfigFile, FederateConfiguration::KEY_NET_INT_NAME );
     if( tmpValue != "" )
         networkInteractionName = tmpValue;
 
     logger.log( "Host name of this module set to " + hostName , LevelInfo );
     logger.log( "Network interaction name set to " + networkInteractionName , LevelInfo );
-    scheduleAt(simTime(), new cMessage);
+    // Schedule a timer message so we can run the OMNeT simulation continuously
+    timerMessage = new cMessage( "timer" );
+    scheduleAt( simTime(), timerMessage );
 }
 
 void OmnetFederate::finish()
 {
+    cancelAndDelete( timerMessage );
     shouldContinue = false;
     tearDownFederate();
 }
@@ -77,9 +78,8 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
     Logger& logger = Logger::getInstance();
     if( cMsg->isSelfMessage() )
     {
-        processToOmnet();
-        delete cMsg;
-        scheduleAt( simTime() + getFederatePtr()->getFederateConfiguration()->getTimeStep() * 4, new cMessage );
+        execute(); // tick the federate
+        scheduleAt( simTime() + 1, timerMessage );
         return;
     }
 
@@ -101,6 +101,9 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
                shared_ptr<HLAInteraction> interaction = make_shared<HLAInteraction>( hlaClassName );
                MessageCodec::packValues( interaction, cMsg );
 
+               string logMsg = "Interaction " + hlaClassName + "Created successfully.";
+               logger.log( logMsg, LevelInfo );
+
                unique_lock<mutex> lock( toHlaLock );
                interactionsToRti.push_back( interaction );
                lock.unlock();
@@ -110,7 +113,7 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
            else
            {
                string logMsg = "Received packet doesn't have the parameter " +
-                               FederateConfiguration::KEY_ORG_CLASS + ". Hence, I cannot create a valid interaction." ;
+                               FederateConfiguration::KEY_ORG_CLASS + ". Hence, I(" + hostName +") cannot create a valid interaction." ;
                logger.log( logMsg, LevelError );
            }
 
@@ -118,13 +121,14 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
        else
        {
            send( cMsg, "out" );
-           string msg = "Received a packet designated to " +  dstOmnetHost + ". I am going to simply forward it" ;
+           string msg = "Received a packet designated to " +  dstOmnetHost + ". I(" + hostName +") am going to simply forward it." ;
            logger.log( msg, LevelInfo );
        }
     }
     else
     {
-       string msg = "Received packet doesn't contain parameter " +  FederateConfiguration::KEY_DST_OMNET_HOST + ". I am going to simply forward it" ;
+       string msg = "Received packet doesn't contain parameter " +  FederateConfiguration::KEY_DST_OMNET_HOST;
+       msg += ". I(" + hostName +")  am going to simply forward it" ;
        logger.log( msg, LevelDebug );
        send( cMsg, "out" );
     }
@@ -133,6 +137,7 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
 
 bool OmnetFederate::step( double federateTime )
 {
+    processToOmnet();
     processToHla();
     return shouldContinue;
 }
@@ -149,7 +154,7 @@ void OmnetFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt
 
         if( designatedOmnetFederate.compare(hostName) == 0 )
         {
-            string msg = "Received an network interaction designated to me (" + designatedOmnetFederate  + ") I am going to send this to OMNeT simulation.";
+            string msg = "Received an network interaction designated to me (" + designatedOmnetFederate  + "). I am going to send this to OMNeT simulation.";
             logger.log( msg, LevelInfo );
 
             unique_lock<mutex> lock( toOmnetLock );
@@ -183,8 +188,9 @@ void OmnetFederate::tearDownFederate()
 
 void OmnetFederate::processToHla()
 {
-    unique_lock<mutex> lock( toHlaLock );
+    Logger& logger = Logger::getInstance();
 
+    unique_lock<mutex> lock( toHlaLock );
     auto cpyInteractionsToRti = interactionsToRti;
     interactionsToRti.clear();
 
@@ -192,6 +198,9 @@ void OmnetFederate::processToHla()
 
     for( auto& interaction : cpyInteractionsToRti )
     {
+        string logMsg = "Sending interaction " +  interaction->getInteractionClassName() + " to the RTI now";
+        logger.log( logMsg, LevelInfo );
+
         rtiAmbassadorWrapper->sendInteraction( interaction );
     }
 }

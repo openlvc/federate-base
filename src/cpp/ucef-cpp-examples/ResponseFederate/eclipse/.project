@@ -52,6 +52,11 @@
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseFederate.cpp</locationURI>
 		</link>
 		<link>
+			<name>ResponseFederate.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseFederate.h</locationURI>
+		</link>
+		<link>
 			<name>ResponseInteraction.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.cpp</locationURI>
@@ -60,6 +65,11 @@
 			<name>ResponseInteraction.h</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.h</locationURI>
+		</link>
+		<link>
+			<name>main.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/main.cpp</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

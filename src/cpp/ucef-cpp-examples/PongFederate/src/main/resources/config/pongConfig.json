@@ -1,0 +1,16 @@
+{
+    "federateName":"PongFederate",
+    "federateType":"PongFederate",
+    "federationExecName":"PingPongOmnetFederation",
+    "canCreateFederation":true,
+    "maxJoinAttempts":2,
+    "joinRetryIntervalSec":5,
+    "syncBeforeResign":true,
+    "callbacksAreImmediate":true,
+    "lookAhead":0.2,
+    "stepSize":1,
+    "timeConstrained":true,
+    "timeRegulated":false,
+    "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
+    "somPath":"resources//ObjectModels//som//UCEF-EXP-PONG.xml"   
+}

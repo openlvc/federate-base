@@ -24,7 +24,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/src/base/ucef/omnet/OmnetFederate.o $O/src/base/ucef/omnet/OmnetFederateScheduler.o $O/src/base/ucef/omnet/util/MessageCodec.o
+OBJS = $O/src/base/ucef/omnet/OmnetFederate.o $O/src/base/ucef/omnet/util/MessageCodec.o
 
 # Message files
 MSGFILES =

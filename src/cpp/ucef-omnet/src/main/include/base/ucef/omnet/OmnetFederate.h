@@ -27,7 +27,6 @@ namespace base
     {
         namespace omnet
         {
-
             class OmnetFederate : public omnetpp::cSimpleModule, public base::ucef::NoOpFederate
             {
             public:
@@ -92,6 +91,7 @@ namespace base
                 std::string networkInteractionName;
 
                 static base::ucef::NoOpFederate* thisFedarate;
+                omnetpp::cMessage *timerMessage;
             };
         }
     }

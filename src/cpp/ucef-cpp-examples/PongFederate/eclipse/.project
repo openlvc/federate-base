@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>ChallengeFederate</name>
+	<name>PongFederate</name>
 	<comment></comment>
 	<projects>
 		<project>FederateBase</project>
@@ -27,44 +27,14 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>ChallengeFederate.cpp</name>
+			<name>PongFederate.cpp</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeFederate.cpp</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/PongFederate.cpp</locationURI>
 		</link>
 		<link>
-			<name>ChallengeFederate.h</name>
+			<name>PongFederate.h</name>
 			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeFederate.h</locationURI>
-		</link>
-		<link>
-			<name>ChallengeInteraction.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeInteraction.cpp</locationURI>
-		</link>
-		<link>
-			<name>ChallengeInteraction.h</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeInteraction.h</locationURI>
-		</link>
-		<link>
-			<name>ChallengeObject.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeObject.cpp</locationURI>
-		</link>
-		<link>
-			<name>ChallengeObject.h</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ChallengeObject.h</locationURI>
-		</link>
-		<link>
-			<name>ResponseInteraction.cpp</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.cpp</locationURI>
-		</link>
-		<link>
-			<name>ResponseInteraction.h</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.h</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/PongFederate.h</locationURI>
 		</link>
 		<link>
 			<name>main.cpp</name>

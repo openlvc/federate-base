@@ -21,6 +21,7 @@ simple OmnetFederateModuleA
 {
     @display("i=block/join");
     gates:
+        input in;
         output out;
 }
 
@@ -45,6 +46,7 @@ simple OmnetFederateModuleD
     @display("i=block/join");
     gates:
         input in;
+        output out;
 }
 
 simple SimpleResponseModule
@@ -56,27 +58,28 @@ simple SimpleResponseModule
 
 network OmnetFederateNet
 {
-    @display("bgb=297,264");
+    @display("bgb=350,264");
     submodules:
         omA: OmnetFederateModuleA {
-            @display("p=66,163");
+            @display("p=20,172");
         }
         omB: OmnetFederateModuleB {
-            @display("p=146,163");
+            @display("p=163,120");
         }
         omC: OmnetFederateModuleC {
-            @display("p=226,163");
+            @display("p=246,32");
         }
         omD: OmnetFederateModuleD {
-            @display("p=306,163");
+            @display("p=329,172");
         }
         sim: SimpleResponseModule {
-            @display("p=106,48;i=block/rxtx");
+            @display("p=100,38;i=block/rxtx");
         }
     connections:
         omA.out --> {  delay = 1000ms; } --> sim.in;
         omB.in <-- {  delay = 1000ms; } <-- sim.out;
         omB.out --> {  delay = 1000ms; } --> omC.in;
         omD.in <-- {  delay = 1000ms; } <-- omC.out;
-                
+        omD.out --> {  delay = 1000ms; } --> omA.in;
+
 }

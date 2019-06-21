@@ -6,7 +6,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <modelIdentification>
         <name>ChallengeResponse</name>
-        <type>SOM</type>
+        <type>FOM</type>
         <version>0.1.0</version>
         <modificationDate>2019-01-11</modificationDate>
         <securityClassification>Unclassified</securityClassification>
@@ -21,28 +21,23 @@
     <objects>
         <objectClass>
             <name>HLAobjectRoot</name>
-            <sharing>Neither</sharing>
             <objectClass>
                 <name>ParentObject</name>
-                <sharing>Neither</sharing>
-                <attribute>
+                 <attribute>
                     <name>challengeId</name>
                     <dataType>String</dataType>
                     <updateType>NA</updateType>
                     <ownership>NoTransfer</ownership>
-                    <sharing>Subscribe</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                 </attribute>
                 <objectClass>
                     <name>ChallengeObject</name>
-                    <sharing>Subscribe</sharing>
                     <attribute>
                         <name>beginIndex</name>
                         <dataType>int</dataType>
                         <updateType>NA</updateType>
                         <ownership>NoTransfer</ownership>
-                        <sharing>Subscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                     </attribute>
@@ -51,7 +46,6 @@
                         <dataType>String</dataType>
                         <updateType>NA</updateType>
                         <ownership>NoTransfer</ownership>
-                        <sharing>Subscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                     </attribute>
@@ -62,14 +56,12 @@
     <interactions>
         <interactionClass>
             <name>HLAinteractionRoot</name>
-            <sharing>Neither</sharing>
             <transportation>HLAreliable</transportation>
             <order>TimeStamp</order>
  	    <interactionClass>
                 <name>NetworkInteraction</name>
                 <transportation>HLAreliable</transportation>
                 <order>TimeStamp</order>
- 		<sharing>Publish</sharing>
                 <parameter> 
                     <name>wrappedClassName</name>
                     <dataType>String</dataType>
@@ -110,7 +102,6 @@
                 </parameter>
                 <interactionClass>
                     <name>FederateJoinInteraction</name>
-                    <sharing>Publish</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <parameter> 
@@ -128,7 +119,6 @@
                 </interactionClass>
                 <interactionClass>
                     <name>FederateResignInteraction</name>
-                    <sharing>Publish</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <parameter> 
@@ -146,24 +136,20 @@
                 </interactionClass>
                 <interactionClass>
                     <name>SimulationControl</name>
-                    <sharing>Neither</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <interactionClass>
                         <name>SimEnd</name>
-                        <sharing>Subscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                     </interactionClass>
                 </interactionClass>
                 <interactionClass>
                     <name>ParentInteraction</name>
-                    <sharing>Neither</sharing>
                     <transportation>HLAreliable</transportation>
                     <order>TimeStamp</order>
                     <interactionClass>
                         <name>PingInteraction</name>
-			<sharing>Publish</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <parameter> 
@@ -173,7 +159,6 @@
                     </interactionClass>
                     <interactionClass>
                         <name>PongInteraction</name>
-			<sharing>Subscribe</sharing>
                         <transportation>HLAreliable</transportation>
                         <order>TimeStamp</order>
                         <parameter> 
