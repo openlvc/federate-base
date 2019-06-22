@@ -38,19 +38,17 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
+import org.json.simple.JSONObject;
 
 import gov.nist.ucef.hla.base.FederateConfiguration;
-import gov.nist.ucef.hla.base.Types.DataType;
-import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.Types.ObjectClass;
-import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.challenger.base._ChallengeFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.example.util.ConfigUtils;
+import gov.nist.ucef.hla.example.util.JSONUtils;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
@@ -78,6 +76,9 @@ public class ChallengeFederate extends _ChallengeFederate
 	public static final String CMDLINE_ARG_HELP_SHORT = "h";
 	public static final String CMDLINE_ARG_ITERATIONS = "iterations";
 	public static final String CMDLINE_ARG_ITERATIONS_SHORT = "i";
+	public static final String CMDLINE_ARG_JSON_CONFIG_FILE = "config";
+	
+	public static final String JSON_CONFIG_FILE_DEFAULT = "challenger/challenge-config.json";
 	public static final int ITERATIONS_DEFAULT = 10;
 	
 	// the characters which are allowed to be included in a challenge string
@@ -96,7 +97,7 @@ public class ChallengeFederate extends _ChallengeFederate
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	// the total number of challenges we will be sending
-	int totalChallenges = 0;
+	private int totalChallenges;
 	
 	// track the challenges we send out which have so far not been responded to
 	private Map<String, ChallengeObject> unansweredChallengeObjects;
@@ -118,77 +119,15 @@ public class ChallengeFederate extends _ChallengeFederate
 		this.unansweredChallengeInteractions = new HashMap<>();
 		this.responseInteractions = new ArrayList<>();
 		
-		Option help = Option.builder( CMDLINE_ARG_HELP_SHORT )
-			.longOpt( CMDLINE_ARG_HELP )
-			.desc("print this message and exit." )
-			.build();
-		Option iterations = Option.builder(CMDLINE_ARG_ITERATIONS_SHORT)
-			.longOpt( CMDLINE_ARG_ITERATIONS )
-			.hasArg()
-			.argName( "count" )
-			.desc( String.format( "Set the number of challenges to issue. " +
-								  "If unspecified a value of '%d' will be used.",
-								  ITERATIONS_DEFAULT ))
-			.type( PatternOptionBuilder.NUMBER_VALUE )
-			.build();
-		
-		Options cmdLineOptions = new Options();
-		cmdLineOptions.addOption( help );
-		cmdLineOptions.addOption( iterations );
-		
-		CommandLineParser parser = new DefaultParser();
-		// will throw an ParseException if any of the command line args are "bad"
-		// At this stage we know that all the command arguments were parsed correctly
-		// perform required validation
-		try
-		{
-			CommandLine cmdLine = parser.parse( cmdLineOptions, args );
-			if(cmdLine.hasOption( CMDLINE_ARG_HELP ))
-			{
-				// show help message and exit
-				this.showHelp(cmdLineOptions);
-				System.exit( 0 );
-			}
-				
-			this.totalChallenges = ITERATIONS_DEFAULT;
-			if(cmdLine.hasOption( CMDLINE_ARG_ITERATIONS ))
-			{
-				Object parsedValue = cmdLine.getParsedOptionValue( CMDLINE_ARG_ITERATIONS );
-				if(parsedValue instanceof Long)
-				{
-					int intValue = ((Long)parsedValue).intValue();
-					if(intValue < 0)
-					{
-						throw new ParseException( String.format( "Value for '%s' option must be greater than zero.", 
-						                                         CMDLINE_ARG_ITERATIONS) );
-					}
-					this.totalChallenges = intValue;
-				}
-				else
-				{
-					throw new ParseException( String.format( "Value for '%s' option must be a whole number greater than zero.", 
-					                                         CMDLINE_ARG_ITERATIONS) );
-				}
-			}
-		}
-		catch( ParseException e )
-		{
-			System.err.println( e.getMessage() );
-			this.showHelp(cmdLineOptions);
-			System.out.println( "Cannot proceed. Exiting now." );
-			System.exit( 1 );
-		}
+		this.totalChallenges = ITERATIONS_DEFAULT;
 	}
 
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	public void showHelp(Options cmdLineOptions)
+	public void setTotalChallenges( int totalChallenges )
 	{
-		HelpFormatter helpFormatter = new HelpFormatter();
-		String header = "Verifies that messages are exchanged correctly between federates.\n\n";
-		String footer = "\n";
-		helpFormatter.printHelp("ChallengeFederate", header, cmdLineOptions, footer, true);			
+		this.totalChallenges = totalChallenges;
 	}
 	
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -538,59 +477,143 @@ public class ChallengeFederate extends _ChallengeFederate
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	/**
-	 * Utility function to set up salient configuration details for the federate
-	 * 
-	 * @param the {@link FederateConfiguration} instance to be initialized
-	 */
-	private static void initializeConfig( FederateConfiguration config )
+	private static Options buildCommandLineOptions()
 	{
-		config.setFederateName( "JavaChallenger" );
-		config.setFederateType( "ChallengeFederate" );
-		config.setFederationName( "ChallengeResponseFederation" );
-
-		config.addFomPath( "ChallengeResponse/fom/ChallengeResponse.xml" );
-		config.addSomPath( "ChallengeResponse/som/Challenge.xml" );
+		Option help = Option.builder( CMDLINE_ARG_HELP_SHORT )
+			.longOpt( CMDLINE_ARG_HELP )
+			.desc("print this message and exit." )
+			.build();
+		Option configLocation = Option.builder()
+			.longOpt( CMDLINE_ARG_JSON_CONFIG_FILE )
+			.hasArg()
+			.argName( "file" )
+			.required( false )
+			.desc( String.format( "Set the location of the JSON configuration file for the " +
+								  "federate to use. If unspecified a value of '%s' will be " +
+								  "used.", JSON_CONFIG_FILE_DEFAULT ) )
+			.type( PatternOptionBuilder.STRING_VALUE )
+			.build();
+		Option iterations = Option.builder(CMDLINE_ARG_ITERATIONS_SHORT)
+			.longOpt( CMDLINE_ARG_ITERATIONS )
+			.hasArg()
+			.argName( "count" )
+			.required( false )
+			.desc( String.format( "Set the number of challenges to issue. " +
+								  "If unspecified a value of '%d' will be used.",
+								  ITERATIONS_DEFAULT ))
+			.type( PatternOptionBuilder.NUMBER_VALUE )
+			.build();
 		
-		// set up interactions to publish and subscribe to
-		config.cacheInteractionClasses(
-            InteractionClass.Sub( ResponseInteraction.interactionClassName() ),
-            InteractionClass.Pub( ChallengeInteraction.interactionClassName() )
-		);
-
-		// set up object class reflections to publish and subscribe to
-		ObjectClass challengeReflection = ObjectClass.Pub( ChallengeObject.objectClassName() );
-		for( String attributeName : ChallengeObject.attributeNames() )
-		{
-			challengeReflection.addAttributePub( attributeName, DataType.STRING );
-		}
-		config.cacheObjectClasses( challengeReflection );
+		Options cmdLineOptions = new Options();
+		cmdLineOptions.addOption( help );
+		cmdLineOptions.addOption( configLocation );
+		cmdLineOptions.addOption( iterations );
 		
-		// subscribed UCEF simulation control interactions
-		config.cacheInteractionClasses( 
-    		InteractionClass.Sub( SimPause.interactionName() ),
-    		InteractionClass.Sub( SimResume.interactionName() ),
-    		InteractionClass.Sub( SimEnd.interactionName() )
-		);
-		
-		// somebody set us up the FOM...
+		return cmdLineOptions;
+	}
+	
+	/**
+	 * A method which parses and validates command line arguments
+	 * 
+	 * After calling this method, it is expected that the contents of the returned
+	 * {@link CommandLine} instance will be ready for use, and no further checks on the validity
+	 * of the content should be required.
+	 * 
+	 * This means that required values are guaranteed to be present, values will be in the correct
+	 * range and/or valid formats and so on.
+	 * 
+	 * @param args the arguments
+	 * @param cmdLineOptions the command line options
+	 * @return the resulting {@link CommandLine} instance
+	 */
+	private static CommandLine parseAndValidateCommandLineOptions( String[] args, Options cmdLineOptions )
+	{
+		CommandLineParser parser = new DefaultParser();
+		// will throw an ParseException if any of the command line args are "bad"
+		// At this stage we know that all the command arguments were parsed correctly
+		// perform required validation
+		CommandLine cmdLine = null;
 		try
 		{
-			String fomRootPath = ExampleConstants.RESOURCES_ROOT;
-			// modules
-			String[] moduleFoms = { fomRootPath + "/challenge-response/fom/ChallengeResponse.xml" };
-			config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
-			
-			// join modules
-			String[] joinModuleFoms = {};
-			config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
+			cmdLine = parser.parse( cmdLineOptions, args );
+			// validate options that need validation
+			if( cmdLine.hasOption( CMDLINE_ARG_ITERATIONS ) )
+			{
+				Object parsedValue = cmdLine.getParsedOptionValue( CMDLINE_ARG_ITERATIONS );
+				if( parsedValue instanceof Long )
+				{
+					int intValue = ((Long)parsedValue).intValue();
+					if( intValue < 0 )
+					{
+						throw new ParseException( String.format( "Value for '%s' must be " +
+						                                         "greater than zero.",
+						                                         CMDLINE_ARG_ITERATIONS ) );
+					}
+				}
+				else
+				{
+					throw new ParseException( String.format( "Value for '%s' must be " +
+					                                         "a whole number greater than zero.",
+					                                         CMDLINE_ARG_ITERATIONS ) );
+				}
+			}
 		}
-		catch( Exception e )
+		catch( ParseException e )
 		{
-			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
+			System.err.println( "!!!!!ERRORS WERE FOUND!!!!!:" );
+			System.err.println( e.getMessage() );
+			System.err.println( "!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+			System.err.println();
+			displayHelp( cmdLineOptions );
+			System.out.println( "Cannot proceed. Exiting now." );
+			System.exit( 1 );
 		}
-	}
 
+		return cmdLine;
+	}
+	
+	private static boolean validateJsonOptions( JSONObject jsonConfig )
+	{
+		boolean isValid = true;
+		
+		if( jsonConfig.containsKey( CMDLINE_ARG_ITERATIONS ) )
+		{
+			Object valueObj = jsonConfig.get( CMDLINE_ARG_ITERATIONS );
+			if( valueObj instanceof Long )
+			{
+				long value = (Long)valueObj;
+				isValid = value > 0L;
+			}
+			
+			if(!isValid)
+			{
+				System.err.println( "!!!!!ERRORS WERE FOUND!!!!!:" );
+				System.out.println( String.format( "ERROR: Value for '%s' option must be " +
+				                                   "a whole number greater than zero.",
+				                                   CMDLINE_ARG_ITERATIONS ) );
+				System.err.println( "!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+				System.err.println();
+			}
+		}
+		
+		
+		return isValid;
+	}
+	
+	/**
+	 * A simple utility method to display command line option help
+	 * 
+	 * @param cmdLineOptions
+	 */
+	private static void displayHelp( Options cmdLineOptions )
+	{
+		HelpFormatter helpFormatter = new HelpFormatter();
+		String header = "Verifies that messages are exchanged correctly between federates.\n\n";
+		String footer = String.format( "\nNOTE: the value for '%s' may also be specified in " +
+		                               "the JSON configuration.", CMDLINE_ARG_ITERATIONS );
+		helpFormatter.printHelp( "ChallengeFederate", header, cmdLineOptions, footer, true );
+	}
+	
 	/**
 	 * Main method
 	 * 
@@ -608,10 +631,111 @@ public class ChallengeFederate extends _ChallengeFederate
 		System.out.println( "\t'ResponseInteraction' interactions.");
 		System.out.println();
 
+		Options cmdLineOptions = buildCommandLineOptions();
+		CommandLine cmdLine = parseAndValidateCommandLineOptions( args, cmdLineOptions );
+
+		if( cmdLine.hasOption( CMDLINE_ARG_HELP ) )
+		{
+			// if the --help option has been used, we display help and exit immediately
+			displayHelp( cmdLineOptions );
+			System.exit( 1 );
+		}
+		
 		try
 		{
+			String jsonSource = JSON_CONFIG_FILE_DEFAULT;
+			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
+				jsonSource = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
+			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
+			boolean isValid = validateJsonOptions(jsonConfig);
+			if( !isValid )
+			{
+				// something wrong in the JSON
+				displayHelp( cmdLineOptions );
+				System.exit( 1 );
+			}
+			
+			int iterations = ConfigUtils.getConfiguredInt( jsonConfig, cmdLine,
+			                                               CMDLINE_ARG_ITERATIONS, ITERATIONS_DEFAULT );
+
 			ChallengeFederate federate = new ChallengeFederate( args );
-			initializeConfig( federate.getFederateConfiguration() );
+			FederateConfiguration config = federate.getFederateConfiguration();
+			config.fromJSON( jsonConfig );
+			federate.setTotalChallenges( iterations );
+			
+			System.out.println( String.format( "Preparing to send %d challenges...", iterations ) );
+			System.out.println();
+			System.out.println(config.summary());
+			
+//			config.setFederateName( "JavaChallenger" );
+//			config.setFederateType( "ChallengeFederate" );
+//			config.setFederationName( "ChallengeResponseFederation" );
+	//
+//			config.addFomPath( "ChallengeResponse/fom/ChallengeResponse.xml" );
+//			config.addSomPath( "ChallengeResponse/som/Challenge.xml" );
+			
+			// set up interactions to publish and subscribe to
+//			config.cacheInteractionClasses(
+//	            InteractionClass.Sub( ResponseInteraction.interactionClassName() ),
+//	            InteractionClass.Pub( ChallengeInteraction.interactionClassName() )
+//			);
+
+			// set up object class reflections to publish and subscribe to
+//			ObjectClass challengeReflection = ObjectClass.Pub( ChallengeObject.objectClassName() );
+//			for( String attributeName : ChallengeObject.attributeNames() )
+//			{
+//				challengeReflection.addAttributePub( attributeName, DataType.STRING );
+//			}
+//			config.cacheObjectClasses( challengeReflection );
+//			
+//			// subscribed UCEF simulation control interactions
+//			config.cacheInteractionClasses( 
+//	    		InteractionClass.Sub( SimPause.interactionName() ),
+//	    		InteractionClass.Sub( SimResume.interactionName() ),
+//	    		InteractionClass.Sub( SimEnd.interactionName() )
+//			);
+			
+			// somebody set us up the FOM...
+//			try
+//			{
+//				String fomRootPath = ExampleConstants.RESOURCES_ROOT;
+//				// modules
+//				String[] moduleFoms = { fomRootPath + "/challenge-response/fom/ChallengeResponse.xml" };
+//				config.addModules( FileUtils.urlsFromPaths(moduleFoms) );
+//				
+//				// join modules
+//				String[] joinModuleFoms = {};
+//				config.addJoinModules( FileUtils.urlsFromPaths(joinModuleFoms) );
+//			}
+//			catch( Exception e )
+//			{
+//				throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
+//			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 			federate.runFederate();
 		}
 		catch( Exception e )

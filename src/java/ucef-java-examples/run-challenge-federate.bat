@@ -1,18 +1,18 @@
 @ECHO OFF
 
-set JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ChallengeFederate"
+set JAVA_MAIN_CLASS="gov.nist.ucef.hla.example.challenger.ChallengeFederate"
 set CONFIG="response-config.json"
 set ITERATIONS="10"
 
 REM verify Maven exists
 set MVN=
 for /f "delims=" %%i in ('where.exe mvn') do @set MVN="%%i"
-IF %MVN% == "" (
+IF [%MVN%] == [] (
     call :DequotedEcho "The `mvn` (Maven) application could not be found. Ensure it is installed and placed in your PATH."
     EXIT /B
 ) ELSE (
     call :WaitForFederationManager
-    %MVN% exec:java -Dexec.mainClass="%JAVA_MAIN_CLASS%" -Dexec.args="--config %CONFIG% --iterations %ITERATIONS%"
+    %MVN% exec:java -Dexec.mainClass="%JAVA_MAIN_CLASS%" -Dexec.args="%*"
 )
 goto :eof
 

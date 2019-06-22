@@ -1,12 +1,12 @@
 @ECHO OFF
 
-set JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ResponseFederate"
+set JAVA_MAIN_CLASS="gov.nist.ucef.hla.example.challenger.ResponseFederate"
 set CONFIG="response-config.json"
 
 REM verify Maven exists
 set MVN=
 for /f "delims=" %%i in ('where.exe mvn') do @set MVN="%%i"
-IF %MVN% == "" (
+IF [%MVN%] == [] (
     call :DequotedEcho "The `mvn` (Maven) application could not be found. Ensure it is installed and placed in your PATH."
     EXIT /B
 ) ELSE (

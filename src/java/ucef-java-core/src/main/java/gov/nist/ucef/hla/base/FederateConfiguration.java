@@ -194,27 +194,15 @@ public class FederateConfiguration
 	 *
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
+	 * 
+	 * Refer to {@link #fromJSON(JSONObject)} for recognized configuration JSON keys and data
+	 * types.
 	 *
-	 * Currently recognized configuration items are:
-	 *
-	 * {
-	 *     "federateName":          STRING,
-	 *     "federateType":          STRING,
-	 *     "federationExecName":    STRING,
-	 *     "autoUniqueName":        BOOL,
-	 *     "maxJoinAttempts":       INT,
-	 *     "joinRetryIntervalSec":  INT,
-	 *     "syncBeforeResign":      BOOL,
-	 *     "callbacksAreImmediate": BOOL,
-	 *     "lookAhead":             DOUBLE,
-	 *     "stepSize":              DOUBLE
-	 * }
-	 *
-	 * @param configSource the {@link String} containing either JSON configuration data, or the 
-	 *        path to a resource (i.e., a file) containing JSON configuration data.
-	 * @return the extracted {@link JSONObject} containining the extracted configuration data.
-	 *         This can be used for handling of "extra", federate specific custom configuration 
-	 *         parameters contained in the JSON. 
+	 * @param configSource the {@link String} containing either JSON configuration data, or the
+	 *            path to a resource (i.e., a file) containing JSON configuration data.
+	 * @return the extracted {@link JSONObject} containing the extracted configuration data. This
+	 *         can be used for handling of "extra", federate specific custom configuration
+	 *         parameters contained in the JSON.
 	 */
 	public JSONObject fromJSON( String configSource )
 	{
@@ -272,8 +260,70 @@ public class FederateConfiguration
 		}
 
 		// we now have a JSONObject to extract data from
-		JSONObject configData = (JSONObject)parsedString;
-
+		try
+		{
+			return fromJSON( (JSONObject)parsedString );
+		}
+		catch( Exception e )
+		{
+			String msg = "There was a problem processing the configuration JSON.";
+			if(isFile)
+			{
+				msg = String.format( "There was a problem processing the configuration JSON in '%s'.",
+				                     configFile.getAbsolutePath() );
+			}
+			throw new UCEFException( e, msg );
+		}
+	}
+	
+	/**
+	 * Provide configuration details from a {@link String} containing JSON structured data
+	 *
+	 * Only recognized configuration items in the JSON structure will be processed; any other
+	 * items will be ignored.
+	 *
+	 * Configuration items not mentioned in the JSON structure will not have their values changed
+	 * (i.e., they will be left in their existing state).
+	 *
+	 * Currently recognized configuration items are:
+	 *
+	 * {
+	 *     "federateName":          STRING,
+	 *     "autoUniqueName":        BOOL,
+	 *     "federateType":          STRING,
+	 *     "federationExecName":    STRING,
+	 *     "canCreateFederation":   BOOL,
+	 *     "maxJoinAttempts":       INT,
+	 *     "joinRetryIntervalSec":  INT,
+	 *     "syncBeforeResign":      BOOL,
+	 *     "callbacksAreImmediate": BOOL,
+	 *     "lookAhead":             DOUBLE,
+	 *     "stepSize":              DOUBLE
+	 *     "timeConstrained":       BOOL,
+	 *     "timeRegulated":         BOOL,
+	 *     "base-foms":             ARRAY[STRING...],
+	 *     "join-foms":             ARRAY[STRING...],
+	 *     "som":                   STRING
+	 * }
+	 *
+	 * @param configData the {@link JSONObject} containing configuration data
+	 * @return the original {@link JSONObject}, so that it can be used for handling of "extra", 
+	 *         federate specific custom configuration parameters contained in the JSON. 
+	 */
+	public JSONObject fromJSON( JSONObject configData )
+	{
+		if( configData == null )
+		{
+			logger.warn( "JSON configuration data was null!" );
+			return configData;
+		}
+		
+		if( configData.isEmpty() )
+		{
+			logger.warn( "JSON configuration data was empty - defaults will be used." );
+			return configData;
+		}
+		
 		if(logger.isDebugEnabled())
 		{
 			// for the purposes of debugging problems, show logging for
@@ -293,9 +343,9 @@ public class FederateConfiguration
 	                JSON_CONFIG_KEY_SYNC_BEFORE_RESIGN,
 	                JSON_CONFIG_KEY_CALLBACKS_ARE_IMMEDIATE,
 	                JSON_CONFIG_KEY_LOOK_AHEAD,
-	            	JSON_CONFIG_KEY_TIME_CONSTRAINED,
-	            	JSON_CONFIG_KEY_TIME_REGULATED,
 	                JSON_CONFIG_KEY_STEP_SIZE,
+	                JSON_CONFIG_KEY_TIME_CONSTRAINED,
+	                JSON_CONFIG_KEY_TIME_REGULATED,
 	                JSON_CONFIG_KEY_BASE_FOMS,
 	                JSON_CONFIG_KEY_JOIN_FOMS,
 	                JSON_CONFIG_KEY_SOM
@@ -379,14 +429,6 @@ public class FederateConfiguration
 			this.stepSize = jsonDoubleOrDefault( configData,
 			                                     JSON_CONFIG_KEY_STEP_SIZE,
 			                                     this.stepSize );
-			String extractedSom = jsonStringOrDefault( configData, JSON_CONFIG_KEY_SOM, "" );
-			if( extractedSom.length() > 0 )
-			{
-				this.som = extractedSom;
-				this.interactionsByName.clear();
-				this.objectClassesByName.clear();
-				SOMParser.somToFederateConfig( this.som, this );
-			}
 			Set<String> extractedBaseFoms = jsonStringSetOrDefault( configData,
 			                                                        JSON_CONFIG_KEY_BASE_FOMS,
 			                                                        Collections.emptySet() );
@@ -405,15 +447,19 @@ public class FederateConfiguration
 				this.joinModules.clear();
 				addJoinModules( urlsFromPaths( this.joinFoms ) );
 			}
+			
+			String extractedSom = jsonStringOrDefault( configData, JSON_CONFIG_KEY_SOM, "" );
+			if( extractedSom.length() > 0 )
+			{
+				this.som = extractedSom;
+				this.interactionsByName.clear();
+				this.objectClassesByName.clear();
+				SOMParser.somToFederateConfig( this.som, this );
+			}
 		}
 		catch( Exception e )
 		{
-			String msg = "There was a problem processing the configuration JSON.";
-			if(isFile)
-			{
-				msg = String.format( "There was a problem processing the configuration JSON in '%s'.",
-				                     configFile.getAbsolutePath() );
-			}
+			String msg = "There was a problem processing the configuration JSON data.";
 			throw new UCEFException( e, msg );
 		}
 
@@ -423,7 +469,7 @@ public class FederateConfiguration
 	/**
 	 * Creates a human readable summary of the current configuration state.
 	 *
-	 * This is prinicipally for debugging purposes, but could have wider applications.
+	 * This is principally for debugging purposes, but could have wider applications.
 	 *
 	 * @return a human readable summary of the current configuration state.
 	 */
