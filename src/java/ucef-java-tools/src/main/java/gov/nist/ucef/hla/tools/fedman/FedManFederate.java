@@ -454,8 +454,8 @@ public class FedManFederate extends NoOpFederate
 		// we have all our required federates - we're not waiting any more
 		this.isWaitingForFederates = false;
 
-		System.out.println( String.format( "\n%d of %d federates have joined.",
-		                                   startRequirements.totalFederatesRequired(),
+		System.out.println( String.format( "\n%d of the %d required federates have joined.",
+		                                   startRequirements.requiredJoinedCount(),
 		                                   startRequirements.totalFederatesRequired() ) );
 		System.out.println( String.format( "Start requirements met - we are now %s.",
 		                                   UCEFSyncPoint.READY_TO_POPULATE ) );

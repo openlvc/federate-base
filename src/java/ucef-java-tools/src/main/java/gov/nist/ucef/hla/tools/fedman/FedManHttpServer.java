@@ -142,22 +142,22 @@ public class FedManHttpServer
 		IndexHandler indexHandler = new IndexHandler(endpoints);
 		endpoints.put( "/",						indexHandler );
 		// GET requests
-		endpoints.put( "/ping",						   new PingHandler() );
+		endpoints.put( "/ping",							  new PingHandler() );
 		endpoints.put( "/query",						  indexHandler );
-		endpoints.put( "/query/status",				   new StatusQueryHandler() );
-		endpoints.put( "/query/start-conditions",		 new StartConditionQueryHandler() );
-		endpoints.put( "/query/can-start",				new CanStartQueryHandler() );
+		endpoints.put( "/query/status",					  new StatusQueryHandler() );
+		endpoints.put( "/query/start-conditions",		  new StartConditionQueryHandler() );
+		endpoints.put( "/query/can-start",				  new CanStartQueryHandler() );
 		endpoints.put( "/query/has-started",			  new HasStartedQueryHandler() );
-		endpoints.put( "/query/has-ended",				new HasEndedQueryHandler() );
-		endpoints.put( "/query/is-paused",				new IsPausedQueryHandler() );
-		endpoints.put( "/query/is-running",			   new IsRunningQueryHandler() );
+		endpoints.put( "/query/has-ended",				  new HasEndedQueryHandler() );
+		endpoints.put( "/query/is-paused",				  new IsPausedQueryHandler() );
+		endpoints.put( "/query/is-running",				  new IsRunningQueryHandler() );
 		endpoints.put( "/query/is-waiting-for-federates", new IsWaitingForFederatesToJoinQueryHandler() );
 		// POST requests
-		endpoints.put( "/command",						indexHandler );
+		endpoints.put( "/command",						  indexHandler );
 		endpoints.put( "/command/start",				  new StartCommandHandler() );
 		endpoints.put( "/command/pause",				  new PauseCommandHandler() );
-		endpoints.put( "/command/resume",				 new ResumeCommandHandler() );
-		endpoints.put( "/command/end",					new EndCommandHandler() );
+		endpoints.put( "/command/resume",				  new ResumeCommandHandler() );
+		endpoints.put( "/command/end",					  new EndCommandHandler() );
 
 		ExecutorService executor = Executors.newFixedThreadPool(16);
 		try
@@ -761,8 +761,13 @@ public class FedManHttpServer
 				html.append( "<meta charset=\"UTF-8\">");
 				html.append( "<style>");
 				html.append( "table{border-collapse:collapse;}");
-				html.append( "table, tr, th, td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
+				html.append( "table,tr,th,td{margin:0;padding:4px;border:1px solid black;text-align:left;}");
+				html.append( ".dot{height:1em;width:1em;border-radius:50%;display:inline-block;background-color:#888;}");
+				html.append( ".dot.go{background-color:#080}");
+				html.append( ".dot.stop{background-color:#800}");
+				html.append( ".dot.warn{background-color:#F80}");
 				html.append( "</style>");
+				html.append( "<script>setTimeout(location.reload.bind(location),5000);</script>");
 				html.append( "</head>");
 	
 				html.append( "<body>" );
@@ -778,10 +783,23 @@ public class FedManHttpServer
 				federateTypes.sort( null );
 				for( String federateType : federateTypes )
 				{
+					int requiredByType = requirements.startRequirements.getOrDefault( federateType, 0 );
+					int joinedByType = requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size();
+					int remaining = requiredByType - joinedByType;
+					String notes = "<span class=\"dot go\"></span>";
+					if(remaining != 0)
+					{
+						notes = String.format( "<span class=\"dot %s\"></span>&nbsp;%d %s", 
+						                       remaining > 0 ? "stop" : "warn",
+						                       Math.abs( remaining ), 
+						                       remaining > 0 ? "remaining..." : "extra!" );
+					}
+					
 					html.append("<tr>");
 					html.append("<td>"+federateType+"</td>");
-					html.append("<td>"+requirements.startRequirements.get( federateType )+"</td>");
-					html.append("<td>"+requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size()+"</td>");
+					html.append("<td>"+requiredByType+"</td>");
+					html.append("<td>"+joinedByType+"</td>");
+					html.append("<td>"+notes+"</td>");
 					html.append("</tr>");
 				}
 				html.append( "</tbody></table>" );
@@ -800,10 +818,14 @@ public class FedManHttpServer
 				federateTypes.sort( null );
 				for( String federateType : federateTypes )
 				{
+					int requiredByType = requirements.startRequirements.getOrDefault( federateType, 0 );
+					int joinedByType = requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size();
+					int remaining = requiredByType - joinedByType;
 					JSONObject requirementState = new JSONObject();
 					requirementState.put( "type", federateType );
-					requirementState.put( "count", requirements.startRequirements.get( federateType ) );
-					requirementState.put( "joined", requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size() );
+					requirementState.put( "count", requiredByType );
+					requirementState.put( "joined", joinedByType );
+					requirementState.put( "remaining", remaining );
 					requirementsArray.add( requirementState );
 				}
 				doJSONResponse( httpExchange, jsonObj );
