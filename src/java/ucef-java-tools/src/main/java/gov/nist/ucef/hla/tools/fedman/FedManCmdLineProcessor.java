@@ -416,11 +416,11 @@ public class FedManCmdLineProcessor
 		// we now have a JSONObject to extract data from
 		JSONObject configData = (JSONObject)parsedString;
 
-		if(logger.isWarnEnabled())
+		if(logger.isDebugEnabled())
 		{
-			// for the purposes of debugging problems, show warnings for
-			// any unrecognized configuration items found so that
-			// problems can be resolved quickly (such as typos in the
+			// for the purposes of debugging problems, show logging for
+			// any unrecognized configuration items found so that problems 
+			// can be resolved quickly (such as typos in the 
 			// config JSON keys etc)
 			Set<String> recognizedConfigurationKeys = new HashSet<>();
 			recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
@@ -445,10 +445,10 @@ public class FedManCmdLineProcessor
 				if(!recognizedConfigurationKeys.contains( key ))
 				{
 					Object value = configData.get(key);
-					logger.warn( String.format( "Configuration item '%s' with "+
-												"value '%s' in JSON configuration data "+
-												"is not recognized and will be ignored.",
-					                            key.toString(), value.toString() )
+					logger.webug( String.format( "Configuration item '%s' with "+
+												 "value '%s' in JSON configuration data "+
+												 "is not recognized and will be ignored.",
+												 key.toString(), value.toString() )
 					);
 				}
 			}
