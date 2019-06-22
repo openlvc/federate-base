@@ -23,6 +23,7 @@
  */
 package gov.nist.ucef.hla.tools.fedman;
 
+import java.net.URL;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
@@ -30,6 +31,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import gov.nist.ucef.hla.base.FederateAmbassador;
 import gov.nist.ucef.hla.base.FederateBase;
@@ -42,6 +46,7 @@ import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
 import gov.nist.ucef.hla.ucef.interactions.SimStart;
+import hla.rti1516e.exceptions.FederationExecutionAlreadyExists;
 
 /**
  *		            ___
@@ -64,6 +69,8 @@ public class FedManFederate extends NoOpFederate
 	//----------------------------------------------------------
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
+	private static final Logger logger = LogManager.getLogger( FederateBase.class );
+	
 	private static final long ONE_SECOND = 1000;
 
 	private static final double MAX_TIME_DEFAULT                       = Double.MAX_VALUE;
@@ -342,6 +349,69 @@ public class FedManFederate extends NoOpFederate
 		synchronize( UCEFSyncPoint.READY_TO_RUN );
 
 		beforeFirstStep();
+	}
+	
+	/**
+	 * We override this method because if the Federation Manager cannot create the required
+	 * federation it's a failure and the Federation Manager must exit - apart from this
+	 * difference, the method implementation is identical to the overridden method.
+	 */
+	@Override
+	protected void createFederation()
+	{
+		String federationName = configuration.getFederationName();
+
+		if( !configuration.canCreateFederation() )
+		{
+			// the federation manager *must* be allowed to create the required federation -
+			// this is a configuration error (which, incidentally should not be possible,
+			// since the permission is programmatically applied when the federation manager
+			// is initialized).
+			logger.error( "No permission to create federation {}. Federation manager *must* have " +
+						  "permission to create the required federation. " + 
+						  "Cannot proceed - exiting now.", federationName );
+			System.exit( 1 );
+		}
+
+		URL[] modules = configuration.getModules().toArray( new URL[0] );
+		try
+		{
+			// We attempt to create a new federation with the configured FOM modules
+			logger.debug( "Creating federation '{}'...", federationName );
+			// NOTE: here we are using the *actual* RTI Ambassador, since we are the Federation
+			// Manager, and are therefore responsible for the full consequences involved in 
+			// attempting to create a federation - no cotton wool padding here!
+			rtiamb.getRtiAmbassador().createFederationExecution( federationName, modules );
+			logger.debug( "Federation '{}' was created.", federationName );
+		}
+		catch( FederationExecutionAlreadyExists exists )
+		{
+			// For normal federates we would catch and deliberately ignore this exception,
+			// since it just means that the federation was already created by someone else 
+			// so we don't need to.
+			// **HOWEVER** in the case of the Federation Manager, one of it's main roles is
+			// the creation of the required federation, so if it already exists it means that
+			// something has gone wrong, and we cannot proceed. If we *were* to proceed, we
+			// would risk "competing" with another Federation Manager, or some other
+			// unpredictable situation.
+			logger.error( "The federation '{}' already exists. Is another Federation Manager " + 
+						  "already running?", federationName );
+			logger.error( "Cannot proceed - exiting now." );
+			System.exit( 1 );
+		}
+		catch( Exception e )
+		{
+			// Something else has gone wrong - throw the exception on up
+			logger.error( "Unable to create required federation {}.", federationName );
+			logger.error( "Cannot proceed - exiting now." );
+			if( logger.isDebugEnabled() )
+			{
+				e.printStackTrace();
+			}
+			System.exit( 1 );
+		}
+
+		logger.info( "Federation {} created.", federationName );
 	}
 
 	@Override
