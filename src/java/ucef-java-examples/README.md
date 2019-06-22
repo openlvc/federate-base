@@ -39,6 +39,19 @@ These details are sent to the response federate, which must send back the an app
 
 The challenger checks for the correct substring, and confirms that the challenge has been passed.
 
+Open three consoles:
+ - From `ucef-java-tools` folder:
+```
+    federation-manager.bat --config ..\ucef-java-examples\src\main\resources\challenger\fedman-config.json
+```
+ - From `ucef-java-examples` folder:
+```
+run-challenge-federate.bat
+```
+```
+run-response-federate.bat
+```
+
 ## Others
 
 The other examples are not intended to be kept, but demonstrate som aspect
