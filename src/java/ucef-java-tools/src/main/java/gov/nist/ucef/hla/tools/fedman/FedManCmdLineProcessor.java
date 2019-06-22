@@ -445,7 +445,7 @@ public class FedManCmdLineProcessor
 				if(!recognizedConfigurationKeys.contains( key ))
 				{
 					Object value = configData.get(key);
-					logger.webug( String.format( "Configuration item '%s' with "+
+					logger.debug( String.format( "Configuration item '%s' with "+
 												 "value '%s' in JSON configuration data "+
 												 "is not recognized and will be ignored.",
 												 key.toString(), value.toString() )
