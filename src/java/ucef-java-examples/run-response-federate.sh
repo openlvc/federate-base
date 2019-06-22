@@ -1,11 +1,8 @@
 #!/bin/bash
-JAVA_MAIN_CLASS="gov.nist.hla.genx.GenxPongFederate"
+JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ResponseFederate"
+CONFIG="response-config.json"
 HTTP_HOST=localhost
 HTTP_PORT=8888
-
-# utility function used to concatenate the list of command line arguments
-# to this bash script into a space delimited string
-function join_by { local d=$1; shift; echo -n "$1"; shift; printf "%s" "${@/#/$d}"; }
 
 # verify Maven exists
 MVN=`which mvn`
@@ -36,5 +33,4 @@ do
     fi
 done
 
-ARGS=$(join_by ' ' $@)
-$MVN exec:java -Dexec.mainClass="$JAVA_MAIN_CLASS" -Dexec.args="$ARGS"
+$MVN exec:java -Dexec.mainClass="$JAVA_MAIN_CLASS" -Dexec.args="--config $CONFIG"

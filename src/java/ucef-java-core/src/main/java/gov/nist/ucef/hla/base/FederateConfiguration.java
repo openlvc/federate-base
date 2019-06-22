@@ -85,6 +85,7 @@ public class FederateConfiguration
 
 	// keys for locating values in JSON based configuration data
 	private static final String JSON_CONFIG_KEY_FEDERATE_NAME           = "federateName";
+	private static final String JSON_CONFIG_KEY_AUTO_UNIQUE_NAME        = "autoUniqueName";
 	private static final String JSON_CONFIG_KEY_FEDERATE_TYPE           = "federateType";
 	private static final String JSON_CONFIG_KEY_FEDERATION_EXEC_NAME    = "federationExecName";
 	private static final String JSON_CONFIG_KEY_CAN_CREATE_FEDERATION   = "canCreateFederation";
@@ -105,6 +106,7 @@ public class FederateConfiguration
 	//----------------------------------------------------------
 	private String federationExecName;
 	private String federateName;
+	private boolean autoUniqueName;
 	private String federateType;
 	private Set<URL> modules;
 	private Set<URL> joinModules;
@@ -155,6 +157,8 @@ public class FederateConfiguration
 		this.federateType = federateType;
 		this.federationExecName = federationName;
 
+		this.autoUniqueName = false;
+		
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
 
@@ -197,7 +201,7 @@ public class FederateConfiguration
 	 *     "federateName":          STRING,
 	 *     "federateType":          STRING,
 	 *     "federationExecName":    STRING,
-	 *     "canCreateFederation":   BOOL,
+	 *     "autoUniqueName":        BOOL,
 	 *     "maxJoinAttempts":       INT,
 	 *     "joinRetryIntervalSec":  INT,
 	 *     "syncBeforeResign":      BOOL,
@@ -206,11 +210,13 @@ public class FederateConfiguration
 	 *     "stepSize":              DOUBLE
 	 * }
 	 *
-	 * @param configSource the {@link String} containing either JSON configuration data, or the path to a
-	 *        resource (i.e., a file) containing JSON configuration data.
-	 * @return this {@link FederateConfiguration} instance (for method chaining)
+	 * @param configSource the {@link String} containing either JSON configuration data, or the 
+	 *        path to a resource (i.e., a file) containing JSON configuration data.
+	 * @return the extracted {@link JSONObject} containining the extracted configuration data.
+	 *         This can be used for handling of "extra", federate specific custom configuration 
+	 *         parameters contained in the JSON. 
 	 */
-	public FederateConfiguration fromJSON( String configSource )
+	public JSONObject fromJSON( String configSource )
 	{
 		// see if the configuration source is a file
 		File configFile = getResourceFile( configSource );
@@ -278,6 +284,7 @@ public class FederateConfiguration
 			recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
 				{
 	                JSON_CONFIG_KEY_FEDERATE_NAME,
+	                JSON_CONFIG_KEY_AUTO_UNIQUE_NAME,
 	                JSON_CONFIG_KEY_FEDERATE_TYPE,
 	                JSON_CONFIG_KEY_FEDERATION_EXEC_NAME,
 	                JSON_CONFIG_KEY_CAN_CREATE_FEDERATION,
@@ -298,12 +305,11 @@ public class FederateConfiguration
 			{
 				if(!recognizedConfigurationKeys.contains( key ))
 				{
-					Object value = configData.get(key);
-					logger.warn( String.format( "Configuration item '%s' with "+
-												 "value '%s' in JSON configuration data "+
-												 "is not recognized and will be ignored.",
-					                            key.toString(), value.toString() )
-					           );
+					Object value = configData.get( key );
+					logger.warn( String.format( "Configuration item '%s' with " +
+					                            "value '%s' in JSON configuration data " +
+					                            "is not recognized and will be ignored.",
+					                            key.toString(), value.toString() ) );
 				}
 			}
 		}
@@ -314,9 +320,32 @@ public class FederateConfiguration
 			// process configuration - note that in *all* cases we try to look
 			// up the value from the JSON and fall back to the existing value
 			// if there is no value available
-			this.federateName = jsonStringOrDefault( configData,
-			                                         JSON_CONFIG_KEY_FEDERATE_NAME,
-			                                         this.federateName );
+			this.autoUniqueName = jsonBooleanOrDefault( configData,
+			                                            JSON_CONFIG_KEY_AUTO_UNIQUE_NAME,
+			                                            this.autoUniqueName );
+			if( this.autoUniqueName )
+			{
+				// if automatic unique naming is active, we use a 
+				// type 4 UUID string to ensure that the federate 
+				// name is universally unique
+				String uniquifier = UUID.randomUUID().toString();
+				String tempFederateName = jsonStringOrDefault( configData,
+						                                       JSON_CONFIG_KEY_FEDERATE_NAME,
+						                                       null );
+				if( tempFederateName == null )
+					this.federateName = "Federate_" + uniquifier;
+				else
+					this.federateName = tempFederateName + "_" + uniquifier;
+				
+				logger.debug( String.format( "Generated unique federate name '%s'", 
+				                             this.federateName ));
+			}
+			else
+			{
+				this.federateName = jsonStringOrDefault( configData,
+				                                         JSON_CONFIG_KEY_FEDERATE_NAME,
+				                                         this.federateName );
+			}
 			this.federateType = jsonStringOrDefault( configData,
 			                                         JSON_CONFIG_KEY_FEDERATE_TYPE,
 			                                         this.federateType );
@@ -388,7 +417,7 @@ public class FederateConfiguration
 			throw new UCEFException( e, msg );
 		}
 
-		return this;
+		return configData;
 	}
 
 	/**

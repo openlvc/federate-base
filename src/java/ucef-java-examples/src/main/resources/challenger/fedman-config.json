@@ -1,0 +1,12 @@
+
+{
+    "federation-name": "ChallengeResponseFederation",
+	"require":
+	[
+		{"type":"ChallengeFederate", "count":1},
+		{"type":"ResponseFederate",  "count":1}
+	],
+	"max-time": 20.0,
+	"http-service": true,
+	"http-port": 8088
+}

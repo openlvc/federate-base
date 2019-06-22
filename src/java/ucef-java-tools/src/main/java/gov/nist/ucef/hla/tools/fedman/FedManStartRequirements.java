@@ -54,7 +54,7 @@ public class FedManStartRequirements
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
-	// a map of federate types to minimum counts
+	// a map of federate types to minimum/required counts
 	protected Map<String, Integer> startRequirements;
 	// used to track the types of federates which have joined the federation
 	protected Map<String, Set<FederateDetails>> joinedFederatesByType;
@@ -93,8 +93,8 @@ public class FedManStartRequirements
 	}
 
 	/**
-	 * Utility method which simply returns a count of the number of federates which have joined
-	 * the federation.
+	 * Utility method which simply returns a count of the number of *all* federates which have 
+	 * joined the federation.
 	 * 
 	 * NOTE: this only counts federates which meet the criteria for allowing the simulation to
 	 * begin (i.e., as specified in the command line arguments) and ignores all others.
@@ -112,6 +112,32 @@ public class FedManStartRequirements
 	}
 	
 	/**
+	 * Utility method which simply returns a count of the number of federates which have joined
+	 * the federation.
+	 * 
+	 * NOTE: this only counts federates which meet the criteria for allowing the simulation to
+	 * begin (i.e., as specified in the command line arguments) and ignores all others.
+	 * 
+	 * @return the number of joined federates
+	 */
+	public int requiredJoinedCount()
+	{
+		int result = 0;
+		synchronized( mutex_lock )
+		{
+			for( Entry<String,Integer> x : startRequirements.entrySet() )
+			{
+				String federateType = x.getKey();
+				int requiredCount = x.getValue();
+				
+				Set<FederateDetails> joined = joinedFederatesByType.get( federateType );
+				result += joined == null ? 0 : Math.min( requiredCount, joined.size() ); 
+			}
+		}
+		return result;
+	}
+	
+	/**
 	 * Update when a federate joins 
 	 * @param joinedFederate the salient details of the federate which joined
 	 */
@@ -119,23 +145,6 @@ public class FedManStartRequirements
 	{
 		String federateType = joinedFederate.getFederateType();
 		
-		// WORKAROUND for the fact that the federate type is currently not correctly
-		//            propagated (and instead is actually the federate name)
-		//            see: https://github.com/openlvc/portico/issues/280
-		//                 https://github.com/openlvc/portico/pull/281
-		/*
-		for( String requiredType : startRequirements.keySet() )
-		{
-			if( federateType.startsWith( requiredType ) )
-			{
-				synchronized( mutex_lock )
-				{
-					joinedFederatesByType.computeIfAbsent( requiredType,
-					                                       x -> new HashSet<>() ).add( joinedFederate );
-				}
-			}
-		}
-		*/
 		if( startRequirements.containsKey( federateType ) )
 		{
 			synchronized( mutex_lock )
@@ -154,23 +163,6 @@ public class FedManStartRequirements
 	{
 		String federateType = joinedFederate.getFederateType();
 		
-		// WORKAROUND for the fact that the federate type is currently not correctly
-		//            propagated (and instead is actually the federate name)
-		//            see: https://github.com/openlvc/portico/issues/280
-		//                 https://github.com/openlvc/portico/pull/281
-		/*
-		for( String requiredType : startRequirements.keySet() )
-		{
-			if( federateType.startsWith( requiredType ) )
-			{
-				synchronized( mutex_lock )
-				{
-					joinedFederatesByType.computeIfAbsent( requiredType,
-					                                       x -> new HashSet<>() ).add( joinedFederate );
-				}
-			}
-		}
-		 */
 		if( startRequirements.containsKey( federateType ) )
 		{
 			synchronized( mutex_lock )
@@ -189,17 +181,17 @@ public class FedManStartRequirements
 	{
 		synchronized( mutex_lock )
 		{
-    		for( Entry<String,Integer> x: startRequirements.entrySet() )
-    		{
-    			String federateType = x.getKey();
-    			int minCount = x.getValue();
-    			
-    			Set<FederateDetails> joined = joinedFederatesByType.get( federateType );
-    			if(joined == null || joined.size() < minCount )
-    			{
-    				return false;
-    			}
-    		}
+			for( Entry<String,Integer> x : startRequirements.entrySet() )
+			{
+				String federateType = x.getKey();
+				int requiredCount = x.getValue();
+
+				Set<FederateDetails> joined = joinedFederatesByType.get( federateType );
+				if( joined == null || joined.size() < requiredCount )
+				{
+					return false;
+				}
+			}
 		}
 		
 		return true;
@@ -227,17 +219,30 @@ public class FedManStartRequirements
 		
 		for( String federateType : federateTypes )
 		{
+			int requiredByType = startRequirements.getOrDefault( federateType, 0 );
+			int joinedByType = joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size();
+			int diff = requiredByType - joinedByType;
+			String notes = "OK";
+			if(diff != 0)
+			{
+				notes = String.format( "%d %s", 
+				                       Math.abs( diff ), 
+				                       diff > 0 ? "remaining..." : "extra!" );
+			}
+			
 			row = new ArrayList<>();
 			row.add(federateType);
-			row.add(Integer.toString( startRequirements.get( federateType ) ));
-			row.add(Integer.toString( joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size() ));
+			row.add( Integer.toString( requiredByType ) );
+			row.add( Integer.toString( joinedByType ) );
+			row.add( notes );
 			tableContent.add( row );
 		}
 		
 		summary.append( makeTable( tableContent ) );
 
-		summary.append( String.format( "\n%d of %d federates have joined.",
-		                               joinedCount(), totalFederatesRequired() ) );
+		System.out.println( String.format( "\n%d of the %d required federates have joined.",
+		                                   requiredJoinedCount(),
+		                                   totalFederatesRequired() ) );
 
 		return summary.toString();
 	}

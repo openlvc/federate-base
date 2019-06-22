@@ -140,7 +140,7 @@ are exercised in this example:
     "logical-granularity": 1,
     "realtime-multiplier": 1.0,
     "http-service":        true,
-    "http-port":           8088
+    "http-port":           8888
 }
 ```
 

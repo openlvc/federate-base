@@ -2,6 +2,7 @@
 
 set JAVA_MAIN_CLASS="gov.nist.hla.genx.GenxPingFederate"
 
+REM verify Maven exists
 set MVN=
 for /f "delims=" %%i in ('where.exe mvn') do @set MVN="%%i"
 IF %MVN% == "" (
@@ -15,8 +16,8 @@ goto :eof
 
 :WaitForFederationManager
     setlocal enabledelayedexpansion
-    REM 'ping' the HTTP server on the federation manager  
-    REM to determine when it's a good time to start  
+	REM periodically check on the federation manager's REST-like endpoints on 
+	REM its HTTP service to determine when it's a good time to start
     set CURL_RESPONSE=""
     for /f "delims=" %%i in ('curl -s http://localhost:8080/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
     if %CURL_RESPONSE% == "true" (

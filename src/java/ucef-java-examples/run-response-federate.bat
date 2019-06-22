@@ -1,6 +1,7 @@
 @ECHO OFF
 
-set JAVA_MAIN_CLASS="gov.nist.hla.genx.GenxPongFederate"
+set JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ResponseFederate"
+set CONFIG="response-config.json"
 
 REM verify Maven exists
 set MVN=
@@ -10,7 +11,7 @@ IF %MVN% == "" (
     EXIT /B
 ) ELSE (
     call :WaitForFederationManager
-    %MVN% exec:java -Dexec.mainClass="%JAVA_MAIN_CLASS%" -Dexec.args="%*"
+    %MVN% exec:java -Dexec.mainClass="%JAVA_MAIN_CLASS%" -Dexec.args="--config %CONFIG%"
 )
 goto :eof
 
@@ -19,7 +20,7 @@ goto :eof
 	REM periodically check on the federation manager's REST-like endpoints on 
 	REM its HTTP service to determine when it's a good time to start
     set CURL_RESPONSE=""
-    for /f "delims=" %%i in ('curl -s http://localhost:8080/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
+    for /f "delims=" %%i in ('curl -s http://localhost:8888/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
     if %CURL_RESPONSE% == "true" (
         REM ready to go
         EXIT /B
