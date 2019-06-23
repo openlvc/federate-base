@@ -26,9 +26,11 @@ package gov.nist.ucef.hla.tools.fedman;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -65,6 +67,7 @@ public class FedManCmdLineProcessor
 	private static final String CMDLINE_ARG_REQUIRE_SHORT               = "r";
 	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_NAME        = "fedman-name";
 	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_TYPE        = "fedman-type";
+	private static final String CMDLINE_ARG_FEDMAN_BASE_FOMS            = "base-foms";
 	private static final String CMDLINE_ARG_MAX_TIME                    = "max-time";
 	private static final String CMDLINE_ARG_LOGICAL_SECOND              = "logical-second";
 	private static final String CMDLINE_ARG_LOGICAL_STEP_GRANULARITY    = "logical-granularity";
@@ -73,7 +76,7 @@ public class FedManCmdLineProcessor
 	private static final String CMDLINE_SWITCH_NO_HTTP_SERVICE          = "no-http-service";
 
 	// JSON config keys (mostly the same as command line arguments)
-	private static final String JSON_CONFIG_KEY_WITH_HTTP               = "http-service";
+	private static final String JSON_CONFIG_KEY_WITH_HTTP_SERVICE       = "http-service";
 
 	// default config values, as required
 	private static final String FEDMAN_FEDERATE_NAME_DEFAULT           = "FederationManager";
@@ -92,6 +95,7 @@ public class FedManCmdLineProcessor
 	private String federationExecName;
 	private String federateName;
 	private String federateType;
+	private String[] baseFOMs;
 	private double maxTime;
 	private double logicalSecond;
 	private int logicalStepGranularity;
@@ -117,12 +121,13 @@ public class FedManCmdLineProcessor
 		// optional arguments
 		this.federateName           = FEDMAN_FEDERATE_NAME_DEFAULT;
 		this.federateType           = FEDMAN_FEDERATE_TYPE_DEFAULT;
-		this.withHttpServiceActive  = HTTP_SERVICE_ACTIVE_DEFAULT;
-		this.httpServicePort        = HTTP_PORT_DEFAULT;
+		this.baseFOMs               = new String[] {};
 		this.maxTime                = MAX_TIME_DEFAULT;
 		this.logicalSecond          = LOGICAL_SECOND_DEFAULT;
 		this.logicalStepGranularity = LOGICAL_STEP_GRANULARITY_DEFAULT;
 		this.realtimeMultiplier     = REALTIME_MULTIPLIER_DEFAULT;
+		this.withHttpServiceActive  = HTTP_SERVICE_ACTIVE_DEFAULT;
+		this.httpServicePort        = HTTP_PORT_DEFAULT;
 
 		buildCommandLineOptions();
 	}
@@ -162,6 +167,11 @@ public class FedManCmdLineProcessor
 	{
 		return this.federateType;
 	}
+
+    public String[] baseFOMs()
+    {
+    	return this.baseFOMs;
+    }
 
     public double maxTime()
     {
@@ -308,7 +318,7 @@ public class FedManCmdLineProcessor
 		                                               this.realtimeMultiplier );
 
 		double oneSecond = 1000.0 / this.realtimeMultiplier;
-		double logicalStepSize = logicalSecond / logicalStepGranularity;
+		double logicalStepSize = this.logicalSecond / this.logicalStepGranularity;
 		double wallClockStepDelay = (long)(oneSecond * logicalStepSize);
 
 		if( wallClockStepDelay < 5 )
@@ -419,8 +429,8 @@ public class FedManCmdLineProcessor
 		if(logger.isDebugEnabled())
 		{
 			// for the purposes of debugging problems, show logging for
-			// any unrecognized configuration items found so that problems 
-			// can be resolved quickly (such as typos in the 
+			// any unrecognized configuration items found so that problems
+			// can be resolved quickly (such as typos in the
 			// config JSON keys etc)
 			Set<String> recognizedConfigurationKeys = new HashSet<>();
 			recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
@@ -429,6 +439,7 @@ public class FedManCmdLineProcessor
 					CMDLINE_ARG_FEDMAN_FEDERATION_EXEC_NAME,
 					CMDLINE_ARG_FEDMAN_FEDERATE_NAME,
 					CMDLINE_ARG_FEDMAN_FEDERATE_TYPE,
+					CMDLINE_ARG_FEDMAN_BASE_FOMS,
 					CMDLINE_ARG_MAX_TIME,
 					CMDLINE_ARG_LOGICAL_SECOND,
 					CMDLINE_ARG_LOGICAL_STEP_GRANULARITY,
@@ -436,7 +447,7 @@ public class FedManCmdLineProcessor
 					// note that the JSON is slightly different to command line here
 					// since it can accept true or false for HTTP service activation
 					// - compare with CMDLINE_SWITCH_NO_HTTP_SERVICE
-					JSON_CONFIG_KEY_WITH_HTTP,
+					JSON_CONFIG_KEY_WITH_HTTP_SERVICE,
 					CMDLINE_ARG_HTTP_PORT
 				}
 			));
@@ -481,6 +492,9 @@ public class FedManCmdLineProcessor
 			this.federateType = extractJsonNonEmptyString( configData,
 			                                               CMDLINE_ARG_FEDMAN_FEDERATE_TYPE,
 			                                               this.federateType );
+			this.baseFOMs = extractJsonStringArray( configData,
+			                                      CMDLINE_ARG_FEDMAN_BASE_FOMS,
+			                                      this.baseFOMs );
 			this.maxTime = extractJsonGtZeroDouble( configData, CMDLINE_ARG_MAX_TIME, this.maxTime );
 			this.logicalSecond = extractJsonGtZeroDouble( configData,
 			                                          CMDLINE_ARG_LOGICAL_SECOND,
@@ -492,7 +506,7 @@ public class FedManCmdLineProcessor
 			                                                   CMDLINE_ARG_REALTIME_MULTIPLIER,
 			                                                   this.realtimeMultiplier );
 			this.withHttpServiceActive = extractJsonBoolean( configData,
-			                                                 JSON_CONFIG_KEY_WITH_HTTP,
+			                                                 JSON_CONFIG_KEY_WITH_HTTP_SERVICE,
 			                                                 this.withHttpServiceActive );
 			this.httpServicePort = extractJsonInRangeInt( configData,
 			                                              CMDLINE_ARG_HTTP_PORT,
@@ -567,6 +581,52 @@ public class FedManCmdLineProcessor
 		throw new ParseException( String.format( "Value for '%s' in configuration file may not be "+
 												 "an empty string or consist only of whitespace.",
 		                                         key ) );
+	}
+
+	/**
+	 * Utility method to extract a {@link String[]} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not a string, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	private String[] extractJsonStringArray( JSONObject root, String key, String[] defaultValue ) throws ParseException
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof JSONArray )
+			{
+				if(logger.isDebugEnabled())
+					logger.debug( String.format( "Found value '%s' for item '%s' in configuration file", value, key ) );
+
+				JSONArray jsonArray = (JSONArray)value;
+				List<String> result = new ArrayList<>();
+				for(Object item : jsonArray)
+				{
+					if( item instanceof String )
+						result.add( item.toString() );
+					else
+						throw new UCEFException( "Expected an array of string values for '%s' but encountered non-string item '%s' in configuration file",
+						                         key, item.toString() );
+				}
+				return result.toArray(new String[] {});
+			}
+
+			throw new UCEFException( "Expected an array of string values for '%s' but found '%s' in configuration file",
+			                         key, value.toString() );
+		}
+
+		if(logger.isDebugEnabled())
+			logger.debug( String.format( "No value found for '%s' in configuration file, using default value.", key ) );
+
+		return defaultValue;
 	}
 
 	/**
@@ -1203,20 +1263,20 @@ public class FedManCmdLineProcessor
 
 		this.cmdLineOptions = new Options();
 
-		cmdLineOptions.addOption( help );
-		cmdLineOptions.addOption( configLocation );
-		cmdLineOptions.addOption( federationExecNameArg );
-		cmdLineOptions.addOption( federateNameArg );
-		cmdLineOptions.addOption( federateTypeArg );
-		cmdLineOptions.addOption( requiredFederateTypes );
-		cmdLineOptions.addOption( maxTimeArg );
-		cmdLineOptions.addOption( logicalSecondArg );
-		cmdLineOptions.addOption( logicalStepGranularityArg );
-		cmdLineOptions.addOption( realtimeMultiplierArg );
-		cmdLineOptions.addOption( noHttpSwitch );
-		cmdLineOptions.addOption( httpPortArg );
+		this.cmdLineOptions.addOption( help );
+		this.cmdLineOptions.addOption( configLocation );
+		this.cmdLineOptions.addOption( federationExecNameArg );
+		this.cmdLineOptions.addOption( federateNameArg );
+		this.cmdLineOptions.addOption( federateTypeArg );
+		this.cmdLineOptions.addOption( requiredFederateTypes );
+		this.cmdLineOptions.addOption( maxTimeArg );
+		this.cmdLineOptions.addOption( logicalSecondArg );
+		this.cmdLineOptions.addOption( logicalStepGranularityArg );
+		this.cmdLineOptions.addOption( realtimeMultiplierArg );
+		this.cmdLineOptions.addOption( noHttpSwitch );
+		this.cmdLineOptions.addOption( httpPortArg );
 
-		return cmdLineOptions;
+		return this.cmdLineOptions;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////

@@ -38,11 +38,11 @@ import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
+import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
 import gov.nist.ucef.hla.ucef.interactions.SimStart;
-import gov.nist.ucef.hla.base.UCEFException;
 
 /**
  *		            ___
@@ -199,11 +199,11 @@ public class FederationManager
 		config.setStepSize( argProcessor.logicalStepSize() );
 		config.setLookAhead( argProcessor.logicalStepSize() );
 
-		// TODO
-        // if( argProcessor.isConfigFileSpecified() )
-        // {
-        //   config.fromJSON( argProcessor.configFile() );
-        // }
+		// TODO strictly speaking this should never be needed
+		//      because the federation manager should not care
+		//      about anything beyond its own pub/sub
+		//      interactions and reflections. [adlaws]
+		config.addModules( urlsFromPaths(argProcessor.baseFOMs() ) );
 
 		// In order to detect joining federates, we subscribe to a "built in"
 		// object reflection (and related attributes) described in the MIM.
