@@ -1,5 +1,5 @@
 #!/bin/bash
-JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ChallengeFederate"
+JAVA_MAIN_CLASS="gov.nist.ucef.hla.example.challenger.ResponseFederate"
 FEDMAN_HOST=localhost
 FEDMAN_PORT=8888
 
