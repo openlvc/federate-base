@@ -1,9 +1,7 @@
 #!/bin/bash
-JAVA_MAIN_CLASS="gov.nist.hla.example.challenger.ChallengeFederate"
-CONFIG="challenge-config.json"
-ITERATIONS="10"
-HTTP_HOST=localhost
-HTTP_PORT=8888
+JAVA_MAIN_CLASS="gov.nist.ucef.hla.example.challenger.ChallengeFederate"
+FEDMAN_HOST=localhost
+FEDMAN_PORT=8888
 
 # utility function used to concatenate the list of command line arguments
 # to this bash script into a space delimited string
@@ -30,7 +28,7 @@ fi
 CURL_RESPONSE=""
 while [ "$CURL_RESPONSE" != "true" ]
 do
-    CURL_RESPONSE=$($CURL -s http://$HTTP_HOST:$HTTP_PORT/query/is-waiting-for-federates/)
+    CURL_RESPONSE=$($CURL -s http://$FEDMAN_HOST:$FEDMAN_PORT/query/is-waiting-for-federates/)
     if [ "$CURL_RESPONSE" != "true" ]
     then
         echo "The Federation Manager does not seem to be ready yet..."
@@ -38,4 +36,4 @@ do
     fi
 done
 
-$MVN exec:java -Dexec.mainClass="$JAVA_MAIN_CLASS" -Dexec.args="--config $CONFIG --iterations $ITERATIONS"
+$MVN exec:java -Dexec.mainClass="$JAVA_MAIN_CLASS" -Dexec.args="$ARGS"

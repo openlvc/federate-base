@@ -1,11 +1,13 @@
 @ECHO OFF
 
 set JAVA_MAIN_CLASS="gov.nist.hla.genx.GenxPingFederate"
+set FEDMAN_HOST="localhost"
+set FEDMAN_PORT="8888"
 
 REM verify Maven exists
 set MVN=
 for /f "delims=" %%i in ('where.exe mvn') do @set MVN="%%i"
-IF %MVN% == "" (
+IF [%MVN%] == [] (
     call :DequotedEcho "The `mvn` (Maven) application could not be found. Ensure it is installed and placed in your PATH."
     EXIT /B
 ) ELSE (
@@ -19,7 +21,7 @@ goto :eof
 	REM periodically check on the federation manager's REST-like endpoints on 
 	REM its HTTP service to determine when it's a good time to start
     set CURL_RESPONSE=""
-    for /f "delims=" %%i in ('curl -s http://localhost:8080/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
+    for /f "delims=" %%i in ('curl -s http://%FEDMAN_HOST%:%FEDMAN_PORT%/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
     if %CURL_RESPONSE% == "true" (
         REM ready to go
         EXIT /B

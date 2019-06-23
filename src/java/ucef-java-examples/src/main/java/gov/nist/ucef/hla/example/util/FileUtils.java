@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 import gov.nist.ucef.hla.base.UCEFException;
+import gov.nist.ucef.hla.example.challenger.ChallengeFederate;
 
 public class FileUtils
 {
@@ -57,6 +58,27 @@ public class FileUtils
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
+	/**
+	 * Obtain a {@link File} resource instance based on a path. The resource is looked for on the
+	 * file system and as a resource (as in a packaged JAR)
+	 *
+	 * @param path the path for the resource
+	 * @return the resource as a {@link File} instance, or null if no such resource could be
+	 *         located
+	 */
+	public static File getResourceFile( String path )
+	{
+		File file = new File( path );
+		if( file.exists() && file.isFile() )
+			return file;
+
+		URL fileUrl = ChallengeFederate.class.getClassLoader().getResource( path );
+		if( fileUrl != null )
+			return new File( fileUrl.getFile() );
+
+		return null;
+	}
+	
 	/**
 	 * Utility function to set create a bunch of URLs from file paths
 	 *
