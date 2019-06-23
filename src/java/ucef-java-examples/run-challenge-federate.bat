@@ -1,8 +1,8 @@
 @ECHO OFF
 
 set JAVA_MAIN_CLASS="gov.nist.ucef.hla.example.challenger.ChallengeFederate"
-set CONFIG="response-config.json"
-set ITERATIONS="10"
+set FEDMAN_HOST="localhost"
+set FEDMAN_PORT="8888"
 
 REM verify Maven exists
 set MVN=
@@ -21,7 +21,7 @@ goto :eof
 	REM periodically check on the federation manager's REST-like endpoints on 
 	REM its HTTP service to determine when it's a good time to start
     set CURL_RESPONSE=""
-    for /f "delims=" %%i in ('curl -s http://localhost:8888/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
+    for /f "delims=" %%i in ('curl -s http://%FEDMAN_HOST%:%FEDMAN_PORT%/query/is-waiting-for-federates') do @set CURL_RESPONSE="%%i"
     if %CURL_RESPONSE% == "true" (
         REM ready to go
         EXIT /B
