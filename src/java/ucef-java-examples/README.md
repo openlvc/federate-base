@@ -65,7 +65,7 @@ run-response-federate.sh
 On Windows, use the `*.bat` file equivalents instead - that is `federation-manager.sh`,
 `run-challenge-federate.sh`, and `run-response-federate.sh`.
 
-###Notes:
+### Additional Notes:
 The default configuration files for the `ChallengeFederate` and `ResponseFederate` are 
 `challenge-config.json` and `response-config.json` respectively. This can be changed
 using the `--config` command line option. For example:
@@ -77,6 +77,14 @@ but this can be changed by using the `--iterations` command line option, or
 the `iterations` key in the JSON configuration. For example:  
 ```
 run-challenge-federate.bat --iterations 15
+```
+...or in the JSON...
+```
+{
+    "other": "config items here...",
+
+    "iterations":            15
+}
 ```
 The command line value will take precedence if both configuration options are used.
 
