@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <objectModel xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd" 
-			 xmlns="http://standards.ieee.org/IEEE1516-2010" 
-			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+             xmlns="http://standards.ieee.org/IEEE1516-2010" 
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelIdentification>
         <name>PingPong</name>
@@ -103,7 +103,7 @@
                     <order>TimeStamp</order>
                 </attribute>
             </objectClass>
-	    </objectClass>
+        </objectClass>
     </objects>
     
     <interactions>
@@ -197,42 +197,42 @@
                 </parameter>
             </interactionClass>
 
-			<interactionClass>
-				<name>UCEFinteractionRoot</name>
-				<sharing>Neither</sharing>
-				<transportation>HLAreliable</transportation>
-				<order>TimeStamp</order>
-		        <interactionClass>
-		            <name>SimulationControl</name>
-		            <sharing>Neither</sharing>
-		            <transportation>HLAreliable</transportation>
-		            <order>TimeStamp</order>
-		            <interactionClass>
-		                <name>SimStart</name>
-		                <sharing>Subscribe</sharing>
-		                <transportation>HLAreliable</transportation>
-		                <order>TimeStamp</order>
-		            </interactionClass>
-		            <interactionClass>
-		                <name>SimEnd</name>
-		                <sharing>Subscribe</sharing>
-		                <transportation>HLAreliable</transportation>
-		                <order>TimeStamp</order>
-		            </interactionClass>
-		            <interactionClass>
-		                <name>SimPause</name>
-		                <sharing>Subscribe</sharing>
-		                <transportation>HLAreliable</transportation>
-		                <order>TimeStamp</order>
-		            </interactionClass>
-		            <interactionClass>
-		                <name>SimResume</name>
-		                <sharing>Subscribe</sharing>
-		                <transportation>HLAreliable</transportation>
-		                <order>TimeStamp</order>
-		            </interactionClass>
-		        </interactionClass>
-	        </interactionClass>
+            <interactionClass>
+                <name>C2WInteractionRoot</name>
+                <sharing>Neither</sharing>
+                <transportation>HLAreliable</transportation>
+                <order>TimeStamp</order>
+                <interactionClass>
+                    <name>SimulationControl</name>
+                    <sharing>Neither</sharing>
+                    <transportation>HLAreliable</transportation>
+                    <order>TimeStamp</order>
+                    <interactionClass>
+                        <name>SimStart</name>
+                        <sharing>Subscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>SimEnd</name>
+                        <sharing>Subscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>SimPause</name>
+                        <sharing>Subscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                    </interactionClass>
+                    <interactionClass>
+                        <name>SimResume</name>
+                        <sharing>Subscribe</sharing>
+                        <transportation>HLAreliable</transportation>
+                        <order>TimeStamp</order>
+                    </interactionClass>
+                </interactionClass>
+            </interactionClass>
 
         </interactionClass>
     </interactions>

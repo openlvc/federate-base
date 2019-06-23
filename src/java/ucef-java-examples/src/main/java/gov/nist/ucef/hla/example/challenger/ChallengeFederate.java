@@ -40,6 +40,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import org.json.simple.JSONObject;
 
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.challenger.base._ChallengeFederate;
@@ -670,7 +671,10 @@ public class ChallengeFederate extends _ChallengeFederate
 			                                               CMDLINE_ARG_ITERATIONS, ITERATIONS_DEFAULT );
 
 			ChallengeFederate federate = new ChallengeFederate( args );
-			federate.getFederateConfiguration().fromJSON( jsonConfig );
+			FederateConfiguration config = federate.getFederateConfiguration();
+			config.fromJSON( jsonConfig );
+			System.out.println(config.summary());
+
 			federate.setTotalChallenges( iterations );
 
 			System.out.println( String.format( "Preparing to send %d challenges...", iterations ) );

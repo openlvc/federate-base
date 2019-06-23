@@ -36,6 +36,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import org.json.simple.JSONObject;
 
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.challenger.base._ResponseFederate;
@@ -398,7 +399,9 @@ public class ResponseFederate extends _ResponseFederate
 			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
 
 			ResponseFederate federate = new ResponseFederate();
-			federate.getFederateConfiguration().fromJSON( jsonConfig );
+			FederateConfiguration config = federate.getFederateConfiguration();
+			config.fromJSON( jsonConfig );
+			System.out.println(config.summary());
 
 			System.out.println( "Preparing to receive challenges..." );
 			System.out.println();

@@ -5,5 +5,5 @@
     "federationExecName":    "ChallengeResponseFederation",
     "base-foms":             [],
     "join-foms":             ["challenger/challenge-response-fom.xml"],
-    "som":                   "challenger/challenge-som.xml",
+    "som":                   "challenger/response-som.xml"
 }

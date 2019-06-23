@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -39,18 +39,18 @@ public class ResponseInteraction extends HLAInteraction
 	//----------------------------------------------------------
 	// HLA identifier of this type of interaction - must match FOM definition
 	private static final String INTERACTION_NAME = "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.Response";
-	
+
 	// interaction parameters
 	private static final String PARAM_KEY_SUBSTRING = "substring";
 	private static final DataType PARAM_TYPE_SUBSTRING = DataType.STRING;
 	private static final String PARAM_KEY_CHALLENGEID = "challengeId";
 	private static final DataType PARAM_TYPE_CHALLENGEID = DataType.STRING;
-	
+
     // a map for finding a data type for a parameter name - this is to provide
     // quick lookups and avoid iterating over all parameters
     private static final Map<String,DataType> PARAMETERS_LOOKUP =
         Collections.unmodifiableMap( initializeMapping() );
-	
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
@@ -74,7 +74,7 @@ public class ResponseInteraction extends HLAInteraction
 	{
 		super( interaction );
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
@@ -87,13 +87,13 @@ public class ResponseInteraction extends HLAInteraction
 	{
 		isPresent( PARAM_KEY_SUBSTRING );
 	}
-	
+
 	public ResponseInteraction substring( String substring )
 	{
 		setValue( PARAM_KEY_SUBSTRING, substring );
 		return this;
 	}
-	
+
 	public String substring()
 	{
 		return getAsString( PARAM_KEY_SUBSTRING );
@@ -103,13 +103,13 @@ public class ResponseInteraction extends HLAInteraction
 	{
 		return isPresent( PARAM_KEY_CHALLENGEID );
 	}
-	
+
 	public ResponseInteraction challengeId( String challengeId )
 	{
 		setValue( PARAM_KEY_CHALLENGEID, challengeId );
 		return this;
 	}
-	
+
 	public String challengeId()
 	{
 		return getAsString( PARAM_KEY_CHALLENGEID );
@@ -166,14 +166,14 @@ public class ResponseInteraction extends HLAInteraction
 
     /**
 	 * Obtain the HLA interaction name identifying this type of interaction
-	 * 
+	 *
 	 * @return the HLA interaction name identifying this interaction
 	 */
 	public static String interactionClassName()
 	{
 		return INTERACTION_NAME;
 	}
-	
+
     /**
     * Private initializer method for the parameter-datatype lookup map
     *

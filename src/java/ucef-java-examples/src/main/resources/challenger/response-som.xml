@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<objectModel
-    xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010
-      http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd"
+<objectModel xsi:schemaLocation="http://standards.ieee.org/IEEE1516-2010 http://standards.ieee.org/downloads/1516/1516.2-2010/IEEE1516-DIF-2010.xsd"
     xmlns="http://standards.ieee.org/IEEE1516-2010" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    
     <modelIdentification>
         <name>ChallengeResponse</name>
         <type>SOM</type>
@@ -19,9 +18,10 @@
             <pocOrg>org.webgme.guest</pocOrg>
         </poc>
     </modelIdentification>
+    
     <objects>
         <objectClass>
-            <name>ObjectRoot</name>
+            <name>HLAobjectRoot</name>
             <sharing>Neither</sharing>
             <objectClass>
                 <name>ParentObject</name>
@@ -60,9 +60,10 @@
             </objectClass>
         </objectClass>
     </objects>
+    
     <interactions>
         <interactionClass>
-            <name>InteractionRoot</name>
+            <name>HLAinteractionRoot</name>
             <sharing>Neither</sharing>
             <transportation>HLAreliable</transportation>
             <order>TimeStamp</order>
@@ -87,42 +88,6 @@
                     <name>sourceFed</name>
                     <dataType>String</dataType>
                 </parameter>
-                <interactionClass>
-                    <name>FederateJoinInteraction</name>
-                    <sharing>Publish</sharing>
-                    <transportation>HLAreliable</transportation>
-                    <order>TimeStamp</order>
-                    <parameter> 
-                        <name>FederateId</name>
-                        <dataType>String</dataType>
-                    </parameter>
-                    <parameter> 
-                        <name>FederateType</name>
-                        <dataType>String</dataType>
-                    </parameter>
-                    <parameter> 
-                        <name>IsLateJoiner</name>
-                        <dataType>boolean</dataType>
-                    </parameter>
-                </interactionClass>
-                <interactionClass>
-                    <name>FederateResignInteraction</name>
-                    <sharing>Publish</sharing>
-                    <transportation>HLAreliable</transportation>
-                    <order>TimeStamp</order>
-                    <parameter> 
-                        <name>FederateId</name>
-                        <dataType>String</dataType>
-                    </parameter>
-                    <parameter> 
-                        <name>FederateType</name>
-                        <dataType>String</dataType>
-                    </parameter>
-                    <parameter> 
-                        <name>IsLateJoiner</name>
-                        <dataType>boolean</dataType>
-                    </parameter>
-                </interactionClass>
                 <interactionClass>
                     <name>SimulationControl</name>
                     <sharing>Neither</sharing>
@@ -172,7 +137,9 @@
             </interactionClass>
         </interactionClass>
     </interactions>
+    
     <dimensions/>
+    
     <transportations>
         <transportation>
             <name>HLAreliable</name>
@@ -191,6 +158,7 @@
             </semantics>
         </transportation>
     </transportations>
+    
     <switches>
         <autoProvide/>
         <conveyRegionDesignatorSets/>
@@ -204,6 +172,7 @@
         <delaySubscriptionEvaluation/>
         <automaticResignAction/>
     </switches>
+    
     <dataTypes>
         <basicDataRepresentations>
             <basicData>

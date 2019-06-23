@@ -7,5 +7,5 @@
     "join-foms":             ["challenger/challenge-response-fom.xml"],
     "som":                   "challenger/challenge-som.xml",
 
-    "iterations":            20
+    "iterations":            10
 }
