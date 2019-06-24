@@ -1,9 +1,8 @@
-
 {
-    "federateName":          "Responder",
-    "federateType":          "ResponseFederate",
-    "federationExecName":    "ChallengeResponseFederation",
-    "baseFoms":              [],
-    "joinFoms":              ["challenger/challenge-response-fom.xml"],
-    "som":                   "challenger/response-som.xml"
+	"federateName":          "Responder",
+	"federateType":          "ResponseFederate",
+	"federationExecName":    "ChallengeResponseFederation",
+	"baseFomPaths":          [],
+	"joinFomPaths":          ["challenger/challenge-response-fom.xml"],
+	"somPath":               "challenger/response-som.xml"
 }

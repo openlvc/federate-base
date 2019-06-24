@@ -1,9 +1,9 @@
 {
 	"federateName":          "Pinger",
 	"autoUniqueName":        true,
-    "federateType":          "PingFederate",
-    "federationExecName":    "PingPongFederation",
-    "baseFoms":              [],
-    "joinFoms":              ["ucef/ping-pong-fom.xml"],
-    "som":                   "ucef/ping-som.xml"
+	"federateType":          "PingFederate",
+	"federationExecName":    "PingPongFederation",
+	"baseFomPaths":          [],
+	"joinFomPaths":          ["ucef/ping-pong-fom.xml"],
+	"somPath":               "ucef/ping-som.xml"
 }

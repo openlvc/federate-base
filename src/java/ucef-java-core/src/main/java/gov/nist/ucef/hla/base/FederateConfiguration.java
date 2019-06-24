@@ -97,9 +97,9 @@ public class FederateConfiguration
 	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
 	private static final String JSON_CONFIG_KEY_TIME_CONSTRAINED        = "timeConstrained";
 	private static final String JSON_CONFIG_KEY_TIME_REGULATED          = "timeRegulated";
-	private static final String JSON_CONFIG_KEY_BASE_FOMS               = "baseFoms";
-	private static final String JSON_CONFIG_KEY_JOIN_FOMS               = "joinFoms";
-	private static final String JSON_CONFIG_KEY_SOM                     = "som";
+	private static final String JSON_CONFIG_KEY_BASE_FOM_PATHS          = "baseFomPaths";
+	private static final String JSON_CONFIG_KEY_JOIN_FOM_PATHS          = "joinFomPaths";
+	private static final String JSON_CONFIG_KEY_SOM_PATH                = "somPath";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -113,7 +113,7 @@ public class FederateConfiguration
 
 	private Collection<String> baseFoms;
 	private Collection<String> joinFoms;
-	private String som;
+	private String somPath;
 
 	private Map<String,Types.InteractionClass> interactionsByName;
 	private Map<String,Types.ObjectClass> objectClassesByName;
@@ -158,13 +158,13 @@ public class FederateConfiguration
 		this.federationExecName = federationName;
 
 		this.autoUniqueName = false;
-		
+
 		this.modules = new HashSet<>();
 		this.joinModules = new HashSet<>();
 
 		this.baseFoms = new HashSet<>();
 		this.joinFoms = new HashSet<>();
-		this.som = "";
+		this.somPath = "";
 
 		this.objectClassesByName = new HashMap<>();
 		this.interactionsByName = new HashMap<>();
@@ -194,7 +194,7 @@ public class FederateConfiguration
 	 *
 	 * Configuration items not mentioned in the JSON structure will not have their values changed
 	 * (i.e., they will be left in their existing state).
-	 * 
+	 *
 	 * Refer to {@link #fromJSON(JSONObject)} for recognized configuration JSON keys and data
 	 * types.
 	 *
@@ -275,7 +275,7 @@ public class FederateConfiguration
 			throw new UCEFException( e, msg );
 		}
 	}
-	
+
 	/**
 	 * Provide configuration details from a {@link String} containing JSON structured data
 	 *
@@ -301,14 +301,14 @@ public class FederateConfiguration
 	 *     "stepSize":              DOUBLE
 	 *     "timeConstrained":       BOOL,
 	 *     "timeRegulated":         BOOL,
-	 *     "baseFoms":              ARRAY[STRING...],
-	 *     "joinFoms":              ARRAY[STRING...],
-	 *     "som":                   STRING
+	 *     "baseFomPaths":          ARRAY[STRING...],
+	 *     "joinFomPaths":          ARRAY[STRING...],
+	 *     "somPath":               STRING
 	 * }
 	 *
 	 * @param configData the {@link JSONObject} containing configuration data
-	 * @return the original {@link JSONObject}, so that it can be used for handling of "extra", 
-	 *         federate specific custom configuration parameters contained in the JSON. 
+	 * @return the original {@link JSONObject}, so that it can be used for handling of "extra",
+	 *         federate specific custom configuration parameters contained in the JSON.
 	 */
 	public JSONObject fromJSON( JSONObject configData )
 	{
@@ -317,18 +317,18 @@ public class FederateConfiguration
 			logger.warn( "JSON configuration data was null!" );
 			return configData;
 		}
-		
+
 		if( configData.isEmpty() )
 		{
 			logger.warn( "JSON configuration data was empty - defaults will be used." );
 			return configData;
 		}
-		
+
 		if(logger.isDebugEnabled())
 		{
 			// for the purposes of debugging problems, show logging for
-			// any unrecognized configuration items found so that problems 
-			// can be resolved quickly (such as typos in the 
+			// any unrecognized configuration items found so that problems
+			// can be resolved quickly (such as typos in the
 			// config JSON keys etc)
 			Set<String> recognizedConfigurationKeys = new HashSet<>();
 			recognizedConfigurationKeys.addAll( Arrays.asList(new String[]
@@ -346,9 +346,9 @@ public class FederateConfiguration
 	                JSON_CONFIG_KEY_STEP_SIZE,
 	                JSON_CONFIG_KEY_TIME_CONSTRAINED,
 	                JSON_CONFIG_KEY_TIME_REGULATED,
-	                JSON_CONFIG_KEY_BASE_FOMS,
-	                JSON_CONFIG_KEY_JOIN_FOMS,
-	                JSON_CONFIG_KEY_SOM
+	                JSON_CONFIG_KEY_BASE_FOM_PATHS,
+	                JSON_CONFIG_KEY_JOIN_FOM_PATHS,
+	                JSON_CONFIG_KEY_SOM_PATH
 	            }
 			));
 			for(Object key : configData.keySet())
@@ -375,8 +375,8 @@ public class FederateConfiguration
 			                                            this.autoUniqueName );
 			if( this.autoUniqueName )
 			{
-				// if automatic unique naming is active, we use a 
-				// type 4 UUID string to ensure that the federate 
+				// if automatic unique naming is active, we use a
+				// type 4 UUID string to ensure that the federate
 				// name is universally unique
 				String uniquifier = UUID.randomUUID().toString();
 				String tempFederateName = jsonStringOrDefault( configData,
@@ -386,8 +386,8 @@ public class FederateConfiguration
 					this.federateName = "Federate_" + uniquifier;
 				else
 					this.federateName = tempFederateName + "_" + uniquifier;
-				
-				logger.debug( String.format( "Generated unique federate name '%s'", 
+
+				logger.debug( String.format( "Generated unique federate name '%s'",
 				                             this.federateName ));
 			}
 			else
@@ -429,32 +429,32 @@ public class FederateConfiguration
 			this.stepSize = jsonDoubleOrDefault( configData,
 			                                     JSON_CONFIG_KEY_STEP_SIZE,
 			                                     this.stepSize );
-			Set<String> extractedBaseFoms = jsonStringSetOrDefault( configData,
-			                                                        JSON_CONFIG_KEY_BASE_FOMS,
-			                                                        Collections.emptySet() );
-			if( extractedBaseFoms.size() > 0 )
+			Set<String> extractedBaseFomPaths = jsonStringSetOrDefault( configData,
+			                                                            JSON_CONFIG_KEY_BASE_FOM_PATHS,
+			                                                            Collections.emptySet() );
+			if( extractedBaseFomPaths.size() > 0 )
 			{
-				this.baseFoms = extractedBaseFoms;
+				this.baseFoms = extractedBaseFomPaths;
 				this.modules.clear();
 				addModules( urlsFromPaths( this.baseFoms ) );
 			}
-			Set<String> extractedJoinFoms = jsonStringSetOrDefault( configData,
-			                                                        JSON_CONFIG_KEY_JOIN_FOMS,
+			Set<String> extractedJoinFomPaths = jsonStringSetOrDefault( configData,
+			                                                        JSON_CONFIG_KEY_JOIN_FOM_PATHS,
 			                                                        Collections.emptySet() );
-			if( extractedJoinFoms.size() > 0 )
+			if( extractedJoinFomPaths.size() > 0 )
 			{
-				this.joinFoms = extractedJoinFoms;
+				this.joinFoms = extractedJoinFomPaths;
 				this.joinModules.clear();
 				addJoinModules( urlsFromPaths( this.joinFoms ) );
 			}
-			
-			String extractedSom = jsonStringOrDefault( configData, JSON_CONFIG_KEY_SOM, "" );
-			if( extractedSom.length() > 0 )
+
+			String extractedSomPath = jsonStringOrDefault( configData, JSON_CONFIG_KEY_SOM_PATH, "" );
+			if( extractedSomPath.length() > 0 )
 			{
-				this.som = extractedSom;
+				this.somPath = extractedSomPath;
 				this.interactionsByName.clear();
 				this.objectClassesByName.clear();
-				SOMParser.somToFederateConfig( this.som, this );
+				SOMParser.somToFederateConfig( this.somPath, this );
 			}
 		}
 		catch( Exception e )
@@ -1012,17 +1012,17 @@ public class FederateConfiguration
 	{
 		// this is to support multiple SOM usage without breaking the interface
 		Set<String> soms = new HashSet<>();
-		soms.add( this.som );
+		soms.add( this.somPath );
 		return soms;
 	}
 
 	public FederateConfiguration addSomPath( String path )
 	{
-		this.som = path;
+		this.somPath = path;
 
 		this.interactionsByName.clear();
 		this.objectClassesByName.clear();
-		SOMParser.somToFederateConfig( this.som, this );
+		SOMParser.somToFederateConfig( this.somPath, this );
 
 		return this;
 	}

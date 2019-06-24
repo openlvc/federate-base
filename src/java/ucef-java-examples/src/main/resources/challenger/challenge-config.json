@@ -1,11 +1,10 @@
-
 {
-    "federateName":          "Challenger",
-    "federateType":          "ChallengeFederate",
-    "federationExecName":    "ChallengeResponseFederation",
-    "baseFoms":              [],
-    "joinFoms":              ["challenger/challenge-response-fom.xml"],
-    "som":                   "challenger/challenge-som.xml",
+	"federateName":          "Challenger",
+	"federateType":          "ChallengeFederate",
+	"federationExecName":    "ChallengeResponseFederation",
+	"baseFomPaths":          [],
+	"joinFomPaths":          ["challenger/challenge-response-fom.xml"],
+	"somPath":               "challenger/challenge-som.xml",
 
-    "iterations":            10
+	"iterations":            10
 }
