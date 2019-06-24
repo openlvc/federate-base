@@ -61,13 +61,13 @@ public class FedManCmdLineProcessor
 	private static final String CMDLINE_ARG_HELP                        = "help";
 	private static final String CMDLINE_ARG_HELP_SHORT                  = "h";
 	private static final String CMDLINE_ARG_JSON_CONFIG_FILE            = "config";
-	private static final String CMDLINE_ARG_FEDMAN_FEDERATION_EXEC_NAME = "federationName";
+	private static final String CMDLINE_ARG_FEDMAN_FEDERATION_EXEC_NAME = "federationExecName";
 	private static final String CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT  = "f";
 	private static final String CMDLINE_ARG_REQUIRE                     = "require";
 	private static final String CMDLINE_ARG_REQUIRE_SHORT               = "r";
 	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_NAME        = "fedmanName";
 	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_TYPE        = "fedmanType";
-	private static final String CMDLINE_ARG_FEDMAN_BASE_FOMS            = "baseFoms";
+	private static final String CMDLINE_ARG_FEDMAN_BASE_FOMS            = "baseFomPaths";
 	private static final String CMDLINE_ARG_MAX_TIME                    = "maxTime";
 	private static final String CMDLINE_ARG_LOGICAL_SECOND              = "logicalSecond";
 	private static final String CMDLINE_ARG_LOGICAL_STEP_GRANULARITY    = "logicalGranularity";

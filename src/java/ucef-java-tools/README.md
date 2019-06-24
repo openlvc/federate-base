@@ -72,7 +72,7 @@ line arguments as required.
    and minimum counts. For example, `-r FedABC,2` would require at least two 
    'FedABC' type federates to join. Multiple requirements can be specified
    by repeated use of this option.
- - `-f`, `--federationName <federation name>`: Set the name of the federation
+ - `-f`, `--federationExecName <federation name>`: Set the name of the federation
    the Federation Manager will join.
  - `--fedmanName <federate name>`: Set the federate name for the Federation 
    Manager to use. If unspecified a value of 'FederationManager' will be used.
@@ -129,7 +129,7 @@ are exercised in this example:
 {
     "fedmanName":            "FederationManager",
     "fedmanType":            "FederationManager",
-    "federationName":        "ManagedFederation",
+    "federationExecName":    "ManagedFederation",
     "require":
     [
         {"type":"FederateABC", "count":1},

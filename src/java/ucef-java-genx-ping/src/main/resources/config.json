@@ -1,10 +1,9 @@
-
 {
     "federateName":          "Ping",
 	"autoUniqueName":        true,
     "federateType":          "PingFederate",
     "federationExecName":    "ManagedFederation",
-    "baseFoms":              ["fom-base.xml"],
-    "joinFoms":              ["fom-join.xml"],
-    "som":                   "som.xml"
+    "baseFomPaths":          ["fom-base.xml"],
+    "joinFomPaths":          ["fom-join.xml"],
+    "somPath":               "som.xml"
 }

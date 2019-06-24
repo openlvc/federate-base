@@ -1,17 +1,17 @@
 
 {
-    "fedmanName":            "FederationManager",
-	"fedmanType":            "FederationManager",
-    "federationName":        "ManagedFederation",
+	"fedmanName":         "FederationManager",
+	"fedmanType":         "FederationManager",
+	"federationExecName": "ManagedFederation",
 	"require":
 	[
 		{"type":"PingFederate", "count":1},
 		{"type":"PongFederate", "count":1}
 	],
-	"maxTime": 999999.0,
-	"logicalSecond": 1.0,
+	"maxTime":            999999.0,
+	"logicalSecond":      1.0,
 	"logicalGranularity": 1,
 	"realtimeMultiplier": 1.0,
-	"withHttpService": true,
-	"httpPort": 8888
+	"withHttpService":    true,
+	"httpPort":           8888
 }
