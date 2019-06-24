@@ -97,8 +97,8 @@ public class FederateConfiguration
 	private static final String JSON_CONFIG_KEY_LOOK_AHEAD              = "lookAhead";
 	private static final String JSON_CONFIG_KEY_TIME_CONSTRAINED        = "timeConstrained";
 	private static final String JSON_CONFIG_KEY_TIME_REGULATED          = "timeRegulated";
-	private static final String JSON_CONFIG_KEY_BASE_FOMS               = "base-foms";
-	private static final String JSON_CONFIG_KEY_JOIN_FOMS               = "join-foms";
+	private static final String JSON_CONFIG_KEY_BASE_FOMS               = "baseFoms";
+	private static final String JSON_CONFIG_KEY_JOIN_FOMS               = "joinFoms";
 	private static final String JSON_CONFIG_KEY_SOM                     = "som";
 
 	//----------------------------------------------------------
@@ -301,8 +301,8 @@ public class FederateConfiguration
 	 *     "stepSize":              DOUBLE
 	 *     "timeConstrained":       BOOL,
 	 *     "timeRegulated":         BOOL,
-	 *     "base-foms":             ARRAY[STRING...],
-	 *     "join-foms":             ARRAY[STRING...],
+	 *     "baseFoms":              ARRAY[STRING...],
+	 *     "joinFoms":              ARRAY[STRING...],
 	 *     "som":                   STRING
 	 * }
 	 *

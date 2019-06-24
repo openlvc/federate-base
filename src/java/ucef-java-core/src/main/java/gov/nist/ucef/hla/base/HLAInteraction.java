@@ -121,7 +121,7 @@ public class HLAInteraction
 		return this.interactionClassName.hashCode();
 	}
 
-    ////////////////////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
@@ -380,39 +380,25 @@ public class HLAInteraction
 		synchronized( mutex_lock )
 		{
 			if( value == null )
-    		{
-    			this.parameters.remove( parameterName );
-    		}
-    		else
-    		{
-    			this.parameters.put( parameterName, value );
-    		}
+			{
+				this.parameters.remove( parameterName );
+			}
+			else
+			{
+				this.parameters.put( parameterName, value );
+			}
 		}
 	}
 
-    /**
-     * Get the current value of all parameters of this interaction.
-     *
-     * @return An map of parameters handle names to their current values (note that this is not
-     * 		   modifiable but reflects changes made to the underlying data)
-     */
-    public Map<String, byte[]> getState()
-    {
-    	return Collections.unmodifiableMap( this.parameters );
-    	/*
-    	Map<String, byte[]> result = new HashMap<>();
-		synchronized( mutex_lock )
-		{
-			for( Entry<String,byte[]> entry : this.parameters.entrySet())
-			{
-				byte[] src = entry.getValue();
-				byte[] value = new byte[src.length];
-				System.arraycopy( src, 0, value, 0, src.length );
-				result.put( entry.getKey(), value );
-			}
-		}
-		return result;
-		*/
+	/**
+	 * Get the current value of all parameters of this interaction.
+	 *
+	 * @return An map of parameters handle names to their current values (note that this is not
+	 *         modifiable but reflects changes made to the underlying data)
+	 */
+	public Map<String,byte[]> getState()
+	{
+		return Collections.unmodifiableMap( this.parameters );
 	}
 
 	/**

@@ -64,7 +64,7 @@ import gov.nist.ucef.hla.ucef.interactions.SimStart;
  *		       Universal CPS Environment
  *		             for Federation
  *
- * Example federate for testing
+ * Example federate
  */
 public class ChallengeFederate extends _ChallengeFederate
 {
@@ -110,7 +110,7 @@ public class ChallengeFederate extends _ChallengeFederate
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
-	public ChallengeFederate(String[] args)
+	public ChallengeFederate()
 	{
 		super();
 
@@ -670,7 +670,7 @@ public class ChallengeFederate extends _ChallengeFederate
 			int iterations = ConfigUtils.getConfiguredInt( jsonConfig, cmdLine,
 			                                               CMDLINE_ARG_ITERATIONS, ITERATIONS_DEFAULT );
 
-			ChallengeFederate federate = new ChallengeFederate( args );
+			ChallengeFederate federate = new ChallengeFederate();
 			FederateConfiguration config = federate.getFederateConfiguration();
 			config.fromJSON( jsonConfig );
 			System.out.println(config.summary());

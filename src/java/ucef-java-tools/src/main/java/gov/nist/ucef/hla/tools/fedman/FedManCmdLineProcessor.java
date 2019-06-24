@@ -61,22 +61,22 @@ public class FedManCmdLineProcessor
 	private static final String CMDLINE_ARG_HELP                        = "help";
 	private static final String CMDLINE_ARG_HELP_SHORT                  = "h";
 	private static final String CMDLINE_ARG_JSON_CONFIG_FILE            = "config";
-	private static final String CMDLINE_ARG_FEDMAN_FEDERATION_EXEC_NAME = "federation-name";
+	private static final String CMDLINE_ARG_FEDMAN_FEDERATION_EXEC_NAME = "federationName";
 	private static final String CMDLINE_ARG_FEDERATION_EXEC_NAME_SHORT  = "f";
 	private static final String CMDLINE_ARG_REQUIRE                     = "require";
 	private static final String CMDLINE_ARG_REQUIRE_SHORT               = "r";
-	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_NAME        = "fedman-name";
-	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_TYPE        = "fedman-type";
-	private static final String CMDLINE_ARG_FEDMAN_BASE_FOMS            = "base-foms";
-	private static final String CMDLINE_ARG_MAX_TIME                    = "max-time";
-	private static final String CMDLINE_ARG_LOGICAL_SECOND              = "logical-second";
-	private static final String CMDLINE_ARG_LOGICAL_STEP_GRANULARITY    = "logical-granularity";
-	private static final String CMDLINE_ARG_REALTIME_MULTIPLIER         = "realtime-multiplier";
-	private static final String CMDLINE_ARG_HTTP_PORT                   = "http-port";
-	private static final String CMDLINE_SWITCH_NO_HTTP_SERVICE          = "no-http-service";
+	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_NAME        = "fedmanName";
+	private static final String CMDLINE_ARG_FEDMAN_FEDERATE_TYPE        = "fedmanType";
+	private static final String CMDLINE_ARG_FEDMAN_BASE_FOMS            = "baseFoms";
+	private static final String CMDLINE_ARG_MAX_TIME                    = "maxTime";
+	private static final String CMDLINE_ARG_LOGICAL_SECOND              = "logicalSecond";
+	private static final String CMDLINE_ARG_LOGICAL_STEP_GRANULARITY    = "logicalGranularity";
+	private static final String CMDLINE_ARG_REALTIME_MULTIPLIER         = "realtimeMultiplier";
+	private static final String CMDLINE_ARG_HTTP_PORT                   = "httpPort";
+	private static final String CMDLINE_SWITCH_NO_HTTP_SERVICE          = "noHttpService";
 
 	// JSON config keys (mostly the same as command line arguments)
-	private static final String JSON_CONFIG_KEY_WITH_HTTP_SERVICE       = "http-service";
+	private static final String JSON_CONFIG_KEY_WITH_HTTP_SERVICE       = "withHttpService";
 
 	// default config values, as required
 	private static final String FEDMAN_FEDERATE_NAME_DEFAULT           = "FederationManager";

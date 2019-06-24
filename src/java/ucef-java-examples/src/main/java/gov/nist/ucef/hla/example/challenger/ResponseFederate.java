@@ -59,7 +59,7 @@ import gov.nist.ucef.hla.ucef.interactions.SimStart;
  *		       Universal CPS Environment
  *		             for Federation
  *
- * Example federate for testing
+ * Example federate
  */
 public class ResponseFederate extends _ResponseFederate
 {
@@ -382,14 +382,12 @@ public class ResponseFederate extends _ResponseFederate
 
 		Options cmdLineOptions = buildCommandLineOptions();
 		CommandLine cmdLine = parseAndValidateCommandLineOptions( args, cmdLineOptions );
-
 		if( cmdLine.hasOption( CMDLINE_ARG_HELP ) )
 		{
 			// if the --help option has been used, we display help and exit immediately
 			displayHelp( cmdLineOptions );
 			System.exit( 1 );
 		}
-
 
 		try
 		{

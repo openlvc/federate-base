@@ -26,6 +26,11 @@ package gov.nist.ucef.hla.ucef.interactions;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.RTIAmbassadorWrapper;
 
+/**
+ * An implementation of the SimResume interaction - a UCEF simulation control interaction
+ * used by the Federation Manager and UCEF federates to provide a simple simulation
+ * control and signalling protocol.
+ */
 public class SimResume extends HLAInteraction
 {
 	//----------------------------------------------------------

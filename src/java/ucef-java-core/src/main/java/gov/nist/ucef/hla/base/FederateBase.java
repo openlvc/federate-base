@@ -41,6 +41,11 @@ import hla.rti1516e.ObjectClassHandle;
 import hla.rti1516e.ObjectInstanceHandle;
 import hla.rti1516e.ResignAction;
 
+/**
+ * The purpose of this class is to provide a base level implementation of an HLA1516e federate, as
+ * well as useful "boilerplate" implementations of common methods which most federates generally
+ * implement anyway in order to be manageable.
+ */
 public abstract class FederateBase
 {
 	//----------------------------------------------------------
@@ -239,27 +244,29 @@ public abstract class FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////// INCOMING INTERACTION/REFLECTION HANDLING /////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	public void incomingObjectRegistration( ObjectInstanceHandle instanceHandle, ObjectClassHandle classHandle )
+	public void incomingObjectRegistration( ObjectInstanceHandle instanceHandle,
+	                                        ObjectClassHandle classHandle )
 	{
 		synchronized( mutex_lock )
 		{
-    		// just delegate to the default handler
-    		Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
+			// just delegate to the default handler
+			Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
 
-    		if( objectClass != null )
-    		{
-    			objectClassByInstanceHandle.put( instanceHandle, objectClass );
+			if( objectClass != null )
+			{
+				objectClassByInstanceHandle.put( instanceHandle, objectClass );
 
-    			HLAObject hlaObject = new HLAObject( objectClass.name, instanceHandle );
-    			hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
+				HLAObject hlaObject = new HLAObject( objectClass.name, instanceHandle );
+				hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
 
-    			receiveObjectRegistration( hlaObject );
-    		}
-    		else
-    		{
-    			logger.warn( "Discovered unrecognized object instance {}",
-    			             rtiamb.makeSummary( instanceHandle ) );
-    		}
+				receiveObjectRegistration( hlaObject );
+			}
+			else
+			{
+				logger.warn(
+				             "Discovered unrecognized object instance {}",
+				             rtiamb.makeSummary( instanceHandle ) );
+			}
 		}
 	}
 
@@ -269,16 +276,16 @@ public abstract class FederateBase
 		{
 			HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
 
-    		if( hlaObject != null )
-    		{
-    			hlaObject.setState( attributes );
-    			receiveAttributeReflection( hlaObject );
-    		}
-    		else
-    		{
-    			logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
-   			              	 rtiamb.makeSummary( handle ) );
-    		}
+			if( hlaObject != null )
+			{
+				hlaObject.setState( attributes );
+				receiveAttributeReflection( hlaObject );
+			}
+			else
+			{
+				logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
+				             rtiamb.makeSummary( handle ) );
+			}
 		}
 
 		// just delegate to the default handler
@@ -288,19 +295,19 @@ public abstract class FederateBase
 	{
 		synchronized( mutex_lock )
 		{
-    		HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
+			HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
 
-    		if( hlaObject != null )
-    		{
-    			hlaObject.setState( attributes );
-    			// just delegate to the default handler
-    			receiveAttributeReflection( hlaObject, time );
-    		}
-    		else
-    		{
-    			logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
-   			              	 rtiamb.makeSummary( handle ) );
-    		}
+			if( hlaObject != null )
+			{
+				hlaObject.setState( attributes );
+				// just delegate to the default handler
+				receiveAttributeReflection( hlaObject, time );
+			}
+			else
+			{
+				logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
+				             rtiamb.makeSummary( handle ) );
+			}
 		}
 	}
 
@@ -308,17 +315,16 @@ public abstract class FederateBase
 	{
 		synchronized( mutex_lock )
 		{
-    		HLAInteraction interaction = makeInteraction( handle, parameters );
-    		if( interaction != null )
-    		{
-    			// just delegate to the default handler
-    			receiveInteraction( interaction );
-    		}
-    		else
-    		{
-    			logger.warn( "Ignoring unexpected interaction: {}",
-   			              	 rtiamb.makeSummary( handle ) );
-    		}
+			HLAInteraction interaction = makeInteraction( handle, parameters );
+			if( interaction != null )
+			{
+				// just delegate to the default handler
+				receiveInteraction( interaction );
+			}
+			else
+			{
+				logger.warn( "Ignoring unexpected interaction: {}", rtiamb.makeSummary( handle ) );
+			}
 		}
 	}
 
@@ -326,18 +332,17 @@ public abstract class FederateBase
 	{
 		synchronized( mutex_lock )
 		{
-    		HLAInteraction interaction = makeInteraction( handle, parameters );
-    		if( interaction != null )
-    		{
-    			// just delegate to the default handler
-    			receiveInteraction( interaction, time );
-    		}
-    		else
-    		{
-    			logger.warn( "Ignoring unexpected interaction: {}",
-    			             rtiamb.makeSummary( handle ) );
-    		}
-    	}
+			HLAInteraction interaction = makeInteraction( handle, parameters );
+			if( interaction != null )
+			{
+				// just delegate to the default handler
+				receiveInteraction( interaction, time );
+			}
+			else
+			{
+				logger.warn( "Ignoring unexpected interaction: {}", rtiamb.makeSummary( handle ) );
+			}
+		}
 	}
 
 	public void incomingObjectDeleted( ObjectInstanceHandle handle )
@@ -345,19 +350,19 @@ public abstract class FederateBase
 		synchronized( mutex_lock )
 		{
 			// clean up object maps as required
-    		Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
-    		HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
+			Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
+			HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
 
-    		if( objectClass != null && hlaObject != null)
-    		{
-    			// just delegate to the default handler
-    			receiveObjectDeleted( hlaObject );
-    		}
-    		else
-    		{
-    			logger.warn( "Deletion notification received for previously undiscovered object instance {}",
-    			             rtiamb.makeSummary( handle ) );
-    		}
+			if( objectClass != null && hlaObject != null )
+			{
+				// just delegate to the default handler
+				receiveObjectDeleted( hlaObject );
+			}
+			else
+			{
+				logger.warn( "Deletion notification received for previously undiscovered object instance {}",
+				             rtiamb.makeSummary( handle ) );
+			}
 		}
 	}
 
@@ -616,7 +621,7 @@ public abstract class FederateBase
                           federationName,
                           maxRetries,
                           (maxRetries == 1 ? "" : "s")  );
-			// if we can't join the federation, there is no point in 
+			// if we can't join the federation, there is no point in
 			// continuing at all - just exit now with non-zero exit code
 			System.exit( 1 );
 		}

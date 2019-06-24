@@ -1,0 +1,9 @@
+{
+	"federateName":          "Pinger",
+	"autoUniqueName":        true,
+    "federateType":          "PingFederate",
+    "federationExecName":    "PingPongFederation",
+    "baseFoms":              [],
+    "joinFoms":              ["base/ping-pong-fom.xml"],
+    "som":                   "base/ping-som.xml"
+}

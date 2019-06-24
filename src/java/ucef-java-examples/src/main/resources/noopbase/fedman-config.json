@@ -1,0 +1,11 @@
+
+{
+    "federationName": "PingPongFederation",
+	"require":
+	[
+		{"type":"PingFederate", "count":1},
+		{"type":"PongFederate",  "count":1}
+	],
+	"maxTime": 20.0,
+    "baseFoms": ["../ucef-java-examples/src/main/resources/noopbase/ping-pong-fom.xml"]	
+}

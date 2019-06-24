@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -34,10 +34,10 @@ import java.util.Collections;
  */
 public enum UCEFSyncPoint
 {
-    //----------------------------------------------------------
-    //                        VALUES
-    //----------------------------------------------------------
-    // possible synchronization points, in expected chronological order of execution in
+	//----------------------------------------------------------
+	//                        VALUES
+	//----------------------------------------------------------
+	// possible synchronization points, in expected chronological order of execution in
 	// the federation
 	READY_TO_POPULATE("readyToPopulate", "Ready to Populate"),
 	READY_TO_RUN("readyToRun", "Ready to Run"),
@@ -84,7 +84,7 @@ public enum UCEFSyncPoint
 
 	/**
 	 * Obtain the text identifier uniquely identifying this synchronization point (internal use)
-	 * 
+	 *
 	 * @return the text identifier uniquely identifying this synchronization point (internal use)
 	 */
 	public String getLabel()
@@ -94,66 +94,66 @@ public enum UCEFSyncPoint
 
 	/**
 	 * Determine if this synchronization point is before the provided synchronization point
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
 	public boolean isBefore( UCEFSyncPoint other )
 	{
-		// NOTE: relies on the enumerated values being defined in the expected 
+		// NOTE: relies on the enumerated values being defined in the expected
 		//       chronological order
 		return other != null && this.ordinal() < other.ordinal();
 	}
-	
+
 	/**
 	 * Determine if this synchronization point is at or before the provided synchronization point
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is at or before the provided synchronization
 	 *         point, false otherwise
 	 */
 	public boolean isAtOrBefore( UCEFSyncPoint other )
 	{
-		// NOTE: relies on the enumerated values being defined in the expected 
+		// NOTE: relies on the enumerated values being defined in the expected
 		//       chronological order
 		return other != null && this.ordinal() <= other.ordinal();
 	}
-	
+
 	/**
 	 * Determine if this synchronization point is after the provided synchronization point
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is before the provided synchronization point,
 	 *         false otherwise
 	 */
 	public boolean isAfter( UCEFSyncPoint other )
 	{
-		// NOTE: relies on the enumerated values being defined in the expected 
+		// NOTE: relies on the enumerated values being defined in the expected
 		//       chronological order
 		return other != null && this.ordinal() > other.ordinal();
 	}
 
 	/**
 	 * Determine if this synchronization point is at or after the provided synchronization point
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is at or after the provided synchronization
 	 *         point, false otherwise
 	 */
 	public boolean isAtOrAfter( UCEFSyncPoint other )
 	{
-		// NOTE: relies on the enumerated values being defined in the expected 
+		// NOTE: relies on the enumerated values being defined in the expected
 		//       chronological order
 		return other != null && this.ordinal() >= other.ordinal();
 	}
-	
+
 	/**
 	 * Determine if this synchronization point is the same as the provided synchronization point
-	 * 
+	 *
 	 * NOTE: this is just wrapper around the standard enumeration equals() method provided to
 	 * improve code readability
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is the same as the provided synchronization
 	 *         point, false otherwise
@@ -166,10 +166,10 @@ public enum UCEFSyncPoint
 	/**
 	 * Determine if this synchronization point is not the same as the provided synchronization
 	 * point
-	 * 
+	 *
 	 * NOTE: this is just a negation of the standard enumeration equals() method provided to
 	 * improve code readability
-	 * 
+	 *
 	 * @param other the other synchronization point
 	 * @return true if this synchronization point is not the same as the provided synchronization
 	 *         point, false otherwise
@@ -178,13 +178,13 @@ public enum UCEFSyncPoint
 	{
 		return !this.equals(other);
 	}
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
 	/**
 	 * Determine if a label identifies a standard UCEF synchronization point
-	 * 
+	 *
 	 * @param label the text identifier uniquely identifying a synchronization point
 	 * @return true if the label is for a known UCEF synchronization point, false otherwise
 	 *         text identifier for a {@link UCEFSyncPoint}.
@@ -193,10 +193,10 @@ public enum UCEFSyncPoint
 	{
 		return !UCEFSyncPoint.isUnknown( label );
 	}
-	
+
 	/**
 	 * Determine if a label does not identify a standard UCEF synchronization point
-	 * 
+	 *
 	 * @param label the text identifier uniquely identifying a synchronization point
 	 * @return true if the label is not a known UCEF synchronization point, false otherwise
 	 *         text identifier for a {@link UCEFSyncPoint}.
@@ -205,14 +205,14 @@ public enum UCEFSyncPoint
 	{
 		return UCEFSyncPoint.fromLabel( label ) == null;
 	}
-	
+
 	/**
 	 * Converts a text identifier uniquely identifying a synchronization point to a
 	 * {@link UCEFSyncPoint} instance.
-	 * 
+	 *
 	 * NOTE: if the key is not a valid text identifier for a synchronization point, null will be
 	 * returned
-	 * 
+	 *
 	 * @param label the text identifier uniquely identifying a synchronization point
 	 * @return the corresponding {@link UCEFSyncPoint}, or null if the key is not a valid
 	 *         text identifier for a {@link UCEFSyncPoint}.
@@ -224,7 +224,7 @@ public enum UCEFSyncPoint
 
 	/**
 	 * Private initializer method for the key-to-{@link UCEFSyncPoint} lookup map
-	 * 
+	 *
 	 * @return a lookup map which pairs text identifiers and the corresponding
 	 *         SyncronizationPoints
 	 */

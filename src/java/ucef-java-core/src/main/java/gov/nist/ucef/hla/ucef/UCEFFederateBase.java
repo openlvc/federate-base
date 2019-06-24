@@ -40,12 +40,11 @@ import gov.nist.ucef.hla.ucef.interactions.SimStart;
 import hla.rti1516e.InteractionClassHandle;
 
 /**
- * An abstract implementation for a UCEF Federate which is aware of certain
- * UCEF specific simulation control interactions.
+ * An abstract implementation for a UCEF Federate which is aware of certain UCEF specific
+ * simulation control interactions.
  *
- * It provides default handlers for them, but more notably provides a
- * {@link #federateExecution()} implementation which is aware of the
- * receipt of {@link SimEnd} simulation control interactions.
+ * It provides default handlers for them, but more notably provides a {@link #federateExecution()}
+ * implementation which is aware of the receipt of {@link SimEnd} simulation control interactions.
  *
  * It terminates the simulation loop when...
  * <ul>
