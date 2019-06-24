@@ -40,6 +40,7 @@ namespace base
 	class FederateConfiguration
 	{
 		public:
+			static std::string KEY_LOG_LEVEL;
 			static std::string KEY_FEDERATE_NAME;
 			static std::string KEY_FEDERATE_TYPE;
 			static std::string KEY_FEDERATION_EXEC_NAME;
@@ -54,13 +55,14 @@ namespace base
 			static std::string KEY_TIME_CONSTRAINED;
 			static std::string KEY_FOM_PATH;
 			static std::string KEY_SOM_PATH;
+
 			static std::string KEY_OMNET_INTERACTIONS;
-			static std::string KEY_DST_OMNET_HOST;
-			static std::string KEY_OMNET_HOST;
+			static std::string KEY_NET_INT_NAME;
+
+			static std::string KEY_SRC_HOST;
 			static std::string KEY_ORG_CLASS;
 			static std::string KEY_NET_DATA;
-			static std::string KEY_NET_INT_NAME;
-			static std::string KEY_SRC_OMNET_HOST;
+
 
 		public:
 			//----------------------------------------------------------

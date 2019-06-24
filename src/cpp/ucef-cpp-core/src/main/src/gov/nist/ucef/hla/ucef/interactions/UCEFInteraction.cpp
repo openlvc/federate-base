@@ -16,6 +16,6 @@ namespace base
 		{
 
 		}
-		const std::string UCEFInteraction::UCEF_INTERACTION_ROOT = "InteractionRoot.C2WInteractionRoot.";
+		const std::string UCEFInteraction::UCEF_INTERACTION_ROOT = "HLAinteractionRoot.C2WInteractionRoot.";
 	}
 }

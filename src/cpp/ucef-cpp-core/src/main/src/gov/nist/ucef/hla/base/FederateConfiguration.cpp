@@ -1,5 +1,6 @@
 #include "gov/nist/ucef/hla/base/FederateConfiguration.h"
 
+#include <algorithm>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -16,6 +17,8 @@ using namespace std;
 
 namespace base
 {
+	// General fedconfig parameter keys
+	string FederateConfiguration::KEY_LOG_LEVEL               = "logLevel";
 	string FederateConfiguration::KEY_FEDERATE_NAME           = "federateName";
 	string FederateConfiguration::KEY_FEDERATE_TYPE           = "federateType";
 	string FederateConfiguration::KEY_FEDERATION_EXEC_NAME    = "federationExecName";
@@ -30,15 +33,18 @@ namespace base
 	string FederateConfiguration::KEY_TIME_CONSTRAINED        = "timeConstrained";
 	string FederateConfiguration::KEY_FOM_PATH                = "fomPath";
 	string FederateConfiguration::KEY_SOM_PATH                = "somPath";
+
+	// OMNeT++ specific fedconfig parameter keys
 	string FederateConfiguration::KEY_OMNET_INTERACTIONS      = "omnetInteractions";
-	// Params in network interactions and cMessages
-	string FederateConfiguration::KEY_DST_OMNET_HOST          = "dstOmnetHost";
-	string FederateConfiguration::KEY_SRC_OMNET_HOST          = "srcOmnetHost";
-	string FederateConfiguration::KEY_ORG_CLASS               = "wrappedClassName";
-	string FederateConfiguration::KEY_NET_DATA                = "data";
-	// Keys in fedconfig file
-	string FederateConfiguration::KEY_OMNET_HOST              = "hostName";
 	string FederateConfiguration::KEY_NET_INT_NAME            = "networkInteractionName";
+	// This key represents the host to inject the network msg
+	string FederateConfiguration::KEY_SRC_HOST                = "sourceHost";
+
+	// Params in network interaction designated to the OMNeT federate
+	// This key represents the name of the class wrapped by this interaction
+	string FederateConfiguration::KEY_ORG_CLASS               = "wrappedClassName";
+	// This key represents the payload of the wrapped class
+	string FederateConfiguration::KEY_NET_DATA                = "data";
 
 	FederateConfiguration::FederateConfiguration() : federationName( "BaseFederation" ),
 	                                                 federateName( "Federate" + to_string(rand()) ),
@@ -190,8 +196,18 @@ namespace base
 		//---------------------------------
 		Logger::getInstance().log( "Reading federate configuration", LevelInfo );
 
+		// Set log level
+		Value::ConstMemberIterator it = doc.FindMember( KEY_LOG_LEVEL.c_str() );
+		if( it != doc.MemberEnd() )
+		{
+			string tmpLogLevel = it->value.GetString();
+			transform( tmpLogLevel.begin(), tmpLogLevel.end(), tmpLogLevel.begin(), ::tolower );
+			LogLevel logLevel = ConversionHelper::toLogLevel( tmpLogLevel );
+			Logger::getInstance().setLogLevel( logLevel );
+		}
+
 		// Federation name
-		Value::ConstMemberIterator it = doc.FindMember( KEY_FEDERATION_EXEC_NAME.c_str() );
+		it = doc.FindMember( KEY_FEDERATION_EXEC_NAME.c_str() );
 		if( it != doc.MemberEnd() )
 		{
 			setFederationName( it->value.GetString() );

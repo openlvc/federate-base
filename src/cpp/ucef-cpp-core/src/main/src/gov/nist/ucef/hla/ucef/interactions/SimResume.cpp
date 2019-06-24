@@ -14,6 +14,6 @@ namespace base
 		SimResume::~SimResume()
 		{
 		}
-		const std::string SimResume::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimResume";
+		const std::string SimResume::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimulationControl.SimResume";
 	}
 }

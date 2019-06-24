@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
@@ -19,7 +20,8 @@ namespace base
 	namespace ucef
 	{
 
-		UCEFFederateBase::UCEFFederateBase() : simEndReceived( false )
+		UCEFFederateBase::UCEFFederateBase() : simEndReceived( false ),
+		                                       netInteractionName( "HLAinteractionRoot.NetworkInteraction" )
 		{
 
 		}
@@ -33,6 +35,16 @@ namespace base
 		{
 			this->configFilePath = configFilePath;
 			ucefConfig->loadFromJson( configFilePath );
+
+			string tmpIntName =
+					ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_NET_INT_NAME );
+			if( tmpIntName != "" )
+			netInteractionName = tmpIntName;
+
+			srcHost =
+					ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_SRC_HOST );
+			omnetInteractions =
+					ucefConfig->getValuesAsList( configFilePath, FederateConfiguration::KEY_OMNET_INTERACTIONS );
 		}
 
 		void UCEFFederateBase::sendInteraction( shared_ptr<HLAInteraction>& hlaInteraction )
@@ -40,11 +52,9 @@ namespace base
 			Logger& logger = Logger::getInstance();
 
 			string intClassName = hlaInteraction->getInteractionClassName();
-			list<string> omnetInteractions =
-					ucefConfig->getValuesAsList( configFilePath, FederateConfiguration::KEY_OMNET_INTERACTIONS );
 
-			// If not an Omnet routed interaction send to RTI
-			if( find(omnetInteractions.begin(), omnetInteractions.end(), intClassName) == omnetInteractions.end() )
+			// If not an OMNeT routed interaction send to RTI
+			if( !isNetworkInteraction( intClassName ) )
 			{
 				logger.log( "Sending interaction class " + intClassName + " to RTI", LevelInfo );
 				rtiAmbassadorWrapper->sendInteraction( hlaInteraction );
@@ -54,25 +64,15 @@ namespace base
 				string logMsg = "Converting interaction class " + intClassName + " to a network interaction";
 				logger.log( logMsg, LevelInfo );
 				// Here we need to build a network interaction before sending it out
-				string netInteractionName =
-						ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_NET_INT_NAME );
-				string srcOmnetHost =
-						ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_SRC_OMNET_HOST );
-				string dstOmnetHost =
-						ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_DST_OMNET_HOST );
-
 				string jsonStr = getJsonString( hlaInteraction );
-
-				logger.log( "Params of this interaction got converted to \n" + jsonStr, LevelInfo);
+				logger.log( "Parameters of this interaction got converted to \n" + jsonStr, LevelInfo);
 
 				shared_ptr<HLAInteraction> netInteraction = make_shared<HLAInteraction>( netInteractionName );
 
 				netInteraction->setValue
 					( FederateConfiguration::KEY_ORG_CLASS, hlaInteraction->getInteractionClassName() );
-				netInteraction->setValue( FederateConfiguration::KEY_SRC_OMNET_HOST, srcOmnetHost );
-				netInteraction->setValue( FederateConfiguration::KEY_DST_OMNET_HOST, dstOmnetHost );
+				netInteraction->setValue( FederateConfiguration::KEY_SRC_HOST, srcHost );
 				netInteraction->setValue( FederateConfiguration::KEY_NET_DATA, jsonStr );
-
 
 				logger.log( "Sending network interaction to RTI", LevelInfo );
 
@@ -87,53 +87,57 @@ namespace base
 			lock_guard<mutex> lock( threadSafeLock );
 			Logger& logger = Logger::getInstance();
 			shared_ptr<InteractionClass> interactionClass = getInteractionClass( interactionHash );
-			string logMsg = "Federate " + ucefConfig->getFederateName();
-			logMsg = logMsg + " received an interaction " + interactionClass->name;
 
-			logger.log( logMsg, LevelDebug );
 			if( interactionClass )
 			{
-				shared_ptr<HLAInteraction> hlaInteraction;
-				if( interactionClass->name == SimEnd::INTERACTION_NAME )
+				// If the received interaction is a sim interaction call the
+				// simulation control methods accordingly.
+				if( isSimInteraction(interactionClass->name) )
 				{
-					ucefConfig->setSyncBeforeResign( true );
-					// create correct interaction based on the class name
-					hlaInteraction = make_shared<SimEnd>( interactionClass->name );
-					// populate interaction with received data
-					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					// call the right hook so users can do whatever they want to do with this interaction
-					receivedSimEnd( dynamic_pointer_cast<SimEnd>(hlaInteraction),
-					                federateAmbassador->getFederateTime() );
-					// this execure receivedSimEnd call at least once before ending the sim
-					simEndReceived = true;
-				}
-				else if( interactionClass->name == SimPause::INTERACTION_NAME )
-				{
-					hlaInteraction = make_shared<SimPause>( interactionClass->name );
-					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					receivedSimPaused( dynamic_pointer_cast<SimPause>(hlaInteraction),
-					                   federateAmbassador->getFederateTime() );
-				}
-				else if( interactionClass->name == SimResume::INTERACTION_NAME )
-				{
-					hlaInteraction = make_shared<SimResume>( interactionClass->name );
-					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					receivedSimResumed( dynamic_pointer_cast<SimResume>(hlaInteraction),
-					                    federateAmbassador->getFederateTime() );
-				}
-				else if( interactionClass->name == SimStart::INTERACTION_NAME )
-				{
-					hlaInteraction = make_shared<SimStart>( interactionClass->name );
-					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					receivedSimStart( dynamic_pointer_cast<SimStart>(hlaInteraction),
-					                  federateAmbassador->getFederateTime() );
+					processSimInteraction( interactionClass, parameterValues );
+
+					string logMsg = "Federate " + ucefConfig->getFederateName();
+					logMsg = logMsg + " received a sim interaction " + interactionClass->name;
+					logger.log( logMsg, LevelDebug );
 				}
 				else
 				{
-					hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
+					shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
 					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					receivedInteraction( const_pointer_cast<const HLAInteraction>(hlaInteraction),
-					                     federateAmbassador->getFederateTime() );
+					if( hlaInteraction->isPresent("federateFilter") )
+					{
+						string fedFilter = hlaInteraction->getAsString( "federateFilter" );
+						string federateName = getFederateConfiguration()->getFederateName();
+						list<string> dstFeds = ConversionHelper::tokenize( fedFilter, ',' );
+						// If the interaction has a federateFilter param test interaction is
+						// designated to me.
+						if( ConversionHelper::isMatch(federateName, dstFeds) )
+						{
+							string logMsg = "Federate " + ucefConfig->getFederateName();
+							logMsg = logMsg + " received interaction " + interactionClass->name + " designated to ";
+							logMsg = logMsg +  "me . I am going to forward it to the user.";
+							logger.log( logMsg, LevelDebug );
+
+							receivedInteraction( hlaInteraction, federateAmbassador->getFederateTime() );
+						}
+						else
+						{
+							string logMsg = "Federate " + ucefConfig->getFederateName();
+							logMsg = logMsg + " received an interaction " + interactionClass->name;
+							logMsg = logMsg +  ". Going to ignore it as it is not designated to me.";
+							logger.log( logMsg, LevelDebug );
+						}
+					}
+					else
+					{
+						string logMsg = "Federate " + ucefConfig->getFederateName();
+						logMsg = logMsg + " received interaction " + interactionClass->name;
+						logMsg = " without a designated federate. I am going to forward it to the user.";
+						logger.log( logMsg, LevelDebug );
+
+						// If the interaction doesn't have a destination filter just forward it to the user.
+						receivedInteraction( hlaInteraction, federateAmbassador->getFederateTime() );
+					}
 				}
 			}
 			else
@@ -149,6 +153,65 @@ namespace base
 			{
 				if( !execute() )
 					break;
+			}
+		}
+
+		bool UCEFFederateBase::isSimInteraction( string interactionName )
+		{
+			bool simInteraction = false;
+
+			if( interactionName == SimEnd::INTERACTION_NAME ||
+			    interactionName == SimPause::INTERACTION_NAME ||
+			    interactionName == SimResume::INTERACTION_NAME ||
+			    interactionName == SimStart::INTERACTION_NAME )
+			{
+				simInteraction = true;
+			}
+			return simInteraction;
+		}
+
+		bool UCEFFederateBase::isNetworkInteraction( const string& className )
+		{
+			return ConversionHelper::isMatch( className, omnetInteractions );
+		}
+
+		void UCEFFederateBase::processSimInteraction( shared_ptr<InteractionClass>& interactionClass,
+				                                       const ParameterHandleValueMap& parameterValues)
+		{
+			shared_ptr<HLAInteraction> hlaInteraction;
+			if( interactionClass->name == SimEnd::INTERACTION_NAME )
+			{
+				ucefConfig->setSyncBeforeResign( true );
+				// create correct interaction based on the class name
+				hlaInteraction = make_shared<SimEnd>( interactionClass->name );
+				// populate interaction with received data
+				populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+				// call the right hook so users can do whatever they want to do with this interaction
+				receivedSimEnd( dynamic_pointer_cast<SimEnd>(hlaInteraction),
+								federateAmbassador->getFederateTime() );
+				// this execure receivedSimEnd call at least once before ending the sim
+				simEndReceived = true;
+			}
+			else if( interactionClass->name == SimPause::INTERACTION_NAME )
+			{
+				hlaInteraction = make_shared<SimPause>( interactionClass->name );
+				populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+				receivedSimPaused( dynamic_pointer_cast<SimPause>(hlaInteraction),
+								   federateAmbassador->getFederateTime() );
+			}
+			else if( interactionClass->name == SimResume::INTERACTION_NAME )
+			{
+				hlaInteraction = make_shared<SimResume>( interactionClass->name );
+				populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+				receivedSimResumed( dynamic_pointer_cast<SimResume>(hlaInteraction),
+									federateAmbassador->getFederateTime() );
+			}
+			else if( interactionClass->name == SimStart::INTERACTION_NAME )
+			{
+				hlaInteraction = make_shared<SimStart>( interactionClass->name );
+				populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
+				receivedSimStart( dynamic_pointer_cast<SimStart>(hlaInteraction),
+								  federateAmbassador->getFederateTime() );
 			}
 		}
 

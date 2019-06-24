@@ -1,4 +1,5 @@
 {
+    "logLevel":"info",
     "federateName":"PingFederate",
     "federateType":"PingFederate",
     "federationExecName":"PingPongOmnetFederation",
@@ -13,9 +14,8 @@
     "timeRegulated":true,
     "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
     "somPath":"resources//ObjectModels//som//UCEF-EXP-PING.xml",
-    "srcOmnetHost":"OmnetHostA",
-    "dstOmnetHost":"OmnetHostC",
+    "sourceHost":"pingHost",
     "networkInteractionName":"HLAinteractionRoot.NetworkInteraction",
-    "omnetInteractions" : ["HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.PingInteraction",
+    "omnetInteractions" : ["HLAinteractionRoot.C2WInteractionRoot.*",
 		           "HLAobjectRoot.ParentObject.PingObject"]
 }

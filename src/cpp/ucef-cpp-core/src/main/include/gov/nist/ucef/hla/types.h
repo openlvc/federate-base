@@ -35,6 +35,7 @@
 #include <list>
 #include <locale>
 #include <memory>
+#include <regex>
 #include <string>
 #include <unordered_map>
 
@@ -448,6 +449,80 @@ namespace base
 					std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 					return converterX.to_bytes( wstr );
+				}
+
+				static LogLevel toLogLevel( const std::string& str )
+				{
+					LogLevel level = LevelInfo;
+					if( str == "trace" )
+					{
+						level = LevelTrace;
+					}
+					else if( str == "debug" )
+					{
+						level = LevelDebug;
+					}
+					else if( str == "warning" )
+					{
+						level = LevelWarn;
+					}
+					else if( str == "error" )
+					{
+						level = LevelError;
+					}
+					else if( str == "critical" )
+					{
+						level = LevelCritical;
+					}
+					else if( str == "off" )
+					{
+						level = LevelOff;
+					}
+
+					return level;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::string& regexString  )
+				{
+					bool match = false;
+
+					std::regex e( regexString );
+					if ( std::regex_match(srcString, e) )
+					{
+						match = true;
+					}
+					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::list<std::string>& regexStrings  )
+				{
+					bool match = false;
+
+					for( std::string regexString : regexStrings )
+					{
+						std::regex e( regexString );
+						if ( std::regex_match(srcString, e) )
+						{
+							match = true;
+							break;
+						}
+					}
+					return match;
+				}
+
+				static std::list<std::string> tokenize( std::string& stringVal, char delimiter )
+				{
+					std::list<std::string> tokense;
+
+					std::stringstream ss(stringVal);
+					std::string tmpString;
+
+					while( getline(ss, tmpString, delimiter) )
+					{
+						tokense.push_back(tmpString);
+					}
+
+					return tokense;
 				}
 		};
 	}

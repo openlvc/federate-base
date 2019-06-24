@@ -87,7 +87,6 @@ namespace base
                 std::list<std::shared_ptr<base::HLAInteraction>> interactionsToRti;
 
                 std::string federateName;
-                std::string hostName;
                 std::string networkInteractionName;
 
                 static base::ucef::NoOpFederate* thisFedarate;

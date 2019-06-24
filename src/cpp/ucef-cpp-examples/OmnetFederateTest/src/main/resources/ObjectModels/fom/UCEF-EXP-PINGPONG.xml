@@ -67,14 +67,10 @@
                     <dataType>String</dataType>
                 </parameter>
                 <parameter> 
-                    <name>srcOmnetHost</name>
+                    <name>sourceHost</name>
                     <dataType>String</dataType>
                 </parameter>
-                <parameter> 
-                    <name>dstOmnetHost</name>
-                    <dataType>String</dataType>
-                </parameter>
-                <parameter> 
+                <parameter>
                     <name>data</name>
                     <dataType>String</dataType>
                 </parameter>

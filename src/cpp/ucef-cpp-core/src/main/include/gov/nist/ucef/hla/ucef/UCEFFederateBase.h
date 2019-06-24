@@ -148,10 +148,18 @@ namespace base
 			 */
 			virtual void federateExecute() override;
 		private:
+			bool isSimInteraction( std::string interactionName );
+			bool isNetworkInteraction( const std::string& className );
+			void processSimInteraction( std::shared_ptr<InteractionClass>& interactionClass,
+			                            const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 			std::string getJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
 		private:
 			bool simEndReceived;
 			std::string configFilePath;
+			std::string netInteractionName;
+			std::string srcHost;
+			std::list<std::string> omnetInteractions;
 		};
 	}
 }

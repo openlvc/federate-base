@@ -281,7 +281,7 @@ namespace base
 		while( federateAmbassador->getFederateTime() < requestedTime )
 		{
 			logger.log( "Waiting for the logical time of this federate to advance to " +
-			            to_string( requestedTime ), LevelDebug );
+			            to_string( requestedTime ), LevelTrace );
 
 			tickForCallBacks();
 		}

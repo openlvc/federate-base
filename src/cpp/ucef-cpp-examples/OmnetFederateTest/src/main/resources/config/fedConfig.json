@@ -1,6 +1,7 @@
 {
-    "federateName":"OmnetFederateD",
-    "federateType":"OmnetFederateD",
+    "logLevel":"info",
+    "federateName":"OmnetFederate",
+    "federateType":"OmnetFederate",
     "federationExecName":"PingPongOmnetFederation",
     "canCreateFederation":true,
     "maxJoinAttempts":2,
@@ -13,6 +14,5 @@
     "timeRegulated":true,
     "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
     "somPath":"resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml",
-    "hostName":"OmnetHostD",
     "networkInteractionName":"HLAinteractionRoot.NetworkInteraction"
 }

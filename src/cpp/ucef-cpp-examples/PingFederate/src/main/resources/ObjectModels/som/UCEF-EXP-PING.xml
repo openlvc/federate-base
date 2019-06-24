@@ -75,11 +75,7 @@
                     <dataType>String</dataType>
                 </parameter>
                 <parameter> 
-                    <name>srcOmnetHost</name>
-                    <dataType>String</dataType>
-                </parameter>
-                <parameter> 
-                    <name>dstOmnetHost</name>
+                    <name>sourceHost</name>
                     <dataType>String</dataType>
                 </parameter>
                 <parameter> 

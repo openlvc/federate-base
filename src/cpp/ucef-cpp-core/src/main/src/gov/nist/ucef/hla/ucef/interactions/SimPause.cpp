@@ -14,6 +14,6 @@ namespace base
 		SimPause::~SimPause()
 		{
 		}
-		const std::string SimPause::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimPause";
+		const std::string SimPause::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimulationControl.SimPause";
 	}
 }
