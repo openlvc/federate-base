@@ -15,11 +15,11 @@ A utility batch and shell script file are provided to make startup simple
 example…
 
 ```
-run-pong-federate.bat
+run-genx-pong-federate.bat
 ```
 …on Windows, or…
 ```
-run-pong-federate.sh
+run-genx-pong-federate.sh
 ```
 …on *nix systems.
 

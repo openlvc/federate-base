@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import hla.rti1516e.encoding.HLAboolean;
+import hla.rti1516e.encoding.HLAbyte;
 import hla.rti1516e.encoding.HLAfloat32BE;
 import hla.rti1516e.encoding.HLAfloat64BE;
 import hla.rti1516e.encoding.HLAinteger16BE;
@@ -64,43 +65,43 @@ public class Types
 		// quick lookups and avoid iterating over all data types
 		private static final Map<String,Sharing> SHARING_LOOKUP =
 			Collections.unmodifiableMap( initializeMapping() );
-		
+
 		public String label;
-		
+
 		private Sharing( String label )
 		{
 			this.label = label;
 		}
-		
+
 		@Override
 		public String toString()
 		{
 			return this.label;
 		}
-		
+
 		/**
 		 * Determine if this sharing policy includes publishing
-		 * 
+		 *
 		 * @return true if this sharing policy includes publishing, false otherwise
 		 */
 		public boolean isPublish()
 		{
 			return this.equals( PUBLISH ) || this.equals( PUBLISHSUBSCRIBE );
 		}
-		
+
 		/**
 		 * Determine if this sharing policy includes subscribing
-		 * 
+		 *
 		 * @return true if this sharing policy includes subscribing, false otherwise
 		 */
 		public boolean isSubscribe()
 		{
 			return this.equals( SUBSCRIBE ) || this.equals( PUBLISHSUBSCRIBE );
 		}
-		
+
 		/**
 		 * Determine if this sharing policy is neither for publishing nor for subscribing
-		 * 
+		 *
 		 * @return true if this sharing policy is neither for publishing nor for subscribing,
 		 *         false otherwise
 		 */
@@ -108,25 +109,27 @@ public class Types
 		{
 			return this.equals( NEITHER );
 		}
-		
+
 		/**
 		 * Converts a text identifier uniquely identifying a sharing type to a {@link Sharing}
 		 * instance.
-		 * 
+		 *
 		 * NOTE: if the key is not a valid text identifier for a sharing type, NEITHER will be returned
-		 * 
+		 *
 		 * @param label the text identifier uniquely identifying a sharing type
 		 * @return the corresponding {@link Sharing}, or {@link Sharing#NEITHER} if the key is
 		 *         not a valid text identifier for a {@link Sharing}.
 		 */
 		public static Sharing fromLabel( String label )
 		{
+			if( label == null )
+				return NEITHER;
 			return SHARING_LOOKUP.getOrDefault( label.toLowerCase().trim(), NEITHER );
 		}
-		
+
 		/**
 		 * Private initializer method for the key-to-{@link Sharing} lookup map
-		 * 
+		 *
 		 * @return a lookup map which pairs text identifiers and the corresponding
 		 *         {@link Sharing}s
 		 */
@@ -138,7 +141,7 @@ public class Types
 			return lookupMap;
 		}
 	};
-	
+
 	/**
 	 * Represents data type of an attribute or interaction parameter
 	 *
@@ -147,57 +150,63 @@ public class Types
 	@SuppressWarnings("rawtypes")
 	public enum DataType
 	{
-		BYTE(    "bytes",   Byte[].class,    null),
-		CHAR(    "char",    Character.class, HLAunicodeChar.class),
-		SHORT(   "short",   Short.class,     HLAinteger16BE.class),
-		INT(     "int",     Integer.class,   HLAinteger32BE.class),
-		LONG(    "long",    Long.class,      HLAinteger64BE.class),
-		FLOAT(   "float",   Float.class,     HLAfloat32BE.class),
-		DOUBLE(  "double",  Double.class,    HLAfloat64BE.class),
-		BOOLEAN( "boolean", Boolean.class,   HLAboolean.class),
-		STRING(  "string",  String.class,    HLAunicodeString.class),
-		UNKNOWN( "unknown", null,            null);
-		
+		BYTE(    "byte",    "HLAbyte",          Byte.class,      HLAbyte.class),
+		CHAR(    "char",    "HLAunicodeChar",   Character.class, HLAunicodeChar.class),
+		SHORT(   "short",   "HLAinteger16BE",   Short.class,     HLAinteger16BE.class),
+		INT(     "int",     "HLAinteger32BE",   Integer.class,   HLAinteger32BE.class),
+		LONG(    "long",    "HLAinteger64BE",   Long.class,      HLAinteger64BE.class),
+		FLOAT(   "float",   "HLAfloat32BE",     Float.class,     HLAfloat32BE.class),
+		DOUBLE(  "double",  "HLAfloat64BE",     Double.class,    HLAfloat64BE.class),
+		BOOLEAN( "boolean", "HLAboolean",       Boolean.class,   HLAboolean.class),
+		STRING(  "string",  "HLAunicodeString", String.class,    HLAunicodeString.class),
+		UNKNOWN( "unknown", "unknown",          null,            null);
+
 		// a map for finding a data type for a string key - this is to provide
 		// quick lookups and avoid iterating over all data types
 		private static final Map<String,DataType> DATATYPE_LOOKUP =
 		    Collections.unmodifiableMap( initializeMapping() );
 
-		public String label;
-		public Class javaType;
-		public Class hlaType;
-		
-		private DataType( String label, Class javaType, Class hlaType )
+		private String label;
+		private String hlaLabel;
+		@SuppressWarnings("unused")
+		private Class javaType;
+		@SuppressWarnings("unused")
+		private Class hlaType;
+
+		private DataType( String label, String hlaLabel, Class javaType, Class hlaType )
 		{
 			this.label = label;
+			this.hlaLabel = hlaLabel;
 			this.javaType = javaType;
 			this.hlaType = hlaType;
 		}
-		
+
 		@Override
 		public String toString()
 		{
 			return this.label;
 		}
-		
+
 		/**
 		 * Converts a text identifier uniquely identifying a data type to a {@link DataType}
 		 * instance.
-		 * 
+		 *
 		 * NOTE: if the key is not a valid text identifier for a data type, UNKNOWN be returned
-		 * 
+		 *
 		 * @param label the text identifier uniquely identifying a data type
 		 * @return the corresponding {@link DataType}, or {@link DataType#UNKNOWN} if the key is
 		 *         not a valid text identifier for a {@link DataType}.
 		 */
 		public static DataType fromLabel( String label )
 		{
+			if( label == null )
+				return UNKNOWN;
 			return DATATYPE_LOOKUP.getOrDefault( label.toLowerCase().trim(), UNKNOWN );
 		}
 
 		/**
 		 * Private initializer method for the key-to-{@link DataType} lookup map
-		 * 
+		 *
 		 * @return a lookup map which pairs text identifiers and the corresponding
 		 *         {@link DataType}s
 		 */
@@ -205,7 +214,10 @@ public class Types
 		{
 			Map<String,DataType> lookupMap = new HashMap<String,DataType>();
 			for( DataType dataType : DataType.values() )
+			{
 				lookupMap.put( dataType.label.toLowerCase().trim(), dataType );
+				lookupMap.put( dataType.hlaLabel.toLowerCase().trim(), dataType );
+			}
 			return lookupMap;
 		}
 	};
@@ -232,7 +244,7 @@ public class Types
 		//----------------------------------------------------------
 		/**
 		 * Constructor
-		 * 
+		 *
 		 * @param name the fully qualified object class name
 		 * @param sharing the sharing type
 		 */
@@ -242,7 +254,7 @@ public class Types
 			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
 			this.attributes = new HashMap<>();
 		}
-		
+
 		//----------------------------------------------------------
 		//                    INSTANCE METHODS
 		//----------------------------------------------------------
@@ -253,7 +265,7 @@ public class Types
 				.stream()
 				.map((attribute)->attribute.toString())
 				.collect(Collectors.joining(","));
-			
+
 			return String.format( "Class:'%s'(%s){%s}",
 			                      this.name, this.sharing.toString(), attrs );
 		}
@@ -263,27 +275,27 @@ public class Types
 		////////////////////////////////////////////////////////////////////////////////////////////
 		/**
 		 * Determine if the sharing policy for this instance includes publishing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes publishing, false otherwise
 		 */
 		public boolean isPublished()
 		{
 			return this.sharing.isPublish();
 		}
-		
+
 		/**
 		 * Determine if the sharing policy for this instance includes subscribing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes subscribing, false otherwise
 		 */
 		public boolean isSubscribed()
 		{
 			return this.sharing.isSubscribe();
 		}
-		
+
 		/**
 		 * Add an attribute instance
-		 * 
+		 *
 		 * @param attribute the {@link ObjectAttribute} instance to be added
 		 * @return the added {@link ObjectAttribute} instance
 		 */
@@ -292,10 +304,10 @@ public class Types
 			this.attributes.put( attribute.name, attribute );
 			return attribute;
 		}
-		
+
 		/**
 		 * Add an attribute with the given name, data type and sharing policy
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @param sharing the sharing policy for this attribute
@@ -305,12 +317,12 @@ public class Types
 		{
 			return addAttribute( new ObjectAttribute( name, dataType, sharing ) );
 		}
-		
+
 		/**
 		 * Shortcut method for adding attributes which are published
-		 * 
+		 *
 		 * See also {@link #addAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return the added {@link ObjectAttribute} instance
@@ -319,11 +331,11 @@ public class Types
 		{
 			return addAttribute( name, dataType, Sharing.PUBLISH );
 		}
-		
+
 		/**
 		 * Shortcut method for adding attributes which are subscribed
 		 * See also {@link #addAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return the added {@link ObjectAttribute} instance
@@ -332,12 +344,12 @@ public class Types
 		{
 			return addAttribute( name, dataType, Sharing.SUBSCRIBE );
 		}
-		
+
 		/**
 		 * Shortcut method for adding attributes which are both published and subscribed
-		 * 
+		 *
 		 * See also {@link #addAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return the added {@link ObjectAttribute} instance
@@ -346,10 +358,10 @@ public class Types
 		{
 			return addAttribute( name, dataType, Sharing.PUBLISHSUBSCRIBE );
 		}
-		
+
 		/**
 		 * Obtain the attributes of this instance
-		 * 
+		 *
 		 * @return a {@link Map} relating the names of the attributes to their corresponding
 		 *         {@link ObjectAttribute} definition instances
 		 */
@@ -357,15 +369,15 @@ public class Types
 		{
 			return Collections.unmodifiableMap( this.attributes );
 		}
-		
+
 		//----------------------------------------------------------
 		//                     STATIC METHODS
 		//----------------------------------------------------------
 		/**
 		 * "Shortcut" static method to create published instances
-		 * 
+		 *
 		 * See also {@link ObjectClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified object class name
 		 * @return an {@link ObjectClass} instance with a {@link Sharing#PUBLISH} sharing policy
 		 */
@@ -376,9 +388,9 @@ public class Types
 
 		/**
 		 * "Shortcut" static method to create subscribed instances
-		 * 
+		 *
 		 * See also {@link ObjectClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified object class name
 		 * @return an {@link ObjectClass} instance with a {@link Sharing#SUBSCRIBE} sharing policy
 		 */
@@ -389,9 +401,9 @@ public class Types
 
 		/**
 		 * "Shortcut" static method to create instances which are both published and subscribed
-		 * 
+		 *
 		 * See also {@link ObjectClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified object class name
 		 * @return an {@link ObjectClass} instance with a {@link Sharing#PUBLISHSUBSCRIBE} sharing
 		 *         policy
@@ -425,7 +437,7 @@ public class Types
 			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
 			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
 		}
-		
+
 		//----------------------------------------------------------
 		//                    INSTANCE METHODS
 		//----------------------------------------------------------
@@ -437,23 +449,23 @@ public class Types
 			                      this.dataType.toString(),
 			                      this.sharing.toString());
 		}
-		
+
 		////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////
 		/**
 		 * Determine if the sharing policy for this instance includes publishing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes publishing, false otherwise
 		 */
 		public boolean isPublished()
 		{
 			return this.sharing.isPublish();
 		}
-		
+
 		/**
 		 * Determine if the sharing policy for this instance includes subscribing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes subscribing, false otherwise
 		 */
 		public boolean isSubscribed()
@@ -466,9 +478,9 @@ public class Types
 		//----------------------------------------------------------
 		/**
 		 * "Shortcut" static method to create published instances
-		 * 
+		 *
 		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#PUBLISH} sharing
@@ -478,12 +490,12 @@ public class Types
 		{
 			return new ObjectAttribute( name, dataType, Sharing.PUBLISH );
 		}
-		
+
 		/**
 		 * "Shortcut" static method to create subscribed instances
-		 * 
+		 *
 		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#SUBSCRIBE} sharing
@@ -493,12 +505,12 @@ public class Types
 		{
 			return new ObjectAttribute( name, dataType, Sharing.SUBSCRIBE );
 		}
-		
+
 		/**
 		 * "Shortcut" static method to create instances which are both published and subscribed
-		 * 
+		 *
 		 * See also {@link ObjectAttribute(String, DataType, Sharing)}
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return an {@link ObjectAttribute} instance with a {@link Sharing#PUBLISHSUBSCRIBE}
@@ -507,7 +519,7 @@ public class Types
 		public static ObjectAttribute PubSub( String name, DataType dataType )
 		{
 			return new ObjectAttribute( name, dataType, Sharing.PUBLISHSUBSCRIBE );
-		}		
+		}
 	}
 
 	/**
@@ -533,7 +545,7 @@ public class Types
 			this.sharing = sharing == null ? Sharing.NEITHER : sharing;
 			this.parameters = new HashMap<>();
 		}
-		
+
 		//----------------------------------------------------------
 		//                    INSTANCE METHODS
 		//----------------------------------------------------------
@@ -544,27 +556,27 @@ public class Types
 				.stream()
 				.map((parameter)->parameter.toString())
 				.collect(Collectors.joining(","));
-			
+
 			return String.format( "Interaction:'%s'(%s){%s}",
 			                      this.name, this.sharing.toString(), params );
 		}
-		
+
 		////////////////////////////////////////////////////////////////////////////////////////////
 		/////////////////////////////// Accessor and Mutator Methods ///////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////
 		/**
 		 * Determine if the sharing policy for this instance includes publishing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes publishing, false otherwise
 		 */
 		public boolean isPublished()
 		{
 			return this.sharing.isPublish();
 		}
-		
+
 		/**
 		 * Determine if the sharing policy for this instance includes subscribing
-		 * 
+		 *
 		 * @return if the sharing policy for this instance includes subscribing, false otherwise
 		 */
 		public boolean isSubscribed()
@@ -574,7 +586,7 @@ public class Types
 
 		/**
 		 * Add an parameter instance
-		 * 
+		 *
 		 * @param parameter the {@link InteractionParameter} instance to be added
 		 * @return the added {@link InteractionParameter} instance
 		 */
@@ -583,10 +595,10 @@ public class Types
 			this.parameters.put( parameter.name, parameter );
 			return parameter;
 		}
-		
+
 		/**
 		 * Add a parameter with the given name and data type
-		 * 
+		 *
 		 * @param name the attribute name
 		 * @param dataType the attribute data type
 		 * @return the added {@link InteractionParameter} instance
@@ -595,7 +607,7 @@ public class Types
 		{
 			return addParameter( new InteractionParameter( name, datatType ) );
 		}
-		
+
 		public Map<String,InteractionParameter> getParameters()
 		{
 			return Collections.unmodifiableMap( this.parameters );
@@ -605,9 +617,9 @@ public class Types
 		//----------------------------------------------------------
 		/**
 		 * "Shortcut" static method to create instances which are published
-		 * 
+		 *
 		 * See also {@link InteractionClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified interaction class name
 		 * @return an {@link InteractionClass} instance with a {@link Sharing#PUBLISH} sharing
 		 *         policy
@@ -616,12 +628,12 @@ public class Types
 		{
 			return new InteractionClass( name, Sharing.PUBLISH );
 		}
-		
+
 		/**
 		 * "Shortcut" static method to create instances which are subscribed
-		 * 
+		 *
 		 * See also {@link InteractionClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified interaction class name
 		 * @return an {@link InteractionClass} instance with a {@link Sharing#SUBSCRIBE} sharing
 		 *         policy
@@ -630,12 +642,12 @@ public class Types
 		{
 			return new InteractionClass( name, Sharing.SUBSCRIBE );
 		}
-		
+
 		/**
 		 * "Shortcut" static method to create instances which are both published and subscribed
-		 * 
+		 *
 		 * See also {@link InteractionClass(String, Sharing)}
-		 * 
+		 *
 		 * @param name the fully qualified interaction class name
 		 * @return an {@link InteractionClass} instance with a {@link Sharing#PUBLISHSUBSCRIBE} sharing
 		 *         policy
@@ -645,7 +657,7 @@ public class Types
 			return new InteractionClass( name, Sharing.PUBLISHSUBSCRIBE );
 		}
 	}
-	
+
 	/**
 	 * Represents a parameter in an interaction class in a Simulation Object Model
 	 *
@@ -667,7 +679,7 @@ public class Types
 			this.name = name;
 			this.dataType = dataType == null ? DataType.UNKNOWN : dataType;
 		}
-		
+
 		//----------------------------------------------------------
 		//                    INSTANCE METHODS
 		//----------------------------------------------------------
@@ -677,6 +689,6 @@ public class Types
 			return String.format( "Param:'%s'[%s]",
 			                      this.name,
 			                      this.dataType.toString());
-		}		
+		}
 	}
 }

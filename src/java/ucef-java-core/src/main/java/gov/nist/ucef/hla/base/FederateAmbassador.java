@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -45,6 +45,10 @@ import hla.rti1516e.TransportationTypeHandle;
 import hla.rti1516e.exceptions.FederateInternalError;
 import hla.rti1516e.time.HLAfloat64Time;
 
+/**
+ * The purpose of this class is to provide "useful" implementations of the salient methods of an
+ * HLA1516e federate ambassador.
+ */
 public class FederateAmbassador extends NullFederateAmbassador
 {
 	//----------------------------------------------------------
@@ -57,37 +61,37 @@ public class FederateAmbassador extends NullFederateAmbassador
 	//----------------------------------------------------------
 	private Set<String> announcedPoints;
 	private Set<String> achievedPoints;
-	
+
 	private FederateBase federateBase;
-	
+
 	private String currentSyncPoint;
 	private String announcedSyncPoint;
-	
+
 	private double federateTime;
 	private boolean isTimeRegulated;
 	private boolean isTimeConstrained;
-	
-	private final Object mutex_lock = new Object(); 
-	
+
+	private final Object mutex_lock = new Object();
+
 	//----------------------------------------------------------
 	//                      CONSTRUCTORS
 	//----------------------------------------------------------
 	public FederateAmbassador( FederateBase federateBase )
 	{
 		this.federateBase = federateBase;
-		
+
 		announcedPoints = new HashSet<>();
 		achievedPoints = new HashSet<>();
-		// initialize to null here so that it can be seen to be 
+		// initialize to null here so that it can be seen to be
 		// intentional rather than just "forgotten about"
 		currentSyncPoint = null;
 		announcedSyncPoint = null;
 	}
-	
+
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
-	
+
 	/////////////////////////////////////////////////////////////////////////////////////
 	// Simplified Access Methods     ////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -95,15 +99,15 @@ public class FederateAmbassador extends NullFederateAmbassador
 	{
 		return announcedSyncPoint;
 	}
-	
+
 	public String getCurrentSyncPoint()
 	{
 		return currentSyncPoint;
 	}
-	
+
 	/**
 	 * Check if a synchronization point has (ever) been announced
-	 * 
+	 *
 	 * @param label the identifying label of the synchronization point
 	 * @return true if this synchronization point has already been announced, false otherwise
 	 */
@@ -114,7 +118,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 
 	/**
 	 * Check if a synchronization point has (ever) been achieved
-	 * 
+	 *
 	 * @param label the identifying label of the synchronization point
 	 * @return true if this synchronization point has already been achieved, false otherwise
 	 */
@@ -122,30 +126,30 @@ public class FederateAmbassador extends NullFederateAmbassador
 	{
 		return achievedPoints.contains( label );
 	}
-	
+
 	/**
 	 * Get the current federate time as a double
-	 * 
+	 *
 	 * @return the current federate time as a double
 	 */
 	public double getFederateTime()
 	{
 		return this.federateTime;
 	}
-	
+
 	/**
 	 * Set the time regulated state of the federate
-	 * 
+	 *
 	 * @param isTimeRegulated true if the federate is time regulated, false otherwise
 	 */
 	protected void setTimeRegulated( boolean isTimeRegulated )
 	{
 		this.isTimeRegulated = isTimeRegulated;
 	}
-	
+
 	/**
 	 * Determine if the federate is time regulated
-	 * 
+	 *
 	 * @return true if the federate is time regulated, false otherwise
 	 */
 	protected boolean isTimeRegulated()
@@ -155,7 +159,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 
 	/**
 	 * Set the time constrained state of the federate
-	 * 
+	 *
 	 * @param isTimeConstrained true if the federate is time constrained, false otherwise
 	 */
 	protected void setTimeConstrained( boolean isTimeConstrained )
@@ -165,7 +169,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 
 	/**
 	 * Determine if the federate is time constrained
-	 * 
+	 *
 	 * @return true if the federate is time constrained, false otherwise
 	 */
 	protected boolean isTimeConstrained()
@@ -176,7 +180,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	/////////////////////////////////////////////////////////////////////////////////////
 	// FederateAmbassador Callbacks     /////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
-	
+
 	//////////////////////////////////////////////////////////////////////////
 	////////////////////////// RTI Callback Methods //////////////////////////
 	//////////////////////////////////////////////////////////////////////////
@@ -186,7 +190,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		// don't really need to do anything here
 		logger.debug( "Registration of synchronization point '{}' succeeded", label );
 	}
-	
+
 	@Override
 	public void synchronizationPointRegistrationFailed( String label,
 	                                                    SynchronizationPointFailureReason reason )
@@ -199,7 +203,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	public void announceSynchronizationPoint( String label, byte[] tag )
 	{
 		logger.debug( "Synchronization point '{}' has been announced", label );
-		
+
 		this.announcedSyncPoint = label;
 		synchronized( mutex_lock )
 		{
@@ -258,7 +262,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		double dblTime = logicalTimeAsDouble( time );
 		synchronized( mutex_lock )
 		{
-			this.federateTime = dblTime; 
+			this.federateTime = dblTime;
 		}
 		logger.debug( "Time advanced to {} has been granted.", dblTime );
 	}
@@ -275,7 +279,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		// just pass it on to the other method passing null as federate handle
 		discoverObjectInstance( objectInstanceHandle, objectClassHandle, objectName, null );
 	}
-	
+
 	/**
 	 * The RTI has informed us that an object instance has been discovered
 	 */
@@ -301,7 +305,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-			// just pass it on to the other method - passing null as the time will let 
+			// just pass it on to the other method - passing null as the time will let
 			// the other method know it's from us, not from the RTI
 			reflectAttributeValues( objectInstanceHandle,
 			                        attributeHandleValueMap,
@@ -328,7 +332,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                    SupplementalReflectInfo reflectInfo )
 	    throws FederateInternalError
 	{
-		// convert AttributeHandleValueMap to Map<String, byte[]> 
+		// convert AttributeHandleValueMap to Map<String, byte[]>
 		Map<String,byte[]> attributes = federateBase.rtiamb.convert( objectInstanceHandle, attributeMap );
 
 		// do the appropriate callback on the federate
@@ -337,7 +341,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		else
 			this.federateBase.incomingAttributeReflection( objectInstanceHandle, attributes, logicalTimeAsDouble( time ) );
 	}
-	
+
 	/**
 	 * The RTI has informed us that an interaction has been received
 	 */
@@ -353,7 +357,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 		// just pass it on to the other method for printing purposes
 		// passing null as the time will let the other method know it
 		// it came from us, not from the RTI
-		this.receiveInteraction( interactionClassHandle, parameterMap, tag, 
+		this.receiveInteraction( interactionClassHandle, parameterMap, tag,
 		                         sentOrdering, transportTypeHandle, null, sentOrdering, receiveInfo );
 	}
 
@@ -372,7 +376,7 @@ public class FederateAmbassador extends NullFederateAmbassador
 	                                SupplementalReceiveInfo receiveInfo )
 	    throws FederateInternalError
 	{
-		// convert ParameterHandleValueMap to Map<String, byte[]> 
+		// convert ParameterHandleValueMap to Map<String, byte[]>
 		Map<String,byte[]> parameters = federateBase.rtiamb.convert( interactionClassHandle, parameterMap );
 
 		// do the appropriate callback on the federate
@@ -394,23 +398,23 @@ public class FederateAmbassador extends NullFederateAmbassador
 	{
 		this.federateBase.incomingObjectDeleted( objectInstanceHandle );
 	}
-	
+
 	/**
 	 * Convenience function to convert a logical time instance to a double
-	 *  
+	 *
 	 * @param time the logical time
-	 * @return the double equivalent of the logical time, or null if the logical time is null 
+	 * @return the double equivalent of the logical time, or null if the logical time is null
 	 */
 	@SuppressWarnings("rawtypes")
 	protected Double logicalTimeAsDouble( LogicalTime time )
 	{
 		return time == null ? null : ((HLAfloat64Time)time).getValue();
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////////// Utility Methods //////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
-	
+
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------

@@ -15,11 +15,11 @@ A utility batch and shell script file are provided to make startup simple
 example…
 
 ```
-run-ping-federate.bat
+run-genx-ping-federate.bat
 ```
 …on Windows, or…
 ```
-run-ping-federate.sh
+run-genx-ping-federate.sh
 ```
 …on *nix systems.
 

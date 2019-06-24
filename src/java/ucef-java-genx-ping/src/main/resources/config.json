@@ -3,7 +3,7 @@
     "federateName":          "Ping",
 	"autoUniqueName":        true,
     "federateType":          "PingFederate",
-    "federationExecName":    "PingPongFederation",
+    "federationExecName":    "ManagedFederation",
     "baseFoms":              ["fom-base.xml"],
     "joinFoms":              ["fom-join.xml"],
     "som":                   "som.xml"

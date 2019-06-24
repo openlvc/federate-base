@@ -320,7 +320,7 @@ public class HLAObject
 			result = this.attributes.get( attributeName );
 		}
 		return result;
-    }
+	}
 
 	/**
 	 * Set the value of an attribute to a short
@@ -420,14 +420,14 @@ public class HLAObject
 	{
 		synchronized( mutex_lock )
 		{
-    		if( value == null )
-    		{
-    			this.attributes.remove( attributeName );
-    		}
-    		else
-    		{
-    			this.attributes.put( attributeName, value );
-    		}
+			if( value == null )
+			{
+				this.attributes.remove( attributeName );
+			}
+			else
+			{
+				this.attributes.put( attributeName, value );
+			}
 		}
 	}
 

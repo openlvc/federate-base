@@ -1,17 +1,17 @@
 /*
- * This software is contributed as a public service by The National Institute of Standards 
+ * This software is contributed as a public service by The National Institute of Standards
  * and Technology (NIST) and is not subject to U.S. Copyright
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this 
- * software and associated documentation files (the "Software"), to deal in the Software 
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this
+ * software and associated documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the rights to use, copy, modify,
  * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following 
+ * permit persons to whom the Software is furnished to do so, subject to the following
  * conditions:
- * 
+ *
  * The above NIST contribution notice and this permission and disclaimer notice shall be
  * included in all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
  * PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
@@ -26,15 +26,23 @@ package gov.nist.ucef.hla.example.ucef;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PatternOptionBuilder;
+import org.json.simple.JSONObject;
+
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
-import gov.nist.ucef.hla.base.Types.InteractionClass;
-import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
-import gov.nist.ucef.hla.example.util.FileUtils;
+import gov.nist.ucef.hla.example.util.JSONUtils;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
@@ -51,14 +59,27 @@ import hla.rti1516e.encoding.EncoderFactory;
  *		        <─┴─> <─┴─────┴─────┴─>
  *		       Universal CPS Environment
  *		             for Federation
- * 
- * Example UCEF federate
+ *
+ * Example federate based on {@link UCEFFederateBase}
  */
 public class UCEFPongFederate extends UCEFFederateBase
 {
 	//----------------------------------------------------------
 	//                   STATIC VARIABLES
 	//----------------------------------------------------------
+	// command line options and defaults
+	public static final String CMDLINE_ARG_HELP = "help";
+	public static final String CMDLINE_ARG_HELP_SHORT = "h";
+	public static final String CMDLINE_ARG_JSON_CONFIG_FILE = "config";
+	public static final String JSON_CONFIG_FILE_DEFAULT = "ucef/pong-config.json";
+
+	// HLA interaction identifiers
+	// NOTE: These must correspond to the FOM/SOM
+	private static final String INTERACTION_ROOT = "HLAinteractionRoot.";
+	private static final String PING_INTERACTION_NAME = INTERACTION_ROOT+"Ping";
+	private static final String PING_PARAM_COUNT = "count";
+	private static final String PONG_INTERACTION_NAME = INTERACTION_ROOT+"Pong";
+	private static final String PONG_PARAM_LETTER = "letter";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -117,7 +138,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		// keep going until time 10.0
 		return (currentTime < 10.0);
 	}
-	
+
 	@Override
 	protected void beforeReadyToResign()
 	{
@@ -129,7 +150,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	{
 		// no action required in this example
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Callback Methods ///////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +165,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	public void receiveInteraction( HLAInteraction hlaInteraction )
 	{
 		String interactionClassName = hlaInteraction.getInteractionClassName();
-		if( PING_INTERACTION_ID.equals( interactionClassName ) )
+		if( PING_INTERACTION_NAME.equals( interactionClassName ) )
 		{
 			// Ping interaction received
 			if( hlaInteraction.isPresent( PING_PARAM_COUNT ) )
@@ -171,7 +192,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	{
 		// no action required in this example
 	}
-	
+
 	@Override
 	public void receiveObjectDeleted( HLAObject hlaObject )
 	{
@@ -189,7 +210,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 	{
 		// does not occur in this example
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////// UCEF Sim Control Interaction Callback Methods //////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,13 +220,13 @@ public class UCEFPongFederate extends UCEFFederateBase
 		// delegate to method ignoring time
 		receiveSimStart(simStart);
 	}
-	
+
 	@Override
 	protected void receiveSimStart( SimStart simStart )
 	{
 		System.out.println( "SimStart signal received. Beginning simulation..." );
 	}
-	
+
 	@Override
 	protected void receiveSimEnd( SimEnd simEnd, double time )
 	{
@@ -225,7 +246,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		// delegate to method ignoring time
 		receiveSimPause(simPause);
 	}
-	
+
 	@Override
 	protected void receiveSimPause( SimPause simPause )
 	{
@@ -238,72 +259,110 @@ public class UCEFPongFederate extends UCEFFederateBase
 		// delegate to method ignoring time
 		receiveSimResume(simResume);
 	}
-	
+
 	@Override
 	protected void receiveSimResume( SimResume simResume )
 	{
 		System.out.println( "Simulation has been resumed." );
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////////////////////
 	///////////////////////////////// Internal Utility Methods /////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	private HLAInteraction makePongInteraction( char letter )
 	{
 		Map<String,byte[]> parameters = new HashMap<>();
-		parameters.put( PONG_PARAM_LETTER, 
+		parameters.put( PONG_PARAM_LETTER,
 		                HLACodecUtils.encode( encoder, letter ) );
-		return makeInteraction( PONG_INTERACTION_ID, parameters );
-	}
-
-	//----------------------------------------------------------
-	//                    STATIC VARIABLES
-	//----------------------------------------------------------
-	private static final String INTERACTION_ROOT = "HLAinteractionRoot.";
-	private static final String PING_INTERACTION_ID = INTERACTION_ROOT+"Ping";
-	private static final String PING_PARAM_COUNT = "count";
-	private static final String PONG_INTERACTION_ID = INTERACTION_ROOT+"Pong";
-	private static final String PONG_PARAM_LETTER = "letter";
-	
-	/**
-	 * Utility function to set up salient configuration details for the federate
-	 * 
-	 * @param the {@link FederateConfiguration} instance to be initialized
-	 */
-	private static void initializeConfig( FederateConfiguration config )
-	{
-		config.setFederateName( "Pong-"+System.currentTimeMillis() );
-		config.setFederateType( "PongFederate" );
-		config.setFederationName( "PingPongFederation" );
-
-		// set up interactions to publish and subscribe to
-		config.cacheInteractionClasses(
-   		    InteractionClass.Pub( PONG_INTERACTION_ID ),
-		    InteractionClass.Sub( PING_INTERACTION_ID )
-        );
-
-		// somebody set us up the FOM...
-		try
-		{
-			String fomRootPath = "resources/foms/";
-			// modules
-			String[] moduleFoms = { fomRootPath + "PingPong.xml" };
-			config.addModules( FileUtils.urlsFromPaths( moduleFoms ) );
-
-			// join modules
-			String[] joinModuleFoms = {};
-			config.addJoinModules( FileUtils.urlsFromPaths( joinModuleFoms ) );
-		}
-		catch( Exception e )
-		{
-			throw new UCEFException( "Exception loading one of the FOM modules from disk", e );
-		}
+		return makeInteraction( PONG_INTERACTION_NAME, parameters );
 	}
 
 	//----------------------------------------------------------
 	//                     STATIC METHODS
 	//----------------------------------------------------------
-	
+	/**
+	 * Utility method to set up the command line options for the federate
+	 *
+	 * @return the constructed command line options
+	 */
+	private static Options buildCommandLineOptions()
+	{
+		Option help = Option.builder( CMDLINE_ARG_HELP_SHORT )
+			.longOpt( CMDLINE_ARG_HELP )
+			.desc("print this message and exit." )
+			.build();
+		Option configLocation = Option.builder()
+			.longOpt( CMDLINE_ARG_JSON_CONFIG_FILE )
+			.hasArg()
+			.argName( "file" )
+			.required( false )
+			.desc( String.format( "Set the location of the JSON configuration file for the " +
+								  "federate to use. If unspecified a value of '%s' will be " +
+								  "used.", JSON_CONFIG_FILE_DEFAULT ) )
+			.type( PatternOptionBuilder.STRING_VALUE )
+			.build();
+
+		Options cmdLineOptions = new Options();
+		cmdLineOptions.addOption( help );
+		cmdLineOptions.addOption( configLocation );
+
+		return cmdLineOptions;
+	}
+
+	/**
+	 * A method which parses and validates command line arguments
+	 *
+	 * After calling this method, it is expected that the contents of the returned
+	 * {@link CommandLine} instance will be ready for use, and no further checks on the validity
+	 * of the content should be required.
+	 *
+	 * This means that required values are guaranteed to be present, values will be in the correct
+	 * range and/or valid formats and so on.
+	 *
+	 * @param args the arguments
+	 * @param cmdLineOptions the command line options
+	 * @return the resulting {@link CommandLine} instance
+	 */
+	private static CommandLine parseAndValidateCommandLineOptions( String[] args, Options cmdLineOptions )
+	{
+		CommandLineParser parser = new DefaultParser();
+		// will throw an ParseException if any of the command line args are "bad"
+		// At this stage we know that all the command arguments were parsed correctly
+		// perform required validation
+		CommandLine cmdLine = null;
+		try
+		{
+			cmdLine = parser.parse( cmdLineOptions, args );
+			// validate options that need validation
+			// ...no extra validation required...
+		}
+		catch( ParseException e )
+		{
+			System.err.println( "!!!!!ERRORS WERE FOUND!!!!!:" );
+			System.err.println( e.getMessage() );
+			System.err.println( "!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
+			System.err.println();
+			displayHelp( cmdLineOptions );
+			System.out.println( "Cannot proceed. Exiting now." );
+			System.exit( 1 );
+		}
+
+		return cmdLine;
+	}
+
+	/**
+	 * A simple utility method to display command line option help
+	 *
+	 * @param cmdLineOptions
+	 */
+	private static void displayHelp( Options cmdLineOptions )
+	{
+		HelpFormatter helpFormatter = new HelpFormatter();
+		String header = "Verifies that messages are exchanged correctly between federates.\n\n";
+		String footer = "\n";
+		helpFormatter.printHelp( "ChallengeFederate", header, cmdLineOptions, footer, true );
+	}
+
 	public static void main( String[] args )
 	{
 		System.out.println( ExampleConstants.UCEF_LOGO );
@@ -319,10 +378,27 @@ public class UCEFPongFederate extends UCEFFederateBase
 		System.out.println( "Receives 'Ping' interactions.");
 		System.out.println();
 
+		Options cmdLineOptions = buildCommandLineOptions();
+		CommandLine cmdLine = parseAndValidateCommandLineOptions( args, cmdLineOptions );
+		if( cmdLine.hasOption( CMDLINE_ARG_HELP ) )
+		{
+			// if the --help option has been used, we display help and exit immediately
+			displayHelp( cmdLineOptions );
+			System.exit( 1 );
+		}
+
 		try
 		{
+			String jsonSource = JSON_CONFIG_FILE_DEFAULT;
+			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
+				jsonSource = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
+			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
+
 			UCEFPongFederate federate = new UCEFPongFederate( args );
-			initializeConfig( federate.getFederateConfiguration() );
+			FederateConfiguration config = federate.getFederateConfiguration();
+			config.fromJSON( jsonConfig );
+			System.out.println(config.summary());
+
 			federate.runFederate();
 		}
 		catch( Exception e )

@@ -156,8 +156,7 @@ public class SOMParser
 		if( file == null || !file.isFile() )
 		{
 			throw new UCEFException( "The file '%s' does not exist. " +
-                					 "Please check the file path.",
-                					 file.getAbsolutePath() );
+			                         "Please check the file path.", file.getAbsolutePath() );
 		}
 
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -247,20 +246,20 @@ public class SOMParser
 		String className = getTextValue( root, NAME );
 		String sharingStr = getTextValue( root, SHARING );
 
-		Sharing sharing = Sharing.fromLabel(sharingStr);
-		ObjectClass objectClass = new ObjectClass(namespace + className, sharing);
+		Sharing sharing = Sharing.fromLabel( sharingStr );
+		ObjectClass objectClass = new ObjectClass( namespace + className, sharing );
 
-		for(Element elm : getChildElementsByName( root, ATTRIBUTE ))
+		for( Element elm : getChildElementsByName( root, ATTRIBUTE ) )
 		{
-			String attrName       = getTextValue( elm, NAME );
+			String attrName = getTextValue( elm, NAME );
 			String attrSharingStr = getTextValue( elm, SHARING );
-			String attrTypeStr    = getTextValue( elm, DATA_TYPE );
+			String attrTypeStr = getTextValue( elm, DATA_TYPE );
 
-			Sharing attrSharing        = Sharing.fromLabel( attrSharingStr );
-			DataType attrDataType      = DataType.fromLabel( attrTypeStr );
-			ObjectAttribute attribute  = new ObjectAttribute( attrName, attrDataType, attrSharing );
+			Sharing attrSharing = Sharing.fromLabel( attrSharingStr );
+			DataType attrDataType = DataType.fromLabel( attrTypeStr );
+			ObjectAttribute attribute = new ObjectAttribute( attrName, attrDataType, attrSharing );
 
-			attributes.add(attribute);
+			attributes.add( attribute );
 		}
 
 		// if we have attributes in this objectClass then we can publish and
@@ -444,14 +443,5 @@ public class SOMParser
 				file = null;
 		}
 		return file;
-	}
-
-	public static void main(String[] args)
-	{
-		FederateConfiguration config = new FederateConfiguration("foo", "bar", "ram");
-		// somToFederateConfig("src/main/resources/challenge-response/som/Challenge.xml", config);
-		somToFederateConfig("src/main/resources/challenge-response/som/Response.xml", config);
-		// somToFederateConfig("src/main/resources/soms/RestaurantSOMModule.xml", config);
-		System.out.println(config.summary());
 	}
 }
