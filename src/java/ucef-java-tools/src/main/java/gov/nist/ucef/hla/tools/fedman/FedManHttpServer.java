@@ -453,7 +453,7 @@ public class FedManHttpServer
 		{
 			return this.allowedMethods;
 		}
-		
+
 		public boolean isSimple( HttpExchange httpExchange )
 		{
 			return !isJSON( httpExchange );
@@ -482,6 +482,7 @@ public class FedManHttpServer
 				// what methods *are* accepted
 				StringBuilder html = new StringBuilder();
 				html.append( "<html><head><meta charset=\"UTF-8\" /></head><body>");
+				html.append( "\r\n<img src=\"" + FedManConstants.UCEF_LOGO_JPG + "\">\r\n" );
 				html.append( "<h1>"+HTTP_405_METHOD_NOT_ALLOWED+" - Method not allowed: ");
 				html.append( requestMethod.toUpperCase()+"</h1><hr>" );
 				html.append( "<p>Try again with one of these allowed request methods:<ul> ");
@@ -490,7 +491,7 @@ public class FedManHttpServer
 					html.append( "<li>"+method+"</li>");
 				}
 				html.append( "</ul></p><hr>");
-				html.append( "<pre>"+ FedManConstants.UCEF_LOGO+"<pre></body></html>" );
+				// html.append( "<pre>"+ FedManConstants.UCEF_LOGO+"<pre></body></html>" );
 				doHTMLResponse( httpExchange, HTTP_405_METHOD_NOT_ALLOWED, html.toString() );
 			}
 		}
@@ -573,6 +574,8 @@ public class FedManHttpServer
 			html.append( "</head>");
 
 			html.append( "<body>" );
+			// html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
+			html.append( "\r\n<img src=\"" + FedManConstants.UCEF_LOGO_JPG + "\">\r\n" );
 			if(is404)
 			{
 				html.append( "<pre>\r\n"+FedManConstants.FEDMAN_LOGO+"\r\n</pre>" );
@@ -583,7 +586,7 @@ public class FedManHttpServer
 			html.append( "<thead><tr><th>Allowed Request Method(s)</th><th>Text Response</th><th>JSON Response</th><tr></thead>" );
 			html.append( "<tfoot></tfoot>" );
 			html.append( "<tbody>" );
-			
+
 			// compile a list of valid endpoint links
 			List<Entry<String,RequestMethodHandler>> endpointEntries = this.endpointsMap.entrySet()
 				.stream()
@@ -595,7 +598,7 @@ public class FedManHttpServer
 				String currentHref = endpointEntry.getKey();
 				RequestMethodHandler currentHandler = endpointEntry.getValue();
 				Set<String> allowedMethods = currentHandler.allowedMethods();
-				boolean canGET = allowedMethods.contains( "GET" ); 
+				boolean canGET = allowedMethods.contains( "GET" );
 				boolean canPOST = allowedMethods.contains( "POST" );
 				String allowedMethodsStr = currentHandler.allowedMethods().stream().collect( Collectors.joining(", ") );
 				html.append( "<tr>" );
@@ -631,9 +634,9 @@ public class FedManHttpServer
 				}
 				html.append( "</td></tr>" );
 			}
-			html.append( "</tbody></table><hr>" );
-			
-			html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
+			html.append( "</tbody></table>" );
+
+
 			html.append( "</body></html>" );
 
 			String response = html.toString();
@@ -749,6 +752,7 @@ public class FedManHttpServer
 	 */
 	private class StartConditionQueryHandler extends GETRequestHandler
 	{
+		@SuppressWarnings("unchecked")
 		@Override
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
@@ -769,15 +773,16 @@ public class FedManHttpServer
 				html.append( "</style>");
 				html.append( "<script>setTimeout(location.reload.bind(location),5000);</script>");
 				html.append( "</head>");
-	
+
 				html.append( "<body>" );
-				html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
-	
+				// html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
+				html.append( "\r\n<img src=\"" + FedManConstants.UCEF_LOGO_JPG + "\">\r\n" );
+
 				html.append( "<table><thead><tr>" );
 				for(String heading : FedManConstants.TABLE_HEADINGS)
 					html.append("<th>"+heading+"</th>");
 				html.append( "</tr></thead><tfoot /><tbody>" );
-	
+
 				// sorted federate types list
 				List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
 				federateTypes.sort( null );
@@ -789,12 +794,12 @@ public class FedManHttpServer
 					String notes = "<span class=\"dot go\"></span>";
 					if(remaining != 0)
 					{
-						notes = String.format( "<span class=\"dot %s\"></span>&nbsp;%d %s", 
+						notes = String.format( "<span class=\"dot %s\"></span>&nbsp;%d %s",
 						                       remaining > 0 ? "stop" : "warn",
-						                       Math.abs( remaining ), 
+						                       Math.abs( remaining ),
 						                       remaining > 0 ? "remaining..." : "extra!" );
 					}
-					
+
 					html.append("<tr>");
 					html.append("<td>"+federateType+"</td>");
 					html.append("<td>"+requiredByType+"</td>");
@@ -803,9 +808,9 @@ public class FedManHttpServer
 					html.append("</tr>");
 				}
 				html.append( "</tbody></table>" );
-	
+
 				html.append( "</html></body>" );
-	
+
 				doHTMLResponse( httpExchange, html.toString() );
 			}
 			else
@@ -830,7 +835,7 @@ public class FedManHttpServer
 				}
 				doJSONResponse( httpExchange, jsonObj );
 			}
-			
+
 		}
 	}
 
