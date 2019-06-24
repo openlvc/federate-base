@@ -31,7 +31,7 @@ do
     CURL_RESPONSE=$($CURL -s http://$FEDMAN_HOST:$FEDMAN_PORT/query/is-waiting-for-federates/)
     if [ "$CURL_RESPONSE" != "true" ]
     then
-        echo "The Federation Manager does not seem to be ready yet..."
+        echo "The Federation Manager does not seem to be ready on $FEDMAN_HOST:$FEDMAN_PORT yet..."
         sleep 5s
     fi
 done
