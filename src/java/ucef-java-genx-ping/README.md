@@ -12,16 +12,16 @@ deliverables.
 ## Quick Start
 
 A utility batch and shell script file are provided to make startup simple 
-example...
+example…
 
 ```
 run-ping-federate.bat
 ```
-...on Windows, or...
+…on Windows, or…
 ```
 run-ping-federate.sh
 ```
-...on *nix systems.
+…on *nix systems.
 
 The script will query the Federation Manager's HTTP service to determine
 when it is ready to accept federate joins, and then join the federation

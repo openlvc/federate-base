@@ -1,11 +1,11 @@
 
 {
-    "federation-name": "ChallengeResponseFederation",
+    "federationName": "ChallengeResponseFederation",
 	"require":
 	[
 		{"type":"ChallengeFederate", "count":1},
 		{"type":"ResponseFederate",  "count":1}
 	],
-	"max-time": 20.0,
-    "base-foms": ["../ucef-java-examples/src/main/resources/challenger/challenge-response-fom.xml"]	
+	"maxTime": 20.0,
+    "baseFoms": ["../ucef-java-examples/src/main/resources/challenger/challenge-response-fom.xml"]	
 }

@@ -3,7 +3,7 @@
     "federateName":          "Responder",
     "federateType":          "ResponseFederate",
     "federationExecName":    "ChallengeResponseFederation",
-    "base-foms":             [],
-    "join-foms":             ["challenger/challenge-response-fom.xml"],
+    "baseFoms":              [],
+    "joinFoms":              ["challenger/challenge-response-fom.xml"],
     "som":                   "challenger/response-som.xml"
 }

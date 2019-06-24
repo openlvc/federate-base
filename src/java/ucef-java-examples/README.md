@@ -48,10 +48,12 @@ based on the original string and character index contained in the challenge.
 
 The challenger checks for the correct substring, and confirms that the challenge has been passed.
 
-Open three consoles:
+Running the example is fairly simepl on both *nix and Windows environments.
+### *nix
+Open three terminal windows:
  - In one console, enter the `ucef-java-tools` folder, and start the Federation Manager as follows:
 ```
-federation-manager.sh --config ..\ucef-java-examples\src\main\resources\challenger\fedman-config.json
+federation-manager.sh --config ../ucef-java-examples/src/main/resources/challenger/fedman-config.json
 ```
  - In the other two consoles, enter the `ucef-java-examples` folder, and start the challenge and
    response federates as follows:
@@ -62,10 +64,72 @@ run-challenge-federate.sh
 run-response-federate.sh
 ```
 
-On Windows, use the `*.bat` file equivalents instead - that is `federation-manager.sh`,
-`run-challenge-federate.sh`, and `run-response-federate.sh`.
+When you see the following output in the Federation Manager terminal…
+```
+2 of the 2 required federates have joined.
+Start requirements met - we are now Ready to Populate.
+Waiting for SimStart command...
+```
+…press `ENTER` to begin. You should see the challenger federate sending challenges and receiving 
+reponses, and the responder federate receiving challenges and sending its responses. At the end of the
+run, depending on how many challenges were sent, you should see output like the following:
+
+```
+'Before ready to resign' hook
+Total challenges sent          : 10
+Pass count                     : 10
+Failed count                   : 0
+---------------------------------------------
+'Before exit' hook
+Completed - shutting down now.
+```
+
+### Windows
+Open three command prompts:
+ - In one console, enter the `ucef-java-tools` folder, and start the Federation Manager as follows:
+```
+federation-manager.bat --config ..\ucef-java-examples\src\main\resources\challenger\fedman-config.json
+```
+ - In the other two consoles, enter the `ucef-java-examples` folder, and start the challenge and
+   response federates as follows:
+```
+run-challenge-federate.bat
+```
+```
+run-response-federate.bat
+```
+
+When you see the following output in the Federation Manager console…
+```
+2 of the 2 required federates have joined.
+Start requirements met - we are now Ready to Populate.
+Waiting for SimStart command...
+```
+…press `ENTER` to begin. You should see the challenger federate sending challenges and receiving 
+reponses, and the responder federate receiving challenges and sending its responses. At the end of the
+run, depending on how many challenges were sent, you should see output like the following:
+
+```
+'Before ready to resign' hook
+Total challenges sent          : 10
+Pass count                     : 10
+Failed count                   : 0
+---------------------------------------------
+'Before exit' hook
+Completed - shutting down now.
+```
 
 ### Additional Notes:
+The configuration file for the Federation Manager for this example limits the maximum simulation time to
+`20.0`. Once this time is reached, the simulation exit signal is sent out by the Federation Manager. Any
+federates which have not yet exited will terminate when they receive this signal.
+
+This will limit the number of challenges which can be sent - if you wish to send more challenges, be sure
+to update the `maxTime` configuration value in the referenced `fedman-config.json` file appropriately.
+
+Since one challenge is sent and answered per `1.0` logical time unit, simply allow at least `1.0` units 
+of time per challenge. For example, to send 20 challenges, set `maxTime` to something like `25.0`. 
+
 The default configuration files for the `ChallengeFederate` and `ResponseFederate` are 
 `challenge-config.json` and `response-config.json` respectively. This can be changed
 using the `--config` command line option. For example:
@@ -78,15 +142,17 @@ the `iterations` key in the JSON configuration. For example:
 ```
 run-challenge-federate.bat --iterations 15
 ```
-...or in the JSON...
+…or in the JSON…
 ```
 {
-    "other": "config items here...",
+    "other": "config items here…",
 
     "iterations":            15
 }
 ```
-The command line value will take precedence if both configuration options are used.
+The command line value will take precedence if both configuration options are used. Also refer to the
+note about the Federation Manager's `maxTime` setting if you wish to issue large numbers of challenges.
+
 
 ## Others
 

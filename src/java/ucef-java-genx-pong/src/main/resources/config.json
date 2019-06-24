@@ -4,7 +4,7 @@
 	"autoUniqueName":        true,
     "federateType":          "PongFederate",
     "federationExecName":    "PingPongFederation",
-    "base-foms":             ["fom-base.xml"],
-    "join-foms":             ["fom-join.xml"],
+    "baseFoms":              ["fom-base.xml"],
+    "joinFoms":              ["fom-join.xml"],
     "som":                   "som.xml"
 }
