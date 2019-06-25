@@ -177,24 +177,9 @@ public abstract class FederateBase
 	 */
 	public JSONObject configureFromJSON( String jsonSource )
 	{
-		return this.configuration.fromJSON( jsonSource );
-	}
-
-	/**
-	 * Convenience wrapper to configure a federate from a JSON.
-	 *
-	 * Equivalent to calling {@link #getFederateConfiguration()}.fromJSON( configSource );
-	 *
-	 * Refer to {@link FederateConfiguration} for standard configuration JSON keys and data
-	 * types.
-	 *
-	 * @param configData the {@link JSONObject} containing configuration data
-	 * @return the original {@link JSONObject}, so that it can be used for handling of "extra",
-	 *         federate specific custom configuration parameters contained in the JSON.
-	 */
-	public JSONObject configureFromJSON( JSONObject json )
-	{
-		return this.configuration.fromJSON( json );
+		JSONObject json = this.configuration.fromJSON( jsonSource );
+		// return the JSON object (potentially for others to use)
+		return json;
 	}
 
 	/**
@@ -253,7 +238,7 @@ public abstract class FederateBase
 		while( true )
 		{
 			// next step, and cease simulation loop if step() returns false
-			if( step( fedamb.getFederateTime() ) == false )
+			if( step( this.fedamb.getFederateTime() ) == false )
 				break;
 			advanceTime();
 		}
@@ -284,17 +269,17 @@ public abstract class FederateBase
 	public void incomingObjectRegistration( ObjectInstanceHandle instanceHandle,
 	                                        ObjectClassHandle classHandle )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			// just delegate to the default handler
-			Types.ObjectClass objectClass = objectClassByClassHandle.get( classHandle );
+			Types.ObjectClass objectClass = this.objectClassByClassHandle.get( classHandle );
 
 			if( objectClass != null )
 			{
-				objectClassByInstanceHandle.put( instanceHandle, objectClass );
+				this.objectClassByInstanceHandle.put( instanceHandle, objectClass );
 
 				HLAObject hlaObject = new HLAObject( objectClass.name, instanceHandle );
-				hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
+				this.hlaObjectByInstanceHandle.put( instanceHandle, hlaObject );
 
 				receiveObjectRegistration( hlaObject );
 			}
@@ -302,16 +287,16 @@ public abstract class FederateBase
 			{
 				logger.warn(
 				             "Discovered unrecognized object instance {}",
-				             rtiamb.makeSummary( instanceHandle ) );
+				             this.rtiamb.makeSummary( instanceHandle ) );
 			}
 		}
 	}
 
 	public void incomingAttributeReflection( ObjectInstanceHandle handle, Map<String,byte[]> attributes )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
-			HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
+			HLAObject hlaObject = this.hlaObjectByInstanceHandle.get( handle );
 
 			if( hlaObject != null )
 			{
@@ -321,7 +306,7 @@ public abstract class FederateBase
 			else
 			{
 				logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
-				             rtiamb.makeSummary( handle ) );
+				             this.rtiamb.makeSummary( handle ) );
 			}
 		}
 
@@ -330,9 +315,9 @@ public abstract class FederateBase
 
 	public void incomingAttributeReflection( ObjectInstanceHandle handle, Map<String,byte[]> attributes, double time )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
-			HLAObject hlaObject = hlaObjectByInstanceHandle.get( handle );
+			HLAObject hlaObject = this.hlaObjectByInstanceHandle.get( handle );
 
 			if( hlaObject != null )
 			{
@@ -343,14 +328,14 @@ public abstract class FederateBase
 			else
 			{
 				logger.warn( "Ignoring attribute reflection received for undiscovered object instance {}",
-				             rtiamb.makeSummary( handle ) );
+				             this.rtiamb.makeSummary( handle ) );
 			}
 		}
 	}
 
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			HLAInteraction interaction = makeInteraction( handle, parameters );
 			if( interaction != null )
@@ -360,14 +345,14 @@ public abstract class FederateBase
 			}
 			else
 			{
-				logger.warn( "Ignoring unexpected interaction: {}", rtiamb.makeSummary( handle ) );
+				logger.warn( "Ignoring unexpected interaction: {}", this.rtiamb.makeSummary( handle ) );
 			}
 		}
 	}
 
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters, double time )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			HLAInteraction interaction = makeInteraction( handle, parameters );
 			if( interaction != null )
@@ -377,18 +362,18 @@ public abstract class FederateBase
 			}
 			else
 			{
-				logger.warn( "Ignoring unexpected interaction: {}", rtiamb.makeSummary( handle ) );
+				logger.warn( "Ignoring unexpected interaction: {}", this.rtiamb.makeSummary( handle ) );
 			}
 		}
 	}
 
 	public void incomingObjectDeleted( ObjectInstanceHandle handle )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			// clean up object maps as required
-			Types.ObjectClass objectClass = objectClassByInstanceHandle.remove( handle );
-			HLAObject hlaObject = hlaObjectByInstanceHandle.remove( handle );
+			Types.ObjectClass objectClass = this.objectClassByInstanceHandle.remove( handle );
+			HLAObject hlaObject = this.hlaObjectByInstanceHandle.remove( handle );
 
 			if( objectClass != null && hlaObject != null )
 			{
@@ -398,7 +383,7 @@ public abstract class FederateBase
 			else
 			{
 				logger.warn( "Deletion notification received for previously undiscovered object instance {}",
-				             rtiamb.makeSummary( handle ) );
+				             this.rtiamb.makeSummary( handle ) );
 			}
 		}
 	}
@@ -415,7 +400,7 @@ public abstract class FederateBase
 	 */
 	protected InteractionClass interactionClassByHandle( InteractionClassHandle handle )
 	{
-		return interactionClassByHandle.get( handle );
+		return this.interactionClassByHandle.get( handle );
 	}
 
 	/**
@@ -427,7 +412,7 @@ public abstract class FederateBase
 	 */
 	protected ObjectClass objectClassByClassHandle( ObjectClassHandle handle )
 	{
-		return objectClassByClassHandle.get( handle );
+		return this.objectClassByClassHandle.get( handle );
 	}
 
 	/**
@@ -450,7 +435,7 @@ public abstract class FederateBase
 	 */
 	protected HLAInteraction makeInteraction( String className, Map<String, byte[]> parameters)
 	{
-		return rtiamb.makeInteraction( className, parameters );
+		return this.rtiamb.makeInteraction( className, parameters );
 	}
 
 	/**
@@ -474,7 +459,7 @@ public abstract class FederateBase
 	protected HLAInteraction makeInteraction( InteractionClassHandle handle, Map<String, byte[]> parameters)
 	{
 		Types.InteractionClass interactionClass;
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			interactionClass = interactionClassByHandle( handle );
 		}
@@ -492,7 +477,7 @@ public abstract class FederateBase
 	 */
 	protected void sendInteraction( HLAInteraction interaction )
 	{
-		rtiamb.sendInteraction( interaction, null, null );
+		this.rtiamb.sendInteraction( interaction, null, null );
 	}
 
 	/**
@@ -503,7 +488,7 @@ public abstract class FederateBase
 	 */
 	protected void sendInteraction( HLAInteraction interaction, byte[] tag )
 	{
-		rtiamb.sendInteraction( interaction, tag, null );
+		this.rtiamb.sendInteraction( interaction, tag, null );
 	}
 
 	/**
@@ -516,7 +501,7 @@ public abstract class FederateBase
 	 */
 	protected void sendInteraction( HLAInteraction interaction, byte[] tag, double time )
 	{
-		rtiamb.sendInteraction( interaction, tag, time );
+		this.rtiamb.sendInteraction( interaction, tag, time );
 	}
 
 	/**
@@ -539,7 +524,7 @@ public abstract class FederateBase
 	 */
 	protected HLAObject makeObjectInstance( String className, Map<String, byte[]> attributes)
 	{
-		return rtiamb.makeObjectInstance( className, attributes );
+		return this.rtiamb.makeObjectInstance( className, attributes );
 	}
 
 	/**
@@ -565,7 +550,7 @@ public abstract class FederateBase
 	protected HLAObject makeObjectInstance( ObjectClassHandle handle, Map<String, byte[]> attributes)
 	{
 		Types.ObjectClass objectClass;
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			objectClass = objectClassByClassHandle( handle );
 		}
@@ -596,7 +581,7 @@ public abstract class FederateBase
 	 */
 	protected void updateAttributeValues( HLAObject instance )
 	{
-		rtiamb.updateAttributeValues( instance, null, null );
+		this.rtiamb.updateAttributeValues( instance, null, null );
 	}
 
 	/**
@@ -607,7 +592,7 @@ public abstract class FederateBase
 	 */
 	protected void updateAttributeValues( HLAObject instance, byte[] tag )
 	{
-		rtiamb.updateAttributeValues( instance, tag, null );
+		this.rtiamb.updateAttributeValues( instance, tag, null );
 	}
 
 	/**
@@ -620,7 +605,7 @@ public abstract class FederateBase
 	 */
 	protected void updateAttributeValues( HLAObject instance, byte[] tag, double time )
 	{
-		rtiamb.updateAttributeValues( instance, tag, time );
+		this.rtiamb.updateAttributeValues( instance, tag, time );
 	}
 
 	/**
@@ -654,7 +639,7 @@ public abstract class FederateBase
 	 */
 	protected HLAObject deleteObjectInstance( HLAObject instance, byte[] tag )
 	{
-		return rtiamb.deleteObjectInstance( instance, tag );
+		return this.rtiamb.deleteObjectInstance( instance, tag );
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -669,9 +654,9 @@ public abstract class FederateBase
 	{
 		beforeFederationJoin();
 
-		rtiamb.connect( fedamb, configuration.callbacksAreImmediate() );
+		this.rtiamb.connect( this.fedamb, this.configuration.callbacksAreImmediate() );
 
-		logger.info( "Federate {} connected to RTI.", configuration.getFederateName() );
+		logger.info( "Federate {} connected to RTI.", this.configuration.getFederateName() );
 
 		createFederation();
 
@@ -683,9 +668,9 @@ public abstract class FederateBase
 	 */
 	protected void createFederation()
 	{
-		String federationName = configuration.getFederationName();
+		String federationName = this.configuration.getFederationName();
 
-		if( !configuration.canCreateFederation() )
+		if( !this.configuration.canCreateFederation() )
 		{
 			// this federate is not allowed to create federations - they must already
 			// exist (i.e., have been created by something else)
@@ -693,8 +678,8 @@ public abstract class FederateBase
 			return;
 		}
 
-		URL[] modules = configuration.getModules().toArray( new URL[0] );
-		rtiamb.createFederationExecution( federationName, modules );
+		URL[] modules = this.configuration.getModules().toArray( new URL[0] );
+		this.rtiamb.createFederationExecution( federationName, modules );
 
 		logger.info( "Federation {} created.", federationName );
 	}
@@ -704,14 +689,14 @@ public abstract class FederateBase
 	 */
 	protected void joinFederation()
 	{
-		String federationName = configuration.getFederationName();
-		String federateName = configuration.getFederateName();
-		String federateType = configuration.getFederateType();
-		URL[] joinModules = configuration.getJoinModules().toArray( new URL[0] );
+		String federationName = this.configuration.getFederationName();
+		String federateName = this.configuration.getFederateName();
+		String federateType = this.configuration.getFederateType();
+		URL[] joinModules = this.configuration.getJoinModules().toArray( new URL[0] );
 
 		int retryCount = 0;
-		long retryInterval = configuration.getJoinRetryInterval();
-		int maxRetries = configuration.getMaxJoinAttempts();
+		long retryInterval = this.configuration.getJoinRetryInterval();
+		int maxRetries = this.configuration.getMaxJoinAttempts();
 		boolean hasJoinedFederation = false;
 		while( !hasJoinedFederation && retryCount < maxRetries )
 		{
@@ -723,7 +708,7 @@ public abstract class FederateBase
 					             (retryCount+1), maxRetries, federationName );
 				}
 
-				rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
+				this.rtiamb.joinFederationExecution( federateName, federateType, federationName, joinModules );
 				hasJoinedFederation = true;
 
 				logger.info( "Joined federation '{}'.", federationName );
@@ -780,7 +765,7 @@ public abstract class FederateBase
 	{
 		// Note that if the point already been registered, there will be a callback saying this
 		// failed, but as long as *someone* registered it everything is fine
-		rtiamb.registerFederationSynchronizationPoint( label, tag );
+		this.rtiamb.registerFederationSynchronizationPoint( label, tag );
 	}
 
 	/**
@@ -790,7 +775,7 @@ public abstract class FederateBase
 	 */
 	protected void waitForSyncPointAnnouncement( String label )
 	{
-		while( !fedamb.isAnnounced( label ) )
+		while( !this.fedamb.isAnnounced( label ) )
 		{
 			tickForCallBacks();
 		}
@@ -803,7 +788,7 @@ public abstract class FederateBase
 	 */
 	protected boolean isAnnounced( String label )
 	{
-		return fedamb.isAnnounced( label );
+		return this.fedamb.isAnnounced( label );
 	}
 
 	/**
@@ -813,7 +798,7 @@ public abstract class FederateBase
 	 */
 	protected void achieveSyncPoint( String label )
 	{
-		rtiamb.synchronizationPointAchieved( label );
+		this.rtiamb.synchronizationPointAchieved( label );
 	}
 
 	/**
@@ -823,7 +808,7 @@ public abstract class FederateBase
 	 */
 	protected void waitForSyncPointAchievement( String label )
 	{
-		while( !fedamb.isAchieved( label ) )
+		while( !this.fedamb.isAchieved( label ) )
 		{
 			tickForCallBacks();
 		}
@@ -836,7 +821,7 @@ public abstract class FederateBase
 	 */
 	protected void isAchieved( String label )
 	{
-		fedamb.isAchieved( label );
+		this.fedamb.isAchieved( label );
 	}
 
 	/**
@@ -844,9 +829,9 @@ public abstract class FederateBase
 	 */
 	protected void advanceTime()
 	{
-		double nextTime = fedamb.getFederateTime() + this.configuration.getLookAhead();
-		rtiamb.timeAdvanceRequest( nextTime );
-		while( fedamb.getFederateTime() < nextTime )
+		double nextTime = this.fedamb.getFederateTime() + this.configuration.getLookAhead();
+		this.rtiamb.timeAdvanceRequest( nextTime );
+		while( this.fedamb.getFederateTime() < nextTime )
 		{
 			tickForCallBacks();
 		}
@@ -859,7 +844,7 @@ public abstract class FederateBase
 	 */
 	protected void evokeMultipleCallbacks()
 	{
-		rtiamb.evokeMultipleCallbacks( MIN_TIME, MAX_TIME );
+		this.rtiamb.evokeMultipleCallbacks( MIN_TIME, MAX_TIME );
 	}
 
 	/**
@@ -879,7 +864,7 @@ public abstract class FederateBase
 		if( resignAction == null )
 			resignAction = ResignAction.DELETE_OBJECTS_THEN_DIVEST;
 
-		rtiamb.resignFederationExecution( resignAction );
+		this.rtiamb.resignFederationExecution( resignAction );
 	}
 
 	/**
@@ -887,7 +872,7 @@ public abstract class FederateBase
 	 */
 	protected void destroyFederation()
 	{
-		rtiamb.destroyFederationExecution( configuration.getFederationName() );
+		this.rtiamb.destroyFederationExecution( this.configuration.getFederationName() );
 	}
 
 	/**
@@ -896,10 +881,10 @@ public abstract class FederateBase
 	protected void enableTimePolicy()
 	{
 		// enable time regulation based on configuration
-		if( configuration.isTimeRegulated() )
+		if( this.configuration.isTimeRegulated() )
 		{
-			rtiamb.enableTimeRegulation( configuration.getLookAhead() );
-			while( fedamb.isTimeRegulated() == false )
+			this.rtiamb.enableTimeRegulation( this.configuration.getLookAhead() );
+			while( this.fedamb.isTimeRegulated() == false )
 			{
 				// waiting for callback to confirm it's enabled
 				tickForCallBacks();
@@ -907,10 +892,10 @@ public abstract class FederateBase
 		}
 
 		// enable time constrained based on configuration
-		if( configuration.isTimeConstrained() )
+		if( this.configuration.isTimeConstrained() )
 		{
-			rtiamb.enableTimeConstrained();
-			while( fedamb.isTimeConstrained() == false )
+			this.rtiamb.enableTimeConstrained();
+			while( this.fedamb.isTimeConstrained() == false )
 			{
 				// waiting for callback to confirm it's enabled
 				tickForCallBacks();
@@ -924,11 +909,11 @@ public abstract class FederateBase
 	protected void disableTimePolicy()
 	{
 		// no waiting for callbacks when disabling time policies
-		rtiamb.disableTimeConstrained();
-		fedamb.setTimeConstrained( false );
+		this.rtiamb.disableTimeConstrained();
+		this.fedamb.setTimeConstrained( false );
 
-		rtiamb.disableTimeRegulation();
-		fedamb.setTimeRegulated( false );
+		this.rtiamb.disableTimeRegulation();
+		this.fedamb.setTimeRegulated( false );
 	}
 
 	/**
@@ -936,7 +921,7 @@ public abstract class FederateBase
 	 */
 	protected void publishAndSubscribe()
 	{
-		Collection<ObjectClass> objectClasses = configuration.getPublishedAndSubscribedObjectClasses();
+		Collection<ObjectClass> objectClasses = this.configuration.getPublishedAndSubscribedObjectClasses();
 		for( ObjectClass objectClass : objectClasses )
 		{
 			if( objectClass.isPublished() )
@@ -946,7 +931,7 @@ public abstract class FederateBase
 					.filter( x -> x.getValue().isPublished() )
 					.map( x -> x.getValue().name )
 					.collect(Collectors.toSet());
-				rtiamb.publishObjectClassAttributes( objectClass.name, attributes );
+				this.rtiamb.publishObjectClassAttributes( objectClass.name, attributes );
 			}
 			if(objectClass.isSubscribed())
 			{
@@ -955,23 +940,23 @@ public abstract class FederateBase
 					.filter( x -> x.getValue().isSubscribed() )
 					.map( x -> x.getValue().name )
 					.collect(Collectors.toSet());
-				rtiamb.subscribeObjectClassAttributes( objectClass.name, attributes );
+				this.rtiamb.subscribeObjectClassAttributes( objectClass.name, attributes );
 			}
 		}
 		storeObjectClassData( objectClasses );
 
-		Collection<InteractionClass> interactionClasses = configuration.getPublishedAndSubscribedInteractions();
+		Collection<InteractionClass> interactionClasses = this.configuration.getPublishedAndSubscribedInteractions();
 		// Collection<InteractionClass> interactionClasses = SOMParser.getInteractionClasses(configuration.getSomPaths());
 
 		for( InteractionClass interactionClass : interactionClasses )
 		{
 			if( interactionClass.isPublished() )
 			{
-				rtiamb.publishInteractionClass( interactionClass.name );
+				this.rtiamb.publishInteractionClass( interactionClass.name );
 			}
 			if( interactionClass.isSubscribed() )
 			{
-				rtiamb.subscribeInteractionClass( interactionClass.name );
+				this.rtiamb.subscribeInteractionClass( interactionClass.name );
 			}
 		}
 		storeInteractionClassData( interactionClasses );
@@ -984,7 +969,7 @@ public abstract class FederateBase
 	 */
 	protected void publishInteraction( String className )
 	{
-		rtiamb.publishInteractionClass( className );
+		this.rtiamb.publishInteractionClass( className );
 	}
 
 	/**
@@ -994,7 +979,7 @@ public abstract class FederateBase
 	 */
 	protected void subscribeInteraction( String className )
 	{
-		rtiamb.subscribeInteractionClass( className );
+		this.rtiamb.subscribeInteractionClass( className );
 	}
 
 	/**
@@ -1005,7 +990,7 @@ public abstract class FederateBase
 	 */
 	protected void publishAttributes( String className, Set<String> attributes )
 	{
-		rtiamb.publishObjectClassAttributes( className, attributes );
+		this.rtiamb.publishObjectClassAttributes( className, attributes );
 	}
 
 	/**
@@ -1016,29 +1001,29 @@ public abstract class FederateBase
 	 */
 	protected void subscribeAttributes( String className, Set<String> attributes  )
 	{
-		rtiamb.subscribeObjectClassAttributes( className, attributes );
+		this.rtiamb.subscribeObjectClassAttributes( className, attributes );
 	}
 
 	private void storeObjectClassData( Collection<Types.ObjectClass> objectClasses )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			for(Types.ObjectClass objectClass : objectClasses)
 			{
-				ObjectClassHandle handle = rtiamb.getObjectClassHandle( objectClass.name );
-				objectClassByClassHandle.put( handle, objectClass );
+				ObjectClassHandle handle = this.rtiamb.getObjectClassHandle( objectClass.name );
+				this.objectClassByClassHandle.put( handle, objectClass );
 			}
 		}
 	}
 
 	private void storeInteractionClassData( Collection<Types.InteractionClass> interactionClasses )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			for( Types.InteractionClass interactionClass : interactionClasses )
 			{
-				InteractionClassHandle handle = rtiamb.getInteractionClassHandle( interactionClass.name );
-				interactionClassByHandle.put( handle, interactionClass );
+				InteractionClassHandle handle = this.rtiamb.getInteractionClassHandle( interactionClass.name );
+				this.interactionClassByHandle.put( handle, interactionClass );
 			}
 		}
 	}

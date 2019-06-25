@@ -122,16 +122,16 @@ public abstract class UCEFFederateBase extends FederateBase
 	{
 		super();
 
-		syncPointTimeouts = new HashSet<>();
+		this.syncPointTimeouts = new HashSet<>();
 
-		networkInteractionName = DEFAULT_NETWORK_INTERACTION_NAME;
-		networkObjectName = DEFAULT_NETWORK_OBJECT_NAME;
-		srcHost = this.configuration.getFederateName();
-		omnetInteractionMatchers = new ArrayList<>();
+		this.networkInteractionName = DEFAULT_NETWORK_INTERACTION_NAME;
+		this.networkObjectName = DEFAULT_NETWORK_OBJECT_NAME;
+		this.srcHost = this.configuration.getFederateName();
+		this.omnetInteractionMatchers = new ArrayList<>();
 
-		simShouldStart = false;
-		simShouldEnd = false;
-		simShouldPause = false;
+		this.simShouldStart = false;
+		this.simShouldEnd = false;
+		this.simShouldPause = false;
 	}
 
 	//----------------------------------------------------------
@@ -147,20 +147,9 @@ public abstract class UCEFFederateBase extends FederateBase
 		// call super method first...
 		JSONObject json = super.configureFromJSON( jsonSource );
 		// ...then custom configuration:
-		return this.configureUcefFederateFromJSON( json );
-	}
-
-	/**
-	 * Override so that we can perform {@link UCEFFederateBase} specific configuration from the
-	 * JSON once the {@link FederateBase} is finished
-	 */
-	@Override
-	public JSONObject configureFromJSON( JSONObject json )
-	{
-		// call super method first...
-		super.configureFromJSON( json );
-		// ...then custom configuration:
-		return this.configureUcefFederateFromJSON( json );
+		this.configureUcefFederateBaseFromJSON( json );
+		// return the JSON object (potentially for others to use)
+		return json;
 	}
 
 	@Override
@@ -169,7 +158,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), null, null );
+			this.rtiamb.sendInteraction( makeOmnetInteraction( interaction ), null, null );
 		}
 		else
 		{
@@ -184,7 +173,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, null );
+			this.rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, null );
 		}
 		else
 		{
@@ -199,7 +188,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, time );
+			this.rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, time );
 		}
 		else
 		{
@@ -312,12 +301,12 @@ public abstract class UCEFFederateBase extends FederateBase
 	@Override
 	protected void federateExecution()
 	{
-		while( simShouldEnd == false )
+		while( this.simShouldEnd == false )
 		{
 			// next step, and cease simulation loop if step() returns false
-			if( simShouldEnd || step( fedamb.getFederateTime() ) == false )
+			if( this.simShouldEnd || step( this.fedamb.getFederateTime() ) == false )
 				break;
-			if( simShouldEnd == false)
+			if( this.simShouldEnd == false)
 				advanceTime();
 		}
 	}
@@ -354,7 +343,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		long timeoutTime = System.currentTimeMillis() + timeoutDuration;
 		boolean hasTimedOut = false;
 
-		while( !fedamb.isAchieved( label ) && !hasTimedOut )
+		while( !this.fedamb.isAchieved( label ) && !hasTimedOut )
 		{
 			evokeMultipleCallbacks();
 			hasTimedOut = System.currentTimeMillis() > timeoutTime;
@@ -362,7 +351,7 @@ public abstract class UCEFFederateBase extends FederateBase
 
 		if( hasTimedOut )
 		{
-			syncPointTimeouts.add( label );
+			this.syncPointTimeouts.add( label );
 
 			logger.warn( String.format( "Timed out after %.3f seconds while waiting to achieve "+
 										"synchronization point '%s'",
@@ -378,7 +367,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	@Override
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			HLAInteraction interaction = makeInteraction( handle, parameters );
 			if( interaction != null )
@@ -405,7 +394,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	                                 Map<String,byte[]> parameters,
 	                                 double time )
 	{
-		synchronized( mutex_lock )
+		synchronized( this.mutex_lock )
 		{
 			// delegate to handlers for UCEF Simulation control interactions as required
 			HLAInteraction interaction = makeInteraction( handle, parameters );
@@ -440,7 +429,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( SimStart.interactionName().equals( interactionClassName ) )
 		{
 			// it is up to individual federates as to how they handle this
-			simShouldStart = true;
+			this.simShouldStart = true;
 			if( time == null )
 				receiveSimStart( new SimStart( interaction ) );
 			else
@@ -452,7 +441,7 @@ public abstract class UCEFFederateBase extends FederateBase
 			// synchronize with the rest of the federation before resigning
 			this.configuration.setSyncBeforeResign( true );
 
-			simShouldEnd = true;
+			this.simShouldEnd = true;
 			if( time == null )
 				receiveSimEnd( new SimEnd( interaction ) );
 			else
@@ -463,7 +452,7 @@ public abstract class UCEFFederateBase extends FederateBase
 			// if a SimPause is received, a well behaved UCEF federate must
 			// cease its step() loop processing until a SimResume or
 			// SimEnd is received
-			simShouldPause = true;
+			this.simShouldPause = true;
 			if( time == null )
 				receiveSimPause( new SimPause( interaction ) );
 			else
@@ -473,7 +462,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		{
 			// if a SimResume is received, a well behaved UCEF federate may
 			// resume its step() loop processing
-			simShouldPause = false;
+			this.simShouldPause = false;
 			if( time == null )
 				receiveSimResume( new SimResume( interaction ) );
 			else
@@ -562,7 +551,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * @param configData the {@link JSONObject} containing the configuration data
 	 * @return the original {@link JSONObject} containing the configuration data
 	 */
-	private JSONObject configureUcefFederateFromJSON( JSONObject configData )
+	private JSONObject configureUcefFederateBaseFromJSON( JSONObject configData )
 	{
 		if( configData == null )
 		{
@@ -570,16 +559,16 @@ public abstract class UCEFFederateBase extends FederateBase
 			return configData;
 		}
 
-		this.networkInteractionName = configuration.jsonStringOrDefault( configData,
+		this.networkInteractionName = this.configuration.jsonStringOrDefault( configData,
 		                                                                 KEY_NETWORK_INTERACTION_NAME,
 		                                                                 DEFAULT_NETWORK_INTERACTION_NAME );
-		this.networkObjectName = configuration.jsonStringOrDefault( configData,
+		this.networkObjectName = this.configuration.jsonStringOrDefault( configData,
 		                                                                 KEY_NETWORK_OBJECT_NAME,
 		                                                                 DEFAULT_NETWORK_OBJECT_NAME );
-		this.srcHost = configuration.jsonStringOrDefault( configData,
+		this.srcHost = this.configuration.jsonStringOrDefault( configData,
 		                                                  KEY_SRC_HOST,
-		                                                  configuration.getFederateName() );
-		Set<String> omnetInteractionFilters = configuration.jsonStringSetOrDefault( configData,
+		                                                  this.configuration.getFederateName() );
+		Set<String> omnetInteractionFilters = this.configuration.jsonStringSetOrDefault( configData,
 		                                                                            KEY_OMNET_INTERACTION_FILTERS,
 		                                                                            Collections.emptySet() );
 		this.omnetInteractionMatchers = stringsToRegexPatterns( omnetInteractionFilters );
@@ -639,7 +628,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 */
 	private HLAInteraction makeOmnetInteraction( HLAInteraction interaction )
 	{
-		HLAInteraction omnetInteraction = makeInteraction( networkInteractionName );
+		HLAInteraction omnetInteraction = makeInteraction( this.networkInteractionName );
 		omnetInteraction.setValue( KEY_ORG_CLASS, interaction.getInteractionClassName() );
 		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
 		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( interaction ) );
@@ -666,7 +655,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 */
 	private HLAObject makeOmnetObject( HLAObject instance )
 	{
-		HLAObject omnetInteraction = makeObjectInstance( networkObjectName );
+		HLAObject omnetInteraction = makeObjectInstance( this.networkObjectName );
 		omnetInteraction.setValue( KEY_ORG_CLASS, instance.getObjectClassName() );
 		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
 		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( instance ) );
@@ -694,7 +683,7 @@ public abstract class UCEFFederateBase extends FederateBase
 				continue;
 
 			// Figure out the data type of the parameter
-			DataType dataType = configuration.getDataType( instance, paramKey );
+			DataType dataType = this.configuration.getDataType( instance, paramKey );
 
 			// Now add param values to JSON object
 			switch( dataType )
@@ -755,7 +744,7 @@ public abstract class UCEFFederateBase extends FederateBase
 				continue;
 
 			// Figure out the data type of the parameter
-			DataType dataType = configuration.getDataType( instance, paramKey );
+			DataType dataType = this.configuration.getDataType( instance, paramKey );
 
 			// Now add param values to JSON object
 			switch( dataType )

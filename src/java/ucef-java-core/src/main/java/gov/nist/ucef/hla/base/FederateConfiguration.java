@@ -43,6 +43,7 @@ import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.InteractionParameter;
@@ -213,7 +214,7 @@ public class FederateConfiguration
 		// assume for the moment that the JSON is coming directly from the
 		// configuration source parameter
 		String json = configSource;
-		if(isFile)
+		if( isFile )
 		{
 			// the configuration source is actually a file - read the bytes
 			// from it into a string for processing
@@ -232,12 +233,12 @@ public class FederateConfiguration
 		Object parsedString = null;
 		try
 		{
-			parsedString = new JSONParser().parse(json);
+			parsedString = new JSONParser().parse( json );
 		}
 		catch( Exception e )
 		{
 			String msg = "Configuration is not valid JSON.";
-			if(isFile)
+			if( isFile )
 			{
 				msg = String.format( "Configuration is not valid JSON in '%s'.",
 				                     configFile.getAbsolutePath() );
@@ -248,10 +249,10 @@ public class FederateConfiguration
 		// at this point, we have a valid JSON object of some form, but we
 		// need to make sure that it is a single JSONObject instance (and
 		// not something else like a JSONArray)
-		if(!(parsedString instanceof JSONObject))
+		if( !(parsedString instanceof JSONObject) )
 		{
 			String msg = "Could not find root JSON object.";
-			if(isFile)
+			if( isFile )
 			{
 				msg = String.format( "Could not find root JSON object in '%s'.",
 				                     configFile.getAbsolutePath() );
@@ -267,9 +268,10 @@ public class FederateConfiguration
 		catch( Exception e )
 		{
 			String msg = "There was a problem processing the configuration JSON.";
-			if(isFile)
+			if( isFile )
 			{
-				msg = String.format( "There was a problem processing the configuration JSON in '%s'.",
+				msg = String.format( "There was a problem processing the " +
+				                     "configuration JSON in '%s'.",
 				                     configFile.getAbsolutePath() );
 			}
 			throw new UCEFException( e, msg );
@@ -649,7 +651,7 @@ public class FederateConfiguration
 	 */
 	public String getFederationName()
 	{
-		return federationExecName;
+		return this.federationExecName;
 	}
 
 
@@ -671,7 +673,7 @@ public class FederateConfiguration
 	 */
 	public String getFederateName()
 	{
-		return federateName;
+		return this.federateName;
 	}
 
 	/**
@@ -692,7 +694,7 @@ public class FederateConfiguration
 	 */
 	public String getFederateType()
 	{
-		return federateType;
+		return this.federateType;
 	}
 
 	/**
@@ -717,7 +719,7 @@ public class FederateConfiguration
 	 */
 	public boolean canCreateFederation()
 	{
-		return canCreateFederation;
+		return this.canCreateFederation;
 	}
 
 	/**
@@ -739,7 +741,7 @@ public class FederateConfiguration
 	 */
 	public int getMaxJoinAttempts()
 	{
-		return maxJoinAttempts;
+		return this.maxJoinAttempts;
 	}
 
 	/**
@@ -761,7 +763,7 @@ public class FederateConfiguration
 	 */
 	public long getJoinRetryInterval()
 	{
-		return joinRetryIntervalSec;
+		return this.joinRetryIntervalSec;
 	}
 
 	/**
@@ -785,7 +787,7 @@ public class FederateConfiguration
 	 */
 	public boolean shouldSyncBeforeResign()
 	{
-		return syncBeforeResign;
+		return this.syncBeforeResign;
 	}
 
 	/**
@@ -806,7 +808,7 @@ public class FederateConfiguration
 	 */
 	public double getLookAhead()
 	{
-		return lookAhead;
+		return this.lookAhead;
 	}
 
 	/**
@@ -828,7 +830,7 @@ public class FederateConfiguration
 	 */
 	public double getStepSize()
 	{
-		return stepSize;
+		return this.stepSize;
 	}
 
 	/**
@@ -894,7 +896,7 @@ public class FederateConfiguration
 	 */
 	public boolean callbacksAreImmediate()
 	{
-		return callbacksAreImmediate;
+		return this.callbacksAreImmediate;
 	}
 
 	/**
@@ -941,7 +943,7 @@ public class FederateConfiguration
 	 */
 	public Collection<URL> getModules()
 	{
-		return Collections.unmodifiableSet( modules );
+		return Collections.unmodifiableSet( this.modules );
 	}
 
 	/**
@@ -988,7 +990,7 @@ public class FederateConfiguration
 	 */
 	public Collection<URL> getJoinModules()
 	{
-		return Collections.unmodifiableSet( joinModules );
+		return Collections.unmodifiableSet( this.joinModules );
 	}
 
 	public Collection<String> getFomPaths()
@@ -1096,7 +1098,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
 	{
-		return Collections.unmodifiableCollection( interactionsByName.values() );
+		return Collections.unmodifiableCollection( this.interactionsByName.values() );
 	}
 
 	/**
@@ -1106,7 +1108,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getPublishedInteractions()
 	{
-		return interactionsByName.values()
+		return this.interactionsByName.values()
 			.stream()
 			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
@@ -1119,7 +1121,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getSubscribedInteractions()
 	{
-		return interactionsByName.values()
+		return this.interactionsByName.values()
 			.stream()
 			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
@@ -1132,7 +1134,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getPublishedAndSubscribedObjectClasses()
 	{
-		return Collections.unmodifiableCollection( objectClassesByName.values() );
+		return Collections.unmodifiableCollection( this.objectClassesByName.values() );
 	}
 
 	/**
@@ -1142,7 +1144,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getPublishedObjectClasses()
 	{
-		return objectClassesByName.values()
+		return this.objectClassesByName.values()
 			.stream()
 			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
@@ -1155,7 +1157,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getSubscribedObjectClasses()
 	{
-		return objectClassesByName.values()
+		return this.objectClassesByName.values()
 			.stream()
 			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );

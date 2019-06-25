@@ -132,20 +132,9 @@ public class ChallengeFederate extends _ChallengeFederate
 		// call super method first...
 		JSONObject json = super.configureFromJSON( jsonSource );
 		// ...then custom configuration:
-		return this.configureChallengeFederateFromJSON( json );
-	}
-
-	/**
-	 * Override so that we can perform {@link ChallengeFederate} specific configuration from the
-	 * JSON once the {@link FederateBase} is finished
-	 */
-	@Override
-	public JSONObject configureFromJSON( JSONObject json )
-	{
-		// call super method first...
-		super.configureFromJSON( json );
-		// ...then custom configuration:
-		return this.configureChallengeFederateFromJSON( json );
+		this.configureSelfFromJSON( json );
+		// return the JSON object (potentially for others to use)
+		return json;
 	}
 
 	/**
@@ -290,11 +279,11 @@ public class ChallengeFederate extends _ChallengeFederate
 	 * @param configData the {@link JSONObject} containing the configuration data
 	 * @return the original {@link JSONObject} containing the configuration data
 	 */
-	private JSONObject configureChallengeFederateFromJSON( JSONObject configData )
+	private JSONObject configureSelfFromJSON( JSONObject configData )
 	{
-		this.totalChallenges = configuration.jsonIntOrDefault( configData,
-		                                                       CMDLINE_ARG_ITERATIONS,
-		                                                       ITERATIONS_DEFAULT );
+		this.totalChallenges = this.configuration.jsonIntOrDefault( configData,
+		                                                            CMDLINE_ARG_ITERATIONS,
+		                                                            ITERATIONS_DEFAULT );
 		this.totalChallenges = Math.max( 1, this.totalChallenges );
 		return configData;
 	}
