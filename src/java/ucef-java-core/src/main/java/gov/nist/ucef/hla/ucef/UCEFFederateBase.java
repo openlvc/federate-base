@@ -87,7 +87,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	private static final String KEY_NET_DATA = "data";
 	// default interaction class name to treat as am OMNeT++ network interaction
 	private static final String DEFAULT_NETWORK_INTERACTION_NAME = "HLAinteractionRoot.NetworkInteraction";
-	private static final String DEFAULT_NETWORK_OBJECT_NAME = "HLAObjectRoot.NetworkObject";
+	private static final String DEFAULT_NETWORK_OBJECT_NAME = "HLAobjectRoot.NetworkObject";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
