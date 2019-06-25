@@ -64,7 +64,7 @@ public class HLAInteraction
 	 *
 	 * @param interactionClassHandle the class handle to which this instance corresponds
 	 */
-	protected HLAInteraction( String interactionClassName )
+	public HLAInteraction( String interactionClassName )
 	{
 		this( interactionClassName, null );
 	}

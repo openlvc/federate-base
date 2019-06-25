@@ -34,16 +34,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
-import org.json.simple.JSONObject;
-
-import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.challenger.base._ResponseFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.example.util.JSONUtils;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
@@ -391,15 +387,16 @@ public class ResponseFederate extends _ResponseFederate
 
 		try
 		{
-			String jsonSource = JSON_CONFIG_FILE_DEFAULT;
+			String jsonConfig = JSON_CONFIG_FILE_DEFAULT;
 			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
-				jsonSource = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
-			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
+			{
+				// command line override specified for configuration JSON
+				jsonConfig = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
+			}
 
 			ResponseFederate federate = new ResponseFederate();
-			FederateConfiguration config = federate.getFederateConfiguration();
-			config.fromJSON( jsonConfig );
-			System.out.println(config.summary());
+			federate.configureFromJSON( jsonConfig );
+			System.out.println(federate.getFederateConfiguration().summary());
 
 			System.out.println( "Preparing to receive challenges..." );
 			System.out.println();

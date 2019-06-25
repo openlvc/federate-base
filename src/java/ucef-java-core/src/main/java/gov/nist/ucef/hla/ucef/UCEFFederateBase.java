@@ -23,21 +23,35 @@
  */
 package gov.nist.ucef.hla.ucef;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.HLAInteraction;
+import gov.nist.ucef.hla.base.HLAObject;
+import gov.nist.ucef.hla.base.Types.DataType;
+import gov.nist.ucef.hla.base.Types.InteractionClass;
+import gov.nist.ucef.hla.base.UCEFException;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
 import gov.nist.ucef.hla.ucef.interactions.SimStart;
 import hla.rti1516e.InteractionClassHandle;
+
 
 /**
  * An abstract implementation for a UCEF Federate which is aware of certain UCEF specific
@@ -60,12 +74,32 @@ public abstract class UCEFFederateBase extends FederateBase
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( UCEFFederateBase.class );
 
+	// OMNeT++ specific fedconfig parameter keys
+	private static final String KEY_OMNET_INTERACTIONS = "omnetInteractions";
+	private static final String KEY_NET_INT_NAME = "networkInteractionName";
+	// This key represents the host to inject the network msg
+	private static final String KEY_SRC_HOST = "sourceHost";
+	// Params in network interaction designated to the OMNeT++ federate
+	// This key represents the name of the class wrapped by this interaction
+	private static final String KEY_ORG_CLASS = "wrappedClassName";
+	// This key represents the payload of the wrapped class
+	private static final String KEY_NET_DATA = "data";
+	// default interaction class name to treat as am OMNeT++ network interaction
+	private static final String DEFAULT_NETWORK_INTERACTION_NAME = "HLAinteractionRoot.NetworkInteraction";
+
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
 	//----------------------------------------------------------
 	private final Object mutex_lock = new Object();
 
 	protected Set<String> syncPointTimeouts;
+
+	// the namespaced "network interaction" class name
+	protected String networkInteractionName;
+	// mapped host name
+	protected String srcHost;
+	// pattern matchers for identifying OMNeT++ interactions
+	protected Collection<Pattern> omnetInteractions;
 
 	// flag which becomes true after a SimStart interaction has
 	// been received (begins as false)
@@ -87,9 +121,87 @@ public abstract class UCEFFederateBase extends FederateBase
 
 		syncPointTimeouts = new HashSet<>();
 
+		networkInteractionName = DEFAULT_NETWORK_INTERACTION_NAME;
+		srcHost = this.configuration.getFederateName();
+		omnetInteractions = new ArrayList<>();
+
 		simShouldStart = false;
 		simShouldEnd = false;
 		simShouldPause = false;
+	}
+
+	//----------------------------------------------------------
+	//                    INSTANCE METHODS
+	//----------------------------------------------------------
+	/**
+	 * Override so that we can perform {@link UCEFFederateBase} specific configuration from the
+	 * JSON once the {@link FederateBase} is finished
+	 */
+	@Override
+	public JSONObject configureFromJSON( String jsonSource )
+	{
+		// call super method first...
+		JSONObject json = super.configureFromJSON( jsonSource );
+		// ...then custom configuration:
+		return this.configureUcefFederateFromJSON( json );
+	}
+
+	/**
+	 * Override so that we can perform {@link UCEFFederateBase} specific configuration from the
+	 * JSON once the {@link FederateBase} is finished
+	 */
+	@Override
+	public JSONObject configureFromJSON( JSONObject json )
+	{
+		// call super method first...
+		super.configureFromJSON( json );
+		// ...then custom configuration:
+		return this.configureUcefFederateFromJSON( json );
+	}
+
+	@Override
+	public void sendInteraction( HLAInteraction interaction )
+	{
+		if( isOmnetNetworkInteraction( interaction ) )
+		{
+			// convert OMNeT++ routed interactions and re-send
+			rtiamb.sendInteraction( makeOmnetInteration( interaction ), null, null );
+		}
+		else
+		{
+			// non-OMNeT++ routed interactions get handled as usual
+			super.sendInteraction( interaction );
+		}
+	}
+
+	@Override
+	protected void sendInteraction( HLAInteraction interaction, byte[] tag )
+	{
+		if( isOmnetNetworkInteraction( interaction ) )
+		{
+			// convert OMNeT++ routed interactions and re-send
+			rtiamb.sendInteraction( makeOmnetInteration( interaction ), tag, null );
+		}
+		else
+		{
+			// non-OMNeT++ routed interactions get handled as usual
+			super.sendInteraction( interaction, tag );
+		}
+	}
+
+	@Override
+	protected void sendInteraction( HLAInteraction interaction, byte[] tag, double time )
+	{
+		if( isOmnetNetworkInteraction( interaction ) )
+		{
+			// convert OMNeT++ routed interactions and re-send
+			rtiamb.sendInteraction( makeOmnetInteration( interaction ), tag, time );
+		}
+		else
+		{
+			// non-OMNeT++ routed interactions get handled as usual
+			super.sendInteraction( interaction, tag, time );
+		}
 	}
 
 	//----------------------------------------------------------
@@ -257,109 +369,163 @@ public abstract class UCEFFederateBase extends FederateBase
 
 	/**
 	 * Override to provide handling for specific UCEF simulation control interaction types
+	 * and OMNeT++ destination federate filtering
 	 */
-	@Override
-	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters, double time )
-	{
-		synchronized( mutex_lock )
-		{
-    		// delegate to handlers for UCEF Simulation control interactions as required
-    		HLAInteraction interaction = makeInteraction( handle, parameters );
-
-    		if( interaction != null )
-    		{
-        		String interactionClassName = interaction.getInteractionClassName();
-
-        		if( SimStart.interactionName().equals( interactionClassName ) )
-        		{
-        			// it is up to individual federates as to how they handle this
-        			simShouldStart = true;
-        			simShouldPause = false;
-        			receiveSimStart( new SimStart( interaction ), time );
-        		}
-        		if( SimEnd.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimEnd is received, a well behaved UCEF federate must
-        			// synchronize with the rest of the federation before resigning
-        			this.configuration.setSyncBeforeResign( true );
-
-        			simShouldEnd = true;
-        			simShouldPause = false;
-        			receiveSimEnd( new SimEnd( interaction ), time );
-        		}
-        		else if( SimPause.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimPause is received, a well behaved UCEF federate must
-        			// cease its step() loop processing until a SimResume or
-        			// SimEnd is received
-        			simShouldPause = true;
-        			receiveSimPause( new SimPause( interaction ), time );
-        		}
-        		else if( SimResume.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimResume is received, a well behaved UCEF federate may
-        			// resume its step() loop processing
-        			simShouldPause = false;
-        			receiveSimResume( new SimResume( interaction ), time );
-        		}
-        		else
-        		{
-        			// anything else gets generic interaction receipt handling
-        			receiveInteraction( interaction, time );
-        		}
-    		}
-		}
-	}
-
 	@Override
 	public void incomingInteraction( InteractionClassHandle handle, Map<String,byte[]> parameters )
 	{
 		synchronized( mutex_lock )
 		{
-    		// delegate to handlers for UCEF Simulation control interactions as required
-    		HLAInteraction interaction = makeInteraction( handle, parameters );
-
-    		if( interaction != null )
-    		{
-        		String interactionClassName = interaction.getInteractionClassName();
-
-        		if( SimStart.interactionName().equals( interactionClassName ) )
-        		{
-        			// it is up to individual federates as to how they handle this
-        			simShouldStart = true;
-        			receiveSimStart( new SimStart( interaction ) );
-        		}
-        		else if( SimEnd.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimEnd is received, a well behaved UCEF federate must
-        			// synchronize with the rest of the federation before resigning
-        			this.configuration.setSyncBeforeResign( true );
-
-        			simShouldEnd = true;
-        			receiveSimEnd( new SimEnd( interaction ) );
-        		}
-        		else if( SimPause.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimPause is received, a well behaved UCEF federate must
-        			// cease its step() loop processing until a SimResume or
-        			// SimEnd is received
-        			simShouldPause = true;
-        			receiveSimPause( new SimPause( interaction ) );
-        		}
-        		else if( SimResume.interactionName().equals( interactionClassName ) )
-        		{
-        			// if a SimResume is received, a well behaved UCEF federate may
-        			// resume its step() loop processing
-        			simShouldPause = false;
-        			receiveSimResume( new SimResume( interaction ) );
-        		}
-        		else
-        		{
-        			// anything else gets generic interaction receipt handling
-        			receiveInteraction( interaction );
-        		}
-    		}
+			HLAInteraction interaction = makeInteraction( handle, parameters );
+			if( interaction != null )
+			{
+				if( isSimulationControlInteraction( interaction ) )
+				{
+					// simulation control interactions require their own handling
+					processSimControlInteraction( interaction, null );
+				}
+				else if( shouldReceiveInteraction( interaction ) )
+				{
+					receiveInteraction( interaction );
+				}
+			}
 		}
+	}
+
+	/**
+	 * Override to provide handling for specific UCEF simulation control interaction types
+	 * and OMNeT++ destination federate filtering
+	 */
+	@Override
+	public void incomingInteraction( InteractionClassHandle handle,
+	                                 Map<String,byte[]> parameters,
+	                                 double time )
+	{
+		synchronized( mutex_lock )
+		{
+			// delegate to handlers for UCEF Simulation control interactions as required
+			HLAInteraction interaction = makeInteraction( handle, parameters );
+
+			if( interaction != null )
+			{
+				if( isSimulationControlInteraction( interaction ) )
+				{
+					// simulation control interactions require their own handling
+					processSimControlInteraction( interaction, time );
+				}
+				else if( shouldReceiveInteraction( interaction ) )
+				{
+					receiveInteraction( interaction, time );
+				}
+			}
+		}
+	}
+
+	/**
+	 * General handler for received simulation control interactions
+	 * ({@link SimStart},{@link SimEnd}, {@link SimPause}, {@link SimResume})
+	 *
+	 * @param interaction the simulation control interaction
+	 * @param time the logical time (may be null)
+	 */
+	private void processSimControlInteraction( HLAInteraction interaction, Double time )
+	{
+		String interactionClassName = interaction.getInteractionClassName();
+
+		// delegate to handlers for UCEF Simulation control interactions as required
+		if( SimStart.interactionName().equals( interactionClassName ) )
+		{
+			// it is up to individual federates as to how they handle this
+			simShouldStart = true;
+			if( time == null )
+				receiveSimStart( new SimStart( interaction ) );
+			else
+				receiveSimStart( new SimStart( interaction ), time );
+		}
+		else if( SimEnd.interactionName().equals( interactionClassName ) )
+		{
+			// if a SimEnd is received, a well behaved UCEF federate must
+			// synchronize with the rest of the federation before resigning
+			this.configuration.setSyncBeforeResign( true );
+
+			simShouldEnd = true;
+			if( time == null )
+				receiveSimEnd( new SimEnd( interaction ) );
+			else
+				receiveSimEnd( new SimEnd( interaction ), time );
+		}
+		else if( SimPause.interactionName().equals( interactionClassName ) )
+		{
+			// if a SimPause is received, a well behaved UCEF federate must
+			// cease its step() loop processing until a SimResume or
+			// SimEnd is received
+			simShouldPause = true;
+			if( time == null )
+				receiveSimPause( new SimPause( interaction ) );
+			else
+				receiveSimPause( new SimPause( interaction ), time );
+		}
+		else if( SimResume.interactionName().equals( interactionClassName ) )
+		{
+			// if a SimResume is received, a well behaved UCEF federate may
+			// resume its step() loop processing
+			simShouldPause = false;
+			if( time == null )
+				receiveSimResume( new SimResume( interaction ) );
+			else
+				receiveSimResume( new SimResume( interaction ), time );
+		}
+	}
+
+	/**
+	 * Determine if an incoming interaction should be received by us.
+	 *
+	 * This is determined by using encapsulated "federateFilter" parameter. This contains comma
+	 * separated matching strings which are checked against our federate name.
+	 *
+	 * If any of the matching strings match our federate name, we are supposed to receive the
+	 * interaction, otherwise we are supposed to ignore it.
+	 *
+	 * If the "federateFilter" parameter is absent, normal handling takes effect (i.e., we receive
+	 * the interaction as normal).
+	 *
+	 * @param interaction the simulation control interaction
+	 * @param time the logical time (may be null)
+	 */
+	private boolean shouldReceiveInteraction( HLAInteraction interaction )
+	{
+		boolean shouldReceive = true;
+		if( interaction.isPresent( "federateFilter" ) )
+		{
+			// The interaction has a "federateFilter" set, test if the
+			// interaction is supposed to be for this federate
+			// split by commas
+			String[] fedFilters = interaction.getAsString( "federateFilter" ).split( "," );
+			// convert to regular expression patterns
+			Collection<Pattern> dstFeds = stringsToRegexPatterns( Arrays.asList( fedFilters ) );
+			// check for any matches with our federate name
+			shouldReceive = matchesAnyPattern( this.configuration.getFederateName(), dstFeds );
+
+			if( logger.isDebugEnabled() )
+			{
+				// the filter says we can handle this interaction
+				logger.debug( "{} '{}' interaction as it is {}designated for " +
+				              "this federate ('{}').",
+				              shouldReceive ? "Handling" : "Ignoring",
+				              shouldReceive ? "" : "not",
+				              interaction.getInteractionClassName(),
+				              this.configuration.getFederateName() );
+			}
+		}
+		else if( logger.isDebugEnabled() )
+		{
+			// If the interaction doesn't have a destination filter
+			// generic interaction receipt handling takes effect
+			logger.debug( "Received '{}' interaction with no designated federate. Handling as usual.",
+			              interaction.getInteractionClassName(),
+			              this.configuration.getFederateName() );
+		}
+		return shouldReceive;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -379,6 +545,271 @@ public abstract class UCEFFederateBase extends FederateBase
 		// TODO NOTE See other notes in this file regarding the substitution of a timeout
 		// mechanism with MOM interactions to determine sync point statuses
 		return this.syncPointTimeouts.contains( UCEFSyncPoint.READY_TO_RUN.getLabel() );
+	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////// Internal Utility Methods /////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Set up {@link UCEFFederateBase} specific configuration items from JSON
+	 *
+	 * Called from {@link #configureFromJSON(JSONObject)} and {@link #configureFromJSON(String)}
+	 *
+	 * @param configData the {@link JSONObject} containing the configuration data
+	 * @return the original {@link JSONObject} containing the configuration data
+	 */
+	private JSONObject configureUcefFederateFromJSON( JSONObject configData )
+	{
+		if( configData == null )
+		{
+			logger.warn( "JSON configuration data was null!" );
+			return configData;
+		}
+
+		this.networkInteractionName = configuration.jsonStringOrDefault( configData,
+		                                                                 KEY_NET_INT_NAME,
+		                                                                 DEFAULT_NETWORK_INTERACTION_NAME );
+		this.srcHost = configuration.jsonStringOrDefault( configData,
+		                                                  KEY_SRC_HOST,
+		                                                  configuration.getFederateName() );
+		Set<String> omnetInteractionsTemp = configuration.jsonStringSetOrDefault( configData,
+		                                                                          KEY_OMNET_INTERACTIONS,
+		                                                                          Collections.emptySet() );
+		this.omnetInteractions = stringsToRegexPatterns( omnetInteractionsTemp );
+
+		return configData;
+	}
+
+	/**
+	 * Utility method to determine if an {@link InteractionClass} corresponds to one of the
+	 * simulation control interactions
+	 *
+	 * @param interactionClass {@link InteractionClass} the instance to check
+	 * @return true if the interaction is one of the simulation control interactions, false
+	 *         otherwise
+	 */
+	private boolean isSimulationControlInteraction( HLAInteraction instance )
+	{
+		if( instance == null )
+			return false;
+
+		String className = instance.getInteractionClassName();
+		return SimStart.interactionName().equals( className ) ||
+		       SimEnd.interactionName().equals( className ) ||
+		       SimPause.interactionName().equals( className ) ||
+		       SimResume.interactionName().equals( className );
+	}
+
+	/**
+	 * Utility method to determine if an HLA interaction is a OMNeT++ network interaction
+	 *
+	 * @param interaction {@link HLAInteraction} the interaction to check
+	 * @return true if the interaction is an OMNeT++ network interaction, false otherwise
+	 */
+	private boolean isOmnetNetworkInteraction( HLAInteraction interaction )
+	{
+		return matchesAnyPattern( interaction.getInteractionClassName(),
+		                          this.omnetInteractions );
+	}
+
+	private HLAInteraction makeOmnetInteration( HLAInteraction interaction )
+	{
+		HLAInteraction omnetInteraction = makeInteraction( networkInteractionName );
+		omnetInteraction.setValue( KEY_ORG_CLASS, interaction.getInteractionClassName() );
+		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
+		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( interaction ) );
+		return omnetInteraction;
+	}
+
+	/**
+	 * Utility method to encode the parameters of an {@link HLA interaction} instance as a JSON
+	 * formatted string.
+	 *
+	 * Parameters which are as yet unintitialized are not included in the encoded JSON.
+	 *
+	 * @param interaction {@link HLAInteraction} the interaction to encode
+	 * @return the encoded parameters as a JSON formatted string
+	 */
+	@SuppressWarnings("unchecked")
+	private String encodeAsJson( HLAInteraction instance )
+	{
+		JSONObject json = new JSONObject();
+		// Get parameters of this interaction
+		Set<String> paramKeys = this.configuration.getParameterNames( instance );
+		for( String paramKey : paramKeys )
+		{
+			if( !instance.isPresent( paramKey ) )
+				continue;
+
+			// Figure out the data type of the parameter
+			DataType dataType = configuration.getDataType( instance, paramKey );
+
+			// Now add param values to JSON object
+			switch( dataType )
+			{
+				case BOOLEAN:
+					json.put( paramKey, instance.getAsBoolean( paramKey ) );
+					break;
+				case BYTE:
+					json.put( paramKey, instance.getAsByte( paramKey ) );
+					break;
+				case CHAR:
+					json.put( paramKey, instance.getAsChar( paramKey ) );
+					break;
+				case DOUBLE:
+					json.put( paramKey, instance.getAsDouble( paramKey ) );
+					break;
+				case FLOAT:
+					json.put( paramKey, instance.getAsFloat( paramKey ) );
+					break;
+				case INT:
+					json.put( paramKey, instance.getAsInt( paramKey ) );
+					break;
+				case LONG:
+					json.put( paramKey, instance.getAsLong( paramKey ) );
+					break;
+				case SHORT:
+					json.put( paramKey, instance.getAsShort( paramKey ) );
+					break;
+				case STRING:
+					json.put( paramKey, instance.getAsString( paramKey ) );
+					break;
+				case UNKNOWN:
+				default:
+					break;
+			}
+		}
+		return json.toJSONString();
+	}
+
+	/**
+	 * Utility method to encode the attributes of an {@link HLAObject} instance as a JSON
+	 * formatted string.
+	 *
+	 * Attributes which are as yet unintitialized are not included in the encoded JSON.
+	 *
+	 * @param interaction {@link HLAObject} the instance to encode
+	 * @return the encoded parameters as a JSON formatted string
+	 */
+	@SuppressWarnings("unchecked")
+	private String encodeAsJson( HLAObject instance )
+	{
+		JSONObject json = new JSONObject();
+		// Get parameters of this interaction
+		Set<String> paramKeys = this.configuration.getAttributeNames( instance );
+		for( String paramKey : paramKeys )
+		{
+			if( !instance.isPresent( paramKey ) )
+				continue;
+
+			// Figure out the data type of the parameter
+			DataType dataType = configuration.getDataType( instance, paramKey );
+
+			// Now add param values to JSON object
+			switch( dataType )
+			{
+				case BOOLEAN:
+					json.put( paramKey, instance.getAsBoolean( paramKey ) );
+					break;
+				case BYTE:
+					json.put( paramKey, instance.getAsByte( paramKey ) );
+					break;
+				case CHAR:
+					json.put( paramKey, instance.getAsChar( paramKey ) );
+					break;
+				case DOUBLE:
+					json.put( paramKey, instance.getAsDouble( paramKey ) );
+					break;
+				case FLOAT:
+					json.put( paramKey, instance.getAsFloat( paramKey ) );
+					break;
+				case INT:
+					json.put( paramKey, instance.getAsInt( paramKey ) );
+					break;
+				case LONG:
+					json.put( paramKey, instance.getAsLong( paramKey ) );
+					break;
+				case SHORT:
+					json.put( paramKey, instance.getAsShort( paramKey ) );
+					break;
+				case STRING:
+					json.put( paramKey, instance.getAsString( paramKey ) );
+					break;
+				case UNKNOWN:
+				default:
+					break;
+			}
+		}
+		return json.toJSONString();
+	}
+
+	/**
+	 * Utility method to convert simple wild card matching strings to a valid regular expressions
+	 *
+	 * We are expecting strings along the lines of...
+	 *     "HLAinteractionRoot.C2WInteractionRoot.SomeType.*"
+	 * ...which we convert into a valid Java regular expression strings like this...
+	 *     "HLAinteractionRoot\.C2WInteractionRoot\.SomeType\..*"
+	 *...and the compile to {@link Pattern} instances.
+	 *
+	 * So, we...
+	 *     - trim the original string of leading/training spaces,
+	 *     - split the string up on the "." characters
+	 *     - join the string back together with escaped "." (i.e., "\.")
+	 *     - replace any occurrences of "*" with ".*"
+	 *     - put start and end string markers (i.e., "^" and "$" respectively) on the string
+	 *     - ...and compile the string to a regex Pattern
+	 *
+	 * @param items the {@link String}s to convert to regular expression patterns
+	 * @return the regular expression {@link Pattern}s
+	 */
+	private Collection<Pattern> stringsToRegexPatterns( Collection<String> items )
+	{
+		if( items == null )
+			return Collections.emptyList();
+
+		List<Pattern> patterns = new ArrayList<Pattern>();
+		for( String item : items )
+		{
+			String regex = "^" +
+				Stream.of( item.trim().split( "\\." ) )
+				.collect( Collectors.joining( "\\." ) )
+				.replace( "*", ".*" ) +
+				"$";
+			try
+			{
+				patterns.add( Pattern.compile( regex ) );
+			}
+			catch( Exception e )
+			{
+				// probably a PatternSyntaxException
+				throw new UCEFException( String.format(
+				                                        "Unable to convert '%s' to a regular expression",
+				                                        item ) );
+			}
+		}
+		return patterns;
+	}
+
+	/**
+	 * Utility method to determine if the given text matches any of the provided regular
+	 * expression patterns
+	 *
+	 * @param text the text to check
+	 * @param pattern the {@link Pattern}s to check against
+	 * @return true if the text matches any of the patterns, false otherwise
+	 */
+	private boolean matchesAnyPattern( String text, Collection<Pattern> pattern )
+	{
+		if( text == null || pattern == null )
+			return false;
+
+		for( Pattern regex : pattern )
+		{
+			if( regex.matcher( text ).matches() )
+				return true;
+		}
+		return false;
 	}
 
 	//----------------------------------------------------------

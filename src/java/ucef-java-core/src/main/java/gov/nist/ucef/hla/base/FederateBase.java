@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.ObjectClass;
@@ -158,6 +159,42 @@ public abstract class FederateBase
 	public FederateConfiguration getFederateConfiguration()
 	{
 		return this.configuration;
+	}
+
+	/**
+	 * Convenience wrapper to configure a federate from a JSON.
+	 *
+	 * Equivalent to calling {@link #getFederateConfiguration()}.fromJSON( configSource );
+	 *
+	 * Refer to {@link FederateConfiguration} for standard configuration JSON keys and data
+	 * types.
+	 *
+	 * @param jsonSource the {@link String} containing either JSON configuration data, or the
+	 *            path to a resource (i.e., a file) containing JSON configuration data.
+	 * @return the extracted {@link JSONObject} containing the extracted configuration data. This
+	 *         can be used for handling of "extra", federate specific custom configuration
+	 *         parameters contained in the JSON.
+	 */
+	public JSONObject configureFromJSON( String jsonSource )
+	{
+		return this.configuration.fromJSON( jsonSource );
+	}
+
+	/**
+	 * Convenience wrapper to configure a federate from a JSON.
+	 *
+	 * Equivalent to calling {@link #getFederateConfiguration()}.fromJSON( configSource );
+	 *
+	 * Refer to {@link FederateConfiguration} for standard configuration JSON keys and data
+	 * types.
+	 *
+	 * @param configData the {@link JSONObject} containing configuration data
+	 * @return the original {@link JSONObject}, so that it can be used for handling of "extra",
+	 *         federate specific custom configuration parameters contained in the JSON.
+	 */
+	public JSONObject configureFromJSON( JSONObject json )
+	{
+		return this.configuration.fromJSON( json );
 	}
 
 	/**
@@ -369,6 +406,29 @@ public abstract class FederateBase
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////// RTI Utility Methods ////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Obtain a known {@link InteractionClass} based on an {@link InteractionClassHandle}
+	 *
+	 * @param handle the {@link InteractionClassHandle}
+	 * @return an {@link InteractionClass} instance if the {@link InteractionClassHandle} has been
+	 *         previously cached, null otherwise
+	 */
+	protected InteractionClass interactionClassByHandle( InteractionClassHandle handle )
+	{
+		return interactionClassByHandle.get( handle );
+	}
+
+	/**
+	 * Obtain a known {@link ObjectClass} based on an {@link ObjectClassHandle}
+	 *
+	 * @param handle the {@link ObjectClassHandle}
+	 * @return an {@link ObjectClass} instance if the {@link InteractionClassHandle} has been
+	 *         previously cached, null otherwise
+	 */
+	protected ObjectClass objectClassByHandle( ObjectClassHandle handle )
+	{
+		return objectClassByClassHandle.get( handle );
+	}
 
 	/**
 	 * Create an interaction (with no parameter values)
@@ -399,12 +459,23 @@ public abstract class FederateBase
 	 * @param className the name of the interaction class
 	 * @return the interaction
 	 */
+	protected HLAInteraction makeInteraction( InteractionClassHandle handle )
+	{
+		return makeInteraction( handle, null );
+	}
+
+	/**
+	 * Create an interaction
+	 *
+	 * @param className the name of the interaction class
+	 * @return the interaction
+	 */
 	protected HLAInteraction makeInteraction( InteractionClassHandle handle, Map<String, byte[]> parameters)
 	{
 		Types.InteractionClass interactionClass;
 		synchronized( mutex_lock )
 		{
-			interactionClass = interactionClassByHandle.get( handle );
+			interactionClass = interactionClassByHandle( handle );
 		}
 
 		if( interactionClass == null )
@@ -418,7 +489,7 @@ public abstract class FederateBase
 	 *
 	 * @param interaction the interaction
 	 */
-	protected void sendInteraction( HLAInteraction interaction)
+	protected void sendInteraction( HLAInteraction interaction )
 	{
 		rtiamb.sendInteraction( interaction, null, null );
 	}
