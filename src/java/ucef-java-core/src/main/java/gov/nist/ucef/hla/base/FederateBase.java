@@ -425,7 +425,7 @@ public abstract class FederateBase
 	 * @return an {@link ObjectClass} instance if the {@link InteractionClassHandle} has been
 	 *         previously cached, null otherwise
 	 */
-	protected ObjectClass objectClassByHandle( ObjectClassHandle handle )
+	protected ObjectClass objectClassByClassHandle( ObjectClassHandle handle )
 	{
 		return objectClassByClassHandle.get( handle );
 	}
@@ -442,7 +442,7 @@ public abstract class FederateBase
 	}
 
 	/**
-	 * Create an interaction (with no parameter values)
+	 * Create an interaction
 	 *
 	 * @param className the name of the interaction class
 	 * @param parameters the parameters for the interaction (may be an empty map or null)
@@ -454,7 +454,7 @@ public abstract class FederateBase
 	}
 
 	/**
-	 * Create an interaction
+	 * Create an interaction (with no parameter values)
 	 *
 	 * @param className the name of the interaction class
 	 * @return the interaction
@@ -468,6 +468,7 @@ public abstract class FederateBase
 	 * Create an interaction
 	 *
 	 * @param className the name of the interaction class
+	 * @param parameters the parameters for the interaction (may be an empty map or null)
 	 * @return the interaction
 	 */
 	protected HLAInteraction makeInteraction( InteractionClassHandle handle, Map<String, byte[]> parameters)
@@ -516,6 +517,63 @@ public abstract class FederateBase
 	protected void sendInteraction( HLAInteraction interaction, byte[] tag, double time )
 	{
 		rtiamb.sendInteraction( interaction, tag, time );
+	}
+
+	/**
+	 * Create an object instance (with no parameter values), also registering the instance with the RTI.
+	 *
+	 * @param className the name of the object class
+	 * @return the object instance
+	 */
+	protected HLAObject makeObjectInstance( String className )
+	{
+		return makeObjectInstance( className, null );
+	}
+
+	/**
+	 * Create an object instance, also registering the instance with the RTI.
+	 *
+	 * @param className the name of the object class
+	 * @param attributes the attributes for the object instance (may be an empty map or null)
+	 * @return the object instance
+	 */
+	protected HLAObject makeObjectInstance( String className, Map<String, byte[]> attributes)
+	{
+		return rtiamb.makeObjectInstance( className, attributes );
+	}
+
+	/**
+	 * Create an object instance (with no parameter values), also registering the instance with the RTI.
+	 *
+	 * @param handle the handle of the object class
+	 * @return the object instance, or null if the handle does not correspond to a previously
+	 *         registered/cached object class
+	 */
+	protected HLAObject makeObjectInstance( ObjectClassHandle handle )
+	{
+		return makeObjectInstance( handle, null );
+	}
+
+	/**
+	 * Create an object instance, also registering the instance with the RTI.
+	 *
+	 * @param handle the handle of the object class
+	 * @param attributes the attributes for the object instance (may be an empty map or null)
+	 * @return the object instance, or null if the handle does not correspond to a previously
+	 *         registered/cached object class
+	 */
+	protected HLAObject makeObjectInstance( ObjectClassHandle handle, Map<String, byte[]> attributes)
+	{
+		Types.ObjectClass objectClass;
+		synchronized( mutex_lock )
+		{
+			objectClass = objectClassByClassHandle( handle );
+		}
+
+		if( objectClass == null )
+			return null;
+
+		return makeObjectInstance( objectClass.name, attributes );
 	}
 
 	/**

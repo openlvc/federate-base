@@ -75,8 +75,9 @@ public abstract class UCEFFederateBase extends FederateBase
 	private static final Logger logger = LogManager.getLogger( UCEFFederateBase.class );
 
 	// OMNeT++ specific fedconfig parameter keys
-	private static final String KEY_OMNET_INTERACTIONS = "omnetInteractions";
-	private static final String KEY_NET_INT_NAME = "networkInteractionName";
+	private static final String KEY_OMNET_INTERACTION_FILTERS = "omnetInteractions";
+	private static final String KEY_NETWORK_INTERACTION_NAME = "networkInteractionName";
+	private static final String KEY_NETWORK_OBJECT_NAME = "networkObjectName";
 	// This key represents the host to inject the network msg
 	private static final String KEY_SRC_HOST = "sourceHost";
 	// Params in network interaction designated to the OMNeT++ federate
@@ -86,6 +87,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	private static final String KEY_NET_DATA = "data";
 	// default interaction class name to treat as am OMNeT++ network interaction
 	private static final String DEFAULT_NETWORK_INTERACTION_NAME = "HLAinteractionRoot.NetworkInteraction";
+	private static final String DEFAULT_NETWORK_OBJECT_NAME = "HLAObjectRoot.NetworkObject";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -94,12 +96,13 @@ public abstract class UCEFFederateBase extends FederateBase
 
 	protected Set<String> syncPointTimeouts;
 
-	// the namespaced "network interaction" class name
+	// the namespaced "network interaction" and "network object" class names
 	protected String networkInteractionName;
+	protected String networkObjectName;
 	// mapped host name
 	protected String srcHost;
 	// pattern matchers for identifying OMNeT++ interactions
-	protected Collection<Pattern> omnetInteractions;
+	protected Collection<Pattern> omnetInteractionMatchers;
 
 	// flag which becomes true after a SimStart interaction has
 	// been received (begins as false)
@@ -122,8 +125,9 @@ public abstract class UCEFFederateBase extends FederateBase
 		syncPointTimeouts = new HashSet<>();
 
 		networkInteractionName = DEFAULT_NETWORK_INTERACTION_NAME;
+		networkObjectName = DEFAULT_NETWORK_OBJECT_NAME;
 		srcHost = this.configuration.getFederateName();
-		omnetInteractions = new ArrayList<>();
+		omnetInteractionMatchers = new ArrayList<>();
 
 		simShouldStart = false;
 		simShouldEnd = false;
@@ -165,7 +169,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteration( interaction ), null, null );
+			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), null, null );
 		}
 		else
 		{
@@ -180,7 +184,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteration( interaction ), tag, null );
+			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, null );
 		}
 		else
 		{
@@ -195,7 +199,7 @@ public abstract class UCEFFederateBase extends FederateBase
 		if( isOmnetNetworkInteraction( interaction ) )
 		{
 			// convert OMNeT++ routed interactions and re-send
-			rtiamb.sendInteraction( makeOmnetInteration( interaction ), tag, time );
+			rtiamb.sendInteraction( makeOmnetInteraction( interaction ), tag, time );
 		}
 		else
 		{
@@ -567,15 +571,18 @@ public abstract class UCEFFederateBase extends FederateBase
 		}
 
 		this.networkInteractionName = configuration.jsonStringOrDefault( configData,
-		                                                                 KEY_NET_INT_NAME,
+		                                                                 KEY_NETWORK_INTERACTION_NAME,
 		                                                                 DEFAULT_NETWORK_INTERACTION_NAME );
+		this.networkObjectName = configuration.jsonStringOrDefault( configData,
+		                                                                 KEY_NETWORK_OBJECT_NAME,
+		                                                                 DEFAULT_NETWORK_OBJECT_NAME );
 		this.srcHost = configuration.jsonStringOrDefault( configData,
 		                                                  KEY_SRC_HOST,
 		                                                  configuration.getFederateName() );
-		Set<String> omnetInteractionsTemp = configuration.jsonStringSetOrDefault( configData,
-		                                                                          KEY_OMNET_INTERACTIONS,
-		                                                                          Collections.emptySet() );
-		this.omnetInteractions = stringsToRegexPatterns( omnetInteractionsTemp );
+		Set<String> omnetInteractionFilters = configuration.jsonStringSetOrDefault( configData,
+		                                                                            KEY_OMNET_INTERACTION_FILTERS,
+		                                                                            Collections.emptySet() );
+		this.omnetInteractionMatchers = stringsToRegexPatterns( omnetInteractionFilters );
 
 		return configData;
 	}
@@ -609,15 +616,60 @@ public abstract class UCEFFederateBase extends FederateBase
 	private boolean isOmnetNetworkInteraction( HLAInteraction interaction )
 	{
 		return matchesAnyPattern( interaction.getInteractionClassName(),
-		                          this.omnetInteractions );
+		                          this.omnetInteractionMatchers );
 	}
 
-	private HLAInteraction makeOmnetInteration( HLAInteraction interaction )
+	/**
+	 * Utility method which creates an "OMNeT++ interaction" from an {@link HLAInteraction}
+	 * instance.
+	 *
+	 * An OMNeT++ interaction is actually just an {@link HLAInteraction} which has the following
+	 * parameters:
+	 * <ul>
+	 * <li>{@link UCEFFederateBase#KEY_ORG_CLASS}: the interaction class name of the original
+	 * {@link HLAInteraction}</li>
+	 * <li>{@link UCEFFederateBase#KEY_SRC_HOST}: the host identifier of this federate</li>
+	 * <li>{@link UCEFFederateBase#KEY_NET_DATA}: parameters and values of the original
+	 * {@link HLAInteraction} encoded as a JSON string. Only those which are initialized are
+	 * encoded, and any "unset" parameters are skipped.</li>
+	 * </ul>
+	 *
+	 * @param interaction the {@link HLAInteraction} to create the OMNeT++ interaction from
+	 * @return the {@link HLAInteraction} to use for the OMNeT++ interaction
+	 */
+	private HLAInteraction makeOmnetInteraction( HLAInteraction interaction )
 	{
 		HLAInteraction omnetInteraction = makeInteraction( networkInteractionName );
 		omnetInteraction.setValue( KEY_ORG_CLASS, interaction.getInteractionClassName() );
 		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
 		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( interaction ) );
+		return omnetInteraction;
+	}
+
+	/**
+	 * Utility method which creates an "OMNeT++ object" from an {@link HLAObject}
+	 * instance.
+	 *
+	 * An OMNeT++ object is actually just an {@link HLAObject} which has the following
+	 * attributes:
+	 * <ul>
+	 * <li>{@link UCEFFederateBase#KEY_ORG_CLASS}: the interaction class name of the original
+	 * {@link HLAObject}</li>
+	 * <li>{@link UCEFFederateBase#KEY_SRC_HOST}: the host identifier of this federate</li>
+	 * <li>{@link UCEFFederateBase#KEY_NET_DATA}: attributes and values of the original
+	 * {@link HLAObject} encoded as a JSON string. Only those which are initialized are
+	 * encoded, and any "unset" attributes are skipped.</li>
+	 * </ul>
+	 *
+	 * @param instance the {@link HLAObject} to create the OMNeT++ interaction from
+	 * @return the {@link HLAObject} to use for the OMNeT++ object
+	 */
+	private HLAObject makeOmnetObject( HLAObject instance )
+	{
+		HLAObject omnetInteraction = makeObjectInstance( networkObjectName );
+		omnetInteraction.setValue( KEY_ORG_CLASS, instance.getObjectClassName() );
+		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
+		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( instance ) );
 		return omnetInteraction;
 	}
 
