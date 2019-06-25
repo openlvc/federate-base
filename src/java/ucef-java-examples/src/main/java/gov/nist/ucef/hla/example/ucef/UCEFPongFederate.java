@@ -34,15 +34,12 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
-import org.json.simple.JSONObject;
-
 import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
-import gov.nist.ucef.hla.example.util.JSONUtils;
 import gov.nist.ucef.hla.ucef.UCEFFederateBase;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
@@ -338,9 +335,7 @@ public class UCEFPongFederate extends UCEFFederateBase
 		}
 		catch( ParseException e )
 		{
-			System.err.println( "!!!!!ERRORS WERE FOUND!!!!!:" );
 			System.err.println( e.getMessage() );
-			System.err.println( "!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
 			System.err.println();
 			displayHelp( cmdLineOptions );
 			System.out.println( "Cannot proceed. Exiting now." );
@@ -389,10 +384,9 @@ public class UCEFPongFederate extends UCEFFederateBase
 
 		try
 		{
-			String jsonSource = JSON_CONFIG_FILE_DEFAULT;
+			String jsonConfig = JSON_CONFIG_FILE_DEFAULT;
 			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
-				jsonSource = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
-			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
+				jsonConfig = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
 
 			UCEFPongFederate federate = new UCEFPongFederate( args );
 			FederateConfiguration config = federate.getFederateConfiguration();
