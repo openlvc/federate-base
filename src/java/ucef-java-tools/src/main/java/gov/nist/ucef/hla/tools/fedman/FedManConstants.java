@@ -77,7 +77,7 @@ public class FedManConstants
 	                                                HLAFEDERATE_TYPE_ATTR } ) );
 
 	// Various common text items used in output
-	public static final String FEDERATE_TYPE_HEADING = "Type";
+	public static final String FEDERATE_TYPE_HEADING = "Federate Type";
 	public static final String NUMBER_REQUIRED_HEADING = "Required";
 	public static final String NUMBER_JOINED_HEADING = "Joined";
 	public static final String NOTES_HEADING = "Notes";

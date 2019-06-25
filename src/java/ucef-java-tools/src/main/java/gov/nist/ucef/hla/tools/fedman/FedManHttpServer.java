@@ -50,6 +50,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
+import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.UCEFException;
 
 /**
@@ -757,6 +758,7 @@ public class FedManHttpServer
 		public void handleRequest( HttpExchange httpExchange ) throws IOException
 		{
 			FedManStartRequirements requirements = fedManFederate.getStartRequirements();
+			FederateConfiguration fedManConfig = fedManFederate.getFederateConfiguration();
 			if( isSimple( httpExchange ) )
 			{
 				StringBuilder html = new StringBuilder();
@@ -771,13 +773,14 @@ public class FedManHttpServer
 				html.append( ".dot.stop{background-color:#800}");
 				html.append( ".dot.warn{background-color:#F80}");
 				html.append( "</style>");
-				html.append( "<script>setTimeout(location.reload.bind(location),5000);</script>");
 				html.append( "</head>");
 
 				html.append( "<body>" );
 				// html.append( "<pre>\r\n"+FedManConstants.UCEF_LOGO+"\r\n</pre>" );
 				html.append( "\r\n<img src=\"" + FedManConstants.UCEF_LOGO_JPG + "\">\r\n" );
 
+				html.append( "<p><b>Federation</b>:&nbsp;"+ fedManConfig.getFederationName() +"</p>");
+				html.append( "<p><b>Start Requirements</b>:" );
 				html.append( "<table><thead><tr>" );
 				for(String heading : FedManConstants.TABLE_HEADINGS)
 					html.append("<th>"+heading+"</th>");
@@ -807,8 +810,19 @@ public class FedManHttpServer
 					html.append("<td>"+notes+"</td>");
 					html.append("</tr>");
 				}
-				html.append( "</tbody></table>" );
-
+				html.append( "</tbody></table></p>" );
+				html.append( "<p><span id=\"countdown\">Reloading in 5...</span>" );
+				html.append( "<script>");
+				html.append( "var val=5;");
+				html.append( "var prog='.....................................................';");
+				html.append( "var domElm=document.getElementById('countdown');");
+				html.append( "function updateCountdown(){");
+				html.append( "if(val<=0){domElm.innerHTML='Reloading now&hellip;';location.reload(true);}");
+				html.append( "else{domElm.innerHTML='Reloading in '+(val--)+prog.substr(0,val+1);");
+				html.append( "setTimeout(updateCountdown,1000);}");
+				html.append( "}");
+				html.append( "updateCountdown();");
+				html.append( "</script>");
 				html.append( "</html></body>" );
 
 				doHTMLResponse( httpExchange, html.toString() );
@@ -817,14 +831,19 @@ public class FedManHttpServer
 			{
 				JSONObject jsonObj = new JSONObject();
 				addTimestampAndPath( jsonObj, httpExchange );
+				JSONObject responseContents = new JSONObject();
+				jsonObj.put( "response", responseContents );
+				responseContents.put( "federationExecName", fedManConfig.getFederationName() );
 				JSONArray requirementsArray = new JSONArray();
-				jsonObj.put("response", requirementsArray);
-				List<String> federateTypes = new ArrayList<>(requirements.startRequirements.keySet());
+				responseContents.put( "require", requirementsArray );
+				List<String> federateTypes =
+				    new ArrayList<>( requirements.startRequirements.keySet() );
 				federateTypes.sort( null );
 				for( String federateType : federateTypes )
 				{
 					int requiredByType = requirements.startRequirements.getOrDefault( federateType, 0 );
-					int joinedByType = requirements.joinedFederatesByType.getOrDefault( federateType, Collections.emptySet() ).size();
+					int joinedByType = requirements.joinedFederatesByType.getOrDefault( federateType,
+					                                                                    Collections.emptySet() ).size();
 					int remaining = requiredByType - joinedByType;
 					JSONObject requirementState = new JSONObject();
 					requirementState.put( "type", federateType );
