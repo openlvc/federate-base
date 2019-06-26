@@ -27,6 +27,8 @@
  */
 #pragma once
 
+#include <list>
+#include <map>
 #include <string>
 
 namespace base
@@ -39,12 +41,16 @@ namespace base
 			//----------------------------------------------------------
 			//                    Static methods
 			//----------------------------------------------------------
+			static bool hasKey( std::string& json, std::string& key );
 			static bool getValueAsBool( std::string& json, std::string& key );
 			static int getValueAsInt( std::string& json, std::string& key );
 			static long getValueAsLong( std::string& json, std::string& key );
 			static float getValueAsFloat( std::string& json, std::string& key );
 			static double getValueAsDouble( std::string& json, std::string& key );
-			static  std::string getValueAsString( std::string& json, std::string& key );
+			static std::string getValueAsString( std::string& json, std::string& key );
+			static std::list<std::string> getValueAsStrList( std::string& json, std::string& key );
+			static std::list<std::map<std::string, std::string>> getValuesAsKeyValMapList( std::string& json, std::string& key );
+			static std::string getJsonString( const std::string& configPath );
 		};
 	}
 }

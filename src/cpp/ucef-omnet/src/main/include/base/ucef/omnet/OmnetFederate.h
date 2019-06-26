@@ -29,6 +29,11 @@ namespace base
         {
             class OmnetFederate : public omnetpp::cSimpleModule, public base::ucef::NoOpFederate
             {
+            private:
+                // Keys to get Omnet federate routing info
+                static std::string KEY_OMNET_CONFIG;
+                static std::string KEY_OMNET_INT_CONFIG;
+
             public:
 
                 //----------------------------------------------------------
@@ -72,6 +77,7 @@ namespace base
                 virtual void handleMessage( omnetpp::cMessage *msg ) override;
             protected:
                 std::string fedConfigFile;
+                std::string simConfigFile;
 
             private:
                 void initializeFederate();
@@ -82,14 +88,13 @@ namespace base
             private:
                 bool shouldContinue;
                 std::mutex toOmnetLock;
-                std::mutex toHlaLock;
                 std::list<std::shared_ptr<const base::HLAInteraction>> interactionsToOmnet;
                 std::list<std::shared_ptr<base::HLAInteraction>> interactionsToRti;
-
+                std::list<std::map<std::string, std::string>> interactionDstInfo;
                 std::string federateName;
-                std::string networkInteractionName;
+                double stepSize;
 
-                static base::ucef::NoOpFederate* thisFedarate;
+                static NoOpFederate* thisFedarate;
                 omnetpp::cMessage *timerMessage;
             };
         }

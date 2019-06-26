@@ -44,7 +44,7 @@ namespace base
                 // Find interaction parameters in cMessage and pack them into a interaction
                 void MessageCodec::packValues( shared_ptr<HLAInteraction> hlaIntTo, cMessage* cMsgFrom   )
                 {
-                   bool hasData = cMsgFrom->hasPar( FederateConfiguration::KEY_NET_DATA.c_str() );
+                   bool hasData = cMsgFrom->hasPar( UCEFFederateBase::KEY_NET_DATA.c_str() );
                    if( hasData )
                    {
                        NoOpFederate* federate = OmnetFederate::getFederatePtr();

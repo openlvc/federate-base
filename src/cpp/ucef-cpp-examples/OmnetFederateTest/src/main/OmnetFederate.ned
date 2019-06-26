@@ -17,69 +17,52 @@
 // TODO auto-generated type
 //
 
-simple OmnetFederateModuleA
+simple OmnetFederateModule
 {
     @display("i=block/join");
+    gates:
+        input omnet @directIn;
+}
+
+simple SimpleModule
+{
     gates:
         input in;
         output out;
 }
 
-simple OmnetFederateModuleB
-{
-    @display("i=block/join");
-    gates:
-        input in;
-        output out;
-}
-
-simple OmnetFederateModuleC
-{
-    @display("i=block/join");
-    gates:
-        input in;
-        output out;
-}
-
-simple OmnetFederateModuleD
-{
-    @display("i=block/join");
-    gates:
-        input in;
-        output out;
-}
-
-simple SimpleResponseModule
+simple RouterModule
 {
     gates:
-        input in;
-        output out;
+        input in[];
+        output out[];
 }
 
 network OmnetFederateNet
 {
     @display("bgb=350,264");
     submodules:
-        omA: OmnetFederateModuleA {
-            @display("p=20,172");
+        OMNeTFed: OmnetFederateModule {
+            @display("p=129,193");
         }
-        omB: OmnetFederateModuleB {
-            @display("p=163,120");
+        PingA: SimpleModule {
+            @display("p=50,71;i=block/rxtx");
         }
-        omC: OmnetFederateModuleC {
-            @display("p=246,32");
+        PingB: SimpleModule {
+            @display("p=50,171;i=block/rxtx");
         }
-        omD: OmnetFederateModuleD {
-            @display("p=329,172");
+        PongA: SimpleModule {
+            @display("p=250,71;i=block/rxtx");
         }
-        sim: SimpleResponseModule {
-            @display("p=100,38;i=block/rxtx");
+        PongB: SimpleModule {
+            @display("p=250,171;i=block/rxtx");
         }
-    connections:
-        omA.out --> {  delay = 1000ms; } --> sim.in;
-        omB.in <-- {  delay = 1000ms; } <-- sim.out;
-        omB.out --> {  delay = 1000ms; } --> omC.in;
-        omD.in <-- {  delay = 1000ms; } <-- omC.out;
-        omD.out --> {  delay = 1000ms; } --> omA.in;
-
+        router: RouterModule {
+            @display("p=125,100;i=block/rxtx");
+        }
+    connections allowunconnected:
+        PingA.out --> {  delay = 1000ms; } --> router.in++;
+        PingB.out --> {  delay = 5000ms; } --> router.in++;
+        router.out++ --> {  delay = 1000ms; } --> PongA.in;
+        router.out++ --> {  delay = 5000ms; } --> PongB.in;
 }

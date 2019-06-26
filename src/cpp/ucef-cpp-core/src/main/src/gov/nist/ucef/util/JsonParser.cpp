@@ -1,7 +1,14 @@
 #include "gov/nist/ucef/util/JsonParser.h"
 
+#include <fstream>
+#include <iostream>
+
+#include "gov/nist/ucef/util/Logger.h"
+
 #include <rapidjson/document.h>
 #include <rapidjson/istreamwrapper.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 using namespace rapidjson;
 using namespace std;
@@ -10,6 +17,18 @@ namespace base
 {
 	namespace util
 	{
+
+		bool JsonParser::hasKey( std::string& json, std::string& key )
+		{
+			bool keyPresent = false;
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) )
+				keyPresent = true;
+			return keyPresent;
+		}
 
 		bool JsonParser::getValueAsBool( std::string& json, std::string& key )
 		{
@@ -82,6 +101,80 @@ namespace base
 			if( document.HasMember(key.c_str()) )
 				value = document[key.c_str()].GetString();
 			return value;
+		}
+
+		list<std::string> JsonParser::getValueAsStrList( std::string& json, std::string& key )
+		{
+			list<string> strList;
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) )
+			{
+				auto values = document[key.c_str()].GetArray();
+				for( Value::ConstValueIterator itr = values.Begin(); itr != values.End(); ++itr )
+				{
+					string tmpValue = (*itr).GetString();
+					strList.push_back( tmpValue );
+				}
+			}
+			return strList;
+		}
+
+		list<map<string, string>> JsonParser::getValuesAsKeyValMapList( string& json, string& key )
+		{
+			list<map<string, string>> items;
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) )
+			{
+				auto configArray = document[key.c_str()].GetArray();
+				rapidjson::Value::ConstValueIterator itr;
+				for ( itr = configArray.Begin(); itr != configArray.End(); ++itr)
+				{
+					map<string, string> objPropMap;
+				    const Value& attribute = *itr;
+				    for( Value::ConstMemberIterator itr2 = attribute.MemberBegin(); itr2 != attribute.MemberEnd(); ++itr2 )
+				    {
+				    	objPropMap.insert( pair<string,string>(itr2->name.GetString(),itr2->value.GetString()) );
+				    }
+				    items.push_back( objPropMap );
+				}
+			}
+			return items;
+		}
+
+		string JsonParser::getJsonString( const std::string& configPath )
+		{
+			string jsonStr = "";
+			ifstream ifs( configPath );
+			if ( !ifs.is_open() )
+			{
+				Logger::getInstance().log( "Could not open the config file for reading, "
+				                           "returning an empty list", LevelWarn );
+				return jsonStr;
+			}
+
+			IStreamWrapper isw { ifs };
+			Document doc = {};
+			doc.ParseStream( isw );
+			if( doc.HasParseError() )
+			{
+				stringstream ss;
+				ss << "Error  : " << doc.GetParseError()  << '\n'
+				   << "Offset : " << doc.GetErrorOffset() << '\n';
+				Logger::getInstance().log( ss.str(), LevelError );
+				return jsonStr;
+			}
+			// Convert JSON document to a string
+			StringBuffer strbuf;
+			PrettyWriter<rapidjson::StringBuffer> writer( strbuf );
+			doc.Accept( writer );
+			jsonStr = string( strbuf.GetString() );
+
+			return jsonStr;
 		}
 	}
 }

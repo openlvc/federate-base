@@ -4,10 +4,11 @@
 #include <cstring>
 
 #include <rapidjson/document.h>
-#include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
 
 #include "gov/nist/ucef/hla/base/FederateAmbassador.h"
+#include "gov/nist/ucef/util/JsonParser.h"
 #include "gov/nist/ucef/util/Logger.h"
 
 using namespace base::util;
@@ -19,9 +20,21 @@ namespace base
 {
 	namespace ucef
 	{
+		// OMNeT++ specific fedconfig parameter keys
+		string UCEFFederateBase::KEY_OMNET_INTERACTIONS      = "omnetInteractions";
+		string UCEFFederateBase::KEY_NET_INT_NAME            = "networkInteractionName";
+		// This key represents the host to inject the network msg
+		string UCEFFederateBase::KEY_SRC_HOST                = "sourceHost";
 
-		UCEFFederateBase::UCEFFederateBase() : simEndReceived( false ),
-		                                       netInteractionName( "HLAinteractionRoot.NetworkInteraction" )
+		// Params in network interaction designated to the OMNeT federate
+		// This key represents the name of the class wrapped by this interaction
+		string UCEFFederateBase::KEY_ORG_CLASS               = "wrappedClassName";
+		// This key represents the payload of the wrapped class
+		string UCEFFederateBase::KEY_NET_DATA                = "data";
+
+		UCEFFederateBase::UCEFFederateBase() : netInteractionName( "HLAinteractionRoot.NetworkInteraction" ),
+		                                       simEndReceived( false )
+
 		{
 
 		}
@@ -31,20 +44,25 @@ namespace base
 
 		}
 
-		void UCEFFederateBase::initConfigFromJson( std::string configFilePath )
+		void UCEFFederateBase::initFromJson( string configFilePath )
 		{
-			this->configFilePath = configFilePath;
 			ucefConfig->loadFromJson( configFilePath );
 
-			string tmpIntName =
-					ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_NET_INT_NAME );
-			if( tmpIntName != "" )
-			netInteractionName = tmpIntName;
+			// For Omnet specifics first get the Json string from the given file
+			string configString = JsonParser::getJsonString( configFilePath );
+
+			bool hasIntName = JsonParser::hasKey( configString, UCEFFederateBase::KEY_NET_INT_NAME );
+			if( hasIntName )
+			{
+				string tmpIntName =
+						JsonParser::getValueAsString( configString, UCEFFederateBase::KEY_NET_INT_NAME );
+				netInteractionName = tmpIntName;
+			}
 
 			srcHost =
-					ucefConfig->getValueAsString( configFilePath, FederateConfiguration::KEY_SRC_HOST );
+					JsonParser::getValueAsString( configString, UCEFFederateBase::KEY_SRC_HOST );
 			omnetInteractions =
-					ucefConfig->getValuesAsList( configFilePath, FederateConfiguration::KEY_OMNET_INTERACTIONS );
+					JsonParser::getValueAsStrList( configString, UCEFFederateBase::KEY_OMNET_INTERACTIONS );
 		}
 
 		void UCEFFederateBase::sendInteraction( shared_ptr<HLAInteraction>& hlaInteraction )
@@ -70,9 +88,9 @@ namespace base
 				shared_ptr<HLAInteraction> netInteraction = make_shared<HLAInteraction>( netInteractionName );
 
 				netInteraction->setValue
-					( FederateConfiguration::KEY_ORG_CLASS, hlaInteraction->getInteractionClassName() );
-				netInteraction->setValue( FederateConfiguration::KEY_SRC_HOST, srcHost );
-				netInteraction->setValue( FederateConfiguration::KEY_NET_DATA, jsonStr );
+					( UCEFFederateBase::KEY_ORG_CLASS, hlaInteraction->getInteractionClassName() );
+				netInteraction->setValue( UCEFFederateBase::KEY_SRC_HOST, srcHost );
+				netInteraction->setValue( UCEFFederateBase::KEY_NET_DATA, jsonStr );
 
 				logger.log( "Sending network interaction to RTI", LevelInfo );
 
@@ -132,7 +150,7 @@ namespace base
 					{
 						string logMsg = "Federate " + ucefConfig->getFederateName();
 						logMsg = logMsg + " received interaction " + interactionClass->name;
-						logMsg = " without a designated federate. I am going to forward it to the user.";
+						logMsg += " without a designated federate. I am going to forward it to the user.";
 						logger.log( logMsg, LevelDebug );
 
 						// If the interaction doesn't have a destination filter just forward it to the user.
@@ -286,8 +304,8 @@ namespace base
 			}
 
 			// Convert JSON document to a string
-			rapidjson::StringBuffer strbuf;
-			rapidjson::PrettyWriter<rapidjson::StringBuffer> writer( strbuf );
+			StringBuffer strbuf;
+			PrettyWriter<StringBuffer> writer( strbuf );
 			d.Accept( writer );
 			return string( strbuf.GetString() );
 		}

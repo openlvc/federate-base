@@ -18,50 +18,45 @@
 
 #include "base/ucef/omnet/OmnetFederate.h"
 
-class OmnetFederateModuleD : public base::ucef::omnet::OmnetFederate
+class OmnetFederateModule : public base::ucef::omnet::OmnetFederate
 {
 
 public:
-    OmnetFederateModuleD();
+    OmnetFederateModule();
 
-    virtual ~OmnetFederateModuleD();
+    virtual ~OmnetFederateModule();
 
      //----------------------------------------------------------
     //                Federate Methods
     //----------------------------------------------------------
 
     /**
-      * Get called just before announcing and achieving the 'READY_TO_POPULATE'
-      * synchronization point
-      */
-     virtual void beforeReadyToPopulate() override;
+     * Get called just before announcing and achieving the 'READY_TO_POPULATE'
+     * synchronization point
+     */
+    virtual void beforeReadyToPopulate() override;
 
-     /**
-      * Get called just before announcing and achieving the 'READY_TO_RUN'
-      * synchronization point
-      */
-     virtual void beforeReadyToRun() override;
+    /**
+     * Get called just before announcing and achieving the 'READY_TO_RUN'
+     * synchronization point
+     */
+    virtual void beforeReadyToRun() override;
 
-     /**
-      * Get called just before entering the main update loop
-      */
-     virtual void beforeFirstStep() override;
+    /**
+     * Get called just before entering the main update loop
+     */
+    virtual void beforeFirstStep() override;
 
-     /**
-      * Get called just before announcing and achieving the 'READY_TO_RESIGN'
-      * synchronization point
-      */
-     virtual void beforeReadyToResign() override;
+    /**
+     * Get called just before announcing and achieving the 'READY_TO_RESIGN'
+     * synchronization point
+     */
+    virtual void beforeReadyToResign() override;
 
-     /**
-      * Get called just before resigning from the federation
-      */
-     virtual void beforeExit() override;
-
-
-//private:
-    //Response solveChallenge( Challenge &receievedChallenge );
-   // void pressEnterToContinue();
+    /**
+     * Get called just before resigning from the federation
+     */
+    virtual void beforeExit() override;
 };
 
 #endif /* OMNETFEDERATEMODULE_H */

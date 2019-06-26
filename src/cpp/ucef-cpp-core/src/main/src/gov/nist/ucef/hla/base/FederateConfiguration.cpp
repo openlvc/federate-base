@@ -6,6 +6,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "gov/nist/ucef/util/JsonParser.h"
 #include "gov/nist/ucef/util/Logger.h"
 
 #include <rapidjson/document.h>
@@ -34,18 +35,6 @@ namespace base
 	string FederateConfiguration::KEY_FOM_PATH                = "fomPath";
 	string FederateConfiguration::KEY_SOM_PATH                = "somPath";
 
-	// OMNeT++ specific fedconfig parameter keys
-	string FederateConfiguration::KEY_OMNET_INTERACTIONS      = "omnetInteractions";
-	string FederateConfiguration::KEY_NET_INT_NAME            = "networkInteractionName";
-	// This key represents the host to inject the network msg
-	string FederateConfiguration::KEY_SRC_HOST                = "sourceHost";
-
-	// Params in network interaction designated to the OMNeT federate
-	// This key represents the name of the class wrapped by this interaction
-	string FederateConfiguration::KEY_ORG_CLASS               = "wrappedClassName";
-	// This key represents the payload of the wrapped class
-	string FederateConfiguration::KEY_NET_DATA                = "data";
-
 	FederateConfiguration::FederateConfiguration() : federationName( "BaseFederation" ),
 	                                                 federateName( "Federate" + to_string(rand()) ),
 	                                                 federateType( "FederateType" + to_string(rand()) ),
@@ -66,130 +55,11 @@ namespace base
 
 	}
 
-	list<string> FederateConfiguration::getValuesAsList( const string& configPath, const string& key )
-	{
-		list<string> jsonArrayValues;
-
-		Logger::getInstance().log( "Looking for key : " + key + " in " + configPath, LevelInfo );
-		ifstream ifs( configPath );
-		if ( !ifs.is_open() )
-		{
-			Logger::getInstance().log( "Could not open the config file for reading,"
-									   "Returning an empty list", LevelWarn );
-			return jsonArrayValues;
-		}
-
-		IStreamWrapper isw { ifs };
-
-		Document doc {};
-		doc.ParseStream( isw );
-		if( doc.HasParseError() )
-		{
-			stringstream ss;
-			ss << "Error  : " << doc.GetParseError()  << '\n'
-			   << "Offset : " << doc.GetErrorOffset() << '\n';
-			Logger::getInstance().log( ss.str(), LevelError );
-			return jsonArrayValues;
-		}
-
-		Value::ConstMemberIterator it = doc.FindMember( key.c_str() );
-		if( it != doc.MemberEnd() )
-		{
-			auto values = it->value.GetArray();
-			for( Value::ConstValueIterator itr = values.Begin(); itr != values.End(); ++itr)
-			{
-				string tmpValue = (*itr).GetString();
-				jsonArrayValues.push_back( tmpValue );
-			}
-		}
-		else
-		{
-			string errorMsg = "Config key " + key + " could not be found.";
-			errorMsg += " Returning an empty list";
-			Logger::getInstance().log( errorMsg, LevelWarn );
-		}
-
-		if( jsonArrayValues.size() )
-		{
-			string logMsg = "Config key " + key + " found. Returning values : \n";
-
-			for(string val : jsonArrayValues)
-			{
-				logMsg += val + '\n';
-			}
-			Logger::getInstance().log( logMsg, LevelInfo );
-		}
-
-		return jsonArrayValues;
-	}
-
-	string FederateConfiguration::getValueAsString( const string& configPath, const string& key )
-	{
-		string jsonValue = "";
-
-		Logger::getInstance().log( "Looking for key : " + key + " in " + configPath, LevelInfo );
-		ifstream ifs( configPath );
-		if ( !ifs.is_open() )
-		{
-			Logger::getInstance().log( "Could not open the config file for reading,"
-									   "Returning an empty list", LevelWarn );
-			return jsonValue;
-		}
-
-		IStreamWrapper isw { ifs };
-
-		Document doc {};
-		doc.ParseStream( isw );
-		if( doc.HasParseError() )
-		{
-			stringstream ss;
-			ss << "Error  : " << doc.GetParseError()  << '\n'
-			   << "Offset : " << doc.GetErrorOffset() << '\n';
-			Logger::getInstance().log( ss.str(), LevelError );
-			return jsonValue;
-		}
-
-		Value::ConstMemberIterator it = doc.FindMember( key.c_str() );
-		if( it != doc.MemberEnd() )
-		{
-			jsonValue = it->value.GetString();
-
-			string logMsg = "Config key " + key + " found. Returning : " + jsonValue;
-			Logger::getInstance().log( logMsg, LevelInfo );
-		}
-		else
-		{
-			string errorMsg = "Config key " + key + " could not be found.";
-			errorMsg += " Returning an empty value";
-			Logger::getInstance().log( errorMsg, LevelWarn );
-		}
-
-		return jsonValue;
-	}
-
 	void FederateConfiguration::loadFromJson( const string &configPath )
 	{
 		Logger::getInstance().log( "Federate config path is set to : " + configPath, LevelInfo );
 
-		ifstream ifs( configPath );
-		if ( !ifs.is_open() )
-		{
-			Logger::getInstance().log( "Could not open the config file for reading,"
-			                           "trying to run with the default configuration values", LevelError );
-		}
-
-		IStreamWrapper isw { ifs };
-
-		Document doc {};
-		doc.ParseStream( isw );
-		if( doc.HasParseError() )
-		{
-			stringstream ss;
-			ss << "Error  : " << doc.GetParseError()  << '\n'
-			<< "Offset : " << doc.GetErrorOffset() << '\n';
-			Logger::getInstance().log( ss.str(), LevelError );
-
-		}
+		string configStr = JsonParser::getJsonString( configPath );
 
 		//---------------------------------
 		// Start loading config values
@@ -197,20 +67,26 @@ namespace base
 		Logger::getInstance().log( "Reading federate configuration", LevelInfo );
 
 		// Set log level
-		Value::ConstMemberIterator it = doc.FindMember( KEY_LOG_LEVEL.c_str() );
-		if( it != doc.MemberEnd() )
+		bool hasKey = JsonParser::hasKey( configStr, KEY_LOG_LEVEL );
+		if( hasKey )
 		{
-			string tmpLogLevel = it->value.GetString();
-			transform( tmpLogLevel.begin(), tmpLogLevel.end(), tmpLogLevel.begin(), ::tolower );
-			LogLevel logLevel = ConversionHelper::toLogLevel( tmpLogLevel );
+			string logLevelStr = JsonParser::getValueAsString( configStr, KEY_LOG_LEVEL );
+			LogLevel logLevel = ConversionHelper::toLogLevel( logLevelStr );
 			Logger::getInstance().setLogLevel( logLevel );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_LOG_LEVEL + " could not be found.";
+			errorMsg += " Using Info as the default loge level.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
 
 		// Federation name
-		it = doc.FindMember( KEY_FEDERATION_EXEC_NAME.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_FEDERATION_EXEC_NAME );
+		if( hasKey )
 		{
-			setFederationName( it->value.GetString() );
+			string fedExecStr = JsonParser::getValueAsString( configStr, KEY_FEDERATION_EXEC_NAME );
+			setFederationName( fedExecStr );
 
 			string msg = "Using " + getFederationName() + " as the federation name.";
 			Logger::getInstance().log( msg, LevelInfo );
@@ -223,10 +99,11 @@ namespace base
 		}
 
 		// Federate name
-		it = doc.FindMember( KEY_FEDERATE_NAME.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_FEDERATE_NAME );
+		if( hasKey )
 		{
-			setFederateName( it->value.GetString() );
+			string fedNameStr = JsonParser::getValueAsString( configStr, KEY_FEDERATE_NAME );
+			setFederateName( fedNameStr );
 
 			string msg = "Using " + getFederateName() + " as the federate name.";
 			Logger::getInstance().log( msg, LevelInfo );
@@ -239,10 +116,11 @@ namespace base
 		}
 
 		// Federate type
-		it = doc.FindMember( KEY_FEDERATE_TYPE.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_FEDERATE_TYPE );
+		if( hasKey )
 		{
-			setFederateType( it->value.GetString() );
+			string fedType = JsonParser::getValueAsString( configStr, KEY_FEDERATE_TYPE );
+			setFederateType( fedType );
 
 			string msg = "Using " + getFederateType() + " as the federate type.";
 			Logger::getInstance().log( msg, LevelInfo );
@@ -255,10 +133,11 @@ namespace base
 		}
 
 		// Create permission
-		it = doc.FindMember( KEY_CAN_CREATE_FEDERATION.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_CAN_CREATE_FEDERATION );
+		if( hasKey )
 		{
-			setPermisionToCreateFederation( it->value.GetBool() );
+			bool canCreate = JsonParser::getValueAsBool( configStr, KEY_CAN_CREATE_FEDERATION );
+			setPermisionToCreateFederation( canCreate );
 
 			string msg = "Setting federation creation permission to : ";
 			msg+= isPermittedToCreateFederation() ? "True" : "False";
@@ -272,11 +151,14 @@ namespace base
 		}
 
 		// Step size
-		it = doc.FindMember( KEY_STEP_SIZE.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_STEP_SIZE );
+		if( hasKey )
 		{
-			setTimeStep( it->value.GetFloat() );
-
+			float stepSizeVal = JsonParser::getValueAsFloat( configStr, KEY_STEP_SIZE );
+			if( stepSizeVal > 0.0f )
+				setTimeStep( stepSizeVal );
+			else
+				setTimeStep( 1.0f );
 			string msg = "Setting time step size to : " + to_string( getTimeStep() );
 			Logger::getInstance().log( msg, LevelInfo );
 		}
@@ -288,11 +170,14 @@ namespace base
 		}
 
 		// Joint attempts
-		it = doc.FindMember( KEY_MAX_JOIN_ATTEMPTS.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_MAX_JOIN_ATTEMPTS );
+		if( hasKey )
 		{
-			setMaxJoinAttempts( it->value.GetInt() );
-
+			float jointAttempts = JsonParser::getValueAsInt( configStr, KEY_MAX_JOIN_ATTEMPTS );
+			if( jointAttempts > 0 )
+				setMaxJoinAttempts( jointAttempts );
+			else
+				setMaxJoinAttempts( 1 );
 			string msg = "Setting maximum join attempts to : " + to_string( getMaxJoinAttempts() );
 			Logger::getInstance().log( msg, LevelInfo );
 		}
@@ -304,11 +189,14 @@ namespace base
 		}
 
 		// Retry interval
-		it = doc.FindMember( KEY_JOIN_RETRY_INTERVAL_SEC.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_JOIN_RETRY_INTERVAL_SEC );
+		if( hasKey )
 		{
-			setRetryInterval( it->value.GetInt() );
-
+			float retryInterval = JsonParser::getValueAsInt( configStr, KEY_JOIN_RETRY_INTERVAL_SEC );
+			if( retryInterval > 0 )
+				setRetryInterval( retryInterval );
+			else
+				setRetryInterval( 1 );
 			string msg = "Setting retry interval to : " + to_string( getRetryInterval() );
 			Logger::getInstance().log( msg, LevelInfo );
 		}
@@ -320,10 +208,11 @@ namespace base
 		}
 
 		// Synch before resign
-		it = doc.FindMember( KEY_SYNC_BEFORE_RESIGN.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_SYNC_BEFORE_RESIGN );
+		if( hasKey )
 		{
-			setSyncBeforeResign( it->value.GetBool() );
+			bool syncBeforeResign =  JsonParser::getValueAsBool( configStr, KEY_SYNC_BEFORE_RESIGN );
+			setSyncBeforeResign( syncBeforeResign );
 
 			string msg = string( "Setting synch before resign to : " ) + ( getSyncBeforeResign() ? "True" : "False" );
 			Logger::getInstance().log( msg, LevelInfo );
@@ -336,10 +225,11 @@ namespace base
 		}
 
 		// Immediate callback
-		it = doc.FindMember( KEY_CALLBACKS_ARE_IMMEDIATE.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_CALLBACKS_ARE_IMMEDIATE );
+		if( hasKey )
 		{
-			setImmediate( it->value.GetBool() );
+			bool immediateCallback =  JsonParser::getValueAsBool( configStr, KEY_CALLBACKS_ARE_IMMEDIATE );
+			setImmediate( immediateCallback );
 
 			string msg = string( "Setting immediate callbacks to : " ) + ( isImmediate() ? "True" : "False" );
 			Logger::getInstance().log( msg, LevelInfo );
@@ -352,10 +242,11 @@ namespace base
 		}
 
 		// Look ahead
-		it = doc.FindMember( KEY_LOOK_AHEAD.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_LOOK_AHEAD );
+		if( hasKey )
 		{
-			setLookAhead( it->value.GetFloat() );
+			float lookAhead =  JsonParser::getValueAsFloat( configStr, KEY_LOOK_AHEAD );
+			setLookAhead( lookAhead );
 
 			string msg = "Setting look ahead to : " + to_string( getLookAhead() );
 			Logger::getInstance().log( msg, LevelInfo );
@@ -368,10 +259,11 @@ namespace base
 		}
 
 		// Time Regulated
-		it = doc.FindMember( KEY_TIME_REGULATED.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_TIME_REGULATED );
+		if( hasKey )
 		{
-			setTimeRegulated( it->value.GetBool() );
+			bool timeRegulated =  JsonParser::getValueAsBool( configStr, KEY_TIME_REGULATED );
+			setTimeRegulated( timeRegulated );
 
 			string msg = string( "Setting time regulated to : " ) + ( isTimeRegulated() ? "True" : "False" );
 			Logger::getInstance().log( msg, LevelInfo );
@@ -384,10 +276,11 @@ namespace base
 		}
 
 		// Time Constrained
-		it = doc.FindMember( KEY_TIME_CONSTRAINED.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_TIME_CONSTRAINED );
+		if( hasKey )
 		{
-			setTimeConstrained( it->value.GetBool() );
+			bool timeConstrained =  JsonParser::getValueAsBool( configStr, KEY_TIME_CONSTRAINED );
+			setTimeConstrained( timeConstrained );
 
 			string msg = string( "Setting time constrained to : " ) + ( isTimeConstrained() ? "True" : "False" );
 			Logger::getInstance().log( msg, LevelInfo );
@@ -400,18 +293,17 @@ namespace base
 		}
 
 		// FOM path
-		it = doc.FindMember( KEY_FOM_PATH.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_FOM_PATH );
+		if( hasKey )
 		{
-			string fomPaths = it->value.GetString();
-			stringstream ss( fomPaths );
-			string item;
-			while( std::getline(ss, item, ',') )
-			{
-				addFomPath(item);
-			}
+			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_FOM_PATH );
 
-			string msg = string( "Using FOM path : " ) + fomPaths;
+			string msg;
+			for( string fomPath : fomPaths)
+			{
+				addFomPath( fomPath );
+				msg += string( "Using FOM path : " ) + fomPath;
+			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}
 		else
@@ -422,18 +314,17 @@ namespace base
 		}
 
 		// SOM path
-		it = doc.FindMember( KEY_SOM_PATH.c_str() );
-		if( it != doc.MemberEnd() )
+		hasKey = JsonParser::hasKey( configStr, KEY_SOM_PATH );
+		if( hasKey )
 		{
-			string somPaths = it->value.GetString();
-			stringstream ss( somPaths );
-			string item;
-			while( std::getline(ss, item, ',') )
-			{
-				addSomPath(item);
-			}
+			auto somPaths =  JsonParser::getValueAsStrList( configStr, KEY_SOM_PATH );
 
-			string msg = string( "Using SOM path : " ) + somPaths;
+			string msg;
+			for( string somPath : somPaths)
+			{
+				addSomPath( somPath );
+				msg += string( "Using FOM path : " ) + somPath;
+			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}
 		else

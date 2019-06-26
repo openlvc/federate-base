@@ -36,6 +36,7 @@
 #include "gov/nist/ucef/hla/ucef/interactions/SimPause.h"
 #include "gov/nist/ucef/hla/ucef/interactions/SimResume.h"
 #include "gov/nist/ucef/hla/ucef/interactions/SimStart.h"
+
 namespace base
 {
 	namespace ucef
@@ -46,6 +47,14 @@ namespace base
 		 */
 		class UCEFFederateBase : public FederateBase
 		{
+		public:
+
+			static std::string KEY_OMNET_INTERACTIONS;
+			static std::string KEY_NET_INT_NAME;
+
+			static std::string KEY_SRC_HOST;
+			static std::string KEY_ORG_CLASS;
+			static std::string KEY_NET_DATA;
 		public:
 
 			//----------------------------------------------------------
@@ -74,11 +83,11 @@ namespace base
 		protected:
 
 			/**
-			 * Initialize fededrate configuration from a JSON config file
+			 * Initialize fededrate from a JSON config file
 			 *
 			 * @param configFilePath path to the federate config json
 			 */
-			void initConfigFromJson( std::string configFilePath );
+			void initFromJson( std::string configFilePath );
 
 			/**
 			 * Sends an interaction to the federation that this federate is part of.
@@ -154,10 +163,10 @@ namespace base
 			                            const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
 			std::string getJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
 
+		protected:
+			std::string netInteractionName;
 		private:
 			bool simEndReceived;
-			std::string configFilePath;
-			std::string netInteractionName;
 			std::string srcHost;
 			std::list<std::string> omnetInteractions;
 		};

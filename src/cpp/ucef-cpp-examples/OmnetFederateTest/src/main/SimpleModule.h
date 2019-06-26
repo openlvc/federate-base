@@ -13,19 +13,22 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "SimpleResponseModule.h"
+#ifndef SIMPLEMODULE_H_
+#define SIMPLEMODULE_H_
 
-using namespace std;
+#include <omnetpp.h>
 
-Define_Module(SimpleResponseModule);
+using namespace omnetpp;
 
-void SimpleResponseModule::initialize() {}
-
-void SimpleResponseModule::handleMessage( cMessage *msg )
+/**
+ * Message sink; see NED file for more info.
+ */
+class SimpleModule : public cSimpleModule
 {
-   send( msg, "out");
-}
+  protected:
+    virtual void initialize();
+    virtual void handleMessage( cMessage *msg );
+    virtual void finish();
+};
 
-void SimpleResponseModule::finish() {}
-
-
+#endif

@@ -56,14 +56,6 @@ namespace base
 			static std::string KEY_FOM_PATH;
 			static std::string KEY_SOM_PATH;
 
-			static std::string KEY_OMNET_INTERACTIONS;
-			static std::string KEY_NET_INT_NAME;
-
-			static std::string KEY_SRC_HOST;
-			static std::string KEY_ORG_CLASS;
-			static std::string KEY_NET_DATA;
-
-
 		public:
 			//----------------------------------------------------------
 			//                     Constructors
@@ -73,22 +65,6 @@ namespace base
 			//----------------------------------------------------------
 			//                     Instance Methods
 			//----------------------------------------------------------
-
-			/**
-			 * Return the associated values of a given configuration key as a list
-			 *
-			 * @param configPath path to the federate config json
-			 * @param key config key to seek in federate configuration
-			 */
-			std::list<std::string> getValuesAsList( const std::string& configPath, const std::string& key );
-
-			/**
-			 * Return the associated value of a given configuration key
-			 *
-			 * @param configPath path to the federate config json
-			 * @param key config key to seek in federate configuration
-			 */
-			std::string getValueAsString( const std::string& configPath, const std::string& key );
 
 			/**
 			 * Configure this federate using the given federate config file

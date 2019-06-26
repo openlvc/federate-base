@@ -12,7 +12,7 @@
     "stepSize":1,
     "timeConstrained":false,
     "timeRegulated":true,
-    "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
-    "somPath":"resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml",
+    "fomPath":["resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"],
+    "somPath":["resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml"],
     "networkInteractionName":"HLAinteractionRoot.NetworkInteraction"
 }

@@ -13,56 +13,48 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#include "OmnetFederateModuleC.h"
+#include "OmnetFederateModule.h"
 
 using namespace std;
 
-Define_Module(OmnetFederateModuleC);
+Define_Module(OmnetFederateModule);
 
-OmnetFederateModuleC::OmnetFederateModuleC()
+OmnetFederateModule::OmnetFederateModule()
 {
-    fedConfigFile = ".//resources//config//fedConfigC.json";
+    fedConfigFile = ".//resources//config//fedConfig.json";
 }
 
-OmnetFederateModuleC::~OmnetFederateModuleC()
+OmnetFederateModule::~OmnetFederateModule()
 {
 
 }
 
-void OmnetFederateModuleC::beforeReadyToPopulate()
+void OmnetFederateModule::beforeReadyToPopulate()
 {
     cout << "Before ready to populate." << endl;
     //pressEnterToContinue();
 }
 
-void OmnetFederateModuleC::beforeReadyToRun()
+void OmnetFederateModule::beforeReadyToRun()
 {
     cout << "Before ready to run." << endl;
     //pressEnterToContinue();
 }
 
-void OmnetFederateModuleC::beforeFirstStep()
+void OmnetFederateModule::beforeFirstStep()
 {
     cout << "Before first step." << endl;
     //pressEnterToContinue();
 }
 
-void OmnetFederateModuleC::beforeReadyToResign()
+void OmnetFederateModule::beforeReadyToResign()
 {
     cout << "Before ready to resign." << endl;
     //pressEnterToContinue();
 }
 
-void OmnetFederateModuleC::beforeExit()
+void OmnetFederateModule::beforeExit()
 {
     cout << "Before exit." << endl;
     //pressEnterToContinue();
 }
-
-/*void OmnetFederateModuleC::pressEnterToContinue()
-{
-    do
-    {
-        cout << '\n' << "Press ENTER to continue...";
-    } while (cin.get() != '\n');
-}*/

@@ -13,24 +13,36 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef SIMPLERESPONSEMODULE_H_
-#define SIMPLERESPONSEMODULE_H_
+#include "SimpleModule.h"
 
-#include <omnetpp.h>
+using namespace std;
 
-using namespace omnetpp;
+Define_Module(SimpleModule);
 
-/**
- * Message sink; see NED file for more info.
- */
-class SimpleResponseModule : public cSimpleModule
+void SimpleModule::initialize()
 {
-  protected:
-    virtual void initialize();
-    virtual void handleMessage( cMessage *msg );
-    virtual void finish();
-  private:
-    void solveChallenge( cMessage *msg );
-};
 
-#endif
+}
+
+void SimpleModule::handleMessage( cMessage *msg )
+{
+    if( msg->hasPar("destinationHost") )
+    {
+        string dstHost = msg->par("destinationHost").stringValue();
+        if( getName() == dstHost )
+        {
+            cModule* omnetNode = getParentModule()->getSubmodule( "OMNeTFed" );
+            sendDirect(msg, omnetNode, "omnet");
+        }
+    }
+    else if( gate("out")->isConnected() )
+    {
+        cMessage* cMsg = new cMessage(msg->getName());
+        send( cMsg, "out");
+        delete msg;
+    }
+}
+
+void SimpleModule::finish() {}
+
+
