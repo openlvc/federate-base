@@ -145,7 +145,7 @@ public class Ping extends HLAInteraction
     */
     public boolean someBooleanOrDefault( boolean defaultValue )
     {
-        return ( isSomeBooleanPresent() ) ? this.someBoolean() : defaultValue;
+        return isSomeBooleanPresent() ? this.someBoolean() : defaultValue;
     }
     /**
     * Determine whether the 'someByte' parameter has a value set for it
@@ -198,7 +198,7 @@ public class Ping extends HLAInteraction
     */
     public byte someByteOrDefault( byte defaultValue )
     {
-        return ( isSomeBytePresent() ) ? this.someByte() : defaultValue;
+        return isSomeBytePresent() ? this.someByte() : defaultValue;
     }
     /**
     * Determine whether the 'someChar' parameter has a value set for it
@@ -251,7 +251,7 @@ public class Ping extends HLAInteraction
     */
     public char someCharOrDefault( char defaultValue )
     {
-        return ( isSomeCharPresent() ) ? this.someChar() : defaultValue;
+        return isSomeCharPresent() ? this.someChar() : defaultValue;
     }
     /**
     * Determine whether the 'someDouble' parameter has a value set for it
@@ -304,7 +304,7 @@ public class Ping extends HLAInteraction
     */
     public double someDoubleOrDefault( double defaultValue )
     {
-        return ( isSomeDoublePresent() ) ? this.someDouble() : defaultValue;
+        return isSomeDoublePresent() ? this.someDouble() : defaultValue;
     }
     /**
     * Determine whether the 'someFloat' parameter has a value set for it
@@ -357,7 +357,7 @@ public class Ping extends HLAInteraction
     */
     public float someFloatOrDefault( float defaultValue )
     {
-        return ( isSomeFloatPresent() ) ? this.someFloat() : defaultValue;
+        return isSomeFloatPresent() ? this.someFloat() : defaultValue;
     }
     /**
     * Determine whether the 'someInt' parameter has a value set for it
@@ -410,7 +410,7 @@ public class Ping extends HLAInteraction
     */
     public int someIntOrDefault( int defaultValue )
     {
-        return ( isSomeIntPresent() ) ? this.someInt() : defaultValue;
+        return isSomeIntPresent() ? this.someInt() : defaultValue;
     }
     /**
     * Determine whether the 'someLong' parameter has a value set for it
@@ -463,7 +463,7 @@ public class Ping extends HLAInteraction
     */
     public long someLongOrDefault( long defaultValue )
     {
-        return ( isSomeLongPresent() ) ? this.someLong() : defaultValue;
+        return isSomeLongPresent() ? this.someLong() : defaultValue;
     }
     /**
     * Determine whether the 'someShort' parameter has a value set for it
@@ -516,7 +516,7 @@ public class Ping extends HLAInteraction
     */
     public short someShortOrDefault( short defaultValue )
     {
-        return ( isSomeShortPresent() ) ? this.someShort() : defaultValue;
+        return isSomeShortPresent() ? this.someShort() : defaultValue;
     }
     /**
     * Determine whether the 'someString' parameter has a value set for it
@@ -569,7 +569,7 @@ public class Ping extends HLAInteraction
     */
     public String someStringOrDefault( String defaultValue )
     {
-        return ( isSomeStringPresent() ) ? this.someString() : defaultValue;
+        return isSomeStringPresent() ? this.someString() : defaultValue;
     }
 
     //----------------------------------------------------------
