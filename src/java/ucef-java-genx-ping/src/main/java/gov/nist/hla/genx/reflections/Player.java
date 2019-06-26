@@ -145,7 +145,7 @@ public class Player extends HLAObject
     */
     public boolean someBooleanOrDefault( boolean defaultValue )
     {
-        try { return this.someBoolean(); } catch( Exception e) { return defaultValue; }
+        return isSomeBooleanPresent() ? this.someBoolean() : defaultValue;
     }
     /**
     * Determine whether the 'someByte' attribute has a value set for it
@@ -198,7 +198,7 @@ public class Player extends HLAObject
     */
     public byte someByteOrDefault( byte defaultValue )
     {
-        try { return this.someByte(); } catch( Exception e) { return defaultValue; }
+        return isSomeBytePresent() ? this.someByte() : defaultValue;
     }
     /**
     * Determine whether the 'someChar' attribute has a value set for it
@@ -251,7 +251,7 @@ public class Player extends HLAObject
     */
     public char someCharOrDefault( char defaultValue )
     {
-        try { return this.someChar(); } catch( Exception e) { return defaultValue; }
+        return isSomeCharPresent() ? this.someChar() : defaultValue;
     }
     /**
     * Determine whether the 'someDouble' attribute has a value set for it
@@ -304,7 +304,7 @@ public class Player extends HLAObject
     */
     public double someDoubleOrDefault( double defaultValue )
     {
-        try { return this.someDouble(); } catch( Exception e) { return defaultValue; }
+        return isSomeDoublePresent() ? this.someDouble() : defaultValue;
     }
     /**
     * Determine whether the 'someFloat' attribute has a value set for it
@@ -357,7 +357,7 @@ public class Player extends HLAObject
     */
     public float someFloatOrDefault( float defaultValue )
     {
-        try { return this.someFloat(); } catch( Exception e) { return defaultValue; }
+        return isSomeFloatPresent() ? this.someFloat() : defaultValue;
     }
     /**
     * Determine whether the 'someInt' attribute has a value set for it
@@ -410,7 +410,7 @@ public class Player extends HLAObject
     */
     public int someIntOrDefault( int defaultValue )
     {
-        try { return this.someInt(); } catch( Exception e) { return defaultValue; }
+        return isSomeIntPresent() ? this.someInt() : defaultValue;
     }
     /**
     * Determine whether the 'someLong' attribute has a value set for it
@@ -463,7 +463,7 @@ public class Player extends HLAObject
     */
     public long someLongOrDefault( long defaultValue )
     {
-        try { return this.someLong(); } catch( Exception e) { return defaultValue; }
+        return isSomeLongPresent() ? this.someLong() : defaultValue;
     }
     /**
     * Determine whether the 'someName' attribute has a value set for it
@@ -516,7 +516,7 @@ public class Player extends HLAObject
     */
     public String someNameOrDefault( String defaultValue )
     {
-        try { return this.someName(); } catch( Exception e) { return defaultValue; }
+        return isSomeNamePresent() ? this.someName() : defaultValue;
     }
     /**
     * Determine whether the 'someShort' attribute has a value set for it
@@ -569,7 +569,7 @@ public class Player extends HLAObject
     */
     public short someShortOrDefault( short defaultValue )
     {
-        try { return this.someShort(); } catch( Exception e) { return defaultValue; }
+        return isSomeShortPresent() ? this.someShort() : defaultValue;
     }
 
     //----------------------------------------------------------
