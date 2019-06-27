@@ -11,7 +11,7 @@
     "lookAhead":0.2,
     "stepSize":1,
     "timeConstrained":true,
-    "timeRegulated":false,
-    "fomPath":"resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml",
-    "somPath":"resources//ObjectModels//som//UCEF-EXP-PONG.xml"   
+    "timeRegulated":true,
+    "fomPath":["resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"],
+    "somPath":["resources//ObjectModels//som//UCEF-EXP-PONG.xml"]
 }

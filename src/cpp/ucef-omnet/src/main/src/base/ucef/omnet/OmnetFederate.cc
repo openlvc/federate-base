@@ -105,8 +105,8 @@ void OmnetFederate::handleMessage( cMessage *cMsg )
            shared_ptr<HLAInteraction> interaction = make_shared<HLAInteraction>( hlaClassName );
            MessageCodec::packValues( interaction, cMsg );
 
-           string logMsg = "Interaction " + hlaClassName + "Created successfully.";
-           logger.log( logMsg, LevelInfo );
+           string logMsg = "Interaction " + hlaClassName + " created successfully.";
+           logger.log( logMsg, LevelDebug );
 
            interactionsToRti.push_back( interaction );
 
@@ -189,7 +189,7 @@ void OmnetFederate::processToOmnet()
 
         if( !interaction->isPresent(UCEFFederateBase::KEY_SRC_HOST.c_str()) )
         {
-            string msg = "Cannot find the source host in received interaction " + interaction->getInteractionClassName() + ". I going to ignore it.";
+            string msg = "Cannot find the source host in received interaction " + interaction->getInteractionClassName() + ". I am going to ignore it.";
             logger.log( msg, LevelDebug );
         }
 
@@ -207,17 +207,19 @@ void OmnetFederate::processToOmnet()
                 auto it = destination.find( UCEFFederateBase::KEY_SRC_HOST );
                 if( it != destination.end() )
                 {
-                    // First compare host name in interaction matches with this routing info
-                    string hostVal = it->second.c_str();
 
-                    if( ConversionHelper::isMatch(srcHost, hostVal ) )
+                    // First compare host name in interaction matches with this routing info
+                    string hostValConfig = it->second.c_str();
+
+                    if( ConversionHelper::isMatch(srcHost, hostValConfig ) )
                     {
                         // Then check interaction name matches with this routing info
                         it = destination.find( KEY_OMNET_INT_CONFIG );
                         if( it != destination.end() )
                         {
-                            string intVal = it->second.c_str();
-                            if( ConversionHelper::isMatch(interaction->getInteractionClassName(), intVal ) )
+                            string intValConfig = it->second.c_str();
+                            string srcinteraction = interaction->getAsString( UCEFFederateBase::KEY_ORG_CLASS.c_str() );
+                            if( ConversionHelper::isMatch(srcinteraction, intValConfig) )
                             {
                                 for( auto &kv : destination )
                                 {

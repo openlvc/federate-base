@@ -50,7 +50,7 @@ namespace base
                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
                        auto fedConfig = federate->getFederateConfiguration();
 
-                       string data = cMsgFrom->par("data").stringValue();
+                       string payLoad = cMsgFrom->par( UCEFFederateBase::KEY_NET_DATA.c_str() ).stringValue();
 
                        string interactionClassName = hlaIntTo->getInteractionClassName();
 
@@ -58,43 +58,46 @@ namespace base
                        vector<string> params = fedConfig->getParameterNames( interactionClassName );
                        for( auto& param : params )
                        {
+                           // Check whether we have this interaction param in msg payload
+                           bool present = JsonParser::hasKey( payLoad, param );
+                           if( !present ) continue;
                            // Figure out the data type of the parameter
                            DataType dataType = fedConfig->getDataType( interactionClassName, param );
 
                            // Now extract the parameter value from JSON string
                            if( dataType == DATATYPESTRING )
                            {
-                              string value = JsonParser::getValueAsString( data, param  );
+                              string value = JsonParser::getValueAsString( payLoad, param  );
                               hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPESHORT )
                            {
-                               short value = (short)JsonParser::getValueAsInt( data, param );
+                               short value = (short)JsonParser::getValueAsInt( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEINT )
                            {
-                               int value = JsonParser::getValueAsInt( data, param );
+                               int value = JsonParser::getValueAsInt( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPELONG )
                            {
-                               long value = JsonParser::getValueAsLong( data, param );
+                               long value = JsonParser::getValueAsLong( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEFLOAT )
                            {
-                               float value = JsonParser::getValueAsFloat( data, param );
+                               float value = JsonParser::getValueAsFloat( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEDOUBLE  )
                            {
-                               double value = JsonParser::getValueAsDouble( data, param );
+                               double value = JsonParser::getValueAsDouble( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                            else if( dataType == DATATYPEBOOLEAN)
                            {
-                               bool value = JsonParser::getValueAsBool( data, param );
+                               bool value = JsonParser::getValueAsBool( payLoad, param );
                                hlaIntTo->setValue( param, value );
                            }
                        }
