@@ -12,6 +12,7 @@
     "stepSize":1,
     "timeConstrained":true,
     "timeRegulated":true,
-    "fomPath":["resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"],
+    "baseFomPaths":["resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"],
+    "joinFomPaths":[],
     "somPath":["resources//ObjectModels//som//UCEF-EXP-PONG.xml"]
 }

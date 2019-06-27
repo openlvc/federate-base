@@ -32,8 +32,9 @@ namespace base
 	string FederateConfiguration::KEY_LOOK_AHEAD              = "lookAhead";
 	string FederateConfiguration::KEY_TIME_REGULATED          = "timeRegulated";
 	string FederateConfiguration::KEY_TIME_CONSTRAINED        = "timeConstrained";
-	string FederateConfiguration::KEY_FOM_PATH                = "fomPath";
-	string FederateConfiguration::KEY_SOM_PATH                = "somPath";
+	string FederateConfiguration::KEY_BASE_FOM_PATHS          = "baseFomPaths";
+	string FederateConfiguration::KEY_JOIN_FOM_PATHS          = "joinFomPaths";
+	string FederateConfiguration::KEY_SOM_PATHS               = "somPath";
 
 	FederateConfiguration::FederateConfiguration() : federationName( "BaseFederation" ),
 	                                                 federateName( "Federate" + to_string(rand()) ),
@@ -55,7 +56,7 @@ namespace base
 
 	}
 
-	void FederateConfiguration::loadFromJson( const string &configPath )
+	void FederateConfiguration::fromJson( const string &configPath )
 	{
 		Logger::getInstance().log( "Federate config path is set to : " + configPath, LevelInfo );
 
@@ -292,32 +293,53 @@ namespace base
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
 
-		// FOM path
-		hasKey = JsonParser::hasKey( configStr, KEY_FOM_PATH );
+		// Base FOM path
+		hasKey = JsonParser::hasKey( configStr, KEY_BASE_FOM_PATHS );
 		if( hasKey )
 		{
-			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_FOM_PATH );
+			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_BASE_FOM_PATHS );
 
 			string msg;
 			for( string fomPath : fomPaths)
 			{
-				addFomPath( fomPath );
+				addBaseFomPath( fomPath );
 				msg += string( "Using FOM path : " ) + fomPath;
 			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}
 		else
 		{
-			string errorMsg = "Config key " + KEY_FOM_PATH + " could not be found.";
-			errorMsg += " Running without a FOM path.";
+			string errorMsg = "Config key " + KEY_BASE_FOM_PATHS + " could not be found.";
+			errorMsg += " Base FOM path is not configured.";
+			Logger::getInstance().log( errorMsg, LevelWarn );
+		}
+
+		// Join FOM path
+		hasKey = JsonParser::hasKey( configStr, KEY_JOIN_FOM_PATHS );
+		if( hasKey )
+		{
+			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_JOIN_FOM_PATHS );
+
+			string msg;
+			for( string fomPath : fomPaths)
+			{
+				addJoinFomPath( fomPath );
+				msg += string( "Using FOM path : " ) + fomPath;
+			}
+			Logger::getInstance().log( msg, LevelInfo );
+		}
+		else
+		{
+			string errorMsg = "Config key " + KEY_JOIN_FOM_PATHS + " could not be found.";
+			errorMsg += " Joining SOM path is not configured.";
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
 
 		// SOM path
-		hasKey = JsonParser::hasKey( configStr, KEY_SOM_PATH );
+		hasKey = JsonParser::hasKey( configStr, KEY_SOM_PATHS );
 		if( hasKey )
 		{
-			auto somPaths =  JsonParser::getValueAsStrList( configStr, KEY_SOM_PATH );
+			auto somPaths =  JsonParser::getValueAsStrList( configStr, KEY_SOM_PATHS );
 
 			string msg;
 			for( string somPath : somPaths)
@@ -329,8 +351,8 @@ namespace base
 		}
 		else
 		{
-			string errorMsg = "Config key " + KEY_SOM_PATH + " could not be found.";
-			errorMsg += " Running without a SOM path.";
+			string errorMsg = "Config key " + KEY_SOM_PATHS + " could not be found.";
+			errorMsg += " SOM path is not configured.";
 			Logger::getInstance().log( errorMsg, LevelWarn );
 		}
 
@@ -367,19 +389,34 @@ namespace base
 		this->federateType = type;
 	}
 
-	vector<string> FederateConfiguration::getFomPaths()
+	vector<string> FederateConfiguration::getBaseFomPaths()
 	{
-		return this->foms;
+		return this->baseFoms;
 	}
 
-	void FederateConfiguration::addFomPath( const string &path )
+	void FederateConfiguration::addBaseFomPath( const string &path )
 	{
-		this->foms.push_back(path);
+		this->baseFoms.push_back(path);
 	}
 
-	void FederateConfiguration::clearFomPaths()
+	void FederateConfiguration::clearBaseFomPaths()
 	{
-		this->foms.clear();
+		this->baseFoms.clear();
+	}
+
+	vector<string> FederateConfiguration::getJoinFomPaths()
+	{
+		return this->joinFoms;
+	}
+
+	void FederateConfiguration::addJoinFomPath( const string &path )
+	{
+		this->joinFoms.push_back(path);
+	}
+
+	void FederateConfiguration::clearJoinFomPaths()
+	{
+		this->joinFoms.clear();
 	}
 
 	vector<string> FederateConfiguration::getSomPaths()

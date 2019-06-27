@@ -375,10 +375,11 @@ namespace base
 
 	void FederateBase::connectToRti()
 	{
+		Logger& logger = Logger::getInstance();
 		try
 		{
 			rtiAmbassadorWrapper->connect( federateAmbassador, ucefConfig->isImmediate() );
-			Logger::getInstance().log( ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
+			logger.log( ucefConfig->getFederateName() + " connected to RTI.", LevelInfo );
 		}
 		catch( UCEFException& )
 		{
@@ -388,16 +389,20 @@ namespace base
 
 	void FederateBase::createFederation()
 	{
+		Logger& logger = Logger::getInstance();
+
 		if( !ucefConfig->isPermittedToCreateFederation() )
 		{
-			Logger::getInstance().log( " Do not have permission to create " + ucefConfig->getFederationName(), LevelInfo );
+			logger.log( " Do not have permission to create " + ucefConfig->getFederationName(), LevelInfo );
 			return;
 		}
 
 		try
 		{
-			rtiAmbassadorWrapper->createFederation( ucefConfig->getFederationName(),  ucefConfig->getFomPaths() );
-			Logger::getInstance().log( "Federation : " + ucefConfig->getFederationName() + " created.", LevelInfo );
+			rtiAmbassadorWrapper->createFederation( ucefConfig->getFederationName(),
+			                                        ucefConfig->getBaseFomPaths() );
+
+			logger.log( "Federation : " + ucefConfig->getFederationName() + " created.", LevelInfo );
 		}
 		catch( UCEFException& )
 		{
@@ -407,6 +412,8 @@ namespace base
 
 	void FederateBase::joinFederation()
 	{
+		Logger& logger = Logger::getInstance();
+
 		bool hasJoined = false;
 		int attemptCount = 0;
 		int retryInterval = ucefConfig->getRetryInterval();
@@ -415,27 +422,28 @@ namespace base
 		{
 			try
 			{
-				Logger::getInstance().log( "Trying to join : " + ucefConfig->getFederationName(), LevelInfo );
+				logger.log( "Trying to join : " + ucefConfig->getFederationName(), LevelInfo );
 
 				rtiAmbassadorWrapper->joinFederation( ucefConfig->getFederateName(),
 													  ucefConfig->getFederateType(),
-													  ucefConfig->getFederationName() );
+													  ucefConfig->getFederationName(),
+													  ucefConfig->getBaseFomPaths() );
 
-				Logger::getInstance().log( ucefConfig->getFederateName() + " joined the federation " +
-										   ucefConfig->getFederationName() + ".", LevelInfo );
+				logger.log( ucefConfig->getFederateName() + " joined the federation " +
+							ucefConfig->getFederationName() + ".", LevelInfo );
 				hasJoined = true;
 			}
 			catch( UCEFException& )
 			{
 				attemptCount++;
-				Logger::getInstance().log( "Failed to join : " + ucefConfig->getFederationName(), LevelWarn );
-				Logger::getInstance().log( "Retrying in : " + to_string(retryInterval) + " seconds.", LevelWarn );
+				logger.log( "Failed to join : " + ucefConfig->getFederationName(), LevelWarn );
+				logger.log( "Retrying in : " + to_string(retryInterval) + " seconds.", LevelWarn );
 				this_thread::sleep_for( chrono::seconds(retryInterval) );
 
 				if( attemptCount >= ucefConfig->getMaxJoinAttempts() )
 				{
-					Logger::getInstance().log( "Tried " + to_string(attemptCount) + " and could not connect.", LevelWarn );
-					Logger::getInstance().log( "Failing permanently.", LevelError );
+					logger.log( "Tried " + to_string(attemptCount) + " and could not connect.", LevelWarn );
+					logger.log( "Failing permanently.", LevelError );
 					throw;
 				}
 			}

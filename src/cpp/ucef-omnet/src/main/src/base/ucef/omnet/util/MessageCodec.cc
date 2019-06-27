@@ -50,6 +50,7 @@ namespace base
                        NoOpFederate* federate = OmnetFederate::getFederatePtr();
                        auto fedConfig = federate->getFederateConfiguration();
 
+                       // Payload is a Json string
                        string payLoad = cMsgFrom->par( UCEFFederateBase::KEY_NET_DATA.c_str() ).stringValue();
 
                        string interactionClassName = hlaIntTo->getInteractionClassName();

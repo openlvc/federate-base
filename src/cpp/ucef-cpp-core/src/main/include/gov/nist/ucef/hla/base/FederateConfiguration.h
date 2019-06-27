@@ -53,8 +53,9 @@ namespace base
 			static std::string KEY_LOOK_AHEAD;
 			static std::string KEY_TIME_REGULATED;
 			static std::string KEY_TIME_CONSTRAINED;
-			static std::string KEY_FOM_PATH;
-			static std::string KEY_SOM_PATH;
+			static std::string KEY_BASE_FOM_PATHS;
+			static std::string KEY_JOIN_FOM_PATHS;
+			static std::string KEY_SOM_PATHS;
 
 		public:
 			//----------------------------------------------------------
@@ -71,7 +72,7 @@ namespace base
 			 *
 			 * @param configPath path to the federate config json
 			 */
-			void loadFromJson( const std::string& configPath );
+			void fromJson( const std::string& configPath );
 
 			/**
 			 * Returns the name of the federation that this federate wants to join
@@ -116,24 +117,44 @@ namespace base
 			void setFederateType( std::string type);
 
 			/**
-			 * Returns known FOM file paths by this federate
-			 * 
+			 * Returns known base FOM file paths by this federate
+			 *
 			 * @return FOM file paths known to this federate
 			 */
-			std::vector<std::string> getFomPaths();
+			std::vector<std::string> getBaseFomPaths();
 
 			/**
-			 * Adds a FOM file path to provide information about 
+			 * Adds a base FOM file path to provide information about
 			 * data that get exchanged in this federation
 			 *
 			 * @param path path to a FOM file
 			 */
-			void addFomPath( const std::string &path );
+			void addBaseFomPath( const std::string &path );
 
 			/**
-			 * Clears FOM paths added to federate configuration
+			 * Clears base FOM paths added to federate configuration
 			 */
-			void clearFomPaths();
+			void clearBaseFomPaths();
+
+			/**
+			 * Returns known base FOM file paths by this federate
+			 * 
+			 * @return FOM file paths known to this federate
+			 */
+			std::vector<std::string> getJoinFomPaths();
+
+			/**
+			 * Adds a join FOM file path to provide information about
+			 * data that get exchanged in this federation
+			 *
+			 * @param path path to a FOM file
+			 */
+			void addJoinFomPath( const std::string &path );
+
+			/**
+			 * Clears join FOM paths added to federate configuration
+			 */
+			void clearJoinFomPaths();
 
 			/**
 			 * Returns known SOM file paths by this federate
@@ -378,7 +399,8 @@ namespace base
 			std::string federationName;
 			std::string federateName;
 			std::string federateType;
-			std::vector<std::string> foms;
+			std::vector<std::string> baseFoms;
+			std::vector<std::string> joinFoms;
 			std::string som;
 			float lookAhead;
 			float stepSize;

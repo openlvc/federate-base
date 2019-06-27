@@ -8,5 +8,10 @@
     "syncBeforeResign":true,
     "callbacksAreImmediate":true,
     "lookAhead":0.2,
-    "stepSize":1
+    "stepSize":1,
+    "timeConstrained":true,
+    "timeRegulated":true,
+    "baseFomPaths":["resources//ChallengeResponse//fom//ChallengeResponse.xml"],
+    "joinFomPaths":[],
+    "somPath":["resources//ChallengeResponse//som//Response.xml"],
 }

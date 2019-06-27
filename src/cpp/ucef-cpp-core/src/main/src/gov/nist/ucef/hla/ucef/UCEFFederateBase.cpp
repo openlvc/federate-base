@@ -46,7 +46,7 @@ namespace base
 
 		void UCEFFederateBase::initFromJson( string configFilePath )
 		{
-			ucefConfig->loadFromJson( configFilePath );
+			ucefConfig->FromJson( configFilePath );
 
 			// For Omnet specifics first get the Json string from the given file
 			string configString = JsonParser::getJsonString( configFilePath );

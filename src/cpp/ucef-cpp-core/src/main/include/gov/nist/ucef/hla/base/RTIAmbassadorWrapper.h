@@ -112,10 +112,12 @@ namespace base
 			 * @param federateName the name of the federate
 			 * @param federateType the type of the federate
 			 * @param federationName the name of the joining federation
+			 * @param fomPaths joining FOM file paths to the federation object model
 			 */
 			void joinFederation( const std::string& federateName,
 			                     const std::string& federateType,
-			                     const std::string& federationName );
+			                     const std::string& federationName,
+			                     const std::vector<std::string>& fomPaths = std::vector<std::string>() );
 
 			/**
 			 * Informs RTI that this federate is time regulating federate.
