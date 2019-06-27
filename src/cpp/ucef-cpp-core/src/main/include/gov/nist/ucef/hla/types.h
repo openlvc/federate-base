@@ -482,32 +482,72 @@ namespace base
 					return level;
 				}
 
-				static bool isMatch( const std::string& srcString, const std::string& regexString  )
+				static bool isMatch( const std::string& srcString, const std::regex& regexString  )
 				{
 					bool match = false;
 
-					std::regex e( regexString );
-					if ( std::regex_match(srcString, e) )
+					if ( std::regex_match(srcString, regexString) )
 					{
 						match = true;
 					}
 					return match;
 				}
 
-				static bool isMatch( const std::string& srcString, const std::list<std::string>& regexStrings  )
+				static bool isMatch( const std::string& srcString, const std::string& matchString  )
 				{
 					bool match = false;
 
-					for( std::string regexString : regexStrings )
+					if ( std::regex_match(srcString, toRegex(matchString)) )
 					{
-						std::regex e( regexString );
-						if ( std::regex_match(srcString, e) )
+						match = true;
+					}
+					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::list<std::regex>& regexStrings  )
+				{
+					bool match = false;
+
+					for( std::regex regexString : regexStrings )
+					{
+						if ( std::regex_match(srcString, regexString) )
 						{
 							match = true;
 							break;
 						}
 					}
 					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::list<std::string>& matchStrings  )
+				{
+					bool match = false;
+
+					for( std::string matchString : matchStrings )
+					{
+						if ( std::regex_match(srcString, toRegex(matchString)) )
+						{
+							match = true;
+							break;
+						}
+					}
+					return match;
+				}
+
+				static std::regex toRegex( const std::string& srcString )
+				{
+					std::string output = "";
+
+					for( const char c: srcString )
+					{
+						switch( c )
+						{
+							case '.':  output += "\\.";     break;
+							case '*':  output += ".*";      break;
+							default:   output += c;         break;
+						}
+					}
+					return std::regex( output );
 				}
 
 				static std::list<std::string> tokenize( std::string& stringVal, char delimiter )
@@ -523,6 +563,29 @@ namespace base
 					}
 
 					return tokense;
+				}
+
+				// trim from start (in place)
+				static inline void ltrim( std::string &s )
+				{
+				    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+				        return !std::isspace(ch);
+				    }));
+				}
+
+				// trim from end (in place)
+				static inline void rtrim( std::string &s )
+				{
+				    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+				        return !std::isspace(ch);
+				    }).base(), s.end());
+				}
+
+				// trim from both ends (in place)
+				static inline void trim( std::string &s )
+				{
+				    ltrim(s);
+				    rtrim(s);
 				}
 		};
 	}

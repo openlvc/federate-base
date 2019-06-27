@@ -111,6 +111,17 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
+			 * Convenience wrapper to configure a federate from a JSON.
+			 * <p/>
+			 *
+			 * Refer to {@link FederateConfiguration#fromJsonFile(const std::string&)}
+	         * for standard configuration JSON keys and data types.
+	         *
+			 * @param configFilePath path to the federate config json
+			 */
+			virtual void configureFromJSON( const std::string& configFilePath );
+
+			/**
 			 * Called by {@link FederateAmbassador} whenever RTI discovers a new object instance
 			 *
 			 * @param objectInstanceHash the unique hash of the discovered object instance
@@ -320,7 +331,6 @@ namespace base
 			 * <p/>
 			 * If HLA_IMMEDIATE callback mechanism is used the main thread will be blocked
 			 * for a fixed time; while explicit ticking is used in HLA_EVOKED mode.
-			 *
 			 */
 			inline void tickForCallBacks();
 

@@ -83,11 +83,11 @@ namespace base
 		protected:
 
 			/**
-			 * Initialize fededrate from a JSON config file
+			 * Initialize UCEF fededrate from the given JSON config file
 			 *
 			 * @param configFilePath path to the federate config json
 			 */
-			void initFromJson( std::string configFilePath );
+			void configureFromJSON( const std::string& configFilePath ) override;
 
 			/**
 			 * Sends an interaction to the federation that this federate is part of.
@@ -156,12 +156,59 @@ namespace base
 			 * The main execution loop of the UCEF federate
 			 */
 			virtual void federateExecute() override;
+
 		private:
-			bool isSimInteraction( std::string interactionName );
+			/**
+			 * A utility method to determine if a ginve interaction class name corresponds to one of the
+			 * simulation control interactions
+			 *
+			 * @param interactionName the name of the interaction instance to check
+			 * @return true if the interaction is one of the simulation control interactions, false
+			 *         otherwise
+			 */
+			bool isSimulationControlInteraction( const std::string& interactionName );
+
+			/**
+			 * Determine if an incoming interaction should be received by this federate.
+			 *
+			 * This is determined by using encapsulated "federateFilter" parameter. This contains
+			 * comma separated matching strings which are checked against the federate name.
+			 *
+			 * If the "federateFilter" parameter is absent or if any of the matching strings
+			 * match the federate name, federate will receive the interaction.
+			 *
+			 * @param interaction the simulation control interaction
+			 */
+			bool shouldReceiveInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
+			/**
+			 * A utility method to determine if a given interaction class must be
+			 * converted to a network interaction for OMNeT++ routing
+			 *
+			 * @param className the name of the interaction/object instance to check
+			 * @return true if the interaction must be routed via OMNeT++, false otherwise
+			 */
 			bool isNetworkInteraction( const std::string& className );
-			void processSimInteraction( std::shared_ptr<InteractionClass>& interactionClass,
-			                            const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
-			std::string getJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
+			/**
+			 * General handler for received simulation control interactions
+			 * ({@link SimStart},{@link SimEnd}, {@link SimPause}, {@link SimResume})
+			 *
+			 * @param interactionClass the simulation control interaction
+			 * @param parameterValues a map that contains parameters and values of the
+			 *                        received interaction
+			 */
+			void processSimControlInteraction( std::shared_ptr<InteractionClass>& interactionClass,
+			                                   const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+
+			/**
+			 * Convert the parameters of the given interaction into a JSON string
+			 *
+			 * @param hlaInteraction object interaction that holds the values of the
+			 *                      parameters
+			 * @return JSON string representation of interaction parameters
+			 **/
+			std::string hlaToJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
 
 		protected:
 			std::string netInteractionName;
@@ -169,6 +216,7 @@ namespace base
 			bool simEndReceived;
 			std::string srcHost;
 			std::list<std::string> omnetInteractions;
+			std::list<std::regex> omnetInteractionsInRegex;
 		};
 	}
 }

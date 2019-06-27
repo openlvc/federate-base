@@ -27,7 +27,7 @@ namespace base
 		string UCEFFederateBase::KEY_SRC_HOST                = "sourceHost";
 
 		// Params in network interaction designated to the OMNeT federate
-		// This key represents the name of the class wrapped by this interaction
+		// This key represents the name of the original class wrapped by network interaction
 		string UCEFFederateBase::KEY_ORG_CLASS               = "wrappedClassName";
 		// This key represents the payload of the wrapped class
 		string UCEFFederateBase::KEY_NET_DATA                = "data";
@@ -44,25 +44,26 @@ namespace base
 
 		}
 
-		void UCEFFederateBase::initFromJson( string configFilePath )
+		void UCEFFederateBase::configureFromJSON( const string& configFilePath )
 		{
-			ucefConfig->FromJson( configFilePath );
+			FederateBase::configureFromJSON( configFilePath );
 
 			// For Omnet specifics first get the Json string from the given file
 			string configString = JsonParser::getJsonString( configFilePath );
 
-			bool hasIntName = JsonParser::hasKey( configString, UCEFFederateBase::KEY_NET_INT_NAME );
+			bool hasIntName = JsonParser::hasKey( configString, KEY_NET_INT_NAME );
 			if( hasIntName )
 			{
-				string tmpIntName =
-						JsonParser::getValueAsString( configString, UCEFFederateBase::KEY_NET_INT_NAME );
+				string tmpIntName = JsonParser::getValueAsString( configString, KEY_NET_INT_NAME );
 				netInteractionName = tmpIntName;
 			}
 
-			srcHost =
-					JsonParser::getValueAsString( configString, UCEFFederateBase::KEY_SRC_HOST );
-			omnetInteractions =
-					JsonParser::getValueAsStrList( configString, UCEFFederateBase::KEY_OMNET_INTERACTIONS );
+			srcHost = JsonParser::getValueAsString( configString, KEY_SRC_HOST );
+			omnetInteractions = JsonParser::getValueAsStrList( configString, KEY_OMNET_INTERACTIONS );
+			for( const string& omnetInteraction : omnetInteractions )
+			{
+				omnetInteractionsInRegex.push_back( ConversionHelper::toRegex(omnetInteraction) );
+			}
 		}
 
 		void UCEFFederateBase::sendInteraction( shared_ptr<HLAInteraction>& hlaInteraction )
@@ -72,29 +73,30 @@ namespace base
 			string intClassName = hlaInteraction->getInteractionClassName();
 
 			// If not an OMNeT routed interaction send to RTI
-			if( !isNetworkInteraction( intClassName ) )
-			{
-				logger.log( "Sending interaction class " + intClassName + " to RTI", LevelInfo );
-				rtiAmbassadorWrapper->sendInteraction( hlaInteraction );
-			}
-			else
+			if( isNetworkInteraction( intClassName ) )
 			{
 				string logMsg = "Converting interaction class " + intClassName + " to a network interaction";
 				logger.log( logMsg, LevelInfo );
-				// Here we need to build a network interaction before sending it out
-				string jsonStr = getJsonString( hlaInteraction );
-				logger.log( "Parameters of this interaction got converted to \n" + jsonStr, LevelInfo);
 
+				// Here we need to build a network interaction before sending it out
 				shared_ptr<HLAInteraction> netInteraction = make_shared<HLAInteraction>( netInteractionName );
 
-				netInteraction->setValue
-					( UCEFFederateBase::KEY_ORG_CLASS, hlaInteraction->getInteractionClassName() );
-				netInteraction->setValue( UCEFFederateBase::KEY_SRC_HOST, srcHost );
-				netInteraction->setValue( UCEFFederateBase::KEY_NET_DATA, jsonStr );
+				// convert the parameters of this interactions to a JSON string
+				string jsonStr = hlaToJsonString( hlaInteraction );
+				logger.log( "Parameters of this interaction got converted to \n" + jsonStr, LevelDebug);
+
+				netInteraction->setValue( KEY_ORG_CLASS, hlaInteraction->getInteractionClassName() );
+				netInteraction->setValue( KEY_SRC_HOST, srcHost );
+				netInteraction->setValue( KEY_NET_DATA, jsonStr );
 
 				logger.log( "Sending network interaction to RTI", LevelInfo );
 
 				rtiAmbassadorWrapper->sendInteraction( netInteraction );
+			}
+			else
+			{
+				logger.log( "Sending interaction class " + intClassName + " to RTI", LevelInfo );
+				rtiAmbassadorWrapper->sendInteraction( hlaInteraction );
 			}
 
 		}
@@ -110,9 +112,9 @@ namespace base
 			{
 				// If the received interaction is a sim interaction call the
 				// simulation control methods accordingly.
-				if( isSimInteraction(interactionClass->name) )
+				if( isSimulationControlInteraction(interactionClass->name) )
 				{
-					processSimInteraction( interactionClass, parameterValues );
+					processSimControlInteraction( interactionClass, parameterValues );
 
 					string logMsg = "Federate " + ucefConfig->getFederateName();
 					logMsg = logMsg + " received a sim interaction " + interactionClass->name;
@@ -122,38 +124,9 @@ namespace base
 				{
 					shared_ptr<HLAInteraction> hlaInteraction = make_shared<HLAInteraction>( interactionClass->name );
 					populateInteraction( interactionClass->name, hlaInteraction, parameterValues );
-					if( hlaInteraction->isPresent("federateFilter") )
+					// determine whether we should receive this interaction or not
+					if( shouldReceiveInteraction(hlaInteraction) )
 					{
-						string fedFilter = hlaInteraction->getAsString( "federateFilter" );
-						string federateName = getFederateConfiguration()->getFederateName();
-						list<string> dstFeds = ConversionHelper::tokenize( fedFilter, ',' );
-						// If the interaction has a federateFilter param test interaction is
-						// designated to me.
-						if( ConversionHelper::isMatch(federateName, dstFeds) )
-						{
-							string logMsg = "Federate " + ucefConfig->getFederateName();
-							logMsg = logMsg + " received interaction " + interactionClass->name + " designated to ";
-							logMsg = logMsg +  "me . I am going to forward it to the user.";
-							logger.log( logMsg, LevelDebug );
-
-							receivedInteraction( hlaInteraction, federateAmbassador->getFederateTime() );
-						}
-						else
-						{
-							string logMsg = "Federate " + ucefConfig->getFederateName();
-							logMsg = logMsg + " received an interaction " + interactionClass->name;
-							logMsg = logMsg +  ". Going to ignore it as it is not designated to me.";
-							logger.log( logMsg, LevelDebug );
-						}
-					}
-					else
-					{
-						string logMsg = "Federate " + ucefConfig->getFederateName();
-						logMsg = logMsg + " received interaction " + interactionClass->name;
-						logMsg += " without a designated federate. I am going to forward it to the user.";
-						logger.log( logMsg, LevelDebug );
-
-						// If the interaction doesn't have a destination filter just forward it to the user.
 						receivedInteraction( hlaInteraction, federateAmbassador->getFederateTime() );
 					}
 				}
@@ -174,7 +147,7 @@ namespace base
 			}
 		}
 
-		bool UCEFFederateBase::isSimInteraction( string interactionName )
+		bool UCEFFederateBase::isSimulationControlInteraction( const string& interactionName )
 		{
 			bool simInteraction = false;
 
@@ -188,13 +161,56 @@ namespace base
 			return simInteraction;
 		}
 
-		bool UCEFFederateBase::isNetworkInteraction( const string& className )
+		bool UCEFFederateBase::shouldReceiveInteraction( shared_ptr<HLAInteraction>& hlaInteraction )
 		{
-			return ConversionHelper::isMatch( className, omnetInteractions );
+			Logger& logger = Logger::getInstance();
+
+			bool shouldReceive = true;
+			string interactionName = hlaInteraction->getInteractionClassName();
+
+			if( hlaInteraction->isPresent("federateFilter") )
+			{
+				string fedFilter = hlaInteraction->getAsString( "federateFilter" );
+				string federateName = getFederateConfiguration()->getFederateName();
+				list<string> dstFeds = ConversionHelper::tokenize( fedFilter, ',' );
+				// If the interaction has a federateFilter param test interaction is
+				// designated to me.
+				if( ConversionHelper::isMatch(federateName, dstFeds) )
+				{
+					string logMsg = "Federate " + ucefConfig->getFederateName();
+					logMsg = logMsg + " received interaction " + interactionName + " designated to ";
+					logMsg = logMsg +  "me . I am going to forward it to the user.";
+					logger.log( logMsg, LevelDebug );
+				}
+				else
+				{
+					string logMsg = "Federate " + ucefConfig->getFederateName();
+					logMsg = logMsg + " received an interaction " + interactionName;
+					logMsg = logMsg +  ". Going to ignore it as it is not designated to me.";
+					logger.log( logMsg, LevelDebug );
+
+					shouldReceive = false;
+				}
+			}
+			else
+			{
+				string logMsg = "Federate " + ucefConfig->getFederateName();
+				logMsg = logMsg + " received interaction " + interactionName;
+				logMsg += " without a designated federate. I am going to forward it to the user.";
+				logger.log( logMsg, LevelDebug );
+			}
+
+			return shouldReceive;
 		}
 
-		void UCEFFederateBase::processSimInteraction( shared_ptr<InteractionClass>& interactionClass,
-				                                       const ParameterHandleValueMap& parameterValues)
+
+		bool UCEFFederateBase::isNetworkInteraction( const string& className )
+		{
+			return ConversionHelper::isMatch( className, omnetInteractionsInRegex );
+		}
+
+		void UCEFFederateBase::processSimControlInteraction( shared_ptr<InteractionClass>& interactionClass,
+				                                             const ParameterHandleValueMap& parameterValues)
 		{
 			shared_ptr<HLAInteraction> hlaInteraction;
 			if( interactionClass->name == SimEnd::INTERACTION_NAME )
@@ -233,7 +249,7 @@ namespace base
 			}
 		}
 
-		string UCEFFederateBase::getJsonString( shared_ptr<HLAInteraction>& hlaInteraction )
+		string UCEFFederateBase::hlaToJsonString( shared_ptr<HLAInteraction>& hlaInteraction )
 		{
 			// convert interaction param values to a JSON string
 			Document d;

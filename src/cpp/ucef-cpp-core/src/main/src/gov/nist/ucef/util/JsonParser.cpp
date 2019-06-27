@@ -100,6 +100,9 @@ namespace base
 
 			if( document.HasMember(key.c_str()) )
 				value = document[key.c_str()].GetString();
+
+			ConversionHelper::trim( value );
+
 			return value;
 		}
 
@@ -115,6 +118,7 @@ namespace base
 				for( Value::ConstValueIterator itr = values.Begin(); itr != values.End(); ++itr )
 				{
 					string tmpValue = (*itr).GetString();
+					ConversionHelper::trim( tmpValue );
 					strList.push_back( tmpValue );
 				}
 			}
@@ -138,7 +142,11 @@ namespace base
 				    const Value& attribute = *itr;
 				    for( Value::ConstMemberIterator itr2 = attribute.MemberBegin(); itr2 != attribute.MemberEnd(); ++itr2 )
 				    {
-				    	objPropMap.insert( pair<string,string>(itr2->name.GetString(),itr2->value.GetString()) );
+				    	string key = itr2->name.GetString();
+				    	string val = itr2->value.GetString();
+				    	ConversionHelper::trim( key );
+				    	ConversionHelper::trim( val );
+				    	objPropMap.insert( pair<string,string>( key, val) );
 				    }
 				    items.push_back( objPropMap );
 				}

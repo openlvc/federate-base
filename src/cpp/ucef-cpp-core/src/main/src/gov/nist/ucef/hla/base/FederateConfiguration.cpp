@@ -56,7 +56,7 @@ namespace base
 
 	}
 
-	void FederateConfiguration::fromJson( const string &configPath )
+	void FederateConfiguration::fromJsonFile( const string& configPath )
 	{
 		Logger::getInstance().log( "Federate config path is set to : " + configPath, LevelInfo );
 

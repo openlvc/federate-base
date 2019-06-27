@@ -64,6 +64,11 @@ namespace base
 		return federateAmbassador->getFederateTime();
 	}
 
+	void FederateBase::configureFromJSON( const string& configFilePath )
+	{
+		ucefConfig->fromJsonFile( configFilePath );
+	}
+
 	void FederateBase::incomingObjectRegistration( long objectInstanceHash, long objectClassHash )
 	{
 		lock_guard<mutex> lock( threadSafeLock );

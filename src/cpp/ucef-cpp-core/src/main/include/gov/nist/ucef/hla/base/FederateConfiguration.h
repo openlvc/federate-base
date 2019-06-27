@@ -68,11 +68,34 @@ namespace base
 			//----------------------------------------------------------
 
 			/**
-			 * Configure this federate using the given federate config file
+			 * Configure this federate using the given federate config file.
+			 * <p/>
+			 * Only recognized configuration items in the JSON structure will
+			 * be processed; any other items will be ignored.
+			 * Currently recognized configuration items are:
+			 *
+			 * {
+			 *     "federateName":          STRING,
+			 *     "autoUniqueName":        BOOL,
+			 *     "federateType":          STRING,
+			 *     "federationExecName":    STRING,
+			 *     "canCreateFederation":   BOOL,
+			 *     "maxJoinAttempts":       INT,
+			 *     "joinRetryIntervalSec":  INT,
+			 *     "syncBeforeResign":      BOOL,
+			 *     "callbacksAreImmediate": BOOL,
+			 *     "lookAhead":             DOUBLE,
+			 *     "stepSize":              DOUBLE
+			 *     "timeConstrained":       BOOL,
+			 *     "timeRegulated":         BOOL,
+			 *     "baseFomPaths":          ARRAY[STRING...],
+			 *     "joinFomPaths":          ARRAY[STRING...],
+			 *     "somPath":               STRING
+			 * }
 			 *
 			 * @param configPath path to the federate config json
 			 */
-			void fromJson( const std::string& configPath );
+			void fromJsonFile( const std::string& configPath );
 
 			/**
 			 * Returns the name of the federation that this federate wants to join
