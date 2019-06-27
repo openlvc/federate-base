@@ -73,21 +73,36 @@ public abstract class UCEFFederateBase extends FederateBase
 	//                    STATIC VARIABLES
 	//----------------------------------------------------------
 	private static final Logger logger = LogManager.getLogger( UCEFFederateBase.class );
-
-	// OMNeT++ specific fedconfig parameter keys
-	private static final String KEY_OMNET_INTERACTION_FILTERS = "omnetInteractions";
+	// OMNeT++ specific fedconfig parameter keys to read form configuration file
+	// are expected to be in an "omnet" scoped block:
+	//
+	//   {
+	//       ...other config...,
+	//       "omnet":{
+	//           "sourceHost":   "theHostIdentifier",
+	//           "interactions": ["A.B.C.*","X.Y.Z.*"]
+	//       }
+	//   }
+	//
+	// "sourceHost" will default to the federate name if unspecified
+	// "interactions" will default to an empty array if unspecified
+	private static final String KEY_OMNET_CONFIG_SCOPE = "omnet";
+	private static final String KEY_OMNET_SOURCE_HOST = "sourceHost";
+	private static final String KEY_OMNET_INTERACTION_FILTERS = "interactions";
 	private static final String KEY_NETWORK_INTERACTION_NAME = "networkInteractionName";
-	private static final String KEY_NETWORK_OBJECT_NAME = "networkObjectName";
-	// This key represents the host to inject the network msg
-	private static final String KEY_SRC_HOST = "sourceHost";
-	// Params in network interaction designated to the OMNeT++ federate
-	// This key represents the name of the class wrapped by this interaction
-	private static final String KEY_ORG_CLASS = "wrappedClassName";
-	// This key represents the payload of the wrapped class
-	private static final String KEY_NET_DATA = "data";
 	// default interaction class name to treat as am OMNeT++ network interaction
 	private static final String DEFAULT_NETWORK_INTERACTION_NAME = "HLAinteractionRoot.NetworkInteraction";
+	private static final String KEY_NETWORK_OBJECT_NAME = "networkObjectName";
+	// default object class name to treat as am OMNeT++ network object
 	private static final String DEFAULT_NETWORK_OBJECT_NAME = "HLAobjectRoot.NetworkObject";
+
+	// OMNeT++ specific interaction parameters for interactions designated to the OMNeT++ federate
+	// This key represents the name of the "original" interaction/object class wrapped
+	// by the OMNeT++ interaction/object
+	private static final String KEY_ORG_CLASS = "wrappedClassName";
+	// This key represents the payload (i.e., the parameters/attributes and associated values) of the
+	// "original" interaction/object interaction/object wrapped by the OMNeT++ interaction/object
+	private static final String KEY_NET_DATA = "data";
 
 	//----------------------------------------------------------
 	//                   INSTANCE VARIABLES
@@ -554,24 +569,39 @@ public abstract class UCEFFederateBase extends FederateBase
 	private JSONObject configureUcefFederateBaseFromJSON( JSONObject configData )
 	{
 		if( configData == null )
-		{
-			logger.warn( "JSON configuration data was null!" );
 			return configData;
-		}
 
-		this.networkInteractionName = this.configuration.jsonStringOrDefault( configData,
-		                                                                 KEY_NETWORK_INTERACTION_NAME,
-		                                                                 DEFAULT_NETWORK_INTERACTION_NAME );
-		this.networkObjectName = this.configuration.jsonStringOrDefault( configData,
-		                                                                 KEY_NETWORK_OBJECT_NAME,
-		                                                                 DEFAULT_NETWORK_OBJECT_NAME );
-		this.srcHost = this.configuration.jsonStringOrDefault( configData,
-		                                                  KEY_SRC_HOST,
-		                                                  this.configuration.getFederateName() );
-		Set<String> omnetInteractionFilters = this.configuration.jsonStringSetOrDefault( configData,
-		                                                                            KEY_OMNET_INTERACTION_FILTERS,
-		                                                                            Collections.emptySet() );
-		this.omnetInteractionMatchers = stringsToRegexPatterns( omnetInteractionFilters );
+		if( configData.containsKey( KEY_OMNET_CONFIG_SCOPE ) )
+		{
+			Object value = configData.get( KEY_OMNET_CONFIG_SCOPE );
+			if( value instanceof JSONObject )
+			{
+				// OMNeT++ specific fedconfig parameter keys to read form configuration file
+				// are expected to be in an "omnet" object scoped block. See comments at the
+				// top of this source file for further details.
+				JSONObject omnetBlock = (JSONObject)value;
+				this.srcHost = this.configuration.jsonStringOrDefault( omnetBlock,
+				                                                       KEY_OMNET_SOURCE_HOST,
+				                                                       this.srcHost );
+				Set<String> omnetInteractionFilters = this.configuration.jsonStringSetOrDefault( omnetBlock,
+				                                                                                 KEY_OMNET_INTERACTION_FILTERS,
+				                                                                                 Collections.emptySet() );
+				this.omnetInteractionMatchers = stringsToRegexPatterns( omnetInteractionFilters );
+
+				this.networkInteractionName = this.configuration.jsonStringOrDefault( omnetBlock,
+				                                                                      KEY_NETWORK_INTERACTION_NAME,
+				                                                                      this.networkInteractionName );
+				this.networkObjectName = this.configuration.jsonStringOrDefault( omnetBlock,
+				                                                                 KEY_NETWORK_OBJECT_NAME,
+				                                                                 this.networkObjectName );
+			}
+			else
+			{
+				// the "omnet" key was there, but the associated value was not a JSON object
+				throw new UCEFException( "Expected an object value for '%s' but found '%s'",
+				                         KEY_OMNET_CONFIG_SCOPE, value.toString() );
+			}
+		}
 
 		return configData;
 	}
@@ -617,7 +647,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * <ul>
 	 * <li>{@link UCEFFederateBase#KEY_ORG_CLASS}: the interaction class name of the original
 	 * {@link HLAInteraction}</li>
-	 * <li>{@link UCEFFederateBase#KEY_SRC_HOST}: the host identifier of this federate</li>
+	 * <li>{@link UCEFFederateBase#KEY_OMNET_SOURCE_HOST}: the host identifier of this federate</li>
 	 * <li>{@link UCEFFederateBase#KEY_NET_DATA}: parameters and values of the original
 	 * {@link HLAInteraction} encoded as a JSON string. Only those which are initialized are
 	 * encoded, and any "unset" parameters are skipped.</li>
@@ -630,7 +660,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	{
 		HLAInteraction omnetInteraction = makeInteraction( this.networkInteractionName );
 		omnetInteraction.setValue( KEY_ORG_CLASS, interaction.getInteractionClassName() );
-		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
+		omnetInteraction.setValue( KEY_OMNET_SOURCE_HOST, this.srcHost );
 		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( interaction ) );
 		return omnetInteraction;
 	}
@@ -644,7 +674,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	 * <ul>
 	 * <li>{@link UCEFFederateBase#KEY_ORG_CLASS}: the interaction class name of the original
 	 * {@link HLAObject}</li>
-	 * <li>{@link UCEFFederateBase#KEY_SRC_HOST}: the host identifier of this federate</li>
+	 * <li>{@link UCEFFederateBase#KEY_OMNET_SOURCE_HOST}: the host identifier of this federate</li>
 	 * <li>{@link UCEFFederateBase#KEY_NET_DATA}: attributes and values of the original
 	 * {@link HLAObject} encoded as a JSON string. Only those which are initialized are
 	 * encoded, and any "unset" attributes are skipped.</li>
@@ -657,7 +687,7 @@ public abstract class UCEFFederateBase extends FederateBase
 	{
 		HLAObject omnetInteraction = makeObjectInstance( this.networkObjectName );
 		omnetInteraction.setValue( KEY_ORG_CLASS, instance.getObjectClassName() );
-		omnetInteraction.setValue( KEY_SRC_HOST, this.srcHost );
+		omnetInteraction.setValue( KEY_OMNET_SOURCE_HOST, this.srcHost );
 		omnetInteraction.setValue( KEY_NET_DATA, encodeAsJson( instance ) );
 		return omnetInteraction;
 	}
@@ -824,8 +854,7 @@ public abstract class UCEFFederateBase extends FederateBase
 			catch( Exception e )
 			{
 				// probably a PatternSyntaxException
-				throw new UCEFException( String.format(
-				                                        "Unable to convert '%s' to a regular expression",
+				throw new UCEFException( String.format("Unable to convert '%s' to a regular expression",
 				                                        item ) );
 			}
 		}

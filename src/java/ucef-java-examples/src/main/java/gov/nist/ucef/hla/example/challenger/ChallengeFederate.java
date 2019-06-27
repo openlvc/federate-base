@@ -281,6 +281,9 @@ public class ChallengeFederate extends _ChallengeFederate
 	 */
 	private JSONObject configureSelfFromJSON( JSONObject configData )
 	{
+		if( configData == null )
+			return configData;
+
 		this.totalChallenges = this.configuration.jsonIntOrDefault( configData,
 		                                                            CMDLINE_ARG_ITERATIONS,
 		                                                            ITERATIONS_DEFAULT );

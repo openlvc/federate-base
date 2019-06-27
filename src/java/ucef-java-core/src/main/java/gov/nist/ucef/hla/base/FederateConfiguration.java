@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -1612,6 +1613,72 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Utility method to extract a {@link String[]} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * The content associated with the key is expected to be an array of strings. However it will
+	 * also leniently treat a single string as an array of one string.
+	 *
+	 * If there are any non-string values in the array extracted extracted from the key, the
+	 * entire content is rejected (a {@link UCEFException} will be thrown in this case).
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public String[] jsonStringArrayOrDefault( JSONObject root,
+	                                          String key,
+	                                          String[] defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof String )
+			{
+				// leniently treat a single string as an array of one string
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return new String[] {value.toString() };
+			}
+
+			if( value instanceof JSONArray )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				JSONArray jsonArray = ((JSONArray)value);
+				String[] result = new String[jsonArray.size()];
+				for( int idx = 0; idx < jsonArray.size(); idx++ )
+				{
+					Object current = jsonArray.get( idx );
+					if( current instanceof String )
+					{
+						result[idx] = current.toString();
+					}
+					else
+					{
+						throw new UCEFException( "Expected an array of strings for '%s' but " +
+						                         "encountered non-string value '%s'", key,
+						                         current.toString() );
+					}
+				}
+				return result;
+			}
+
+			throw new UCEFException( "Expected a string or array value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value.", key) );
+
+		return defaultValue;
+	}
+
+	/**
 	 * Utility method to extract a {@link Set<String>} value from a {@link JSONObject} based on a
 	 * {@link String} key
 	 *
@@ -1631,52 +1698,8 @@ public class FederateConfiguration
 	                                           String key,
 	                                           Set<String> defaultValue )
 	{
-		if( root.containsKey( key ) )
-		{
-			Set<String> result = new HashSet<>();
-			Object value = root.get( key );
-			if( value instanceof String )
-			{
-				// leniently treat a single string as an array of one string
-				if( logger.isDebugEnabled() )
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				result.add( value.toString() );
-				return result;
-			}
-
-			if( value instanceof JSONArray )
-			{
-				if( logger.isDebugEnabled() )
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				JSONArray jsonArray = ((JSONArray)value);
-				for( int idx = 0; idx < jsonArray.size(); idx++ )
-				{
-					Object current = jsonArray.get( idx );
-					if( current instanceof String )
-					{
-						result.add( current.toString() );
-					}
-					else
-					{
-						throw new UCEFException( "Expected an array of strings for '%s' but " +
-						                         "encountered non-string value '%s'", key,
-						                         current.toString() );
-					}
-				}
-				return result;
-			}
-
-			throw new UCEFException( "Expected a string or array value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-
-		if( logger.isDebugEnabled() )
-			logger.debug( String.format( "No value found for '%s', using default value '%s'",
-			                             key, defaultValue ) );
-
-		return defaultValue;
+		String[] strings = jsonStringArrayOrDefault( root, key, null );
+		return strings == null ? defaultValue : Stream.of( strings ).collect( Collectors.toSet() );
 	}
 
 	/**
