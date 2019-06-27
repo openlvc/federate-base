@@ -52,6 +52,7 @@ namespace base
 			static std::string KEY_OMNET_INTERACTIONS;
 			static std::string KEY_NET_INT_NAME;
 
+			static std::string KEY_OMNET_CONFIG;
 			static std::string KEY_SRC_HOST;
 			static std::string KEY_ORG_CLASS;
 			static std::string KEY_NET_DATA;

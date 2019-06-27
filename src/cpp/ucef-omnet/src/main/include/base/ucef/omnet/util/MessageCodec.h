@@ -48,7 +48,7 @@ namespace base
 
                 private:
                     // Packs interaction attributes into cMessage
-                    static void packValue( omnetpp::cMessage* cMsgTo, std::shared_ptr<const base::HLAInteraction> hlaIntFrom );
+                    static void packValueTypes( omnetpp::cMessage* cMsgTo, std::shared_ptr<const base::HLAInteraction> hlaIntFrom );
                     static void packString( omnetpp::cMessage* cMsgTo, const std::string &key, const std::string &value  );
                     static void packInteger( omnetpp::cMessage* cMsgTo, const std::string &key, long value  );
                     static void packFloat( omnetpp::cMessage* cMsgTo, const std::string &key, double value  );

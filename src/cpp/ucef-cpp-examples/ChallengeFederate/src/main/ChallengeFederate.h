@@ -5,8 +5,8 @@
 
 #include "ChallengeInteraction.h"
 #include "ChallengeObject.h"
-#include "gov/nist/ucef/hla/ucef/NoOpFederate.h"
-#include "ResponseInteraction.h"
+
+#include "_ChallengeFederate.h"
 
 struct Challenge
 {
@@ -15,7 +15,7 @@ struct Challenge
 	int beginIndex;
 };
 
-class ChallengeFederate : public base::ucef::NoOpFederate
+class ChallengeFederate : public _ChallengeFederate
 {
 	
 	public:
@@ -44,9 +44,6 @@ class ChallengeFederate : public base::ucef::NoOpFederate
 		virtual void receivedAttributeReflection( std::shared_ptr<const base::HLAObject> hlaObject,
 		                                          double federateTime ) override;
 
-		virtual void receivedInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
-		                                  double federateTime ) override;
-
 		virtual void receivedObjectDeletion( std::shared_ptr<const base::HLAObject> hlaObject ) override;
 		virtual void receivedSimStart( std::shared_ptr<const base::ucef::SimStart> hlaInt,
 		                               double federateTime ) override;
@@ -59,6 +56,9 @@ class ChallengeFederate : public base::ucef::NoOpFederate
 
 		virtual void receivedSimResumed( std::shared_ptr<const base::ucef::SimResume> hlaInt,
 		                                 double federateTime ) override;
+
+		virtual void receivedResponseInteraction( ResponseInteraction hlaInt ) override;
+
 		void setIterationCount( int count );
 	private:
 		void pressEnterToContinue();
@@ -70,7 +70,7 @@ class ChallengeFederate : public base::ucef::NoOpFederate
 	private:
 		std::map<std::string, std::shared_ptr<ChallengeObject>> sentChallengeObjects;
 		std::map<std::string, std::shared_ptr<ChallengeInteraction>> sentChallengeInteractions;
-		std::list<std::shared_ptr<ResponseInteraction>> responseInteractions;
+		std::list<ResponseInteraction> responseInteractions;
 		std::mutex mutexLock;
 		int count = 0;
 		std::ofstream errorLog;

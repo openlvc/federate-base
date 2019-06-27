@@ -51,6 +51,7 @@ namespace base
 			static std::list<std::string> getValueAsStrList( std::string& json, std::string& key );
 			static std::list<std::map<std::string, std::string>> getValuesAsKeyValMapList( std::string& json, std::string& key );
 			static std::string getJsonString( const std::string& configPath );
+			static std::string getJsonObjectAsString( std::string& json, std::string& key );
 		};
 	}
 }

@@ -40,7 +40,6 @@ public:
 	ChallengeObject( const std::string& objectClassName );
 	virtual ~ChallengeObject();
 
-	ChallengeObject( const ChallengeObject& ) = delete;
 	ChallengeObject& operator=( const ChallengeObject& ) = delete;
 
 	void setChallengeId( std::string& id );

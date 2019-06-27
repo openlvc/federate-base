@@ -1,21 +1,31 @@
 {
-    "logLevel":"info",
-    "federateName":"PingFederate",
-    "federateType":"PingFederate",
-    "federationExecName":"PingPongOmnetFederation",
-    "canCreateFederation":true,
-    "maxJoinAttempts":2,
-    "joinRetryIntervalSec":5,
-    "syncBeforeResign":true,
-    "callbacksAreImmediate":true,
-    "lookAhead":0.2,
-    "stepSize":1,
-    "timeConstrained":false,
-    "timeRegulated":true,
-    "baseFomPaths":["resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"],
-    "joinFomPaths":[],
-    "somPath":["resources//ObjectModels//som//UCEF-EXP-PING.xml"],
-    "sourceHost":"PingB",
-    "networkInteractionName":"HLAinteractionRoot.NetworkInteraction",
-    "omnetInteractions" : ["HLAinteractionRoot.C2WInteractionRoot.*"]
+   "logLevel":"info",
+   "federateName":"PingFederate",
+   "federateType":"PingFederate",
+   "federationExecName":"PingPongOmnetFederation",
+   "canCreateFederation":true,
+   "maxJoinAttempts":2,
+   "joinRetryIntervalSec":5,
+   "syncBeforeResign":true,
+   "callbacksAreImmediate":true,
+   "lookAhead":0.2,
+   "stepSize":1,
+   "timeConstrained":false,
+   "timeRegulated":true,
+   "baseFomPaths":[
+      "resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"
+   ],
+   "joinFomPaths":[
+
+   ],
+   "somPath":[
+      "resources//ObjectModels//som//UCEF-EXP-PING.xml"
+   ],
+   "omnet":{
+      "sourceHost":"PingB",
+      "networkInteractionName":"HLAinteractionRoot.NetworkInteraction",
+      "interactions":[
+         "HLAinteractionRoot.C2WInteractionRoot.*"
+      ]
+   }
 }

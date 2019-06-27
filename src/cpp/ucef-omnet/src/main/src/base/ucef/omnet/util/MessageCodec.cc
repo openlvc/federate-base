@@ -38,7 +38,7 @@ namespace base
                 {
                     string interactionName = hlaIntFrom->getInteractionClassName();
                     cMsgTo->setName( interactionName.c_str() );
-                    packValue( cMsgTo, hlaIntFrom );
+                    packValueTypes( cMsgTo, hlaIntFrom );
                 }
 
                 // Find interaction parameters in cMessage and pack them into a interaction
@@ -106,7 +106,7 @@ namespace base
                 }
 
                 // Packs interaction parameters into a cMessage
-                void MessageCodec::packValue( cMessage* cMsgTo, shared_ptr<const HLAInteraction> hlaIntFrom )
+                void MessageCodec::packValueTypes( cMessage* cMsgTo, shared_ptr<const HLAInteraction> hlaIntFrom )
                 {
                     NoOpFederate* federate = OmnetFederate::getFederatePtr();
 

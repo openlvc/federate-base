@@ -299,11 +299,11 @@ namespace base
 		{
 			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_BASE_FOM_PATHS );
 
-			string msg;
+			string msg = string( "Using base FOM path : " );
 			for( string fomPath : fomPaths)
 			{
 				addBaseFomPath( fomPath );
-				msg += string( "Using FOM path : " ) + fomPath;
+				msg +=  "\n" + fomPath;
 			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}
@@ -320,11 +320,11 @@ namespace base
 		{
 			auto fomPaths =  JsonParser::getValueAsStrList( configStr, KEY_JOIN_FOM_PATHS );
 
-			string msg;
+			string msg = string( "Using join FOM path : " );
 			for( string fomPath : fomPaths)
 			{
 				addJoinFomPath( fomPath );
-				msg += string( "Using FOM path : " ) + fomPath;
+				msg += "\n" + fomPath;
 			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}
@@ -341,11 +341,11 @@ namespace base
 		{
 			auto somPaths =  JsonParser::getValueAsStrList( configStr, KEY_SOM_PATHS );
 
-			string msg;
+			string msg = string( "Using SOM path : " );
 			for( string somPath : somPaths)
 			{
 				addSomPath( somPath );
-				msg += string( "Using FOM path : " ) + somPath;
+				msg += "\n" + somPath;
 			}
 			Logger::getInstance().log( msg, LevelInfo );
 		}

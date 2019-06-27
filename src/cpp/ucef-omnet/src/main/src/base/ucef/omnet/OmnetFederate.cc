@@ -67,6 +67,8 @@ void OmnetFederate::initialize()
     if( hasRouterConfig )
     {
         interactionDstInfo = JsonParser::getValuesAsKeyValMapList( configString, KEY_OMNET_CONFIG );
+
+        logger.log("Following routing config found /n" + configString, LevelDebug);
     }
     else
     {
@@ -152,7 +154,7 @@ void OmnetFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt
 
 void OmnetFederate::initializeFederate()
 {
-    initFromJson( fedConfigFile );
+    configureFromJSON( fedConfigFile );
     federateSetup();
 }
 

@@ -26,6 +26,8 @@
 								<option id="gnu.cpp.compiler.option.dialect.std.1415423616" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1240641685" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../ucef-cpp-core/src/main/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../src/main/base&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../src/main&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.839554620" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.1337657396" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
@@ -93,6 +95,8 @@
 								<option id="gnu.cpp.compiler.option.dialect.std.928073162" name="Language standard" superClass="gnu.cpp.compiler.option.dialect.std" useByScannerDiscovery="true" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1053418879" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../../../ucef-cpp-core/src/main/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../src/main/base&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/../src/main&quot;"/>
 								</option>
 								<option id="gnu.cpp.compiler.option.other.pic.1436321920" name="Position Independent Code (-fPIC)" superClass="gnu.cpp.compiler.option.other.pic" useByScannerDiscovery="false" value="false" valueType="boolean"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.151084099" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>

@@ -210,29 +210,29 @@ bool ChallengeFederate::step( double federateTime )
 	}
 
 	unique_lock<mutex> lock( mutexLock );
-	list<shared_ptr<ResponseInteraction>> responseCopy = responseInteractions;
+	list<ResponseInteraction> responseCopy = responseInteractions;
 	responseInteractions.clear();
 	lock.unlock();
 	for( auto it = responseCopy.begin(); it != responseCopy.end(); it++)
 	{
 		bool foundSentItem = false;
-		auto itSentObject = sentChallengeObjects.find( (*it)->getChallengeId() );
+		auto itSentObject = sentChallengeObjects.find( it->getChallengeId() );
 		if( itSentObject != sentChallengeObjects.end() )
 		{
 			foundSentItem = true;
 			bool valid = isCorrect( itSentObject->second->getStringValue(),
-									(*it)->getSubStringValue(),
+									it->getSubStringValue(),
 									itSentObject->second->getBeginIndex());
 
 			if( valid ) PASS_COUNTER++;
 
 			string resultText = valid ? "CORRECT" : "INCORRECT";
 
-			string msg = "Challenge id Receive          : " + (*it)->getChallengeId() + "\n";
+			string msg = "Challenge id Receive          : " + it->getChallengeId() + "\n";
 			msg += "Type                          : Object\n";
 			msg += "Sent String                   : " + itSentObject->second->getStringValue() + "\n";
 			msg += "Begin Index                   : " + to_string( itSentObject->second->getBeginIndex() ) + "\n";
-			msg += "Substring received            : " + (*it)->getSubStringValue() + "\n";
+			msg += "Substring received            : " + it->getSubStringValue() + "\n";
 			msg += "Status                        : " + resultText + "\n";
 			msg += "---------------------------------------------\n";
 
@@ -252,13 +252,13 @@ bool ChallengeFederate::step( double federateTime )
 		// If not found go and search in send interactions
 		if( !foundSentItem )
 		{
-			auto itSentInteractions = sentChallengeInteractions.find( (*it)->getChallengeId() );
+			auto itSentInteractions = sentChallengeInteractions.find( it->getChallengeId() );
 			if( itSentInteractions != sentChallengeInteractions.end() )
 			{
 				foundSentItem = true;
 
 				bool valid = isCorrect( itSentInteractions->second->getStringValue(),
-										(*it)->getSubStringValue(),
+										it->getSubStringValue(),
 										itSentInteractions->second->getBeginIndex());
 
 				if( valid ) PASS_COUNTER++;
@@ -266,11 +266,11 @@ bool ChallengeFederate::step( double federateTime )
 
 				string resultText = valid ? "CORRECT" : "INCORRECT";
 
-				string msg = "Challenge id Receive          : " + (*it)->getChallengeId() + "\n";
+				string msg = "Challenge id Receive          : " + it->getChallengeId() + "\n";
 				msg += "Type                          : Interaction\n";
 				msg += "Sent String                   : " + itSentInteractions->second->getStringValue() + "\n";
 				msg += "Begin Index                   : " + to_string( itSentInteractions->second->getBeginIndex() ) + "\n";
-				msg += "Substring received            : " + (*it)->getSubStringValue() + "\n";
+				msg += "Substring received            : " + it->getSubStringValue() + "\n";
 				msg += "Status                        : " + resultText + "\n";
 				msg += "---------------------------------------------\n";
 
@@ -312,11 +312,9 @@ void ChallengeFederate::receivedAttributeReflection( shared_ptr<const HLAObject>
 	//cout << "Received an object update " + hlaObject->getClassName();
 }
 
-void ChallengeFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
-								  double federateTime )
+void ChallengeFederate::receivedResponseInteraction( ResponseInteraction response )
 {
 	lock_guard<mutex> lock( mutexLock );
-	shared_ptr<ResponseInteraction> response = make_shared<ResponseInteraction>( hlaInt );
 	responseInteractions.emplace_back( response);
 }
 

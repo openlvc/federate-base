@@ -15,7 +15,7 @@ int main()
 	federateConfig->setFederateType(string("CppResponder") );
 	federateConfig->setLookAhead( 0.2f );
 	federateConfig->setTimeStep( 1.0f );
-	federateConfig->addFomPath( string("ChallengeResponse/fom/ChallengeResponse.xml") );
+	federateConfig->addBaseFomPath( string("ChallengeResponse/fom/ChallengeResponse.xml") );
 	federateConfig->addSomPath( string("ChallengeResponse/som/Response.xml") );
 	try
 	{

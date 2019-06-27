@@ -18,7 +18,7 @@ namespace base
 	namespace util
 	{
 
-		bool JsonParser::hasKey( std::string& json, std::string& key )
+		bool JsonParser::hasKey( string& json, string& key )
 		{
 			bool keyPresent = false;
 
@@ -30,7 +30,7 @@ namespace base
 			return keyPresent;
 		}
 
-		bool JsonParser::getValueAsBool( std::string& json, std::string& key )
+		bool JsonParser::getValueAsBool( string& json, string& key )
 		{
 			bool value = false;
 
@@ -43,7 +43,7 @@ namespace base
 
 		}
 
-		int JsonParser::getValueAsInt( std::string& json, std::string& key )
+		int JsonParser::getValueAsInt( string& json, string& key )
 		{
 			int value = 0;
 
@@ -55,7 +55,7 @@ namespace base
 			return value;
 		}
 
-		long JsonParser::getValueAsLong( std::string& json, std::string& key )
+		long JsonParser::getValueAsLong( string& json, string& key )
 		{
 			long value = 0;
 
@@ -67,7 +67,7 @@ namespace base
 			return value;
 		}
 
-		float JsonParser::getValueAsFloat( std::string& json, std::string& key )
+		float JsonParser::getValueAsFloat( string& json, string& key )
 		{
 			float value = 0.0f;
 
@@ -79,7 +79,7 @@ namespace base
 			return value;
 		}
 
-		double JsonParser::getValueAsDouble( std::string& json, std::string& key )
+		double JsonParser::getValueAsDouble( string& json, string& key )
 		{
 			double value = 0.0;
 
@@ -91,7 +91,7 @@ namespace base
 			return value;
 		}
 
-		string JsonParser::getValueAsString( std::string& json, std::string& key )
+		string JsonParser::getValueAsString( string& json, string& key )
 		{
 			string value = "";
 
@@ -106,7 +106,7 @@ namespace base
 			return value;
 		}
 
-		list<std::string> JsonParser::getValueAsStrList( std::string& json, std::string& key )
+		list<std::string> JsonParser::getValueAsStrList( string& json, string& key )
 		{
 			list<string> strList;
 			Document document;
@@ -154,7 +154,25 @@ namespace base
 			return items;
 		}
 
-		string JsonParser::getJsonString( const std::string& configPath )
+		string JsonParser::getJsonObjectAsString( string& json, string& key )
+		{
+			string jsonStr = "";
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) )
+			{
+				// Convert JSON document to a string
+				StringBuffer strbuf;
+				PrettyWriter<rapidjson::StringBuffer> writer( strbuf );
+				document[key.c_str()].Accept( writer );
+				jsonStr = string( strbuf.GetString() );
+			}
+			return jsonStr;
+		}
+
+		string JsonParser::getJsonString( const string& configPath )
 		{
 			string jsonStr = "";
 			ifstream ifs( configPath );

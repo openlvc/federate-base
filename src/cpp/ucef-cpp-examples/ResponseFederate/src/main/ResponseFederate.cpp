@@ -114,8 +114,8 @@ const static string RESPONSE_INTERACTION = "HLAinteractionRoot.C2WInteractionRoo
 	{
 		// Create a local list of received remote challenges
 		unique_lock<mutex> lock( challengeMutex );
-		list<shared_ptr<ChallengeObject>> challengeObjectList = remoteChallengeObjects;
-		list<shared_ptr<ChallengeInteraction>> challengeInteractionList = remoteChallengeInteractions;
+		list<ChallengeObject> challengeObjectList = remoteChallengeObjects;
+		list<ChallengeInteraction> challengeInteractionList = remoteChallengeInteractions;
 		remoteChallengeObjects.clear();
 		remoteChallengeInteractions.clear();
 		lock.unlock();
@@ -146,28 +146,24 @@ const static string RESPONSE_INTERACTION = "HLAinteractionRoot.C2WInteractionRoo
 		//cout << "Received an object registration callback " << hlaObject->getClassName() << endl;
 	}
 
-	void ResponseFederate::receivedAttributeReflection( shared_ptr<const HLAObject> hlaObject,
-	                                                    double federateTime )
+	void ResponseFederate::receiveChallengeObject( ChallengeObject challengeObj )
 	{
-		shared_ptr<ChallengeObject> receievedChallenge = make_shared<ChallengeObject>( hlaObject );
-		cout << "Received object challenge id      : " + receievedChallenge->getChallengeId() << endl;
-		cout << "Received string is                : " + receievedChallenge->getStringValue() << endl;
-		cout << "Received index is                 : " + to_string( receievedChallenge->getBeginIndex() ) << endl;
+		cout << "Received object challenge id      : " + challengeObj.getChallengeId() << endl;
+		cout << "Received string is                : " + challengeObj.getStringValue() << endl;
+		cout << "Received index is                 : " + to_string( challengeObj.getBeginIndex() ) << endl;
 		cout << "---------------------------------------------------------------------------------" << endl;
 		lock_guard<mutex> lock( challengeMutex );
-		remoteChallengeObjects.emplace_back( receievedChallenge );
+		remoteChallengeObjects.emplace_back( challengeObj );
 	}
 
-	void ResponseFederate::receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
-	                                            double federateTime )
+	void ResponseFederate::receivedChallengeInteraction( ChallengeInteraction challengeInt )
 	{
-		shared_ptr<ChallengeInteraction> receievedChallenge = make_shared<ChallengeInteraction>( hlaInt );
-		cout << "Received interaction challenge id : " + receievedChallenge->getChallengeId() << endl;
-		cout << "Received string is                : " + receievedChallenge->getStringValue() << endl;
-		cout << "Received index is                 : " + to_string( receievedChallenge->getBeginIndex() ) << endl;
+		cout << "Received interaction challenge id : " + challengeInt.getChallengeId() << endl;
+		cout << "Received string is                : " + challengeInt.getStringValue() << endl;
+		cout << "Received index is                 : " + to_string( challengeInt.getBeginIndex() ) << endl;
 		cout << "---------------------------------------------------------------------------------" << endl;
 		lock_guard<mutex> lock( challengeMutex );
-		remoteChallengeInteractions.emplace_back( receievedChallenge );
+		remoteChallengeInteractions.emplace_back( challengeInt );
 	}
 
 	void ResponseFederate::receivedObjectDeletion( shared_ptr<const HLAObject> hlaObject )
@@ -215,26 +211,26 @@ const static string RESPONSE_INTERACTION = "HLAinteractionRoot.C2WInteractionRoo
 		return responseInteraction;
 	}
 
-	Response ResponseFederate::solveChallenge( shared_ptr<ChallengeObject> receievedChallenge )
+	Response ResponseFederate::solveChallenge( ChallengeObject receievedChallenge )
 	{
-		string receivedString = receievedChallenge->getStringValue();
-		int beginIndex = receievedChallenge->getBeginIndex();
+		string receivedString = receievedChallenge.getStringValue();
+		int beginIndex = receievedChallenge.getBeginIndex();
 		string resultStr = receivedString.substr( beginIndex );
 
 		Response response;
-		response.challengeId = receievedChallenge->getChallengeId();
+		response.challengeId = receievedChallenge.getChallengeId();
 		response.resultString = resultStr;
 		return response;
 	}
 
-	Response ResponseFederate::solveChallenge( shared_ptr<ChallengeInteraction> receievedChallenge )
+	Response ResponseFederate::solveChallenge( ChallengeInteraction receievedChallenge )
 	{
-		string receivedString = receievedChallenge->getStringValue();
-		int beginIndex = receievedChallenge->getBeginIndex();
+		string receivedString = receievedChallenge.getStringValue();
+		int beginIndex = receievedChallenge.getBeginIndex();
 		string resultStr = receivedString.substr( beginIndex );
 
 		Response response;
-		response.challengeId = receievedChallenge->getChallengeId();
+		response.challengeId = receievedChallenge.getChallengeId();
 		response.resultString = resultStr;
 		return response;
 	}

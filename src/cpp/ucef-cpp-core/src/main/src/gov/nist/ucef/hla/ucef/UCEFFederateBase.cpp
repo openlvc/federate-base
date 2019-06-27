@@ -21,7 +21,8 @@ namespace base
 	namespace ucef
 	{
 		// OMNeT++ specific fedconfig parameter keys
-		string UCEFFederateBase::KEY_OMNET_INTERACTIONS      = "omnetInteractions";
+		string UCEFFederateBase::KEY_OMNET_CONFIG            = "omnet";
+		string UCEFFederateBase::KEY_OMNET_INTERACTIONS      = "interactions";
 		string UCEFFederateBase::KEY_NET_INT_NAME            = "networkInteractionName";
 		// This key represents the host to inject the network msg
 		string UCEFFederateBase::KEY_SRC_HOST                = "sourceHost";
@@ -46,23 +47,67 @@ namespace base
 
 		void UCEFFederateBase::configureFromJSON( const string& configFilePath )
 		{
+			Logger& logger = Logger::getInstance();
+
 			FederateBase::configureFromJSON( configFilePath );
 
-			// For Omnet specifics first get the Json string from the given file
+			// For Omnet specifics first get the JSON string from the given file
 			string configString = JsonParser::getJsonString( configFilePath );
 
-			bool hasIntName = JsonParser::hasKey( configString, KEY_NET_INT_NAME );
-			if( hasIntName )
+			if( JsonParser::hasKey( configString, KEY_OMNET_CONFIG ) )
 			{
-				string tmpIntName = JsonParser::getValueAsString( configString, KEY_NET_INT_NAME );
-				netInteractionName = tmpIntName;
-			}
+				// get the omnet part of the configuration as a string
+				configString = JsonParser::getJsonObjectAsString( configString, KEY_OMNET_CONFIG );
+				bool hasKey = JsonParser::hasKey( configString, KEY_NET_INT_NAME );
+				if( hasKey )
+				{
+					string tmpIntName = JsonParser::getValueAsString( configString, KEY_NET_INT_NAME );
+					netInteractionName = tmpIntName;
 
-			srcHost = JsonParser::getValueAsString( configString, KEY_SRC_HOST );
-			omnetInteractions = JsonParser::getValueAsStrList( configString, KEY_OMNET_INTERACTIONS );
-			for( const string& omnetInteraction : omnetInteractions )
+					string msg = "Key " + KEY_NET_INT_NAME + " found. Using " + netInteractionName;
+					msg += " as network interaction to communicate with OMNeT++ federate ";
+					logger.log( msg, LevelInfo );
+				}
+				else
+				{
+					string msg = "Key " + KEY_NET_INT_NAME + " not found. Using " + netInteractionName;
+					msg += " as network interaction to communicate with OMNeT++ federate ";
+					logger.log( msg, LevelInfo );
+				}
+
+				hasKey = JsonParser::hasKey( configString, KEY_SRC_HOST );
+				if( hasKey )
+				{
+					srcHost = JsonParser::getValueAsString( configString, KEY_SRC_HOST );
+
+					string msg = "Key " + KEY_SRC_HOST + " found. Using " + srcHost;
+					msg += " as the name of the corresponding node in OMNeT++ simulation ";
+					logger.log( msg, LevelInfo );
+				}
+
+				hasKey = JsonParser::hasKey( configString, KEY_OMNET_INTERACTIONS );
+				if( hasKey )
+				{
+					string msg = "Key " + KEY_OMNET_INTERACTIONS + " found. Following ";
+					msg += "interactions will be routed via OMNeT++ simulation.";
+					logger.log( msg, LevelInfo );
+
+					omnetInteractions = JsonParser::getValueAsStrList( configString, KEY_OMNET_INTERACTIONS );
+					for( const string& omnetInteraction : omnetInteractions )
+					{
+						logger.log( omnetInteraction + "\n", LevelInfo );
+						omnetInteractionsInRegex.push_back( ConversionHelper::toRegex(omnetInteraction) );
+					}
+				}
+				else
+				{
+					logger.log( "No interactions are specified for OMNeT routing", LevelInfo );
+				}
+
+			}
+			else
 			{
-				omnetInteractionsInRegex.push_back( ConversionHelper::toRegex(omnetInteraction) );
+				logger.log( "Configured to run without OMNeT++", LevelDebug );
 			}
 		}
 

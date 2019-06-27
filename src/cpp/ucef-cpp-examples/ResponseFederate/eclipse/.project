@@ -67,9 +67,24 @@
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.h</locationURI>
 		</link>
 		<link>
+			<name>base</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>main.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/main.cpp</locationURI>
+		</link>
+		<link>
+			<name>base/_ResponseFederate.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/base/_ResponseFederate.cpp</locationURI>
+		</link>
+		<link>
+			<name>base/_ResponseFederate.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/base/_ResponseFederate.h</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -67,9 +67,24 @@
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/ResponseInteraction.h</locationURI>
 		</link>
 		<link>
+			<name>base</name>
+			<type>2</type>
+			<locationURI>virtual:/virtual</locationURI>
+		</link>
+		<link>
 			<name>main.cpp</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/src/main/main.cpp</locationURI>
+		</link>
+		<link>
+			<name>base/_ChallengeFederate.cpp</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/base/_ChallengeFederate.cpp</locationURI>
+		</link>
+		<link>
+			<name>base/_ChallengeFederate.h</name>
+			<type>1</type>
+			<locationURI>PARENT-1-PROJECT_LOC/src/main/base/_ChallengeFederate.h</locationURI>
 		</link>
 	</linkedResources>
 	<variableList>

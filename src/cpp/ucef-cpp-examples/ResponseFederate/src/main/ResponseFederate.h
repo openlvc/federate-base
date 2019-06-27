@@ -7,7 +7,7 @@
 #include "ChallengeInteraction.h"
 #include "ChallengeObject.h"
 #include "ResponseInteraction.h"
-#include "gov/nist/ucef/hla/ucef/NoOpFederate.h"
+#include "_ResponseFederate.h"
 
 struct Response
 {
@@ -15,7 +15,7 @@ struct Response
 	std::string resultString;
 };
 
-class ResponseFederate : public base::ucef::NoOpFederate
+class ResponseFederate : public _ResponseFederate
 {
 	
 	public:
@@ -41,11 +41,9 @@ class ResponseFederate : public base::ucef::NoOpFederate
 		virtual void receivedObjectRegistration( std::shared_ptr<const base::HLAObject> hlaObject,
 		                                         double federateTime ) override;
 
-		virtual void receivedAttributeReflection( std::shared_ptr<const base::HLAObject> hlaObject,
-		                                          double federateTime ) override;
+		virtual void receiveChallengeObject( ChallengeObject challengeObj ) override;
 
-		virtual void receivedInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
-		                                  double federateTime ) override;
+		virtual void receivedChallengeInteraction( ChallengeInteraction challengeInt ) override;
 
 		virtual void receivedObjectDeletion( std::shared_ptr<const base::HLAObject> hlaObject ) override;
 		virtual void receivedSimStart( std::shared_ptr<const base::ucef::SimStart> hlaInt,
@@ -62,12 +60,12 @@ class ResponseFederate : public base::ucef::NoOpFederate
 	private:
 		void pressEnterToContinue();
 		std::shared_ptr<base::HLAInteraction> generateResponseInteraction( Response response );
-		Response solveChallenge( std::shared_ptr<ChallengeObject> receievedChallenge );
-		Response solveChallenge( std::shared_ptr<ChallengeInteraction> receievedChallenge );
+		Response solveChallenge( ChallengeObject receievedChallenge );
+		Response solveChallenge( ChallengeInteraction receievedChallenge );
 
 	private:
-		std::list<std::shared_ptr<ChallengeObject>> remoteChallengeObjects;
-		std::list<std::shared_ptr<ChallengeInteraction>> remoteChallengeInteractions;
+		std::list<ChallengeObject> remoteChallengeObjects;
+		std::list<ChallengeInteraction> remoteChallengeInteractions;
 		std::mutex challengeMutex;
 		int count;
 };

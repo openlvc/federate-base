@@ -15,7 +15,7 @@ const static string PONG_INTERACTION = "HLAinteractionRoot.C2WInteractionRoot.Pa
 
 PingFederate::PingFederate() : sendPing(true)
 {
-	initFromJson( ".//resources//config//pingConfig.json" );
+	configureFromJSON( ".//resources//config//pingConfig.json" );
 }
 
 PingFederate::~PingFederate() = default;
