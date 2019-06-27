@@ -37,12 +37,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+
 import gov.nist.ucef.hla.base.Types.DataType;
 import gov.nist.ucef.hla.base.Types.InteractionClass;
 import gov.nist.ucef.hla.base.Types.InteractionParameter;
@@ -213,7 +215,7 @@ public class FederateConfiguration
 		// assume for the moment that the JSON is coming directly from the
 		// configuration source parameter
 		String json = configSource;
-		if(isFile)
+		if( isFile )
 		{
 			// the configuration source is actually a file - read the bytes
 			// from it into a string for processing
@@ -232,12 +234,12 @@ public class FederateConfiguration
 		Object parsedString = null;
 		try
 		{
-			parsedString = new JSONParser().parse(json);
+			parsedString = new JSONParser().parse( json );
 		}
 		catch( Exception e )
 		{
 			String msg = "Configuration is not valid JSON.";
-			if(isFile)
+			if( isFile )
 			{
 				msg = String.format( "Configuration is not valid JSON in '%s'.",
 				                     configFile.getAbsolutePath() );
@@ -248,10 +250,10 @@ public class FederateConfiguration
 		// at this point, we have a valid JSON object of some form, but we
 		// need to make sure that it is a single JSONObject instance (and
 		// not something else like a JSONArray)
-		if(!(parsedString instanceof JSONObject))
+		if( !(parsedString instanceof JSONObject) )
 		{
 			String msg = "Could not find root JSON object.";
-			if(isFile)
+			if( isFile )
 			{
 				msg = String.format( "Could not find root JSON object in '%s'.",
 				                     configFile.getAbsolutePath() );
@@ -267,9 +269,10 @@ public class FederateConfiguration
 		catch( Exception e )
 		{
 			String msg = "There was a problem processing the configuration JSON.";
-			if(isFile)
+			if( isFile )
 			{
-				msg = String.format( "There was a problem processing the configuration JSON in '%s'.",
+				msg = String.format( "There was a problem processing the " +
+				                     "configuration JSON in '%s'.",
 				                     configFile.getAbsolutePath() );
 			}
 			throw new UCEFException( e, msg );
@@ -649,7 +652,7 @@ public class FederateConfiguration
 	 */
 	public String getFederationName()
 	{
-		return federationExecName;
+		return this.federationExecName;
 	}
 
 
@@ -671,7 +674,7 @@ public class FederateConfiguration
 	 */
 	public String getFederateName()
 	{
-		return federateName;
+		return this.federateName;
 	}
 
 	/**
@@ -692,7 +695,7 @@ public class FederateConfiguration
 	 */
 	public String getFederateType()
 	{
-		return federateType;
+		return this.federateType;
 	}
 
 	/**
@@ -717,7 +720,7 @@ public class FederateConfiguration
 	 */
 	public boolean canCreateFederation()
 	{
-		return canCreateFederation;
+		return this.canCreateFederation;
 	}
 
 	/**
@@ -739,7 +742,7 @@ public class FederateConfiguration
 	 */
 	public int getMaxJoinAttempts()
 	{
-		return maxJoinAttempts;
+		return this.maxJoinAttempts;
 	}
 
 	/**
@@ -761,7 +764,7 @@ public class FederateConfiguration
 	 */
 	public long getJoinRetryInterval()
 	{
-		return joinRetryIntervalSec;
+		return this.joinRetryIntervalSec;
 	}
 
 	/**
@@ -785,7 +788,7 @@ public class FederateConfiguration
 	 */
 	public boolean shouldSyncBeforeResign()
 	{
-		return syncBeforeResign;
+		return this.syncBeforeResign;
 	}
 
 	/**
@@ -806,7 +809,7 @@ public class FederateConfiguration
 	 */
 	public double getLookAhead()
 	{
-		return lookAhead;
+		return this.lookAhead;
 	}
 
 	/**
@@ -828,7 +831,7 @@ public class FederateConfiguration
 	 */
 	public double getStepSize()
 	{
-		return stepSize;
+		return this.stepSize;
 	}
 
 	/**
@@ -894,7 +897,7 @@ public class FederateConfiguration
 	 */
 	public boolean callbacksAreImmediate()
 	{
-		return callbacksAreImmediate;
+		return this.callbacksAreImmediate;
 	}
 
 	/**
@@ -941,7 +944,7 @@ public class FederateConfiguration
 	 */
 	public Collection<URL> getModules()
 	{
-		return Collections.unmodifiableSet( modules );
+		return Collections.unmodifiableSet( this.modules );
 	}
 
 	/**
@@ -988,7 +991,7 @@ public class FederateConfiguration
 	 */
 	public Collection<URL> getJoinModules()
 	{
-		return Collections.unmodifiableSet( joinModules );
+		return Collections.unmodifiableSet( this.joinModules );
 	}
 
 	public Collection<String> getFomPaths()
@@ -1096,7 +1099,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getPublishedAndSubscribedInteractions()
 	{
-		return Collections.unmodifiableCollection( interactionsByName.values() );
+		return Collections.unmodifiableCollection( this.interactionsByName.values() );
 	}
 
 	/**
@@ -1106,7 +1109,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getPublishedInteractions()
 	{
-		return interactionsByName.values()
+		return this.interactionsByName.values()
 			.stream()
 			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
@@ -1119,7 +1122,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.InteractionClass> getSubscribedInteractions()
 	{
-		return interactionsByName.values()
+		return this.interactionsByName.values()
 			.stream()
 			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
@@ -1132,7 +1135,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getPublishedAndSubscribedObjectClasses()
 	{
-		return Collections.unmodifiableCollection( objectClassesByName.values() );
+		return Collections.unmodifiableCollection( this.objectClassesByName.values() );
 	}
 
 	/**
@@ -1142,7 +1145,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getPublishedObjectClasses()
 	{
-		return objectClassesByName.values()
+		return this.objectClassesByName.values()
 			.stream()
 			.filter( x -> x.isPublished() )
 			.collect( Collectors.toList() );
@@ -1155,7 +1158,7 @@ public class FederateConfiguration
 	 */
 	public Collection<Types.ObjectClass> getSubscribedObjectClasses()
 	{
-		return objectClassesByName.values()
+		return this.objectClassesByName.values()
 			.stream()
 			.filter( x -> x.isSubscribed() )
 			.collect( Collectors.toList() );
@@ -1236,22 +1239,73 @@ public class FederateConfiguration
 	}
 
 	/**
+	 * Obtain the names of the parameters of a given {@link HLAInteraction} instance.
+	 *
+	 * If the type of {@link HLAInteraction} is unknown, an empty {@link Set} is returned.
+	 *
+	 * @param interaction the {@link HLAInteraction}
+	 * @return parameter names of the given {@link HLAInteraction} class (not modifiable)
+	 */
+	public Set<String> getParameterNames( HLAInteraction interaction )
+	{
+		if( interaction == null )
+			return Collections.emptySet();
+
+		return getParameterNames( interaction.getInteractionClassName() );
+	}
+
+	/**
 	 * Obtain the names of the parameters of a given interaction class.
 	 *
 	 * If no interaction class can be resolved from the given fully qualified interaction class
 	 * name, an empty {@link Set} is returned.
 	 *
-	 * @param interactionName the fully qualified name of a interaction class
+	 * @param className the fully qualified name of a interaction class
 	 * @return parameter names of the given interaction class (not modifiable)
 	 */
-	public Set<String> getParameterNames( String interactionName )
+	public Set<String> getParameterNames( String className )
 	{
-		InteractionClass interactionClass = this.interactionsByName.get( interactionName );
+		InteractionClass interactionClass = this.interactionsByName.get( className );
 
 		if( interactionClass == null )
 			return Collections.emptySet();
 
 		return interactionClass.parameters.keySet();
+	}
+
+	/**
+	 * Obtain the names of the attributes of a given {@link HLAObject} instance.
+	 *
+	 * If the type of {@link HLAObject} is unknown, an empty {@link Set} is returned.
+	 *
+	 * @param instance the {@link HLAObject}
+	 * @return attribute names of the given {@link HLAObject} class (not modifiable)
+	 */
+	public Set<String> getAttributeNames( HLAObject instance )
+	{
+		if( instance == null )
+			return Collections.emptySet();
+
+		return getParameterNames( instance.getObjectClassName() );
+	}
+
+	/**
+	 * Obtain the names of the attribute for a given object class name.
+	 *
+	 * If no interaction class can be resolved from the given fully qualified object class
+	 * name, an empty {@link Set} is returned.
+	 *
+	 * @param className the fully qualified name of an object class
+	 * @return attribute names of the given interaction class (not modifiable)
+	 */
+	public Set<String> getAttributeNames( String className )
+	{
+		ObjectClass objectClass = this.objectClassesByName.get( className );
+
+		if( objectClass == null )
+			return Collections.emptySet();
+
+		return objectClass.attributes.keySet();
 	}
 
 	/**
@@ -1278,6 +1332,44 @@ public class FederateConfiguration
 			.stream()
 			.map(x -> x.name)
 			.collect(Collectors.toSet());
+	}
+
+	/**
+	 * Returns the data type of the interaction parameter given an {@link HLAInteraction} instance
+	 * and member name
+	 *
+	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned.
+	 *
+	 * @param instance the {@link HLAInteraction} instance
+	 * @param memberName the name of a parameter on the interaction
+	 * @return the data type of attribute or parameter matching the provided name for of the given
+	 *         object/interaction class
+	 */
+	public DataType getDataType( HLAInteraction instance, String memberName )
+	{
+		if( instance == null )
+			return DataType.UNKNOWN;
+		// delegate to common method, even though it's ever so slightly less efficient
+		return getDataType( instance.getInteractionClassName(), memberName );
+	}
+
+	/**
+	 * Returns the data type of the interaction parameter given an {@link HLAObject} instance
+	 * and member name
+	 *
+	 * If the data type cannot be resolved, {@link DataType#UNKNOWN} will be returned.
+	 *
+	 * @param instance the {@link HLAObject} instance
+	 * @param memberName the name of a parameter on the interaction
+	 * @return the data type of attribute or parameter matching the provided name for of the given
+	 *         object/interaction class
+	 */
+	public DataType getDataType( HLAObject instance, String memberName )
+	{
+		if( instance == null )
+			return DataType.UNKNOWN;
+		// delegate to common method, even though it's ever so slightly less efficient
+		return getDataType( instance.getObjectClassName(), memberName );
 	}
 
 	/**
@@ -1327,6 +1419,289 @@ public class FederateConfiguration
 	////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////// Utility Methods /////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
+	/**
+	 * Utility method to extract a {@link String} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not a string, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public String jsonStringOrDefault( JSONObject root, String key, String defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof String )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return (String)value;
+			}
+
+			throw new UCEFException( "Expected a string value for '%s' but found '%s'", key,
+			                         value.toString() );
+		}
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value '%s'",
+			                             key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract an {@link Integer} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not an integer, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public int jsonIntOrDefault( JSONObject root, String key, int defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			// integers in JSON data are actually parsed out as longs
+			if( value instanceof Long )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return ((Long)value).intValue();
+			}
+
+			throw new UCEFException( "Expected an integer value for '%s' but found '%s'", key,
+			                         value.toString() );
+		}
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value '%s'",
+			                             key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link Long} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not a long, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public long jsonLongOrDefault( JSONObject root, String key, long defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Long )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return (Long)value;
+			}
+
+			throw new UCEFException( "Expected a long value for '%s' but found '%s'", key,
+			                         value.toString() );
+		}
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value '%s'",
+			                             key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link Double} value from a {@link JSONObject} based on a
+	 * {@link String} key.
+	 *
+	 * The content associated with the key is expected to be a double. However it will
+	 * also leniently treat an integer as a double.
+	 *
+	 * If the value extracted from the key is not a double, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public double jsonDoubleOrDefault( JSONObject root, String key, double defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Double )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return (Double)value;
+			}
+			// be lenient on the parsing of doubles, and allow integer
+			// values to get through as well
+			if( value instanceof Long )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return ((Long)value).doubleValue();
+			}
+
+			throw new UCEFException( "Expected a double value for '%s' but found '%s'", key,
+			                         value.toString() );
+		}
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value '%s'",
+			                             key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link Boolean} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * If the value extracted from the key is not a boolean, the value is rejected, and
+	 * a {@link UCEFException} will be thrown in this case.
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public boolean jsonBooleanOrDefault( JSONObject root, String key, boolean defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof Boolean )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return (Boolean)value;
+			}
+
+			throw new UCEFException( "Expected a boolean value for '%s' but found '%s'", key,
+			                         value.toString() );
+		}
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value '%s'",
+			                             key, defaultValue ) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link String[]} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * The content associated with the key is expected to be an array of strings. However it will
+	 * also leniently treat a single string as an array of one string.
+	 *
+	 * If there are any non-string values in the array extracted extracted from the key, the
+	 * entire content is rejected (a {@link UCEFException} will be thrown in this case).
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public String[] jsonStringArrayOrDefault( JSONObject root,
+	                                          String key,
+	                                          String[] defaultValue )
+	{
+		if( root.containsKey( key ) )
+		{
+			Object value = root.get( key );
+			if( value instanceof String )
+			{
+				// leniently treat a single string as an array of one string
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				return new String[] {value.toString() };
+			}
+
+			if( value instanceof JSONArray )
+			{
+				if( logger.isDebugEnabled() )
+					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
+
+				JSONArray jsonArray = ((JSONArray)value);
+				String[] result = new String[jsonArray.size()];
+				for( int idx = 0; idx < jsonArray.size(); idx++ )
+				{
+					Object current = jsonArray.get( idx );
+					if( current instanceof String )
+					{
+						result[idx] = current.toString();
+					}
+					else
+					{
+						throw new UCEFException( "Expected an array of strings for '%s' but " +
+						                         "encountered non-string value '%s'", key,
+						                         current.toString() );
+					}
+				}
+				return result;
+			}
+
+			throw new UCEFException( "Expected a string or array value for '%s' but found '%s'",
+			                         key, value.toString() );
+		}
+
+		if( logger.isDebugEnabled() )
+			logger.debug( String.format( "No value found for '%s', using default value.", key) );
+
+		return defaultValue;
+	}
+
+	/**
+	 * Utility method to extract a {@link Set<String>} value from a {@link JSONObject} based on a
+	 * {@link String} key
+	 *
+	 * The content associated with the key is expected to be an array of strings. However it will
+	 * also leniently treat a single string as an array of one string.
+	 *
+	 * If there are any non-string values in the array extracted extracted from the key, the
+	 * entire content is rejected (a {@link UCEFException} will be thrown in this case).
+	 *
+	 * @param root the {@link JSONObject} which is expected to contain the value under the key
+	 * @param key the {@link String} key to retrieve the value with
+	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
+	 *            the given {@link String} key
+	 * @return the extracted value, or the default value if there was no such key
+	 */
+	public Set<String> jsonStringSetOrDefault( JSONObject root,
+	                                           String key,
+	                                           Set<String> defaultValue )
+	{
+		String[] strings = jsonStringArrayOrDefault( root, key, null );
+		return strings == null ? defaultValue : Stream.of( strings ).collect( Collectors.toSet() );
+	}
+
 	/**
 	 * Utility method to turn an array of {@link InteractionClass}s into a {@link Collection} of
 	 * {@link InteractionClass}s
@@ -1417,259 +1792,6 @@ public class FederateConfiguration
 	private boolean notNullOrEmpty( Collection<?> toTest )
 	{
 		return toTest != null && !toTest.isEmpty();
-	}
-
-	/**
-	 * Utility method to extract a {@link String} value from a {@link JSONObject} based on a
-	 * {@link String} key
-	 *
-	 * If the value extracted from the key is not a string, the value is rejected, and
-	 * a {@link UCEFException} will be thrown in this case.
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private String jsonStringOrDefault( JSONObject root, String key, String defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Object value = root.get( key );
-			if( value instanceof String )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return (String)value;
-			}
-
-			throw new UCEFException( "Expected a string value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
-	}
-
-	/**
-	 * Utility method to extract an {@link Integer} value from a {@link JSONObject} based on a
-	 * {@link String} key
-	 *
-	 * If the value extracted from the key is not an integer, the value is rejected, and
-	 * a {@link UCEFException} will be thrown in this case.
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private int jsonIntOrDefault( JSONObject root, String key, int defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Object value = root.get( key );
-			// integers in JSON data are actually parsed out as longs
-			if( value instanceof Long )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return ((Long)value).intValue();
-			}
-
-			throw new UCEFException( "Expected an integer value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
-	}
-
-	/**
-	 * Utility method to extract a {@link Long} value from a {@link JSONObject} based on a
-	 * {@link String} key
-	 *
-	 * If the value extracted from the key is not a long, the value is rejected, and
-	 * a {@link UCEFException} will be thrown in this case.
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private long jsonLongOrDefault( JSONObject root, String key, long defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Object value = root.get( key );
-			if( value instanceof Long )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return (Long)value;
-			}
-
-			throw new UCEFException( "Expected a long value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
-	}
-
-	/**
-	 * Utility method to extract a {@link Double} value from a {@link JSONObject} based on a
-	 * {@link String} key.
-	 *
-	 * The content associated with the key is expected to be a double. However it will
-	 * also leniently treat an integer as a double.
-	 *
-	 * If the value extracted from the key is not a double, the value is rejected, and
-	 * a {@link UCEFException} will be thrown in this case.
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private double jsonDoubleOrDefault( JSONObject root, String key, double defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Object value = root.get( key );
-			if( value instanceof Double )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return (Double)value;
-			}
-			// be lenient on the parsing of doubles, and allow integer
-			// values to get through as well
-			if( value instanceof Long )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return ((Long)value).doubleValue();
-			}
-
-			throw new UCEFException( "Expected a double value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
-	}
-
-	/**
-	 * Utility method to extract a {@link Boolean} value from a {@link JSONObject} based on a
-	 * {@link String} key
-	 *
-	 * If the value extracted from the key is not a boolean, the value is rejected, and
-	 * a {@link UCEFException} will be thrown in this case.
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private boolean jsonBooleanOrDefault( JSONObject root, String key, boolean defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Object value = root.get( key );
-			if( value instanceof Boolean )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				return (Boolean)value;
-			}
-
-			throw new UCEFException( "Expected a boolean value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
-	}
-
-	/**
-	 * Utility method to extract a {@link Set<String>} value from a {@link JSONObject} based on a
-	 * {@link String} key
-	 *
-	 * The content associated with the key is expected to be an array of strings. However it will
-	 * also leniently treat a single string as an array of one string.
-	 *
-	 * If there are any non-string values in the array extracted extracted from the key, the
-	 * entire content is rejected (a {@link UCEFException} will be thrown in this case).
-	 *
-	 * @param root the {@link JSONObject} which is expected to contain the value under the key
-	 * @param key the {@link String} key to retrieve the value with
-	 * @param defaultValue the value to return if the provided {@link JSONObject} does not contain
-	 *            the given {@link String} key
-	 * @return the extracted value, or the default value if there was no such key
-	 */
-	private Set<String> jsonStringSetOrDefault( JSONObject root, String key, Set<String> defaultValue )
-	{
-		if( root.containsKey( key ) )
-		{
-			Set<String> result = new HashSet<>();
-			Object value = root.get( key );
-			if( value instanceof String )
-			{
-				// leniently treat a single string as an array of one string
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				result.add( value.toString() );
-				return result;
-			}
-
-			if( value instanceof JSONArray )
-			{
-				if(logger.isDebugEnabled())
-					logger.debug( String.format( "Found value '%s' for item '%s'", value, key ) );
-
-				JSONArray jsonArray = ((JSONArray)value);
-				for(int idx=0; idx<jsonArray.size(); idx++)
-				{
-					Object current = jsonArray.get( idx );
-					if(current instanceof String)
-					{
-						result.add(current.toString());
-					}
-					else
-					{
-						throw new UCEFException( "Expected an array of strings for '%s' but "+
-												 "encountered non-string value '%s'",
-						                         key, current.toString() );
-					}
-				}
-				return result;
-			}
-
-			throw new UCEFException( "Expected a string or array value for '%s' but found '%s'",
-			                         key, value.toString() );
-		}
-
-		if(logger.isDebugEnabled())
-    		logger.debug( String.format( "No value found for '%s', using default value '%s'", key, defaultValue ) );
-
-		return defaultValue;
 	}
 
 	/**

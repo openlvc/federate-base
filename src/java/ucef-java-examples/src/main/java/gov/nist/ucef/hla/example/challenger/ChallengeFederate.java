@@ -40,15 +40,13 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import org.json.simple.JSONObject;
 
-import gov.nist.ucef.hla.base.FederateConfiguration;
+import gov.nist.ucef.hla.base.FederateBase;
 import gov.nist.ucef.hla.base.UCEFSyncPoint;
 import gov.nist.ucef.hla.example.ExampleConstants;
 import gov.nist.ucef.hla.example.challenger.base._ChallengeFederate;
 import gov.nist.ucef.hla.example.challenger.interactions.ChallengeInteraction;
 import gov.nist.ucef.hla.example.challenger.interactions.ResponseInteraction;
 import gov.nist.ucef.hla.example.challenger.reflections.ChallengeObject;
-import gov.nist.ucef.hla.example.util.ConfigUtils;
-import gov.nist.ucef.hla.example.util.JSONUtils;
 import gov.nist.ucef.hla.ucef.interactions.SimEnd;
 import gov.nist.ucef.hla.ucef.interactions.SimPause;
 import gov.nist.ucef.hla.ucef.interactions.SimResume;
@@ -99,8 +97,8 @@ public class ChallengeFederate extends _ChallengeFederate
 	private int totalChallenges;
 
 	// track the challenges we send out which have so far not been responded to
-	private Map<String, ChallengeObject> unansweredChallengeObjects;
-	private Map<String, ChallengeInteraction> unansweredChallengeInteractions;
+	private Map<String,ChallengeObject> unansweredChallengeObjects;
+	private Map<String,ChallengeInteraction> unansweredChallengeInteractions;
 	// track the responses we receive to challenges
 	private List<ResponseInteraction> responseInteractions;
 
@@ -124,9 +122,39 @@ public class ChallengeFederate extends _ChallengeFederate
 	//----------------------------------------------------------
 	//                    INSTANCE METHODS
 	//----------------------------------------------------------
+	/**
+	 * Override so that we can perform {@link ChallengeFederate} specific configuration from the
+	 * JSON once the {@link FederateBase} is finished
+	 */
+	@Override
+	public JSONObject configureFromJSON( String jsonSource )
+	{
+		// call super method first...
+		JSONObject json = super.configureFromJSON( jsonSource );
+		// ...then custom configuration:
+		this.configureSelfFromJSON( json );
+		// return the JSON object (potentially for others to use)
+		return json;
+	}
+
+	/**
+	 * Set the total number of challenges to be sent
+	 *
+	 * @param totalChallenges the total number of challenges to be sent
+	 */
 	public void setTotalChallenges( int totalChallenges )
 	{
 		this.totalChallenges = totalChallenges;
+	}
+
+	/**
+	 * Get the total number of challenges to be sent
+	 *
+	 * @return the total number of challenges to be sent
+	 */
+	public int getTotalChallenges()
+	{
+		return this.totalChallenges;
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////////////
@@ -144,10 +172,11 @@ public class ChallengeFederate extends _ChallengeFederate
 	{
 		System.out.println( "'Before ready to resign' hook" );
 		// Print the sent challenge
-		System.out.println( String.format( "Total challenges sent          : %d", challengeID  ));
-		System.out.println( String.format( "Pass count                     : %d", passCounter ));
-		System.out.println( String.format( "Failed count                   : %d", (challengeID - passCounter )));
-		System.out.println( "---------------------------------------------");
+		System.out.println( String.format( "Total challenges sent          : %d", challengeID ) );
+		System.out.println( String.format( "Pass count                     : %d", passCounter ) );
+		System.out.println( String.format( "Failed count                   : %d",
+		                                   (challengeID - passCounter) ) );
+		System.out.println( "---------------------------------------------" );
 	}
 
 	@Override
@@ -157,11 +186,10 @@ public class ChallengeFederate extends _ChallengeFederate
 
 		if( !this.unansweredChallengeObjects.isEmpty() )
 		{
-			System.out.println( String.format(  "No response received to object challenge(s): %s",
-			                                    this.unansweredChallengeObjects.keySet()
-			                                    	.stream()
-			                                    	.collect( Collectors.joining( ", " ) )
-	                                    	 ) );
+			System.out.println( String.format( "No response received to object challenge(s): %s",
+			                                   this.unansweredChallengeObjects.keySet()
+			                                   .stream()
+			                                   .collect( Collectors.joining( ", " ) ) ) );
 
 			for( ChallengeObject challengeObject : this.unansweredChallengeObjects.values() )
 				this.rtiamb.deleteObjectInstance( challengeObject );
@@ -169,11 +197,10 @@ public class ChallengeFederate extends _ChallengeFederate
 
 		if( !this.unansweredChallengeInteractions.isEmpty() )
 		{
-			System.out.println( String.format(  "No response received to interaction challenge(s): %s",
-			                                    this.unansweredChallengeInteractions.keySet()
-			                                    .stream()
-			                                    .collect( Collectors.joining( ", " ) )
-			                                 ) );
+			System.out.println( String.format( "No response received to interaction challenge(s): %s",
+			                                   this.unansweredChallengeInteractions.keySet()
+			                                   .stream()
+			                                   .collect( Collectors.joining( ", " ) ) ) );
 		}
 	}
 
@@ -194,8 +221,8 @@ public class ChallengeFederate extends _ChallengeFederate
 		validateResponses();
 
 		boolean challengesRemaining = challengeID < this.totalChallenges;
-		int responsesRemaining = this.unansweredChallengeObjects.size() +
-								 this.unansweredChallengeInteractions.size();
+		int responsesRemaining =
+		    this.unansweredChallengeObjects.size() + this.unansweredChallengeInteractions.size();
 
 		boolean shouldContinue = challengesRemaining || (responsesRemaining > 0);
 
@@ -245,6 +272,26 @@ public class ChallengeFederate extends _ChallengeFederate
 	////////////////////////////////// Internal Utility Methods ////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////
 	/**
+	 * Set up {@link ChallengeFederate} specific configuration items from JSON
+	 *
+	 * Called from {@link #configureFromJSON(JSONObject)} and {@link #configureFromJSON(String)}
+	 *
+	 * @param configData the {@link JSONObject} containing the configuration data
+	 * @return the original {@link JSONObject} containing the configuration data
+	 */
+	private JSONObject configureSelfFromJSON( JSONObject configData )
+	{
+		if( configData == null )
+			return configData;
+
+		this.totalChallenges = this.configuration.jsonIntOrDefault( configData,
+		                                                            CMDLINE_ARG_ITERATIONS,
+		                                                            ITERATIONS_DEFAULT );
+		this.totalChallenges = Math.max( 1, this.totalChallenges );
+		return configData;
+	}
+
+	/**
 	 * A utility method to send an attribute reflection containing details of a challenge
 	 *
 	 * See also {@link #sendChallengeInteraction(Challenge)}.
@@ -293,7 +340,9 @@ public class ChallengeFederate extends _ChallengeFederate
 		sendInteraction( challengeInteraction );
 
 		// Store the challenge
-		this.unansweredChallengeInteractions.put( challengeInteraction.challengeId(), challengeInteraction );
+		this.unansweredChallengeInteractions.put(
+		                                          challengeInteraction.challengeId(),
+		                                          challengeInteraction );
 
 		// Print the sent challenge
 		System.out.println( String.format( "Sending challenge interaction : %s", challengeInteraction.challengeId() ) );
@@ -312,8 +361,8 @@ public class ChallengeFederate extends _ChallengeFederate
 		List<ResponseInteraction> responseCopy = new ArrayList<>();
 		synchronized( this.mutex_lock )
 		{
-    		responseCopy.addAll( this.responseInteractions );
-    		this.responseInteractions.clear();
+			responseCopy.addAll( this.responseInteractions );
+			this.responseInteractions.clear();
 		}
 
 		for( ResponseInteraction responseInteraction : responseCopy )
@@ -345,7 +394,8 @@ public class ChallengeFederate extends _ChallengeFederate
 			// If not found go and search in sent interactions
 			if( !found )
 			{
-				ChallengeInteraction itSentInteraction = this.unansweredChallengeInteractions.get( challengeId );
+				ChallengeInteraction itSentInteraction =
+				    this.unansweredChallengeInteractions.get( challengeId );
 				if( itSentInteraction != null )
 				{
 					found = true;
@@ -360,13 +410,14 @@ public class ChallengeFederate extends _ChallengeFederate
 				}
 			}
 
-			if(found)
+			if( found )
 			{
-				valid = isResponseCorrect( stringValue, beginIndex, substring);
+				valid = isResponseCorrect( stringValue, beginIndex, substring );
 
 				passCounter += valid ? 1 : 0;
 
-				String msg = String.format( "Response for challenge %s received...\n", challengeId );
+				String msg =
+					   String.format( "Response for challenge %s received...\n", challengeId );
 				msg += String.format( "Challenge Type                : %s\n", challengeType );
 				msg += String.format( "Sent String                   : '%s'\n", stringValue );
 				msg += String.format( "Begin Index                   : %d\n", beginIndex );
@@ -387,10 +438,10 @@ public class ChallengeFederate extends _ChallengeFederate
 			}
 			else
 			{
-				System.err.println( String.format( "A response for a challenge with ID '%s' was "+
-												   "received, but no such ChallengeObject or "+
-												   "ChallengeInteraction was sent.",
-												   challengeId) );
+				System.err.println( String.format( "A response for a challenge with ID '%s' was " +
+				                                   "received, but no such ChallengeObject or " +
+				                                   "ChallengeInteraction was sent.",
+				                                   challengeId ) );
 			}
 		}
 	}
@@ -411,22 +462,22 @@ public class ChallengeFederate extends _ChallengeFederate
 		String challengeId = String.format( "%s#%d", this.configuration.getFederateName(), challengeID );
 		challenge.challengeId = challengeId;
 		challenge.stringValue = getRandomString( CHALLENGE_STRING_LENGTH );
-		challenge.beginIndex = randInt( 0, CHALLENGE_STRING_LENGTH-1 );
+		challenge.beginIndex = randInt( 0, CHALLENGE_STRING_LENGTH - 1 );
 		return challenge;
 	}
 
 	/**
 	 * A utility function to determine if the response to a challenge is correct.
 	 *
-	 * The response is correct if the content is the substring of the original string starting
-	 * at the given index.
+	 * The response is correct if the content is the substring of the original string starting at
+	 * the given index.
 	 *
 	 * @param original the original string
 	 * @param index the sub string index
 	 * @param actual the "answer" to the challenge contained in the response
 	 * @return
 	 */
-	private boolean isResponseCorrect( String original, int index, String actual)
+	private boolean isResponseCorrect( String original, int index, String actual )
 	{
 		return actual.equals( original.substring( index ) );
 	}
@@ -442,7 +493,7 @@ public class ChallengeFederate extends _ChallengeFederate
 		StringBuilder builder = new StringBuilder( length );
 		for( int i = 0; i < length; i++ )
 		{
-			int charIndex = randInt( 0, VALID_CHARACTERS.length()-1 );
+			int charIndex = randInt( 0, VALID_CHARACTERS.length() - 1 );
 			builder.append( VALID_CHARACTERS.charAt( charIndex ) );
 		}
 		return builder.toString();
@@ -455,7 +506,7 @@ public class ChallengeFederate extends _ChallengeFederate
 	 * @param max the maximum value (inclusive)
 	 * @return a random integer value in the given range
 	 */
-	private int randInt(int min, int max)
+	private int randInt( int min, int max )
 	{
 		return ThreadLocalRandom.current().nextInt( min, max + 1 );
 	}
@@ -484,17 +535,17 @@ public class ChallengeFederate extends _ChallengeFederate
 	private static Options buildCommandLineOptions()
 	{
 		Option help = Option.builder( CMDLINE_ARG_HELP_SHORT )
-			.longOpt( CMDLINE_ARG_HELP )
-			.desc("print this message and exit." )
-			.build();
+		    .longOpt( CMDLINE_ARG_HELP )
+		    .desc( "print this message and exit." )
+		    .build();
 		Option configLocation = Option.builder()
 			.longOpt( CMDLINE_ARG_JSON_CONFIG_FILE )
 			.hasArg()
 			.argName( "file" )
 			.required( false )
 			.desc( String.format( "Set the location of the JSON configuration file for the " +
-								  "federate to use. If unspecified a value of '%s' will be " +
-								  "used.", JSON_CONFIG_FILE_DEFAULT ) )
+			                      "federate to use. If unspecified a value of '%s' will be " +
+		                          "used.", JSON_CONFIG_FILE_DEFAULT ) )
 			.type( PatternOptionBuilder.STRING_VALUE )
 			.build();
 		Option iterations = Option.builder()
@@ -503,8 +554,8 @@ public class ChallengeFederate extends _ChallengeFederate
 			.argName( "count" )
 			.required( false )
 			.desc( String.format( "Set the number of challenges to issue. " +
-								  "If unspecified a value of '%d' will be used.",
-								  ITERATIONS_DEFAULT ))
+			                      "If unspecified a value of '%d' will be used.",
+			                      ITERATIONS_DEFAULT ) )
 			.type( PatternOptionBuilder.NUMBER_VALUE )
 			.build();
 
@@ -530,7 +581,8 @@ public class ChallengeFederate extends _ChallengeFederate
 	 * @param cmdLineOptions the command line options
 	 * @return the resulting {@link CommandLine} instance
 	 */
-	private static CommandLine parseAndValidateCommandLineOptions( String[] args, Options cmdLineOptions )
+	private static CommandLine parseAndValidateCommandLineOptions( String[] args,
+	                                                               Options cmdLineOptions )
 	{
 		CommandLineParser parser = new DefaultParser();
 		// will throw an ParseException if any of the command line args are "bad"
@@ -577,40 +629,6 @@ public class ChallengeFederate extends _ChallengeFederate
 	}
 
 	/**
-	 * A utility method to validate options in the JSON configuration file which are specific to
-	 * this particular federate.
-	 *
-	 * @param jsonConfig the JSON configuration
-	 * @return true if the JSON configuration options for this federate are valid, false otherwise
-	 */
-	private static boolean validateJsonOptions( JSONObject jsonConfig )
-	{
-		boolean isValid = true;
-
-		if( jsonConfig.containsKey( CMDLINE_ARG_ITERATIONS ) )
-		{
-			Object valueObj = jsonConfig.get( CMDLINE_ARG_ITERATIONS );
-			if( valueObj instanceof Long )
-			{
-				long value = (Long)valueObj;
-				isValid = value > 0L;
-			}
-
-			if(!isValid)
-			{
-				System.err.println( "!!!!!ERRORS WERE FOUND!!!!!:" );
-				System.out.println( String.format( "ERROR: Value for '%s' option must be " +
-				                                   "a whole number greater than zero.",
-				                                   CMDLINE_ARG_ITERATIONS ) );
-				System.err.println( "!!!!!!!!!!!!!!!!!!!!!!!!!!!" );
-				System.err.println();
-			}
-		}
-
-		return isValid;
-	}
-
-	/**
 	 * A simple utility method to display command line option help
 	 *
 	 * @param cmdLineOptions
@@ -619,8 +637,10 @@ public class ChallengeFederate extends _ChallengeFederate
 	{
 		HelpFormatter helpFormatter = new HelpFormatter();
 		String header = "Verifies that messages are exchanged correctly between federates.\n\n";
-		String footer = String.format( "\nNOTE: the value for '%s' may also be specified in " +
-		                               "the JSON configuration.", CMDLINE_ARG_ITERATIONS );
+		String footer = String.format(
+		                               "\nNOTE: the value for '%s' may also be specified in " +
+		                               "the JSON configuration.",
+		                               CMDLINE_ARG_ITERATIONS );
 		helpFormatter.printHelp( "ChallengeFederate", header, cmdLineOptions, footer, true );
 	}
 
@@ -634,11 +654,11 @@ public class ChallengeFederate extends _ChallengeFederate
 		System.out.println( ExampleConstants.UCEF_LOGO );
 		System.out.println( "Java Challenger Federate" );
 		System.out.println();
-		System.out.println( "Publishes:");
-		System.out.println( "\t'ChallengeInteraction' interactions");
-		System.out.println( "\t'ChallengeObject' reflections");
-		System.out.println( "Subscribes to:");
-		System.out.println( "\t'ResponseInteraction' interactions.");
+		System.out.println( "Publishes:" );
+		System.out.println( "\t'ChallengeInteraction' interactions" );
+		System.out.println( "\t'ChallengeObject' reflections" );
+		System.out.println( "Subscribes to:" );
+		System.out.println( "\t'ResponseInteraction' interactions." );
 		System.out.println();
 
 		Options cmdLineOptions = buildCommandLineOptions();
@@ -653,31 +673,27 @@ public class ChallengeFederate extends _ChallengeFederate
 
 		try
 		{
-			String jsonSource = JSON_CONFIG_FILE_DEFAULT;
+			String jsonConfig = JSON_CONFIG_FILE_DEFAULT;
 			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
-				jsonSource = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
-			JSONObject jsonConfig = JSONUtils.toJsonObject( jsonSource );
-
-			// validate any options in the JSON specific to this federate
-			boolean isValid = validateJsonOptions(jsonConfig);
-			if( !isValid )
 			{
-				// there something wrong in the JSON
-				displayHelp( cmdLineOptions );
-				System.exit( 1 );
+				// command line override specified for configuration JSON
+				jsonConfig = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
 			}
 
-			int iterations = ConfigUtils.getConfiguredInt( jsonConfig, cmdLine,
-			                                               CMDLINE_ARG_ITERATIONS, ITERATIONS_DEFAULT );
-
 			ChallengeFederate federate = new ChallengeFederate();
-			FederateConfiguration config = federate.getFederateConfiguration();
-			config.fromJSON( jsonConfig );
-			System.out.println(config.summary());
+			federate.configureFromJSON( jsonConfig );
 
-			federate.setTotalChallenges( iterations );
+			if( cmdLine.hasOption( CMDLINE_ARG_ITERATIONS ) )
+			{
+				// command line override specified for iterations - because we have already parsed
+				// and validated the command line, we know that casting to a Long is safe
+				int iterations = ((Long)cmdLine.getParsedOptionValue( CMDLINE_ARG_ITERATIONS )).intValue();
+				federate.setTotalChallenges(iterations);
+			}
+			System.out.println( federate.getFederateConfiguration().summary() );
 
-			System.out.println( String.format( "Preparing to send %d challenges...", iterations ) );
+			System.out.println( String.format( "Preparing to send %d challenges...",
+			                                   federate.getTotalChallenges() ) );
 			System.out.println();
 
 			federate.runFederate();

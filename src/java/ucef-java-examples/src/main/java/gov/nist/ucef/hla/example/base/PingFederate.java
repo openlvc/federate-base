@@ -35,7 +35,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PatternOptionBuilder;
 import gov.nist.ucef.hla.base.FederateBase;
-import gov.nist.ucef.hla.base.FederateConfiguration;
 import gov.nist.ucef.hla.base.HLACodecUtils;
 import gov.nist.ucef.hla.base.HLAInteraction;
 import gov.nist.ucef.hla.base.HLAObject;
@@ -331,12 +330,14 @@ public class PingFederate extends FederateBase
 		{
 			String jsonConfig = JSON_CONFIG_FILE_DEFAULT;
 			if( cmdLine.hasOption( CMDLINE_ARG_JSON_CONFIG_FILE ) )
+			{
+				// command line override specified for configuration JSON
 				jsonConfig = cmdLine.getOptionValue( CMDLINE_ARG_JSON_CONFIG_FILE ).toString();
+			}
 
 			PingFederate federate = new PingFederate();
-			FederateConfiguration config = federate.getFederateConfiguration();
-			config.fromJSON( jsonConfig );
-			System.out.println(config.summary());
+			federate.configureFromJSON( jsonConfig );
+			System.out.println( federate.getFederateConfiguration().summary() );
 
 			federate.runFederate();
 		}
