@@ -1,0 +1,14 @@
+{
+   "config":[
+      {
+         "sourceHosts":["PingA", "PingB"],
+         "interactions":["HLAinteractionRoot.C2WInteractionRoot.*"],
+         "destinations":[{ "host": "PongA", "app": "UDPApp1"}, { "host": "PongB", "app": "UDPApp2"}]
+      },
+      {
+         "sourceHosts":["PingB"],
+         "interactions":["HLAinteractionRoot.C2WInteractionRoot.*"],
+         "destinations":[{ "host": "PongA", "app": "UDPApp1"}]
+      }
+   ]
+}
