@@ -81,14 +81,14 @@ namespace base
 			                     ( long interactionHash,
 			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues ) override;
 
-		protected:
-
 			/**
 			 * Initialize UCEF fededrate from the given JSON config file
 			 *
 			 * @param configFilePath path to the federate config json
 			 */
 			void configureFromJSON( const std::string& configFilePath ) override;
+
+		protected:
 
 			/**
 			 * Sends an interaction to the federation that this federate is part of.

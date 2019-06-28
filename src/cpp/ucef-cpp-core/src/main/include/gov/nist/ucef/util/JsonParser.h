@@ -49,9 +49,11 @@ namespace base
 			static double getValueAsDouble( std::string& json, std::string& key );
 			static std::string getValueAsString( std::string& json, std::string& key );
 			static std::list<std::string> getValueAsStrList( std::string& json, std::string& key );
-			static std::list<std::map<std::string, std::string>> getValuesAsKeyValMapList( std::string& json, std::string& key );
 			static std::string getJsonString( const std::string& configPath );
+			static int getArrayElementCount( std::string& json, std::string& key );
+			static std::list<std::map<std::string, std::string>> getValuesAsKeyValMapList( std::string& json, std::string& key );
 			static std::string getJsonObjectAsString( std::string& json, std::string& key );
+			static std::string getJsonObjectAsString( std::string& json, std::string& key, int arrayIndex );
 		};
 	}
 }

@@ -125,35 +125,6 @@ namespace base
 			return strList;
 		}
 
-		list<map<string, string>> JsonParser::getValuesAsKeyValMapList( string& json, string& key )
-		{
-			list<map<string, string>> items;
-
-			Document document;
-			document.Parse( json.c_str() );
-
-			if( document.HasMember(key.c_str()) )
-			{
-				auto configArray = document[key.c_str()].GetArray();
-				rapidjson::Value::ConstValueIterator itr;
-				for ( itr = configArray.Begin(); itr != configArray.End(); ++itr)
-				{
-					map<string, string> objPropMap;
-				    const Value& attribute = *itr;
-				    for( Value::ConstMemberIterator itr2 = attribute.MemberBegin(); itr2 != attribute.MemberEnd(); ++itr2 )
-				    {
-				    	string key = itr2->name.GetString();
-				    	string val = itr2->value.GetString();
-				    	ConversionHelper::trim( key );
-				    	ConversionHelper::trim( val );
-				    	objPropMap.insert( pair<string,string>( key, val) );
-				    }
-				    items.push_back( objPropMap );
-				}
-			}
-			return items;
-		}
-
 		string JsonParser::getJsonObjectAsString( string& json, string& key )
 		{
 			string jsonStr = "";
@@ -170,6 +141,67 @@ namespace base
 				jsonStr = string( strbuf.GetString() );
 			}
 			return jsonStr;
+		}
+
+		string JsonParser::getJsonObjectAsString( string& json, string& key, int arrayIndex )
+		{
+			string jsonStr = "";
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) && document[key.c_str()].IsArray() )
+			{
+				// Convert JSON document to a string
+				StringBuffer strbuf;
+				PrettyWriter<rapidjson::StringBuffer> writer( strbuf );
+				document[key.c_str()][arrayIndex].Accept( writer );
+				jsonStr = string( strbuf.GetString() );
+			}
+			return jsonStr;
+		}
+
+		int JsonParser::getArrayElementCount( std::string& json, std::string& key )
+		{
+			int elementCount = 0;
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) && document[key.c_str()].IsArray() )
+			{
+				elementCount = document[key.c_str()].GetArray().Size();
+			}
+			return elementCount;
+		}
+
+		list<map<string, string>> JsonParser::getValuesAsKeyValMapList( string& json, string& key )
+		{
+			list<map<string, string>> items;
+
+			Document document;
+			document.Parse( json.c_str() );
+
+			if( document.HasMember(key.c_str()) )
+			{
+				auto configArray = document[key.c_str()].GetArray();
+				rapidjson::Value::ConstValueIterator itr;
+				for ( itr = configArray.Begin(); itr != configArray.End(); ++itr)
+				{
+					map<string, string> objPropMap;
+					const Value& attribute = *itr;
+					for( Value::ConstMemberIterator itr2 = attribute.MemberBegin(); itr2 != attribute.MemberEnd(); ++itr2 )
+					{
+						string key = itr2->name.GetString();
+						string val = itr2->value.GetString();
+						ConversionHelper::trim( key );
+						ConversionHelper::trim( val );
+						objPropMap.insert( pair<string,string>( key, val) );
+					}
+					items.push_back( objPropMap );
+				}
+			}
+			return items;
 		}
 
 		string JsonParser::getJsonString( const string& configPath )

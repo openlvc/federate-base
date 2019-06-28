@@ -1,7 +1,7 @@
 {
    "logLevel":"info",
-   "federateName":"PingFederate",
-   "federateType":"PingFederate",
+   "federateName":"CppPingFederate",
+   "federateType":"CppPingFederate",
    "federationExecName":"PingPongOmnetFederation",
    "canCreateFederation":true,
    "maxJoinAttempts":2,
@@ -18,7 +18,7 @@
    "joinFomPaths":[
 
    ],
-   "somPath":[
+   "somPaths":[
       "resources//ObjectModels//som//UCEF-EXP-PING.xml"
    ],
    "omnet":{

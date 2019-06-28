@@ -18,8 +18,7 @@
    "joinFomPaths":[
 
    ],
-   "somPath":[
+   "somPaths":[
       "resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml"
-   ],
-   "networkInteractionName":"HLAinteractionRoot.NetworkInteraction"
+   ]
 }

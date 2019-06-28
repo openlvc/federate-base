@@ -34,7 +34,7 @@ namespace base
 	string FederateConfiguration::KEY_TIME_CONSTRAINED        = "timeConstrained";
 	string FederateConfiguration::KEY_BASE_FOM_PATHS          = "baseFomPaths";
 	string FederateConfiguration::KEY_JOIN_FOM_PATHS          = "joinFomPaths";
-	string FederateConfiguration::KEY_SOM_PATHS               = "somPath";
+	string FederateConfiguration::KEY_SOM_PATHS               = "somPaths";
 
 	FederateConfiguration::FederateConfiguration() : federationName( "BaseFederation" ),
 	                                                 federateName( "Federate" + to_string(rand()) ),

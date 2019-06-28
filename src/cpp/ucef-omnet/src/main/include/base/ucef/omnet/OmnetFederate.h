@@ -33,7 +33,8 @@ namespace base
                 // Keys to get Omnet federate routing info
                 static std::string KEY_OMNET_CONFIG;
                 static std::string KEY_OMNET_INT_CONFIG;
-
+                static std::string KEY_OMNET_DST_CONFIG;
+                static std::string KEY_OMNET_SRC_HOSTS;
             public:
 
                 //----------------------------------------------------------
@@ -90,7 +91,7 @@ namespace base
                 std::mutex toOmnetLock;
                 std::list<std::shared_ptr<const base::HLAInteraction>> interactionsToOmnet;
                 std::list<std::shared_ptr<base::HLAInteraction>> interactionsToRti;
-                std::list<std::map<std::string, std::string>> interactionDstInfo;
+                std::string routingConfigString;
                 std::string federateName;
                 double stepSize;
 

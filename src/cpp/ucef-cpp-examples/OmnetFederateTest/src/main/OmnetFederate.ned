@@ -43,22 +43,22 @@ network OmnetFederateNet
     @display("bgb=350,264");
     submodules:
         OMNeTFed: OmnetFederateModule {
-            @display("p=129,193");
+            @display("p=168,226");
         }
         PingA: SimpleModule {
-            @display("p=50,71;i=block/rxtx");
+            @display("p=50,41;i=block/rxtx");
         }
         PingB: SimpleModule {
-            @display("p=50,171;i=block/rxtx");
+            @display("p=50,160;i=block/rxtx");
         }
         PongA: SimpleModule {
-            @display("p=250,71;i=block/rxtx");
+            @display("p=299,47;i=block/rxtx");
         }
         PongB: SimpleModule {
-            @display("p=250,171;i=block/rxtx");
+            @display("p=283,187;i=block/rxtx");
         }
         router: RouterModule {
-            @display("p=125,100;i=block/rxtx");
+            @display("p=168,110;i=block/dispatch");
         }
     connections allowunconnected:
         PingA.out --> {  delay = 1000ms; } --> router.in++;

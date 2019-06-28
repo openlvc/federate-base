@@ -32,7 +32,9 @@ using namespace std;
 NoOpFederate* OmnetFederate::thisFedarate = 0;
 
 string OmnetFederate::KEY_OMNET_CONFIG     = "config";
-string OmnetFederate::KEY_OMNET_INT_CONFIG = "interaction";
+string OmnetFederate::KEY_OMNET_INT_CONFIG = "interactions";
+string OmnetFederate::KEY_OMNET_DST_CONFIG = "destinations";
+string OmnetFederate::KEY_OMNET_SRC_HOSTS  = "sourceHosts";
 
 OmnetFederate::OmnetFederate() : fedConfigFile( ".//resources//config//fedConfig.json" ),
                                  simConfigFile( ".//resources//config//omnetSimConfig.json" ),
@@ -62,13 +64,11 @@ void OmnetFederate::initialize()
     stepSize = getFederateConfiguration()->getTimeStep();
 
     // Retrieve network interaction destination properties
-    string configString = JsonParser::getJsonString( simConfigFile );
-    bool hasRouterConfig = JsonParser::hasKey( configString, OmnetFederate::KEY_OMNET_CONFIG );
+    routingConfigString = JsonParser::getJsonString( simConfigFile );
+    bool hasRouterConfig = JsonParser::hasKey( routingConfigString, OmnetFederate::KEY_OMNET_CONFIG );
     if( hasRouterConfig )
     {
-        interactionDstInfo = JsonParser::getValuesAsKeyValMapList( configString, KEY_OMNET_CONFIG );
-
-        logger.log("Following routing config found /n" + configString, LevelDebug);
+        logger.log("Following routing config found \n" + routingConfigString, LevelDebug);
     }
     else
     {
@@ -198,54 +198,71 @@ void OmnetFederate::processToOmnet()
         string srcHost = interaction->getAsString( UCEFFederateBase::KEY_SRC_HOST.c_str() );
 
         cModule* hostNode = getParentModule()->getSubmodule( srcHost.c_str() );
+
+        bool routingInfoFound = false;
         if( hostNode )
         {
             cMessage* outMsg = new cMessage();
             MessageCodec::packValues( outMsg, interaction );
 
-            // Pack correct source and destination info
-            for( auto destination : interactionDstInfo )
+            // Pack an extra param to indicate that this is from OMNeT federate
+            cMsgPar& msgPar = outMsg->addPar( "isOmnet" );
+            msgPar.setBoolValue( true );
+
+            int configElementCount = JsonParser::getArrayElementCount( routingConfigString, KEY_OMNET_CONFIG );
+
+            bool matchFound = false;
+            for( int i = 0; i < configElementCount; i++ )
             {
-                auto it = destination.find( UCEFFederateBase::KEY_SRC_HOST );
-                if( it != destination.end() )
+                // First match the host name
+                string routeSegment = JsonParser::getJsonObjectAsString( routingConfigString, KEY_OMNET_CONFIG, i );
+                auto sourceList = JsonParser::getValueAsStrList( routeSegment, KEY_OMNET_SRC_HOSTS );
+                if( ConversionHelper::isMatch(srcHost, sourceList) )
                 {
+                    // Then match the interaction
+                    string orginteraction = interaction->getAsString( UCEFFederateBase::KEY_ORG_CLASS.c_str() );
 
-                    // First compare host name in interaction matches with this routing info
-                    string hostValConfig = it->second.c_str();
+                    auto intList = JsonParser::getValueAsStrList( routeSegment, KEY_OMNET_INT_CONFIG );
 
-                    if( ConversionHelper::isMatch(srcHost, hostValConfig ) )
+                    if( ConversionHelper::isMatch(orginteraction, intList) )
                     {
-                        // Then check interaction name matches with this routing info
-                        it = destination.find( KEY_OMNET_INT_CONFIG );
-                        if( it != destination.end() )
-                        {
-                            string intValConfig = it->second.c_str();
-                            string srcinteraction = interaction->getAsString( UCEFFederateBase::KEY_ORG_CLASS.c_str() );
-                            if( ConversionHelper::isMatch(srcinteraction, intValConfig) )
-                            {
-                                for( auto &kv : destination )
-                                {
-                                    // These are already in the message so skip
-                                    if( kv.first == KEY_SRC_HOST || kv.first == KEY_OMNET_INT_CONFIG )
-                                        continue;
+                        // If here that means we found a matching routing segment, now we need to stuff that info
+                        string routingInfo = JsonParser::getJsonObjectAsString( routeSegment, KEY_OMNET_DST_CONFIG );
 
-                                    // Everything is matching so add the destination info to the message
-                                    cMsgPar& msgPar = outMsg->addPar( kv.first.c_str() );
-                                    msgPar.setStringValue( kv.second.c_str() );
+                        if( routingInfo != "")
+                        {
+                            routingInfoFound = true;
+                            auto routingInfoMap = JsonParser::getValuesAsKeyValMapList( routeSegment, KEY_OMNET_DST_CONFIG );
+                            for( auto designationInfo : routingInfoMap )
+                            {
+                                if( designationInfo.size() )
+                                {
+                                    cMessage* dupMSg = outMsg->dup();
+                                    for( auto &kv : designationInfo )
+                                    {
+                                        cMsgPar& msgPar = dupMSg->addPar( kv.first.c_str() );
+                                        msgPar.setStringValue( kv.second.c_str() );
+                                    }
+                                    sendDirect( dupMSg, hostNode, "out" );
+
+                                    string logMsg = "Sending a message(id :" + to_string( dupMSg->getId() ) + ") representing received interaction ";
+                                    logMsg += interaction->getInteractionClassName() + " directly to the source host " + srcHost;
+                                    logger.log( logMsg, LevelDebug );
                                 }
-                                break;
                             }
                         }
+                        break;
                     }
                 }
 
             }
 
-            string logMsg = "Sending a message representing received interaction " +  interaction->getInteractionClassName();
-            logMsg += " directly to the source host " + srcHost;
-            logger.log( logMsg, LevelDebug );
-
-            sendDirect(outMsg, hostNode, "out");
+            if( !routingInfoFound )
+            {
+                string msg = "I couldn't find routing info for the message directed to " + srcHost +". I am not going to send the message.";
+                logger.log( msg, LevelWarn );
+            }
+            delete outMsg; // Must delete this msg as we are sending dup of this msg out
         }
         else
         {

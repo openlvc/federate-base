@@ -18,7 +18,7 @@
    "joinFomPaths":[
 
    ],
-   "somPath":[
+   "somPaths":[
       "resources//ObjectModels//som//UCEF-EXP-PONG.xml"
    ]
 }

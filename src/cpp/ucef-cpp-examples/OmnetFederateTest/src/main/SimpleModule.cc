@@ -26,9 +26,9 @@ void SimpleModule::initialize()
 
 void SimpleModule::handleMessage( cMessage *msg )
 {
-    if( msg->hasPar("destinationHost") )
+    if( msg->hasPar("host") )
     {
-        string dstHost = msg->par("destinationHost").stringValue();
+        string dstHost = msg->par("host").stringValue();
         if( getName() == dstHost )
         {
             cModule* omnetNode = getParentModule()->getSubmodule( "OMNeTFed" );
