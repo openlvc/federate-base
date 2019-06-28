@@ -1,16 +1,24 @@
 {
-    "federateName":"ResponseFederate",
-    "federateType":"ResponseFederate",
-    "federationExecName":"ChallengeResponseFederate",
-    "canCreateFederation":true,
-    "maxJoinAttempts":2,
-    "joinRetryIntervalSec":5,
-    "syncBeforeResign":true,
-    "callbacksAreImmediate":true,
-    "lookAhead":0.2,
-    "stepSize":1,
-    "fomPath":"ChallengeResponse/fom/ChallengeResponse.xml",
-    "somPath":"ChallengeResponse/som/Response.xml",
-    "hlaIncoming" : ["HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.ChallengeInteraction",
-		     "HLAobjectRoot.ParentObject.ChallengeObject"]
+   "logLevel":"info",
+   "federateName":"OmnetFederate",
+   "federateType":"OmnetFederate",
+   "federationExecName":"PingPongOmnetFederation",
+   "canCreateFederation":true,
+   "maxJoinAttempts":2,
+   "joinRetryIntervalSec":5,
+   "syncBeforeResign":true,
+   "callbacksAreImmediate":true,
+   "lookAhead":0.2,
+   "stepSize":1,
+   "timeConstrained":false,
+   "timeRegulated":true,
+   "baseFomPaths":[
+      "resources//ObjectModels//fom//UCEF-EXP-PINGPONG.xml"
+   ],
+   "joinFomPaths":[
+
+   ],
+   "somPaths":[
+      "resources//ObjectModels//som//UCEF-EXP-PINGPONG.xml"
+   ]
 }

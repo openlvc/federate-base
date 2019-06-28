@@ -61,6 +61,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="fedtime1516e64d"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="rti1516e64d"/>
 								</option>
+								<option id="gnu.cpp.link.option.flags.842896185" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-Wl,--no-as-needed" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.942014352" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -147,7 +148,7 @@
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="fedtime1516e64"/>
 									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="rti1516e64"/>
 								</option>
-								<option id="gnu.cpp.link.option.flags.520382722" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="" valueType="string"/>
+								<option id="gnu.cpp.link.option.flags.520382722" name="Linker flags" superClass="gnu.cpp.link.option.flags" useByScannerDiscovery="false" value="-Wl,--no-as-needed" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.107844412" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

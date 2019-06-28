@@ -29,7 +29,6 @@
 
 #include <stdexcept>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 
 namespace base
@@ -38,7 +37,7 @@ namespace base
 	 * The {@link UCEFException} wraps lower level exceptions (RTI exceptions)
 	 * into a user friendly custom exception type.
 	 */
-	class UCEF_API UCEFException : public std::runtime_error
+	class UCEFException : public std::runtime_error
 	{
 	public:
 		//----------------------------------------------------------

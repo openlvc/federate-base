@@ -35,7 +35,7 @@ namespace base
 	 * The {@link UCEFDataTypeException} wraps any data type conversion errors
 	 *
 	 */
-	class UCEF_API UCEFDataTypeException : public UCEFException
+	class UCEFDataTypeException : public UCEFException
 	{
 	public:
 		//----------------------------------------------------------

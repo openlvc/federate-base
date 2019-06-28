@@ -36,6 +36,7 @@
 #include "gov/nist/ucef/hla/ucef/interactions/SimPause.h"
 #include "gov/nist/ucef/hla/ucef/interactions/SimResume.h"
 #include "gov/nist/ucef/hla/ucef/interactions/SimStart.h"
+
 namespace base
 {
 	namespace ucef
@@ -46,6 +47,15 @@ namespace base
 		 */
 		class UCEFFederateBase : public FederateBase
 		{
+		public:
+
+			static std::string KEY_OMNET_INTERACTIONS;
+			static std::string KEY_NET_INT_NAME;
+
+			static std::string KEY_OMNET_CONFIG;
+			static std::string KEY_SRC_HOST;
+			static std::string KEY_ORG_CLASS;
+			static std::string KEY_NET_DATA;
 		public:
 
 			//----------------------------------------------------------
@@ -71,7 +81,28 @@ namespace base
 			                     ( long interactionHash,
 			                       const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues ) override;
 
+			/**
+			 * Initialize UCEF fededrate from the given JSON config file
+			 *
+			 * @param configFilePath path to the federate config json
+			 */
+			void configureFromJSON( const std::string& configFilePath ) override;
+
 		protected:
+
+			/**
+			 * Sends an interaction to the federation that this federate is part of.
+			 * <p/>
+			 * When sending an interaction to the federation this method will fist check
+			 * whether the passed interaction type is designated to an OMNeT federate. This can
+			 * be specified in federate config file. If so, it will first convert the passed
+			 * interaction into a Network interaction type before sending to the federation.
+			 *
+			 * @param hlaInteraction object that holds the values of the interaction
+			 *        parameters that need to be published by this federate
+			 */
+			void sendInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
 			//----------------------------------------------------------
 			//                     Callback Methods
 			//----------------------------------------------------------
@@ -126,8 +157,67 @@ namespace base
 			 * The main execution loop of the UCEF federate
 			 */
 			virtual void federateExecute() override;
+
+		private:
+			/**
+			 * A utility method to determine if a ginve interaction class name corresponds to one of the
+			 * simulation control interactions
+			 *
+			 * @param interactionName the name of the interaction instance to check
+			 * @return true if the interaction is one of the simulation control interactions, false
+			 *         otherwise
+			 */
+			bool isSimulationControlInteraction( const std::string& interactionName );
+
+			/**
+			 * Determine if an incoming interaction should be received by this federate.
+			 *
+			 * This is determined by using encapsulated "federateFilter" parameter. This contains
+			 * comma separated matching strings which are checked against the federate name.
+			 *
+			 * If the "federateFilter" parameter is absent or if any of the matching strings
+			 * match the federate name, federate will receive the interaction.
+			 *
+			 * @param interaction the simulation control interaction
+			 */
+			bool shouldReceiveInteraction( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
+			/**
+			 * A utility method to determine if a given interaction class must be
+			 * converted to a network interaction for OMNeT++ routing
+			 *
+			 * @param className the name of the interaction/object instance to check
+			 * @return true if the interaction must be routed via OMNeT++, false otherwise
+			 */
+			bool isNetworkInteraction( const std::string& className );
+
+			/**
+			 * General handler for received simulation control interactions
+			 * ({@link SimStart},{@link SimEnd}, {@link SimPause}, {@link SimResume})
+			 *
+			 * @param interactionClass the simulation control interaction
+			 * @param parameterValues a map that contains parameters and values of the
+			 *                        received interaction
+			 */
+			void processSimControlInteraction( std::shared_ptr<InteractionClass>& interactionClass,
+			                                   const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+
+			/**
+			 * Convert the parameters of the given interaction into a JSON string
+			 *
+			 * @param hlaInteraction object interaction that holds the values of the
+			 *                      parameters
+			 * @return JSON string representation of interaction parameters
+			 **/
+			std::string hlaToJsonString( std::shared_ptr<HLAInteraction>& hlaInteraction );
+
+		protected:
+			std::string netInteractionName;
 		private:
 			bool simEndReceived;
+			std::string srcHost;
+			std::list<std::string> omnetInteractions;
+			std::list<std::regex> omnetInteractionsInRegex;
 		};
 	}
 }

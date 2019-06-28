@@ -16,4 +16,6 @@ local.properties
 **/Release/
 **/target/
 **/src/main/*.so
+*
+!*.*
 

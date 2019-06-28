@@ -21,28 +21,48 @@ simple OmnetFederateModule
 {
     @display("i=block/join");
     gates:
-        input in;
-        output out;
+        input omnet @directIn;
 }
 
-simple SimpleResponseModule
+simple SimpleModule
 {
     gates:
         input in;
         output out;
 }
 
+simple RouterModule
+{
+    gates:
+        input in[];
+        output out[];
+}
+
 network OmnetFederateNet
 {
-    @display("bgb=297,264");
+    @display("bgb=350,264");
     submodules:
-        src: OmnetFederateModule {
-            @display("p=66,163");
+        OMNeTFed: OmnetFederateModule {
+            @display("p=168,226");
         }
-        responder: SimpleResponseModule {
-            @display("p=235,48;i=block/rxtx");
+        PingA: SimpleModule {
+            @display("p=50,41;i=block/rxtx");
         }
-    connections:
-        src.out --> {  delay = 1000ms; } --> responder.in;
-        src.in <-- {  delay = 1000ms; } <-- responder.out;
+        PingB: SimpleModule {
+            @display("p=50,160;i=block/rxtx");
+        }
+        PongA: SimpleModule {
+            @display("p=299,47;i=block/rxtx");
+        }
+        PongB: SimpleModule {
+            @display("p=283,187;i=block/rxtx");
+        }
+        router: RouterModule {
+            @display("p=168,110;i=block/dispatch");
+        }
+    connections allowunconnected:
+        PingA.out --> {  delay = 1000ms; } --> router.in++;
+        PingB.out --> {  delay = 5000ms; } --> router.in++;
+        router.out++ --> {  delay = 1000ms; } --> PongA.in;
+        router.out++ --> {  delay = 5000ms; } --> PongB.in;
 }

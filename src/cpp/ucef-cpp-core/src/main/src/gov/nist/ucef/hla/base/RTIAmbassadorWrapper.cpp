@@ -81,13 +81,21 @@ namespace base
 
 	void RTIAmbassadorWrapper::joinFederation( const string& federateName,
 	                                           const string& federateType,
-	                                           const string& federationName )
+	                                           const string& federationName,
+	                                           const vector<string>& fomPaths )
 	{
 		try
 		{
+			vector<wstring> wFomPaths;
+			for( string path : fomPaths )
+			{
+				wFomPaths.push_back( ConversionHelper::s2ws( path ) );
+			}
+
 			rtiAmbassador->joinFederationExecution( ConversionHelper::s2ws(federateName),
-			                                          ConversionHelper::s2ws(federateType),
-			                                          ConversionHelper::s2ws(federationName) );
+			                                        ConversionHelper::s2ws(federateType),
+			                                        ConversionHelper::s2ws(federationName),
+													wFomPaths );
 		}
 		catch( Exception& e)
 		{

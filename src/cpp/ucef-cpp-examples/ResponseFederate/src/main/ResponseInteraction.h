@@ -40,7 +40,6 @@ public:
 	ResponseInteraction( std::shared_ptr<const base::HLAInteraction> hlaInteraction );
 	virtual ~ResponseInteraction();
 
-	ResponseInteraction( const ResponseInteraction& ) = delete;
 	ResponseInteraction& operator=( const ResponseInteraction& ) = delete;
 
 	void setChallengeId( std::string& id );

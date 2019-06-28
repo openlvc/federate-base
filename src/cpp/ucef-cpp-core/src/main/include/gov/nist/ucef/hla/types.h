@@ -35,6 +35,7 @@
 #include <list>
 #include <locale>
 #include <memory>
+#include <regex>
 #include <string>
 #include <unordered_map>
 
@@ -448,6 +449,143 @@ namespace base
 					std::wstring_convert<convert_typeX, wchar_t> converterX;
 
 					return converterX.to_bytes( wstr );
+				}
+
+				static LogLevel toLogLevel( const std::string& str )
+				{
+					LogLevel level = LevelInfo;
+					if( str == "trace" )
+					{
+						level = LevelTrace;
+					}
+					else if( str == "debug" )
+					{
+						level = LevelDebug;
+					}
+					else if( str == "warning" )
+					{
+						level = LevelWarn;
+					}
+					else if( str == "error" )
+					{
+						level = LevelError;
+					}
+					else if( str == "critical" )
+					{
+						level = LevelCritical;
+					}
+					else if( str == "off" )
+					{
+						level = LevelOff;
+					}
+
+					return level;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::regex& regexString  )
+				{
+					bool match = false;
+
+					if ( std::regex_match(srcString, regexString) )
+					{
+						match = true;
+					}
+					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::string& matchString  )
+				{
+					bool match = false;
+
+					if ( std::regex_match(srcString, toRegex(matchString)) )
+					{
+						match = true;
+					}
+					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::list<std::regex>& regexStrings  )
+				{
+					bool match = false;
+
+					for( std::regex regexString : regexStrings )
+					{
+						if ( std::regex_match(srcString, regexString) )
+						{
+							match = true;
+							break;
+						}
+					}
+					return match;
+				}
+
+				static bool isMatch( const std::string& srcString, const std::list<std::string>& matchStrings  )
+				{
+					bool match = false;
+
+					for( std::string matchString : matchStrings )
+					{
+						if ( std::regex_match(srcString, toRegex(matchString)) )
+						{
+							match = true;
+							break;
+						}
+					}
+					return match;
+				}
+
+				static std::regex toRegex( const std::string& srcString )
+				{
+					std::string output = "";
+
+					for( const char c: srcString )
+					{
+						switch( c )
+						{
+							case '.':  output += "\\.";     break;
+							case '*':  output += ".*";      break;
+							default:   output += c;         break;
+						}
+					}
+					return std::regex( output );
+				}
+
+				static std::list<std::string> tokenize( std::string& stringVal, char delimiter )
+				{
+					std::list<std::string> tokense;
+
+					std::stringstream ss(stringVal);
+					std::string tmpString;
+
+					while( getline(ss, tmpString, delimiter) )
+					{
+						tokense.push_back(tmpString);
+					}
+
+					return tokense;
+				}
+
+				// trim from start (in place)
+				static inline void ltrim( std::string &s )
+				{
+				    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+				        return !std::isspace(ch);
+				    }));
+				}
+
+				// trim from end (in place)
+				static inline void rtrim( std::string &s )
+				{
+				    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+				        return !std::isspace(ch);
+				    }).base(), s.end());
+				}
+
+				// trim from both ends (in place)
+				static inline void trim( std::string &s )
+				{
+				    ltrim(s);
+				    rtrim(s);
 				}
 		};
 	}

@@ -36,7 +36,7 @@ PROJECTRELATIVE_PATH =
 O = $(PROJECT_OUTPUT_DIR)/$(CONFIGNAME)/$(PROJECTRELATIVE_PATH)
 
 # Object files for local .cc, .msg and .sm files
-OBJS = $O/OmnetFederateModule.o $O/SimpleResponseModule.o
+OBJS = $O/OmnetFederateModule.o $O/SimpleModule.o $O/RouterModule.o
 
 # Message files
 MSGFILES =

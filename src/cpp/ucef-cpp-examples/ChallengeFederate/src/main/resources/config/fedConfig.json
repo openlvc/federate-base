@@ -1,12 +1,23 @@
 {
-    "federateName":"ChallengeFederate",
-    "federateType":"ChallengeFederate",
-    "federationExecName":"ChallengeResponseFederate",
-    "canCreateFederation":true,
-    "maxJoinAttempts":2,
-    "joinRetryIntervalSec":5,
-    "syncBeforeResign":true,
-    "callbacksAreImmediate":true,
-    "lookAhead":0.2,
-    "stepSize":1
+   "federateName":"CppChallengeFederate",
+   "federateType":"CppChallengeFederate",
+   "federationExecName":"ChallengeResponseFederate",
+   "canCreateFederation":true,
+   "maxJoinAttempts":2,
+   "joinRetryIntervalSec":5,
+   "syncBeforeResign":true,
+   "callbacksAreImmediate":true,
+   "lookAhead":0.2,
+   "stepSize":1,
+   "timeConstrained":true,
+   "timeRegulated":true,
+   "baseFomPaths":[
+      "resources//ChallengeResponse//fom//ChallengeResponse.xml"
+   ],
+   "joinFomPaths":[
+
+   ],
+   "somPaths":[
+      "resources//ChallengeResponse//som//Challenge.xml"
+   ]
 }

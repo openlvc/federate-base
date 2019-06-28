@@ -16,9 +16,10 @@
 #ifndef OMNETFEDERATE_H_
 #define OMNETFEDERATE_H_
 
-#include "IOmnetFederate.h"
-
 #include <omnetpp.h>
+#include <list>
+
+#include "gov/nist/ucef/hla/ucef/NoOpFederate.h"
 
 namespace base
 {
@@ -26,11 +27,16 @@ namespace base
     {
         namespace omnet
         {
-
-            class OmnetFederate : public IOmnetFederate
+            class OmnetFederate : public omnetpp::cSimpleModule, public base::ucef::NoOpFederate
             {
+            private:
+                // Keys to get Omnet federate routing info
+                static std::string KEY_OMNET_CONFIG;
+                static std::string KEY_OMNET_INT_CONFIG;
+                static std::string KEY_OMNET_DST_CONFIG;
+                static std::string KEY_OMNET_SRC_HOSTS;
             public:
-                static std::string KEY_HLA_MSG_FILTER;
+
                 //----------------------------------------------------------
                 //                     Static methods
                 //----------------------------------------------------------
@@ -54,36 +60,43 @@ namespace base
                 //                     No-Op federate methods
                 //----------------------------------------------------------
 
-                virtual void receivedInteraction( std::shared_ptr<const HLAInteraction> hlaInt,
-                                                  double federateTime ) override;
-
-                //----------------------------------------------------------
-                //                    Member methods
-                //----------------------------------------------------------
-                /*
-                 * Sets the file path of the federate configuration
-                 *
-                 * <b>NOTE:</b> Path to the federate configuration must be configured
-                 * inside when initializing modules in {@link OmnetFederate#initModule}.
-                 *
-                 * @param fedConfigFilePath path to the federate configuration
+                /**
+                 * Step function of this federate
                  */
-                void setFedConfigPath( const std::string &fedConfigFilePath );
+                virtual bool step( double federateTime ) override;
+
+                /**
+                 * Get called whenever RTI receives a new object interaction
+                 */
+                virtual void receivedInteraction( std::shared_ptr<const base::HLAInteraction> hlaInt,
+                                                  double federateTime ) override;
 
             protected:
                 //----------------------------------------------------------
                 //                     cSimpleModule methods
                 //----------------------------------------------------------
                 virtual void handleMessage( omnetpp::cMessage *msg ) override;
+            protected:
+                std::string fedConfigFile;
+                std::string simConfigFile;
 
             private:
                 void initializeFederate();
                 void tearDownFederate();
+                void processToHla();
+                void processToOmnet();
 
             private:
-                std::string fedConfigFile;
-                static base::ucef::NoOpFederate* thisFedarate;
-                std::list<std::string> hlaMsgFilter;
+                bool shouldContinue;
+                std::mutex toOmnetLock;
+                std::list<std::shared_ptr<const base::HLAInteraction>> interactionsToOmnet;
+                std::list<std::shared_ptr<base::HLAInteraction>> interactionsToRti;
+                std::string routingConfigString;
+                std::string federateName;
+                double stepSize;
+
+                static NoOpFederate* thisFedarate;
+                omnetpp::cMessage *timerMessage;
             };
         }
     }

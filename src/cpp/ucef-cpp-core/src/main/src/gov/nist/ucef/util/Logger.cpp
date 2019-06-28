@@ -30,7 +30,6 @@ namespace base
 #endif
 				logger = basic_logger_mt( "ucef_federate", "logs/uceffederate.log", true );
 				logger->set_level( level::level_enum::info );
-				logger->info( "Logger initialised and the default log level is set to INFO" );
 			}
 			catch( const spdlog::spdlog_ex &e )
 			{
@@ -41,8 +40,9 @@ namespace base
 
 		void Logger::setLogLevel( LogLevel level )
 		{
-			// we are using the same numeric values as in spdlog, so the cast is safe.
+			// We are using the same numeric values as in spdlog, so the cast is safe.
 			logger->set_level( level::level_enum(level) );
+			logger->info( "Log level changed to " + string(level::to_str((level::level_enum)level)) );
 		}
 
 		void Logger::log( const std::string& message, LogLevel level )

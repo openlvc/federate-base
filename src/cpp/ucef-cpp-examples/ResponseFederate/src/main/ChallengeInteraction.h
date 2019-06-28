@@ -39,7 +39,6 @@ public:
 	ChallengeInteraction( std::shared_ptr<const base::HLAInteraction> hlaInteraction );
 	virtual ~ChallengeInteraction();
 
-	ChallengeInteraction( const ChallengeInteraction& ) = delete;
 	ChallengeInteraction& operator=( const ChallengeInteraction& ) = delete;
 
 	void setChallengeId( std::string& id );

@@ -34,7 +34,6 @@
 #include <map>
 #include <mutex>
 #include <vector>
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/types.h"
 
 namespace base
@@ -50,7 +49,7 @@ namespace base
 	 * @see IFederateBase#receiveAttributeReflection( std::shared_ptr<const HLAObject>&, double )
 	 * @see IFederateBase#receiveObjectDeletion( std::shared_ptr<const HLAObject>&, double )
 	 */
-	class UCEF_API HLAObject
+	class HLAObject
 	{
 		public:
 			//----------------------------------------------------------

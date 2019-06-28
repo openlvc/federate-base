@@ -1,17 +1,7 @@
 #include <iostream>
-#include <list>
-#include <mutex>
 
-#include "ChallengeInteraction.h"
-#include "ChallengeObject.h"
-#include "ResponseInteraction.h"
-
-#include "gov/nist/ucef/config.h"
-
-#include "gov/nist/ucef/hla/base/HLAInteraction.h"
-#include "gov/nist/ucef/hla/base/HLAObject.h"
+#include "ResponseFederate.h"
 #include "gov/nist/ucef/hla/base/UCEFException.h"
-#include "gov/nist/ucef/hla/ucef/NoOpFederate.h"
 
 using namespace std;
 using namespace base;
@@ -20,32 +10,26 @@ using namespace base::util;
 
 const static string RESPONSE_INTERACTION = "HLAinteractionRoot.C2WInteractionRoot.ParentInteraction.Response";
 
-struct Response
-{
-	string challengeId;
-	string resultString;
-};
+	ResponseFederate::ResponseFederate() : count(0)
+	{
 
-class ResponseFederate : public NoOpFederate
-{
+	}
 
-public:
-	//----------------------------------------------------------
-	//                     Constructors
-	//----------------------------------------------------------
-	ResponseFederate() = default;
-	virtual ~ResponseFederate() = default;
+	ResponseFederate::~ResponseFederate()
+	{
+
+	}
 
 	//----------------------------------------------------------
 	//          Lifecycle hooks implementation
 	//----------------------------------------------------------
-	void beforeReadyToPopulate() override
+	void ResponseFederate::beforeReadyToPopulate()
 	{
 		cout << "\'Ready to populate\' hook" << endl;
 		pressEnterToContinue();
 	}
 
-	void beforeReadyToRun() override
+	void ResponseFederate::beforeReadyToRun()
 	{
 		cout << "\'Ready to run\' hook" << endl;
 
@@ -108,30 +92,30 @@ public:
 		pressEnterToContinue();
 	}
 
-	void beforeFirstStep() override
+	void ResponseFederate::beforeFirstStep()
 	{
 		cout << "\'Before first step\' hook" << endl;
 		pressEnterToContinue();
 	}
 
-	void beforeReadyToResign() override
+	void ResponseFederate::beforeReadyToResign()
 	{
 		cout << "\'Before ready to resign\' hook" << endl;
 		pressEnterToContinue();
 	}
 
-	virtual void beforeExit() override
+	void ResponseFederate::beforeExit()
 	{
 		cout << "\'Before exit\' hook" << endl;
 		pressEnterToContinue();
 	}
 
-	virtual bool step(double federateTime) override
+	bool ResponseFederate::step(double federateTime)
 	{
 		// Create a local list of received remote challenges
 		unique_lock<mutex> lock( challengeMutex );
-		list<shared_ptr<ChallengeObject>> challengeObjectList = remoteChallengeObjects;
-		list<shared_ptr<ChallengeInteraction>> challengeInteractionList = remoteChallengeInteractions;
+		list<ChallengeObject> challengeObjectList = remoteChallengeObjects;
+		list<ChallengeInteraction> challengeInteractionList = remoteChallengeInteractions;
 		remoteChallengeObjects.clear();
 		remoteChallengeInteractions.clear();
 		lock.unlock();
@@ -156,67 +140,62 @@ public:
 	//----------------------------------------------------------
 	//         Implement Callback Methods
 	//----------------------------------------------------------
-	virtual void receivedObjectRegistration( shared_ptr<const HLAObject> hlaObject,
-	                                         double federateTime ) override
+	void ResponseFederate::receivedObjectRegistration( shared_ptr<const HLAObject> hlaObject,
+	                                                   double federateTime )
 	{
 		//cout << "Received an object registration callback " << hlaObject->getClassName() << endl;
 	}
 
-	virtual void receivedAttributeReflection( shared_ptr<const HLAObject> hlaObject,
-	                                          double federateTime ) override
+	void ResponseFederate::receiveChallengeObject( ChallengeObject challengeObj )
 	{
-		shared_ptr<ChallengeObject> receievedChallenge = make_shared<ChallengeObject>( hlaObject );
-		cout << "Received object challenge id      : " + receievedChallenge->getChallengeId() << endl;
-		cout << "Received string is                : " + receievedChallenge->getStringValue() << endl;
-		cout << "Received index is                 : " + to_string( receievedChallenge->getBeginIndex() ) << endl;
+		cout << "Received object challenge id      : " + challengeObj.getChallengeId() << endl;
+		cout << "Received string is                : " + challengeObj.getStringValue() << endl;
+		cout << "Received index is                 : " + to_string( challengeObj.getBeginIndex() ) << endl;
 		cout << "---------------------------------------------------------------------------------" << endl;
 		lock_guard<mutex> lock( challengeMutex );
-		remoteChallengeObjects.emplace_back( receievedChallenge );
+		remoteChallengeObjects.emplace_back( challengeObj );
 	}
 
-	virtual void receivedInteraction( shared_ptr<const HLAInteraction> hlaInt,
-	                                  double federateTime ) override
+	void ResponseFederate::receivedChallengeInteraction( ChallengeInteraction challengeInt )
 	{
-		shared_ptr<ChallengeInteraction> receievedChallenge = make_shared<ChallengeInteraction>( hlaInt );
-		cout << "Received interaction challenge id : " + receievedChallenge->getChallengeId() << endl;
-		cout << "Received string is                : " + receievedChallenge->getStringValue() << endl;
-		cout << "Received index is                 : " + to_string( receievedChallenge->getBeginIndex() ) << endl;
+		cout << "Received interaction challenge id : " + challengeInt.getChallengeId() << endl;
+		cout << "Received string is                : " + challengeInt.getStringValue() << endl;
+		cout << "Received index is                 : " + to_string( challengeInt.getBeginIndex() ) << endl;
 		cout << "---------------------------------------------------------------------------------" << endl;
 		lock_guard<mutex> lock( challengeMutex );
-		remoteChallengeInteractions.emplace_back( receievedChallenge );
+		remoteChallengeInteractions.emplace_back( challengeInt );
 	}
 
-	virtual void receivedObjectDeletion( shared_ptr<const HLAObject> hlaObject ) override
+	void ResponseFederate::receivedObjectDeletion( shared_ptr<const HLAObject> hlaObject )
 	{
 		//cout << "Received an object deletion callback " << hlaObject->getClassName() << endl;
 	}
 
-	virtual void receivedSimStart( shared_ptr<const SimStart> hlaInt,
-	                               double federateTime ) override
+	void ResponseFederate::receivedSimStart( shared_ptr<const SimStart> hlaInt,
+	                                         double federateTime )
 	{
 		//cout << "Received sim start interaction";
 	}
 
-	virtual void receivedSimEnd( shared_ptr<const SimEnd> hlaInt,
-	                             double federateTime ) override
+	void ResponseFederate::receivedSimEnd( shared_ptr<const SimEnd> hlaInt,
+	                                       double federateTime )
 	{
 		//cout << "Received sim end interaction";
 	}
 
-	virtual void receivedSimPaused( shared_ptr<const SimPause> hlaInt,
-	                                double federateTime ) override
+	void ResponseFederate::receivedSimPaused( shared_ptr<const SimPause> hlaInt,
+	                                          double federateTime )
 	{
 		//cout << "Received sim paused interaction";
 	}
 
-	virtual void receivedSimResumed( shared_ptr<const SimResume> hlaInt,
-	                                 double federateTime ) override
+	void ResponseFederate::receivedSimResumed( shared_ptr<const SimResume> hlaInt,
+	                                           double federateTime )
 	{
 		//cout << "Received sim resumed interaction";
 	}
 
-private:
-	void pressEnterToContinue()
+	void ResponseFederate::pressEnterToContinue()
 	{
 		do
 		{
@@ -224,7 +203,7 @@ private:
 		} while (cin.get() != '\n');
 	}
 
-	shared_ptr<HLAInteraction> generateResponseInteraction( Response response )
+	shared_ptr<HLAInteraction> ResponseFederate::generateResponseInteraction( Response response )
 	{
 		shared_ptr<ResponseInteraction> responseInteraction = make_shared<ResponseInteraction>( RESPONSE_INTERACTION );
 		responseInteraction->setChallengeId( response.challengeId );
@@ -232,55 +211,26 @@ private:
 		return responseInteraction;
 	}
 
-	Response solveChallenge( shared_ptr<ChallengeObject> receievedChallenge )
+	Response ResponseFederate::solveChallenge( ChallengeObject receievedChallenge )
 	{
-		string receivedString = receievedChallenge->getStringValue();
-		int beginIndex = receievedChallenge->getBeginIndex();
+		string receivedString = receievedChallenge.getStringValue();
+		int beginIndex = receievedChallenge.getBeginIndex();
 		string resultStr = receivedString.substr( beginIndex );
 
 		Response response;
-		response.challengeId = receievedChallenge->getChallengeId();
+		response.challengeId = receievedChallenge.getChallengeId();
 		response.resultString = resultStr;
 		return response;
 	}
 
-	Response solveChallenge( shared_ptr<ChallengeInteraction> receievedChallenge )
+	Response ResponseFederate::solveChallenge( ChallengeInteraction receievedChallenge )
 	{
-		string receivedString = receievedChallenge->getStringValue();
-		int beginIndex = receievedChallenge->getBeginIndex();
+		string receivedString = receievedChallenge.getStringValue();
+		int beginIndex = receievedChallenge.getBeginIndex();
 		string resultStr = receivedString.substr( beginIndex );
 
 		Response response;
-		response.challengeId = receievedChallenge->getChallengeId();
+		response.challengeId = receievedChallenge.getChallengeId();
 		response.resultString = resultStr;
 		return response;
 	}
-
-private:
-	list<shared_ptr<ChallengeObject>> remoteChallengeObjects;
-	list<shared_ptr<ChallengeInteraction>> remoteChallengeInteractions;
-	mutex challengeMutex;
-	int count;
-};
-
-int main()
-{
-	IFederateBase *fed = new ResponseFederate();
-	shared_ptr<base::FederateConfiguration> federateConfig = fed->getFederateConfiguration();
-	federateConfig->setFederationName( string("ChallengeResponseFederate") );
-	federateConfig->setFederateName( string("CppResponder") );
-	federateConfig->setFederateType(string("CppResponder") );
-	federateConfig->setLookAhead( 0.2f );
-	federateConfig->setTimeStep( 1.0f );
-	federateConfig->addFomPath( string("ChallengeResponse/fom/ChallengeResponse.xml") );
-	federateConfig->addSomPath( string("ChallengeResponse/som/Response.xml") );
-	try
-	{
-		fed->runFederate();
-	}
-	catch( UCEFException& e )
-	{
-		cout << e.what() << endl;
-	}
-	delete fed;
-}

@@ -35,9 +35,9 @@ namespace base
 		}
 	}
 
-	bool HLAInteraction::isPresent( const string& attributeName ) const
+	bool HLAInteraction::isPresent( const string& parameterName ) const
 	{
-		bool flag = parameterDataStore->find( attributeName ) == parameterDataStore->end() ? false : true;
+		bool flag = parameterDataStore->find( parameterName ) == parameterDataStore->end() ? false : true;
 		return flag;
 	}
 
@@ -106,7 +106,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(bool) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to a Bool type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Bool type" );
 
 		if( data.data )
 			return *( (bool *)data.data.get() );
@@ -118,7 +118,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(char) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to a Char type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Char type" );
 
 		if( data.data )
 			return *( (char *)data.data.get() );
@@ -131,7 +131,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(short) > data.size )
-			throw UCEFDataTypeException("Cannot convert to a Short type");
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Short type" );
 
 		if( data.data )
 			return *( (short *)data.data.get() );
@@ -143,7 +143,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(int) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to an Int type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to an Int type" );
 
 		if( data.data )
 			return *( (int *)data.data.get() );
@@ -156,7 +156,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(long) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to a Long type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Long type" );
 
 		if( data.data )
 			return *( (long *)data.data.get() );
@@ -169,7 +169,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(float) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to a Float type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Float type" );
 
 		if( data.data )
 			return *( (float *)data.data.get() );
@@ -182,7 +182,7 @@ namespace base
 		VariableData data = getRawValue( parameterName );
 
 		if( sizeof(double) > data.size )
-			throw UCEFDataTypeException( "Cannot convert to a Double type" );
+			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Double type" );
 
 		if( data.data )
 			return *( (double *)data.data.get() );

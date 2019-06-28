@@ -14,6 +14,6 @@ namespace base
 		SimEnd::~SimEnd()
 		{
 		}
-		const std::string SimEnd::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimEnd";
+		const std::string SimEnd::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimulationControl.SimEnd";
 	}
 }

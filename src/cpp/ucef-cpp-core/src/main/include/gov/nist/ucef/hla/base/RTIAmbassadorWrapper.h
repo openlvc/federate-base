@@ -30,7 +30,6 @@
 #include <memory>
 #include <set>
 
-#include "gov/nist/ucef/config.h"
 #include "gov/nist/ucef/hla/base/HLAObject.h"
 #include "gov/nist/ucef/hla/base/HLAInteraction.h"
 #include "gov/nist/ucef/hla/types.h"
@@ -74,7 +73,7 @@ namespace base
 	 *  <li> {@link #deleteObjectInstance( std::shared_ptr<HLAObject>& )} with a valid instance of a {@link HLAObject}
 	 * </ul>
 	 */
-	class UCEF_API RTIAmbassadorWrapper
+	class RTIAmbassadorWrapper
 	{
 		public:
 			//----------------------------------------------------------
@@ -113,10 +112,12 @@ namespace base
 			 * @param federateName the name of the federate
 			 * @param federateType the type of the federate
 			 * @param federationName the name of the joining federation
+			 * @param fomPaths joining FOM file paths to the federation object model
 			 */
 			void joinFederation( const std::string& federateName,
 			                     const std::string& federateType,
-			                     const std::string& federationName );
+			                     const std::string& federationName,
+			                     const std::vector<std::string>& fomPaths = std::vector<std::string>() );
 
 			/**
 			 * Informs RTI that this federate is time regulating federate.

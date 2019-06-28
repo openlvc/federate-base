@@ -44,7 +44,7 @@ namespace base
 	 * a simplified interface in order to easily create a functional federate that can participate in 
 	 * distributed simulation.
 	 */
-	class UCEF_API FederateBase : public IFederateBase
+	class FederateBase : public IFederateBase
 	{
 		public:
 
@@ -109,6 +109,17 @@ namespace base
 			//----------------------------------------------------------
 			//                    Business Logic
 			//----------------------------------------------------------
+
+			/**
+			 * Convenience wrapper to configure a federate from a JSON.
+			 * <p/>
+			 *
+			 * Refer to {@link FederateConfiguration#fromJsonFile(const std::string&)}
+	         * for standard configuration JSON keys and data types.
+	         *
+			 * @param configFilePath path to the federate config json
+			 */
+			virtual void configureFromJSON( const std::string& configFilePath );
 
 			/**
 			 * Called by {@link FederateAmbassador} whenever RTI discovers a new object instance
@@ -229,7 +240,8 @@ namespace base
 			 */
 			void populateInteraction( const std::string& interactionClassName,
 			                          std::shared_ptr<HLAInteraction>& hlaInteraction,
-			                          const std::map<rti1516e::ParameterHandle, rti1516e::VariableLengthData>& parameterValues );
+			                          const std::map<rti1516e::ParameterHandle,
+			                          rti1516e::VariableLengthData>& parameterValues );
 
 		private:
 			//----------------------------------------------------------
@@ -319,7 +331,6 @@ namespace base
 			 * <p/>
 			 * If HLA_IMMEDIATE callback mechanism is used the main thread will be blocked
 			 * for a fixed time; while explicit ticking is used in HLA_EVOKED mode.
-			 *
 			 */
 			inline void tickForCallBacks();
 
@@ -335,5 +346,6 @@ namespace base
 			base::ObjectDataStoreByInstance objectDataStoreByInstance;
 			LifecycleState lifecycleState;
 			std::set<SynchPoint> syncPointTimeouts;
+
 	};
 }

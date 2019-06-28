@@ -39,7 +39,6 @@ public:
 	ChallengeObject( std::shared_ptr<const base::HLAObject> hlaObject );
 	virtual ~ChallengeObject();
 
-	ChallengeObject( const ChallengeObject& ) = delete;
 	ChallengeObject& operator=( const ChallengeObject& ) = delete;
 
 	void setChallengeId( std::string& id );

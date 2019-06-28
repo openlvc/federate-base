@@ -14,6 +14,6 @@ namespace base
 		SimStart::~SimStart()
 		{
 		}
-		const std::string SimStart::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimStart";
+		const std::string SimStart::INTERACTION_NAME = UCEFInteraction::UCEF_INTERACTION_ROOT + "SimulationControl.SimStart";
 	}
 }
