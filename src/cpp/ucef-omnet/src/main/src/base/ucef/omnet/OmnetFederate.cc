@@ -211,7 +211,6 @@ void OmnetFederate::processToOmnet()
 
             int configElementCount = JsonParser::getArrayElementCount( routingConfigString, KEY_OMNET_CONFIG );
 
-            bool matchFound = false;
             for( int i = 0; i < configElementCount; i++ )
             {
                 // First match the host name

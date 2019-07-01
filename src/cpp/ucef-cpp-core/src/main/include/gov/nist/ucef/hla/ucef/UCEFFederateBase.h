@@ -86,7 +86,7 @@ namespace base
 			 *
 			 * @param configFilePath path to the federate config json
 			 */
-			void configureFromJSON( const std::string& configFilePath ) override;
+			virtual void configureFromJSON( const std::string& configFilePath ) override;
 
 		protected:
 

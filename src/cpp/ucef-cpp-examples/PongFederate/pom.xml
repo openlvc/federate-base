@@ -8,10 +8,12 @@
 		<groupId>nist.gov.ucef</groupId>
 		<artifactId>Multi-Modules</artifactId>
 		<version>1.0</version>
+		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
 	<groupId>nist.gov.ucef.examples</groupId>
-	<artifactId>PingFederate</artifactId>
+	<artifactId>PongFederate</artifactId>
+	<version>1.0</version>
    	<packaging>nar</packaging>
 
 	<properties>
@@ -45,7 +47,11 @@
 					<cpp>
 						<name>gcc</name>
 						<sourceDirectory>${src.dir}</sourceDirectory>
-
+						<includePaths>
+							<includePath>
+								<path>${project.basedir}/${src.dir}</path>
+							</includePath>
+						</includePaths>
 						<options>
 							<option>-std=c++11</option>
 							<option>-fPIC</option>
@@ -63,6 +69,45 @@
 						</options>
 					</linker>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>compile</phase>
+						<configuration>
+							<tasks>
+								<echo message="Creating folder for the execution..."/>
+								<mkdir dir="${project.basedir}/target/bin"/>
+
+								<!-- Copy any shared objects and executables-->
+								<copy todir="${project.basedir}/target/bin" flatten="true" verbose="true">
+									<fileset dir="${project.build.directory}/nar">
+				                 				<include name="**/*.so"/>
+										<include name="**/PongFederate"/>
+									</fileset>
+								</copy>
+
+								<!-- Find resource folder path-->
+								<dirset dir="${project.build.directory}/nar" id="resourceId">
+									<include name="**/resources"/>
+								</dirset>
+								<property name= "resDir" refid= "resourceId" />
+
+								<!-- Copy resource folder-->
+								<copy todir="${project.basedir}/target/bin/resources" verbose="true">
+									<fileset dir="${project.build.directory}/nar/${resDir}">
+									</fileset>
+								</copy>
+							</tasks>
+						</configuration>
+						<goals>
+						    <goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -7,9 +7,12 @@
 		<groupId>nist.gov.ucef</groupId>
 		<artifactId>Multi-Modules</artifactId>
 		<version>1.0</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
+	<groupId>nist.gov.ucef</groupId>
 	<artifactId>federatebase</artifactId>
+	<version>1.0</version>
    	<packaging>nar</packaging>
 
 	<properties>
