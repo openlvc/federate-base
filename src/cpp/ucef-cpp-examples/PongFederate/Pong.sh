@@ -29,6 +29,7 @@ if [ $1 = "compile" ]
 then
 	cd ../../ucef-cpp-core
 	mvn compile
+	mvn install
 	cd ../ucef-cpp-examples/PongFederate
 	mvn compile
 	cd ..
