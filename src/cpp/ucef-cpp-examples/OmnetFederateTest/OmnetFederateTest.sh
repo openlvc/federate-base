@@ -47,7 +47,7 @@ then
 	###################
 	# Set up RTI_HOME #
 	###################
-	RTI_HOME=/home/vagrant/Downloads/portico-2.1.0
+	RTI_HOME=/usr/local/portico-2.1.0
 	echo RTI_HOME environment variable is set to $RTI_HOME
 
 	cd ./target/bin/
