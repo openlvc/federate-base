@@ -14,11 +14,7 @@ fi
 ############################################
 if [ $1 = "clean" ]
 then
-	cd ../../ucef-cpp-core
 	mvn clean
-	cd ../ucef-cpp-examples/ChallengeFederate
-	mvn clean
-	cd ..
 	exit;
 fi
 
@@ -27,12 +23,7 @@ fi
 ############################################
 if [ $1 = "compile" ]
 then
-	cd ../../ucef-cpp-core
 	mvn compile
-	mvn install
-	cd ../ucef-cpp-examples/ChallengeFederate
-	mvn compile
-	cd ..
 	exit;
 fi
 

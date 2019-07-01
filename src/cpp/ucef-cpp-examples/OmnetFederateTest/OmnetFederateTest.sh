@@ -14,13 +14,7 @@ fi
 ############################################
 if [ $1 = "clean" ]
 then
-	cd ../../ucef-cpp-core
 	mvn clean
-	cd ../ucef-omnet
-	mvn clean
-	cd ../ucef-cpp-examples/OmnetFederateTest
-	mvn clean
-	cd ..
 	exit;
 fi
 
@@ -29,15 +23,7 @@ fi
 ############################################
 if [ $1 = "compile" ]
 then
-	cd ../../ucef-cpp-core
 	mvn compile
-	mvn install
-	cd ../ucef-omnet
-	mvn compile
-	mvn install
-	cd ../ucef-cpp-examples/OmnetFederateTest
-	mvn compile
-	cd ..
 	exit;
 fi
 
