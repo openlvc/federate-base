@@ -15,5 +15,7 @@
 		<module>ucef-cpp-examples/ResponseFederate</module>
 		<module>ucef-omnet</module>
 		<module>ucef-cpp-examples/OmnetFederateTest</module>
+		<module>ucef-cpp-examples/PingFederate</module>
+		<module>ucef-cpp-examples/PongFederate</module>
   	</modules>
 </project>

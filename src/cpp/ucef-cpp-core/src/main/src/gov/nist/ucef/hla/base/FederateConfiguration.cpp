@@ -174,7 +174,7 @@ namespace base
 		hasKey = JsonParser::hasKey( configStr, KEY_MAX_JOIN_ATTEMPTS );
 		if( hasKey )
 		{
-			float jointAttempts = JsonParser::getValueAsInt( configStr, KEY_MAX_JOIN_ATTEMPTS );
+			int jointAttempts = JsonParser::getValueAsInt( configStr, KEY_MAX_JOIN_ATTEMPTS );
 			if( jointAttempts > 0 )
 				setMaxJoinAttempts( jointAttempts );
 			else
@@ -193,7 +193,7 @@ namespace base
 		hasKey = JsonParser::hasKey( configStr, KEY_JOIN_RETRY_INTERVAL_SEC );
 		if( hasKey )
 		{
-			float retryInterval = JsonParser::getValueAsInt( configStr, KEY_JOIN_RETRY_INTERVAL_SEC );
+			int retryInterval = JsonParser::getValueAsInt( configStr, KEY_JOIN_RETRY_INTERVAL_SEC );
 			if( retryInterval > 0 )
 				setRetryInterval( retryInterval );
 			else

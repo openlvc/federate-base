@@ -12,6 +12,7 @@
 
 	<groupId>nist.gov.ucef.omnet</groupId>
 	<artifactId>OmnetFederate</artifactId>
+	<version>1.0</version>
    	<packaging>nar</packaging>
 
 	<properties>
