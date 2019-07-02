@@ -11,7 +11,7 @@ This contains the C++ version of UCEF federate implementation
 # Quick Start
 
 ## Eclipse CDT
-- To work with FederateBase in `ucef-cpp-core`,  and example federates named ChallengeFederate, ResponseFederate, PingFederate and PongFederate  in `ucef-cpp-examples`, import the projects into Eclipse-CDT using `General` ►`Existing Projects into Workspace`.
+- To work with `FederateBase` in `ucef-cpp-core`,  and example federates named `ChallengeFederate`, `ResponseFederate`, `PingFederate` and `PongFederate`  in `ucef-cpp-examples`, import the projects into Eclipse-CDT using `General` ►`Existing Projects into Workspace`.
 
 ## Omnet++ IDE
 - To work with `OmnetFederate` in `ucef-omnet`,  and an example omnet federate named `OmnetFederateTest` in `ucef-cpp-examples`, import the projects into Omnet++IDE using `General` ►`Existing Projects into Workspace`.
