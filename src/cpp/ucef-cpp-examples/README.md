@@ -53,7 +53,7 @@ The main purpose of this example is to demonstrate the communication co-simulati
 - Run `.\pong.sh execute`  
 - This will bring`PongFederate` up and will wait at the main execution untill it receives a `ping` interaction  
 -  
-#### Running Pong federate  
+#### Running Ping federate  
 - Navigate to `PingFederate`  
 - Run `.\ping.sh clean`  
 - Run `.\ping.sh compile`  
