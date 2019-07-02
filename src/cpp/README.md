@@ -5,9 +5,9 @@ This contains C++ version of UCEF federate, Omnet federate and example federates
 	- A simplified programing interface to work with HLA1516e
 - ucef-cpp-examples
 	- An implementation of Challenge-Response example using UCEF federate
-- An example to demonstrate communication co-simulation using Omnet federate
-	- ucef-omnet
-- A gateway that allows federates to use OMNeT++ simulation for communication co-simulation
+	- An example to demonstrate communication co-simulation using Omnet federate
+- ucef-omnet
+	- A gateway that allows federates to use OMNeT++ simulation for communication co-simulation
 # Quick Start
 
 ## Eclipse CDT
