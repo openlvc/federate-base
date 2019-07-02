@@ -62,8 +62,7 @@ The main purpose of this example is to demonstrate the communication co-simulati
   
 # Federate configuration file  
   
-A federate configuration file can be used to configure federates and a  sample configuration file is provided below. In the given JSON configuration,  
-`omnet` attribute is optional and only need to specify if a federate wants to route certain interactions via OMNeT++ simulator.  
+A federate configuration file can be used to configure federates and a  sample configuration file is provided below. In the given JSON configuration, `omnet` attribute is optional and only need to specify if a federate wants to route certain interactions via OMNeT++ simulator.  
   
 ```json  
 {  
