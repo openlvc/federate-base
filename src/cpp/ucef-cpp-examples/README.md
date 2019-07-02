@@ -7,14 +7,14 @@ This contains two main examples to demonstrate the use of FederateBase to create
   
 ## Challenge-Response example federate  
   
-In this example, Challenge federate is configured to generate 20 challenges that have random strings and sub-string indexes, and to validate the responses received from Response federate.  
+In this example, Challenge federate is configured to generate 20 challenges that have random strings and sub-string indexes, and to validate the responses received from the Response federate.  
   
 The Response federate must reply to the received challenges by computing the correct sub-string.  
 
   ### Setting-up
 - If you haven't, run `mvn clean install` in root cpp directory  
 - Follow the below instructions and bring up `Challenge` and `Response` federates respectively  
-- Once both of them are waiting at `beforeReadyToPopulate` synch point, press &#x23CE; in each console alternatively until they progress into the execution phase  
+- Once both of them are waiting at `beforeReadyToPopulate` synch point, press &#x23CE; in each console alternatively until they progress onto the execution phase  
   
 #### Running Challenge federate  
 - Navigate to `ChallengeFederate`  
@@ -32,27 +32,27 @@ The Response federate must reply to the received challenges by computing the cor
   
 ## OMNeT++ Communication Co-Simulation example  
   
-The main purpose of this example is to demonstrate the communication co-simulation capability of federates using OMNet++ network simulator. Here, `PingFederate` is configured to send `Ping` interactions to a designated `PongFederate` using OMNet++ network simulator and `PongFederate` will reply to each `Ping` with a `Pong` via RTI.  
+The main purpose of this example is to demonstrate the communication co-simulation capability of federates using OMNet++ network simulator. Here, `PingFederate` is configured to send `Ping` interactions to a designated `PongFederate` using OMNet++ network simulator and `PongFederate` is configured to reply to each `Ping` with a `Pong` via RTI.  
   
 ### Setting-up
 - If you haven't, run `mvn clean install` in root cpp directory  
 - Follow the below instructions to bring up `OmnetFederateTest`, `PongFederate` and `PingFederate` federates respectively.  
-- When all three federates are running,   `Ping` messages generated from  `PingFederate` will be routed via OMNeT++ simulator and `PingFederate`  will receive `Pong` replies from the `PongFederate` via RTI.  
+- When all three federates are running, `Ping` messages generated from  `PingFederate` will be routed via OMNeT++ simulator and `PingFederate`  will receive `Pong` replies from the `PongFederate` via RTI.  
   
 #### Running OMNeT++ federate  
 - Navigate to `OmnetFederateTest`  
 - Run `.\omnetFederateTest.sh clean`  
 - Run `.\omnetFederateTest.sh compile`  
 - Run `.\omnetFederateTest.sh execute`  
-- This will bring`omnetFederateTest` up and when federate is in execution phase (OMNeT++ simulator UI is not frozen) hit `run` in the UI.  
+- This will bring `omnetFederateTest` up and when federate is in execution phase (OMNeT++ simulator UI is not frozen) hit `run` in the UI.  
   
 #### Running Pong federate  
 - Navigate to `PongFederate`  
 - Run `.\pong.sh clean`  
 - Run `.\pong.sh compile`  
 - Run `.\pong.sh execute`  
-- This will bring`PongFederate` up and will wait at the main execution untill it receives a `ping` interaction  
--  
+- This will bring`PongFederate` up and will wait at the main execution phase untill it receives a `ping` interaction  
+
 #### Running Ping federate  
 - Navigate to `PingFederate`  
 - Run `.\ping.sh clean`  
@@ -62,7 +62,7 @@ The main purpose of this example is to demonstrate the communication co-simulati
   
 # Federate configuration file  
   
-A federate configuration file can be used to configure federates and a  sample configuration file is provided below. In the given JSON configuration, `omnet` attribute is optional and only need to specify if a federate wants to route certain interactions via OMNeT++ simulator.  
+A federate configuration file can be used to configure federates and a sample configuration file is provided below. In the given JSON configuration, `omnet` attribute is optional and only need to specify if a federate wants to route certain interactions via OMNeT++ simulator.  
   
 ```json  
 {  
@@ -93,7 +93,7 @@ A federate configuration file can be used to configure federates and a  sample c
 ```  
   
 # Simulation configuration file  
-This configuration is required to configure the routing of the interactions via OMNeT++ simulator. This is only needed by the `OmnetFederate` and it's relative path is currently fixed at `//resources//config//omnetSimConfig.json`. A sample configuration is provided below.  
+This configuration is required to configure the routing of interactions via OMNeT++ simulator. This is only needed by the `OmnetFederate` and its relative path is currently fixed at `//resources//config//omnetSimConfig.json`. A sample configuration is provided below.  
   
 ```json  
 {  
