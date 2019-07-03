@@ -1,4 +1,5 @@
 {
+   "logLevel":"info",
    "federateName":"CppResponseFederate",
    "federateType":"CppResponseFederate",
    "federationExecName":"ChallengeResponseFederate",
