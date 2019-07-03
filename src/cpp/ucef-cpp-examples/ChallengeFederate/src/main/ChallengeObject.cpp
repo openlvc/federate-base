@@ -1,5 +1,8 @@
 #include "ChallengeObject.h"
 
+#include "gov/nist/ucef/hla/types.h"
+
+using namespace base::util;
 using namespace std;
 
 ChallengeObject::ChallengeObject( shared_ptr<const HLAObject> hlaObject ) : HLAObject( *hlaObject )
@@ -16,7 +19,7 @@ ChallengeObject::~ChallengeObject()
 
 void ChallengeObject::setChallengeId( string& id )
 {
-	setValue( "challengeId", id );
+	setValue( "challengeId", ConversionHelper::s2ws(id) );
 }
 
 void ChallengeObject::setBeginIndex( int beginIndex )
@@ -26,12 +29,12 @@ void ChallengeObject::setBeginIndex( int beginIndex )
 
 void ChallengeObject::setStringValue( string& textValue )
 {
-	setValue( "stringValue", textValue );
+	setValue( "stringValue", ConversionHelper::s2ws(textValue) );
 }
 
 string ChallengeObject::getChallengeId()
 {
-	return getAsString("challengeId");
+	return ConversionHelper::ws2s( getAsWString(string("challengeId")) );
 }
 
 int ChallengeObject::getBeginIndex()
@@ -41,5 +44,5 @@ int ChallengeObject::getBeginIndex()
 
 string ChallengeObject::getStringValue()
 {
-	return getAsString("stringValue");
+	return ConversionHelper::ws2s( getAsWString(string("stringValue")) );
 }

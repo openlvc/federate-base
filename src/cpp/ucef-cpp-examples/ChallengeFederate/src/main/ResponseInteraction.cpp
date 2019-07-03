@@ -1,6 +1,8 @@
 #include "ResponseInteraction.h"
 
-using namespace base;
+#include "gov/nist/ucef/hla/types.h"
+
+using namespace base::util;
 using namespace std;
 
 ResponseInteraction::ResponseInteraction( const string& interactionName ) : HLAInteraction( interactionName )
@@ -19,20 +21,20 @@ ResponseInteraction::~ResponseInteraction()
 
 void ResponseInteraction::setChallengeId( string& id )
 {
-	setValue( "challengeId", id );
+	setValue( "challengeId", ConversionHelper::s2ws(id) );
 }
 
 void ResponseInteraction::setSubStringValue( string& textValue )
 {
-	setValue( "substring", textValue );
+	setValue( "substring", ConversionHelper::s2ws(textValue) );
 }
 
 std::string ResponseInteraction::getChallengeId()
 {
-	return getAsString( "challengeId" );
+	return ConversionHelper::ws2s( getAsWString("challengeId") );
 }
 
 std::string ResponseInteraction::getSubStringValue()
 {
-	return getAsString( "substring" );
+	return ConversionHelper::ws2s( getAsWString(string("substring")) );
 }

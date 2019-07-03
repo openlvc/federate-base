@@ -93,6 +93,29 @@ namespace base
 			void setValue( const std::string& parameterName, const char val );
 
 			/**
+			 * Sets the value of a named parameter to a wchar_t.
+			 * <p/>
+			 * <b>Note:</b> When setting the parameter, this class doesn't check for
+			 * the validity of the named parameter against federate's SOM
+			 *
+			 * @param parameterName the name of the parameter SOM
+			 * @param val the value of the parameter
+			 */
+			void setValue( const std::string& parameterName, const wchar_t val );
+
+			/**
+			 * Sets the value of a named parameter to a char.
+			 * <p/>
+			 * <b>Note:</b> When setting the parameter, this class doesn't check for
+			 * the validity of the named parameter against federate's SOM. Also this will
+			 * use a `byte' encoder internally.
+			 *
+			 * @param parameterName the name of the parameter SOM
+			 * @param val the value of the parameter
+			 */
+			void setValueAsByte( const std::string& parameterName, const char val );
+
+			/**
 			 * Sets the value of a named parameter to a short.
 			 * <p/>
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
@@ -159,6 +182,17 @@ namespace base
 			void setValue( const std::string& parameterName, const std::string& val );
 
 			/**
+			 * Sets the value of a named parameter to a val.
+			 * <p/>
+			 * <b>Note:</b> When setting the parameter, this class doesn't check for
+			 * the validity of the named parameter against federate's SOM
+			 *
+			 * @param parameterName the name of the parameter as in SOM
+			 * @param val the value of the parameter
+			 */
+			void setValue( const std::string& parameterName, const std::wstring& val );
+
+			/**
 			 * Sets the value of a named parameter to a void pointer type.
 			 * <p/>
 			 * <b>Note:</b> When setting the parameter, this class doesn't check for
@@ -189,6 +223,26 @@ namespace base
 			 */
 			char getAsChar( const std::string& parameterName ) const;
 			
+			/**
+			 * Returns the value of a named parameter as a wchar_t.
+			 * <p/>
+			 * If the named parameter cannot be found an empty char will be returned.
+			 *
+			 * @param parameterName the name of the parameter
+			 * @return the value of the parameter
+			 */
+			wchar_t getAsWChar( const std::string& parameterName ) const;
+
+			/**
+			 * Returns the value of a named parameter as a char.
+			 * <p/>
+			 * If the named parameter cannot be found an empty char will be returned.
+			 *
+			 * @param parameterName the name of the parameter
+			 * @return the value of the parameter
+			 */
+			char getAsByte( const std::string& parameterName ) const;
+
 			/**
 			 * Returns the value of a named parameter as a short.
 			 * <p/>
@@ -249,6 +303,17 @@ namespace base
 			 * @return the value of the parameter
 			 */
 			std::string getAsString( const std::string& parameterName ) const;
+
+			/**
+			 * Returns the value of a named parameter as a wide string.
+			 * <p/>
+			 * If the named parameter cannot be found an empty string
+			 * will be returned.
+			 *
+			 * @param parameterName the name of the parameter
+			 * @return the value of the parameter
+			 */
+			std::wstring getAsWString( const std::string& parameterName ) const;
 
 			/**
 			 * Returns the value of a named parameter as a VariableData.
