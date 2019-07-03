@@ -169,12 +169,9 @@ namespace base
 			 * the validity of the named attribute against federate's SOM
 			 *
 			 * @param attributeName the name of the attribute as in SOM
-			 * @param data the value of the attribute
-			 * @param size size of the data
+			 * @param data VariableData value that holds encoded data
 			 */
-			void setValue( const std::string& attributeName,
-			               std::shared_ptr<void> data,
-			               const size_t size );
+			void setValue( const std::string& attributeName, VariableData& data );
 
 			/**
 			 * Sets the unique instance id of this HLA object.

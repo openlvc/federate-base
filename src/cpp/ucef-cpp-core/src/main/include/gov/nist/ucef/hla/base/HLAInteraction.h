@@ -165,12 +165,9 @@ namespace base
 			 * the validity of the named parameter against federate's SOM
 			 *
 			 * @param parameterName the name of the parameter as in SOM
-			 * @param data the value of the parameter
-			 * @param size size of the data
+			 * @param data VariableData value that holds encoded data
 			 */
-			void setValue( const std::string& parameterName,
-			               std::shared_ptr<void> data,
-			               const size_t size );
+			void setValue( const std::string& parameterName, VariableData& data );
 
 			/**
 			 * Returns the value of a named parameter as a bool.

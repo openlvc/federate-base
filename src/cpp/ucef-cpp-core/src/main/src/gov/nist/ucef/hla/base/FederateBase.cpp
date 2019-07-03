@@ -124,7 +124,13 @@ namespace base
 				const void* data = incomingAttributeValue.second.data();
 				shared_ptr<void> arr(new char[size](), [](char *p) { delete [] p; });
 				memcpy( arr.get(), data, size );
-				hlaObject->setValue( attName, arr, size );
+
+				// Now create a variable data and set it in the object
+				VariableData vData;
+				vData.size = size;
+				vData.data = arr;
+
+				hlaObject->setValue( attName, vData );
 			}
 			receivedAttributeReflection( const_pointer_cast<const HLAObject>(hlaObject),
 			                             federateAmbassador->getFederateTime() );
@@ -365,7 +371,13 @@ namespace base
 			const void* data = incomingParameterValue.second.data();
 			shared_ptr<void> arr(new char[size](), [](char *p) { delete[] p; });
 			memcpy( arr.get(), data, size );
-			hlaInteraction->setValue( paramName, arr, size );
+
+			// Now create a variable data and set it in the interaction
+			VariableData vData;
+			vData.size = size;
+			vData.data = arr;
+
+			hlaInteraction->setValue( paramName, vData );
 		}
 	}
 
