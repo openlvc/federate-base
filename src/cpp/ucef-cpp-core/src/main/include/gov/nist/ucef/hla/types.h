@@ -84,6 +84,7 @@ namespace base
 	{
 		DATATYPEBYTE,
 		DATATYPECHAR,
+		DATATYPEWCHAR,
 		DATATYPESHORT,
 		DATATYPEINT,
 		DATATYPELONG,
@@ -91,6 +92,7 @@ namespace base
 		DATATYPEDOUBLE,
 		DATATYPEBOOLEAN,
 		DATATYPESTRING,
+		DATATYPEWSTRING,
 		DATATYPEUNKNOWN
 	};
 
@@ -288,41 +290,49 @@ namespace base
 				static DataType toEnumDataType( const std::string& dataTypeString )
 				{
 					DataType dataType = DataType::DATATYPEUNKNOWN;
-					if( dataTypeString == "byte" )
+					if( dataTypeString == "HLAbyte" )
 					{
 						dataType = DataType::DATATYPEBYTE;
 					}
-					else if( dataTypeString == "char" )
+					else if( dataTypeString == "HLAASCIIchar" )
 					{
 						dataType = DataType::DATATYPECHAR;
 					}
-					else if( dataTypeString == "short" )
+					else if( dataTypeString == "HLAunicodeChar" )
+					{
+						dataType = DataType::DATATYPEWCHAR;
+					}
+					else if( dataTypeString == "HLAinteger16BE" )
 					{
 						dataType = DataType::DATATYPESHORT;
 					}
-					else if( dataTypeString == "int" )
+					else if( dataTypeString == "HLAinteger32BE" )
 					{
 						dataType = DataType::DATATYPEINT;
 					}
-					else if( dataTypeString == "long" )
+					else if( dataTypeString == "HLAinteger64BE" )
 					{
 						dataType = DataType::DATATYPELONG;
 					}
-					else if( dataTypeString == "float" )
+					else if( dataTypeString == "HLAfloat32BE" )
 					{
 						dataType = DataType::DATATYPEFLOAT;
 					}
-					else if( dataTypeString == "double" )
+					else if( dataTypeString == "HLAfloat64BE" )
 					{
 						dataType = DataType::DATATYPEDOUBLE;
 					}
-					else if( dataTypeString == "boolean" )
+					else if( dataTypeString == "HLAboolean" )
 					{
 						dataType = DataType::DATATYPEBOOLEAN;
 					}
-					else if( dataTypeString == "String" )
+					else if( dataTypeString == "HLAASCIIstring" )
 					{
 						dataType = DataType::DATATYPESTRING;
+					}
+					else if( dataTypeString == "HLAunicodeString" )
+					{
+						dataType = DataType::DATATYPEWSTRING;
 					}
 					return dataType;
 				}
@@ -338,39 +348,47 @@ namespace base
 					std::string dataTypeStr = "unknown";
 					if( dataType == DataType::DATATYPEBYTE )
 					{
-						dataTypeStr = "byte";
+						dataTypeStr = "HLAbyte";
 					}
 					else if( dataType == DataType::DATATYPECHAR )
 					{
-						dataTypeStr = "char";
+						dataTypeStr = "HLAASCIIchar";
+					}
+					else if( dataType == DataType::DATATYPEWCHAR )
+					{
+						dataTypeStr = "HLAunicodeChar";
 					}
 					else if( dataType == DataType::DATATYPESHORT )
 					{
-						dataTypeStr = "short";
+						dataTypeStr = "HLAinteger16BE";
 					}
 					else if( dataType == DataType::DATATYPEINT )
 					{
-						dataTypeStr = "int";
+						dataTypeStr = "HLAinteger32BE";
 					}
 					else if( dataType == DataType::DATATYPELONG )
 					{
-						dataTypeStr = "long";
+						dataTypeStr = "HLAinteger64BE";
 					}
 					else if( dataType == DataType::DATATYPEFLOAT )
 					{
-						dataTypeStr = "float";
+						dataTypeStr = "HLAfloat32BE";
 					}
 					else if( dataType == DataType::DATATYPEDOUBLE )
 					{
-						dataTypeStr = "double";
+						dataTypeStr = "HLAfloat64BE";
 					}
 					else if( dataType == DataType::DATATYPEBOOLEAN )
 					{
-						dataTypeStr = "boolean";
+						dataTypeStr = "HLAboolean";
 					}
 					else if( dataType == DataType::DATATYPESTRING )
 					{
-						dataTypeStr = "String";
+						dataTypeStr = "HLAASCIIstring";
+					}
+					else if( dataType == DataType::DATATYPEWSTRING )
+					{
+						dataTypeStr = "HLAunicodeString";
 					}
 					return dataTypeStr;
 				}

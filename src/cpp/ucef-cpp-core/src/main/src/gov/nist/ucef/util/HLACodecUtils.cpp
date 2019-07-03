@@ -35,62 +35,91 @@ using namespace rti1516e;
 using namespace std;
 
 HLAboolean HLACodecUtils::hlaBoolHelper;
+HLAbyte HLACodecUtils::hlaByteHelper;
 HLAASCIIchar HLACodecUtils::hlaCharHelper;
+HLAunicodeChar HLACodecUtils::hlaWCharHelper;
 HLAinteger16BE HLACodecUtils::hlaShortHelper;
 HLAinteger32BE HLACodecUtils::hlaIntHelper;
 HLAinteger64BE HLACodecUtils::hlaLongHelper;
 HLAfloat32BE HLACodecUtils::hlaFloatHelper;
 HLAfloat64BE HLACodecUtils::hlaDoubleHelper;
 HLAASCIIstring HLACodecUtils::hlaStringHelper;
+HLAunicodeString HLACodecUtils::hlaWStringHelper;
 
 VariableData HLACodecUtils::setAsBool( const bool val )
 {
 	hlaBoolHelper.set( val );
 	VariableLengthData vData = hlaBoolHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
-
 }
+
+VariableData HLACodecUtils::setAsByte( const char val )
+{
+	hlaByteHelper.set( val );
+	VariableLengthData vData = hlaByteHelper.encode();
+	return HLACodecUtils::getVariableData( vData );
+}
+
 VariableData HLACodecUtils::setAsChar( const char val )
 {
 	hlaCharHelper.set( val );
 	VariableLengthData vData = hlaCharHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
-
 }
+
+VariableData HLACodecUtils::setAsWChar( const wchar_t val )
+{
+	hlaWCharHelper.set( val );
+	VariableLengthData vData = hlaWCharHelper.encode();
+	return HLACodecUtils::getVariableData( vData );
+}
+
 VariableData HLACodecUtils::setAsShort( const short val )
 {
 	hlaShortHelper.set( val );
 	VariableLengthData vData = hlaShortHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
+
 VariableData HLACodecUtils::setAsInt( const int val )
 {
 	hlaIntHelper.set( val );
 	VariableLengthData vData = hlaIntHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
+
 VariableData HLACodecUtils::setAsLong( const long val )
 {
 	hlaLongHelper.set( val );
 	VariableLengthData vData = hlaLongHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
+
 VariableData HLACodecUtils::setAsFloat( const float val )
 {
 	hlaFloatHelper.set( val );
 	VariableLengthData vData = hlaFloatHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
+
 VariableData HLACodecUtils::setAsDouble( const double val )
 {
 	hlaDoubleHelper.set( val );
 	VariableLengthData vData = hlaDoubleHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
+
 VariableData HLACodecUtils::setAsString( const string& val )
 {
 	hlaStringHelper.set( val );
 	VariableLengthData vData = hlaStringHelper.encode();
+	return HLACodecUtils::getVariableData( vData );
+}
+
+VariableData HLACodecUtils::setAsWString( const wstring& val )
+{
+	hlaWStringHelper.set( val );
+	VariableLengthData vData = hlaWStringHelper.encode();
 	return HLACodecUtils::getVariableData( vData );
 }
 
@@ -101,11 +130,25 @@ bool HLACodecUtils::getAsBool( const VariableData& val )
 	 return hlaBoolHelper.get();
 }
 
+char HLACodecUtils::getAsByte( const VariableData& data )
+{
+	 VariableLengthData vData( data.data.get(), data.size );
+	 hlaByteHelper.decode( vData );
+	 return hlaByteHelper.get();
+}
+
 char HLACodecUtils::getAsChar( const VariableData& data )
 {
 	 VariableLengthData vData( data.data.get(), data.size );
 	 hlaCharHelper.decode( vData );
 	 return hlaCharHelper.get();
+}
+
+wchar_t HLACodecUtils::getAsWChar( const VariableData& data )
+{
+	 VariableLengthData vData( data.data.get(), data.size );
+	 hlaWCharHelper.decode( vData );
+	 return hlaWCharHelper.get();
 }
 
 short HLACodecUtils::getAsShort( const VariableData& data )
@@ -149,6 +192,13 @@ string HLACodecUtils::getAsString( const VariableData& data )
 	 VariableLengthData vData( data.data.get(), data.size );
 	 hlaStringHelper.decode( vData );
 	 return hlaStringHelper.get();
+}
+
+wstring HLACodecUtils::getAsWString( const VariableData& data )
+{
+	 VariableLengthData vData( data.data.get(), data.size );
+	 hlaWStringHelper.decode( vData );
+	 return hlaWStringHelper.get();
 }
 
 VariableData HLACodecUtils::getVariableData( VariableLengthData& vData  )

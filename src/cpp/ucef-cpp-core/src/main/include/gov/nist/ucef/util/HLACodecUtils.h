@@ -42,33 +42,42 @@ namespace base
 		{
 			public:
 				static VariableData setAsBool( const bool val );
+				static VariableData setAsByte( const char val );
 				static VariableData setAsChar( const char val );
+				static VariableData setAsWChar( const wchar_t val );
 				static VariableData setAsShort( const short val );
 				static VariableData setAsInt( const int val );
 				static VariableData setAsLong( const long val );
 				static VariableData setAsFloat( const float val );
 				static VariableData setAsDouble( const double val );
 				static VariableData setAsString( const std::string& val );
+				static VariableData setAsWString( const std::wstring& val );
 
 				static bool getAsBool( const VariableData& data );
+				static char getAsByte( const VariableData& data );
 				static char getAsChar( const VariableData& data );
+				static wchar_t getAsWChar( const VariableData& data );
 				static short getAsShort( const VariableData& data );
 				static int getAsInt( const VariableData& data );
 				static long getAsLong( const VariableData& data );
 				static float getAsFloat( const VariableData& data );
 				static double getAsDouble( const VariableData& data );
 				static std::string getAsString( const VariableData& data );
+				static std::wstring getAsWString( const VariableData& data );
 			private:
 				static VariableData getVariableData( rti1516e::VariableLengthData& vData );
 
 				static rti1516e::HLAboolean hlaBoolHelper;
+				static rti1516e::HLAbyte hlaByteHelper;
 				static rti1516e::HLAASCIIchar hlaCharHelper;
+				static rti1516e::HLAunicodeChar hlaWCharHelper;
 				static rti1516e::HLAinteger16BE hlaShortHelper;
 				static rti1516e::HLAinteger32BE hlaIntHelper;
 				static rti1516e::HLAinteger64BE hlaLongHelper;
 				static rti1516e::HLAfloat32BE hlaFloatHelper;
 				static rti1516e::HLAfloat64BE hlaDoubleHelper;
 				static rti1516e::HLAASCIIstring hlaStringHelper;
+				static rti1516e::HLAunicodeString hlaWStringHelper;
 		};
 
 	}

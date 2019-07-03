@@ -56,58 +56,66 @@ namespace base
 	{
 		VariableData data = HLACodecUtils::setAsBool( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<bool>(val), sizeof(bool) );
 	}
 
 	void HLAObject::setValue( const string& attributeName, const char val )
 	{
 		VariableData data = HLACodecUtils::setAsChar( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<char>(val), sizeof(char) );
+	}
+
+	void HLAObject::setValue( const string& attributeName, const wchar_t val )
+	{
+		VariableData data = HLACodecUtils::setAsWChar( val );
+		setValue( attributeName, data );
+	}
+
+	void HLAObject::setValueAsByte( const string& attributeName, const char val )
+	{
+		VariableData data = HLACodecUtils::setAsByte( val );
+		setValue( attributeName, data );
 	}
 
 	void HLAObject::setValue( const string& attributeName, short val )
 	{
 		VariableData data = HLACodecUtils::setAsShort( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<short>(val), sizeof(short));
 	}
 
 	void HLAObject::setValue( const string& attributeName, int val )
 	{
 		VariableData data = HLACodecUtils::setAsInt( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<int>(val), sizeof(int) );
 	}
 
 	void HLAObject::setValue( const string& attributeName, long val )
 	{
 		VariableData data = HLACodecUtils::setAsLong( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<long>(val), sizeof(long) );
 	}
 
 	void HLAObject::setValue( const string& attributeName, float val )
 	{
 		VariableData data = HLACodecUtils::setAsFloat( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<float>(val), sizeof(float) );
 	}
 
 	void HLAObject::setValue( const string& attributeName, double val )
 	{
 		VariableData data = HLACodecUtils::setAsDouble( val );
 		setValue( attributeName, data );
-		//setValue( attributeName, make_shared<double>(val), sizeof(double) );
 	}
 
 	void HLAObject::setValue( const string& attributeName, const string& val )
 	{
 		VariableData data = HLACodecUtils::setAsString( val );
 		setValue( attributeName, data );
-		//shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
-		//strcpy(arr.get(), val.c_str());
-		//setValue( attributeName, arr, val.length() + 1 );
+	}
+
+	void HLAObject::setValue( const string& attributeName, const wstring& val )
+	{
+		VariableData data = HLACodecUtils::setAsWString( val );
+		setValue( attributeName, data );
 	}
 
 	void HLAObject::setValue( const string& attributeName, VariableData& data  )
@@ -133,94 +141,66 @@ namespace base
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsBool( data );
-		/*if( sizeof(bool) > data.size )
-			throw UCEFDataTypeException( "Value of " + attributeName + " cannot convert to a Bool type" );
+	}
 
-		if( data.data )
-			return *( (bool *)data.data.get() );
-		return false;*/
+	char HLAObject::getAsByte( const string& attributeName ) const
+	{
+		VariableData data = getRawValue( attributeName );
+		return HLACodecUtils::getAsByte( data );
 	}
 
 	char HLAObject::getAsChar( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsChar( data );
-		/*if( sizeof(char) > data.size )
-			throw UCEFDataTypeException( "Value of " + attributeName + "cannot convert to a Char type" );
+	}
 
-		if( data.data )
-			return *( (char *)data.data.get() );
-		return (char) 0;*/
+	wchar_t HLAObject::getAsWChar( const string& attributeName ) const
+	{
+		VariableData data = getRawValue( attributeName );
+		return HLACodecUtils::getAsWChar( data );
 	}
 
 	short HLAObject::getAsShort( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsShort( data );
-//		if( sizeof(short) > data.size )
-//			throw UCEFDataTypeException( "Value of " + attributeName + "cannot convert to a Short type" );
-//
-//		if( data.data )
-//			return *( (short *)data.data.get() );
-//		return 0;
 	}
 
 	int HLAObject::getAsInt( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsInt( data );
-//		if( sizeof(int) > data.size )
-//			throw UCEFDataTypeException( "Value of " + attributeName + " cannot convert to an Int type" );
-//
-//		if( data.data )
-//			return *( (int *)data.data.get() );
-//		return 0;
 	}
 
 	long HLAObject::getAsLong( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsLong( data );
-//		if( sizeof(long) > data.size )
-//			throw UCEFDataTypeException( "Value of " + attributeName + " cannot convert to a Long type" );
-//
-//		if( data.data )
-//			return *( (long *)data.data.get() );
-//		return 0;
 	}
 
 	float HLAObject::getAsFloat( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsFloat( data );
-//		if( sizeof(float) > data.size )
-//			throw UCEFDataTypeException( "Value of " + attributeName + " cannot convert to a Float type" );
-//
-//		if( data.data )
-//			return *( (float *)data.data.get() );
-//		return 0.0f;
 	}
 
 	double HLAObject::getAsDouble( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsDouble( data );
-//		if( sizeof(double) > data.size )
-//			throw UCEFDataTypeException( "Value of " + attributeName + "cannot convert to a Double type" );
-//
-//		if( data.data )
-//			return *( (double *)data.data.get() );
-//		return 0.0;
 	}
 
 	string HLAObject::getAsString( const string& attributeName ) const
 	{
 		VariableData data = getRawValue( attributeName );
 		return HLACodecUtils::getAsString( data );
-//		if( data.data )
-//			return string( (char *)data.data.get() );
-//
-//		return "";
+	}
+
+	wstring HLAObject::getAsWString( const string& attributeName ) const
+	{
+		VariableData data = getRawValue( attributeName );
+		return HLACodecUtils::getAsWString( data );
 	}
 
 	VariableData HLAObject::getRawValue( const string& attributeName ) const

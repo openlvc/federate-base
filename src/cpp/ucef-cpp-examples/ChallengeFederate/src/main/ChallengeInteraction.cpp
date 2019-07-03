@@ -1,6 +1,8 @@
 #include "ChallengeInteraction.h"
 
-using namespace base;
+#include "gov/nist/ucef/hla/types.h"
+
+using namespace base::util;
 using namespace std;
 
 ChallengeInteraction::ChallengeInteraction( shared_ptr<const HLAInteraction> hlaInteraction ) : HLAInteraction( *hlaInteraction)
@@ -17,7 +19,7 @@ ChallengeInteraction::~ChallengeInteraction()
 
 void ChallengeInteraction::setChallengeId( string& id )
 {
-	setValue( "challengeId", id );
+	setValue( "challengeId", ConversionHelper::s2ws(id) );
 }
 
 void ChallengeInteraction::setBeginIndex( int beginIndex )
@@ -27,12 +29,12 @@ void ChallengeInteraction::setBeginIndex( int beginIndex )
 
 void ChallengeInteraction::setStringValue( string& textValue )
 {
-	setValue( "stringValue", textValue );
+	setValue( "stringValue", ConversionHelper::s2ws(textValue) );
 }
 
 string ChallengeInteraction::getChallengeId()
 {
-	return getAsString( "challengeId" );
+	return ConversionHelper::ws2s( getAsWString("challengeId") );
 }
 
 int ChallengeInteraction::getBeginIndex()
@@ -42,5 +44,5 @@ int ChallengeInteraction::getBeginIndex()
 
 string ChallengeInteraction::getStringValue()
 {
-	return getAsString( "stringValue" );
+	return ConversionHelper::ws2s( getAsWString("stringValue") );
 }

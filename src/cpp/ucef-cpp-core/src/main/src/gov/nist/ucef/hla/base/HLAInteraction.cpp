@@ -46,58 +46,66 @@ namespace base
 	{
 		VariableData data = HLACodecUtils::setAsBool( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<bool>(val), sizeof(bool) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, const char val )
 	{
 		VariableData data = HLACodecUtils::setAsChar( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<char>(val), sizeof(char) );
+	}
+
+	void HLAInteraction::setValue( const string& parameterName, const wchar_t val )
+	{
+		VariableData data = HLACodecUtils::setAsWChar( val );
+		setValue( parameterName, data );
+	}
+
+	void HLAInteraction::setValueAsByte( const string& parameterName, const char val )
+	{
+		VariableData data = HLACodecUtils::setAsByte( val );
+		setValue( parameterName, data );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, short val )
 	{
 		VariableData data = HLACodecUtils::setAsShort( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<short>(val), sizeof(short) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, int val )
 	{
 		VariableData data = HLACodecUtils::setAsInt( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<int>(val), sizeof(int) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, long val )
 	{
 		VariableData data = HLACodecUtils::setAsLong( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<long>(val), sizeof(long) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, float val )
 	{
 		VariableData data = HLACodecUtils::setAsFloat( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<float>(val), sizeof(float) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, double val )
 	{
 		VariableData data = HLACodecUtils::setAsDouble( val );
 		setValue( parameterName, data );
-		//setValue( parameterName, make_shared<double>(val), sizeof(double) );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, const string& val )
 	{
 		VariableData data = HLACodecUtils::setAsString( val );
 		setValue( parameterName, data );
-		//shared_ptr<char> arr(new char[val.length() + 1](), [](char *p) { delete [] p; });
-		//strcpy(arr.get(), val.c_str());
-		//setValue( parameterName, arr, val.length() + 1 );
+	}
+
+	void HLAInteraction::setValue( const string& parameterName, const wstring& val )
+	{
+		VariableData data = HLACodecUtils::setAsWString( val );
+		setValue( parameterName, data );
 	}
 
 	void HLAInteraction::setValue( const string& parameterName, VariableData& data )
@@ -117,98 +125,66 @@ namespace base
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsBool( data );
-//		if( sizeof(bool) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Bool type" );
-//
-//		if( data.data )
-//			return *( (bool *)data.data.get() );
-//		return false;
 	}
 
 	char HLAInteraction::getAsChar( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsChar( data );
-//		if( sizeof(char) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Char type" );
-//
-//		if( data.data )
-//			return *( (char *)data.data.get() );
-//
-//		return (char) 0;
+	}
+
+	wchar_t HLAInteraction::getAsWChar( const string& parameterName ) const
+	{
+		VariableData data = getRawValue( parameterName );
+		return HLACodecUtils::getAsWChar( data );
+	}
+
+	char HLAInteraction::getAsByte( const string& parameterName ) const
+	{
+		VariableData data = getRawValue( parameterName );
+		return HLACodecUtils::getAsByte( data );
 	}
 
 	short HLAInteraction::getAsShort( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsShort( data );
-//		if( sizeof(short) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Short type" );
-//
-//		if( data.data )
-//			return *( (short *)data.data.get() );
-//		return 0;
 	}
 
 	int HLAInteraction::getAsInt( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsInt( data );
-//		if( sizeof(int) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to an Int type" );
-//
-//		if( data.data )
-//			return *( (int *)data.data.get() );
-//
-//		return 0;
 	}
 
 	long HLAInteraction::getAsLong( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsLong( data );
-//		if( sizeof(long) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Long type" );
-//
-//		if( data.data )
-//			return *( (long *)data.data.get() );
-//
-//		return 0;
 	}
 
 	float HLAInteraction::getAsFloat( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsFloat( data );
-//		if( sizeof(float) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Float type" );
-//
-//		if( data.data )
-//			return *( (float *)data.data.get() );
-//
-//		return 0.0f;
 	}
 
 	double HLAInteraction::getAsDouble( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsDouble( data );
-//		if( sizeof(double) > data.size )
-//			throw UCEFDataTypeException( "Value of " + parameterName + " cannot convert to a Double type" );
-//
-//		if( data.data )
-//			return *( (double *)data.data.get() );
-//
-//		return 0.0;
 	}
 
 	string HLAInteraction::getAsString( const string& parameterName ) const
 	{
 		VariableData data = getRawValue( parameterName );
 		return HLACodecUtils::getAsString( data );
-//		if( data.data )
-//			return string( (char *)data.data.get() );
-//		return "";
+	}
+
+	wstring HLAInteraction::getAsWString( const string& parameterName ) const
+	{
+		VariableData data = getRawValue( parameterName );
+		return HLACodecUtils::getAsWString( data );
 	}
 
 	VariableData HLAInteraction::getRawValue( const string& parameterName ) const
