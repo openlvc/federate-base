@@ -1,8 +1,8 @@
 {
    "federateName":"CppChallengeFederate",
-   "federateType":"CppChallengeFederate",
-   "federationExecName":"ChallengeResponseFederate",
-   "canCreateFederation":true,
+   "federateType":"ChallengeFederate",
+   "federationExecName":"ChallengeResponseFederation",
+   "canCreateFederation":false,
    "maxJoinAttempts":2,
    "joinRetryIntervalSec":5,
    "syncBeforeResign":true,
@@ -11,11 +11,9 @@
    "stepSize":1,
    "timeConstrained":true,
    "timeRegulated":true,
-   "baseFomPaths":[
-      "resources//ChallengeResponse//fom//ChallengeResponse.xml"
-   ],
+   "baseFomPaths":[],
    "joinFomPaths":[
-
+      "resources//ChallengeResponse//fom//ChallengeResponse.xml"
    ],
    "somPaths":[
       "resources//ChallengeResponse//som//Challenge.xml"
