@@ -34,7 +34,7 @@ void ChallengeObject::setStringValue( string& textValue )
 
 string ChallengeObject::getChallengeId()
 {
-	return ConversionHelper::ws2s( getAsWString("challengeId") );
+	return ConversionHelper::ws2s( getAsWString(string("challengeId")) );
 }
 
 int ChallengeObject::getBeginIndex()
@@ -44,5 +44,5 @@ int ChallengeObject::getBeginIndex()
 
 string ChallengeObject::getStringValue()
 {
-	return ConversionHelper::ws2s( getAsWString("stringValue") );
+	return ConversionHelper::ws2s( getAsWString(string("stringValue")) );
 }

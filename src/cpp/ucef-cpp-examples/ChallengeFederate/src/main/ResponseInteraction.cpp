@@ -19,6 +19,16 @@ ResponseInteraction::~ResponseInteraction()
 {
 }
 
+void ResponseInteraction::setChallengeId( string& id )
+{
+	setValue( "challengeId", ConversionHelper::s2ws(id) );
+}
+
+void ResponseInteraction::setSubStringValue( string& textValue )
+{
+	setValue( "substring", ConversionHelper::s2ws(textValue) );
+}
+
 std::string ResponseInteraction::getChallengeId()
 {
 	return ConversionHelper::ws2s( getAsWString("challengeId") );
@@ -26,5 +36,5 @@ std::string ResponseInteraction::getChallengeId()
 
 std::string ResponseInteraction::getSubStringValue()
 {
-	return ConversionHelper::ws2s( getAsWString("substring") );
+	return ConversionHelper::ws2s( getAsWString(string("substring")) );
 }

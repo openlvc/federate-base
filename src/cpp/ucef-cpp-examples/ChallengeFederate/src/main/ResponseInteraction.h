@@ -42,6 +42,9 @@ public:
 
 	ResponseInteraction& operator=( const ResponseInteraction& ) = delete;
 
+	void setChallengeId( std::string& id );
+	void setSubStringValue( std::string& textValue );
+
 	std::string getChallengeId();
 	std::string getSubStringValue();
 };

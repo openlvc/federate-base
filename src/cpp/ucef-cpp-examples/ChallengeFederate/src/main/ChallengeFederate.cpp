@@ -209,7 +209,6 @@ bool ChallengeFederate::step( double federateTime )
 		sendChallengeObject = true;
 	}
 
-	// Process any responses received from Response federate
 	unique_lock<mutex> lock( mutexLock );
 	list<ResponseInteraction> responseCopy = responseInteractions;
 	responseInteractions.clear();
@@ -257,11 +256,13 @@ bool ChallengeFederate::step( double federateTime )
 			if( itSentInteractions != sentChallengeInteractions.end() )
 			{
 				foundSentItem = true;
+
 				bool valid = isCorrect( itSentInteractions->second->getStringValue(),
 										it->getSubStringValue(),
 										itSentInteractions->second->getBeginIndex());
 
 				if( valid ) PASS_COUNTER++;
+
 
 				string resultText = valid ? "CORRECT" : "INCORRECT";
 
